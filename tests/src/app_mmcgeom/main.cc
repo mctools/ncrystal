@@ -67,7 +67,9 @@ namespace {
     NCMMC::NeutronBasket b;
     initBasket( b, pos, dir );
     double res[1];
-    geom.distToVolumeEntry( b, res );
+    res[0] = -123.0;
+    geom.distToVolumeEntry( b, res, 0 );//0 is the offset.
+    REQUIRE(res[0] != -123.0);
     return res[0];
   }
 
@@ -78,7 +80,9 @@ namespace {
     NCMMC::NeutronBasket b;
     initBasket( b, pos, dir );
     double res[1];
+    res[0] = -123.0;
     geom.distToVolumeExit( b, res );
+    REQUIRE(res[0] != -123.0);
     return res[0];
   }
 
@@ -1330,7 +1334,7 @@ void testSphereCases2()
     }
     double buf[NCMMC::basket_N];
     auto geom = NCMMC::createGeometry( "sphere;r=10.0" );
-    geom->distToVolumeEntry( b, buf );
+    geom->distToVolumeEntry( b, buf, 0 );
     for ( std::size_t i = 0; i < n; ++i )
       REQUIREFLTEQ( buf[i], dist_to_entry[i]);
   }

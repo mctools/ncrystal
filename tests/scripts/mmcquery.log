@@ -30,15 +30,17 @@ Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","scenario"] (corre
 Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","scenario","1.8Aa"] (correct usage: ["mmc","scenario",CFGSTR,SCENARIOSTR])')
 
 >>> Sending query: ['mmc', 'scenario', 'Al_sg225.ncmat', '1.8Aa']
-{'enginecfg': '',
+{'cfgstr': 'Al_sg225.ncmat',
+ 'enginecfg': '',
  'geomcfg': 'sphere;r=0.0573025',
- 'short_title': '1.8Aa neutron on 0.000114605m diameter sphere',
+ 'short_title': '1.8Aa neutron on 11.4605cm diameter sphere',
  'srccfg': 'circular;z=-0.0573025;r=0.0573025;wl=1.8;n=1e6'}
 
 >>> Sending query: ['mmc', 'scenario', 'Al_sg225.ncmat', '']
-{'enginecfg': '',
+{'cfgstr': 'Al_sg225.ncmat',
+ 'enginecfg': '',
  'geomcfg': 'sphere;r=0.0530935',
- 'short_title': '3.74084Aa neutron on 0.000106187m diameter sphere',
+ 'short_title': '3.74084Aa neutron on 10.6187cm diameter sphere',
  'srccfg': 'circular;z=-0.0530935;r=0.0530935;wl=3.74084;n=1e6'}
 
 >>> Sending query: ['mmc', 'inspectcfg']

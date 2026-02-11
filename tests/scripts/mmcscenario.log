@@ -1,333 +1,576 @@
 
-Testing "1.0Aa on 2.0mm"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.001"
-  -> srccfg    = "circular;z=-0.001;r=0.001;wl=1;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1.0Aa on 2.0mm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1e-3Aa on 1e2mm"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.05"
-  -> srccfg    = "circular;z=-0.05;r=0.05;wl=0.001;n=1e6"
-  -> enginecfg = ""
+    -> short_title   = "1Aa neutron on 2mm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.001"
+    -> srccfg    = "circular;z=-0.001;r=0.001;wl=1;n=1e6"
+    -> enginecfg = ""
 
-Testing "1e-3 Aa on 1e2mm"
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "1e-3Aa on 1e2mm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "0.001Aa neutron on 100mm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.05"
+    -> srccfg    = "circular;z=-0.05;r=0.05;wl=0.001;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1e-3 Aa on 1e2mm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Invalid MiniMC scenario string: "1e-3 Aa on 1e2mm". Expected keyword "on" but got "Aa".')
 
-Testing "1e-3Aa on 1e2 mm"
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "1e-3Aa on 1e2 mm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Invalid MiniMC scenario string: "1e-3Aa on 1e2 mm". Unexpected parameter: "mm"')
 
-Testing "1.0 on 2.0mm"
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "1.0 on 2.0mm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Missing energy unit on "1.0". Possible units include Aa, meV, eV, kT (=kB*temperature), BT (=Bragg threshold in Aa, or 4Aa if not available).')
 
-Testing "1.0ergs on 2.0mm"
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "1.0ergs on 2.0mm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Invalid energy unit on "1.0ergs". Possible units include Aa, meV, eV, kT (=kB*temperature), BT (=Bragg threshold in Aa, or 4Aa if not available).')
 
-Testing "1.1BT on 2.0mm"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.001"
-  -> srccfg    = "circular;z=-0.001;r=0.001;wl=5.14366;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1.1BT on 2.0mm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1.8Aa on 0.5mfp"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.0286512"
-  -> srccfg    = "circular;z=-0.0286512;r=0.0286512;wl=1.8;n=1e6"
-  -> enginecfg = ""
+    -> short_title   = "5.14366Aa neutron on 2mm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.001"
+    -> srccfg    = "circular;z=-0.001;r=0.001;wl=5.14366;n=1e6"
+    -> enginecfg = ""
 
-Testing ""
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.0530935"
-  -> srccfg    = "circular;z=-0.0530935;r=0.0530935;wl=3.74084;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1.8Aa on 0.5mfp"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1.000e0kT"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.0573235"
-  -> srccfg    = "circular;z=-0.0573235;r=0.0573235;ekin=0.0252617;n=1e6"
-  -> enginecfg = ""
+    -> short_title   = "1.8Aa neutron on 57.3024mm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.0286512"
+    -> srccfg    = "circular;z=-0.0286512;r=0.0286512;wl=1.8;n=1e6"
+    -> enginecfg = ""
 
-Testing "2kT"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.059843"
-  -> srccfg    = "circular;z=-0.059843;r=0.059843;ekin=0.0505234;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = ""
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing ""
-  with matcfg "solid::Al/1gcm3"
-  -> geomcfg   = "sphere;r=0.1578695"
-  -> srccfg    = "circular;z=-0.1578695;r=0.1578695;ekin=0.0252617;n=1e6"
-  -> enginecfg = ""
+    -> short_title   = "3.74084Aa neutron on 10.6187cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.0530935"
+    -> srccfg    = "circular;z=-0.0530935;r=0.0530935;wl=3.74084;n=1e6"
+    -> enginecfg = ""
 
-Testing ""
-  with matcfg "solid::Al/1gcm3;temp=1K"
+>>> Testing
+  scenario = "1.000e0kT"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "25.2617meV neutron on 11.4647cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.0573235"
+    -> srccfg    = "circular;z=-0.0573235;r=0.0573235;ekin=0.0252617;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "2kT"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "50.5234meV neutron on 11.9686cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.059843"
+    -> srccfg    = "circular;z=-0.059843;r=0.059843;ekin=0.0505234;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = ""
+  cfgstr   = "solid::Al/1gcm3"
+
+    -> short_title   = "25.2617meV neutron on 31.5739cm diameter sphere"
+    -> cfgstr   = "solid::Al/1gcm3"
+    -> geomcfg   = "sphere;r=0.1578695"
+    -> srccfg    = "circular;z=-0.1578695;r=0.1578695;ekin=0.0252617;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = ""
+  cfgstr   = "solid::Al/1gcm3;temp=1K"
 NCrystal WARNING: Discarding 5 edges of provided kernel data due to missing S values.
-  -> geomcfg   = "sphere;r=0.1490995"
-  -> srccfg    = "circular;z=-0.1490995;r=0.1490995;ekin=8.61733e-05;n=1e6"
-  -> enginecfg = ""
 
-Testing ""
-  with matcfg "solid::Al/1gcm3;temp=1000K"
-  -> geomcfg   = "sphere;r=0.1578085"
-  -> srccfg    = "circular;z=-0.1578085;r=0.1578085;ekin=0.0861733;n=1e6"
-  -> enginecfg = ""
+    -> short_title   = "0.0861733meV neutron on 29.8199cm diameter sphere"
+    -> cfgstr   = "solid::Al/1gcm3;temp=1"
+    -> geomcfg   = "sphere;r=0.1490995"
+    -> srccfg    = "circular;z=-0.1490995;r=0.1490995;ekin=8.61733e-05;n=1e6"
+    -> enginecfg = ""
 
-Testing "1.8meV"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.50236"
-  -> srccfg    = "circular;z=-0.50236;r=0.50236;ekin=0.0018000000000000002;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = ""
+  cfgstr   = "solid::Al/1gcm3;temp=1000K"
 
-Testing "["
-  with matcfg "stdlib::Al_sg225.ncmat"
+    -> short_title   = "86.1733meV neutron on 31.5617cm diameter sphere"
+    -> cfgstr   = "solid::Al/1gcm3;temp=1000"
+    -> geomcfg   = "sphere;r=0.1578085"
+    -> srccfg    = "circular;z=-0.1578085;r=0.1578085;ekin=0.0861733;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1.8meV"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "1.8000000000000003meV neutron on 1.00472m diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.50236"
+    -> srccfg    = "circular;z=-0.50236;r=0.50236;ekin=0.0018000000000000002;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "["
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Forbidden character "[" in MiniMC scenario string: "["')
 
-Testing "4.0⌀ on 1mm"
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "4.0⌀ on 1mm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Forbidden character "\\x0-30" in MiniMC scenario string: "4.0⌀ on 1mm"')
 
-Testing "1.0Aa on 2.0mm"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.001"
-  -> srccfg    = "circular;z=-0.001;r=0.001;wl=1;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1.0Aa on 2.0mm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1.0Aa pencil on 2.0mm"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.001"
-  -> srccfg    = "constant;z=-0.00099999999999999;r=0.001;wl=1;n=1e6"
-  -> enginecfg = ""
+    -> short_title   = "1Aa neutron on 2mm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.001"
+    -> srccfg    = "circular;z=-0.001;r=0.001;wl=1;n=1e6"
+    -> enginecfg = ""
 
-Testing "1Aa on slab"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "box;dz=0.120919;dx=12091.9;dy=12091.9"
-  -> srccfg    = "constant;z=-0.0604594999999994;wl=1;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1.0Aa pencil on 2.0mm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "25meV on 2.0mm slab"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "box;dz=0.002;dx=200;dy=200"
-  -> srccfg    = "constant;z=-0.00099999999999999;ekin=0.025;n=1e6"
-  -> enginecfg = ""
+    -> short_title   = "1Aa neutron on 2mm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.001"
+    -> srccfg    = "constant;z=-0.00099999999999999;wl=1;n=1e6"
+    -> enginecfg = ""
 
-Testing "25meV pencil on 2.0mm slab"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "box;dz=0.002;dx=200;dy=200"
-  -> srccfg    = "constant;z=-0.00099999999999999;ekin=0.025;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1Aa on slab"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "  25meV_pencil_on:2.0mm:::slab:::_"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "box;dz=0.002;dx=200;dy=200"
-  -> srccfg    = "constant;z=-0.00099999999999999;ekin=0.025;n=1e6"
-  -> enginecfg = ""
+    -> short_title   = "1Aa neutron on 12.0919cm thick slab"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "slab;dz=0.0604595"
+    -> srccfg    = "constant;z=-0.0604595;wl=1;n=1e6"
+    -> enginecfg = ""
 
-Testing "1.8Aa on 0.5miles"
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "25meV on 2.0mm slab"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "25meV neutron on 2mm thick slab"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "slab;dz=0.001"
+    -> srccfg    = "constant;z=-0.001;ekin=0.025;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "25meV pencil on 2.0mm slab"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "25meV neutron on 2mm thick slab"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "slab;dz=0.001"
+    -> srccfg    = "constant;z=-0.001;ekin=0.025;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "  25meV_pencil_on:2.0mm:::slab:::_"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "25meV neutron on 2mm thick slab"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "slab;dz=0.001"
+    -> srccfg    = "constant;z=-0.001;ekin=0.025;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1.8Aa on 0.5miles"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('invalid length: "0.5miles". Must be a value followed by either the special unit "mfp" (mean-free-path between scatterings) or one of the standard length units: Aa, nm, mu, mm, cm, m')
 
-Testing "1.8Aa on 0.5e-3.2cm"
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "1.8Aa on 0.5e-3.2cm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Invalid thickness specification in "0.5e-3.2cm".')
 
-Testing "1eV on 1e-250Aa"
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "1eV on 1e-250Aa"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Could not determine suitable thickness from "1e-250Aa" (thickness is invalid or out of range)')
 
-Testing "1eV2 on 1mm"
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "1eV2 on 1mm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Invalid energy specification in "1eV2".')
 
-Testing "1eV on 1mm2"
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "1eV on 1mm2"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Invalid thickness specification in "1mm2".')
 
-Testing "1eV on 17"
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "1eV on 17"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Missing length unit on: "17". Accepts either the special unit "mfp" (mean-free-path between scatterings) or one of the standard length units: Aa, nm, mu, mm, cm, m')
 
-Testing "1Aa on"
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "1Aa on"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Invalid MiniMC scenario string: "1Aa on". Missing parameters after keyword "on".')
 
-Testing "1Aa on slab 1mm: "
-  with matcfg "stdlib::Al_sg225.ncmat"
+>>> Testing
+  scenario = "1Aa on slab 1mm: "
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Invalid MiniMC scenario string: "1Aa on slab 1mm: ". Unexpected parameter: "1mm"')
 
-Testing "1BT on 1mm"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.0005"
-  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=4.67605;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1BT on 1mm"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1BT on 1mm"
-  with matcfg "phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat&0.999*solid::Al/1gcm3>"
-  -> geomcfg   = "sphere;r=0.0005"
-  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=6.711;n=1e6"
-  -> enginecfg = ""
+    -> short_title   = "4.67605Aa neutron on 1mm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.0005"
+    -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=4.67605;n=1e6"
+    -> enginecfg = ""
 
-Testing "1BT on 1mm"
-  with matcfg "phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
-  -> geomcfg   = "sphere;r=0.0005"
-  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=6.711;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1BT on 1mm"
+  cfgstr   = "phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat&0.999*solid::Al/1gcm3>"
 
-Testing "1BT on 1mm"
-  with matcfg "phases<0.001*solid::Be/1gcm3;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
-  -> geomcfg   = "sphere;r=0.0005"
-  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=4;n=1e6"
-  -> enginecfg = ""
+    -> short_title   = "6.711Aa neutron on 1mm diameter sphere"
+    -> cfgstr   = "phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat;lcaxis=0,0,1&0.999*solid::Al/1gcm3>"
+    -> geomcfg   = "sphere;r=0.0005"
+    -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=6.711;n=1e6"
+    -> enginecfg = ""
 
-Testing "1kT on 1mm"
-  with matcfg "phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
+>>> Testing
+  scenario = "1BT on 1mm"
+  cfgstr   = "phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
+
+    -> short_title   = "6.711Aa neutron on 1mm diameter sphere"
+    -> cfgstr   = "phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat;lcaxis=0,0,1;temp=100&0.999*solid::Al/1gcm3;temp=200>"
+    -> geomcfg   = "sphere;r=0.0005"
+    -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=6.711;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1BT on 1mm"
+  cfgstr   = "phases<0.001*solid::Be/1gcm3;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
+
+    -> short_title   = "4Aa neutron on 1mm diameter sphere"
+    -> cfgstr   = "phases<0.001*solid::Be/1gcm3;temp=100&0.999*solid::Al/1gcm3;temp=200>"
+    -> geomcfg   = "sphere;r=0.0005"
+    -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=4;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1kT on 1mm"
+  cfgstr   = "phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
 Caught expected NCBadInput('Can not use kT as a unit for a multi-phase material without a single well-defined temperature.')
 
-Testing "1kT on 1mm"
-  with matcfg "phases<0.001*solid::Be/1gcm3;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
+>>> Testing
+  scenario = "1kT on 1mm"
+  cfgstr   = "phases<0.001*solid::Be/1gcm3;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
 Caught expected NCBadInput('Can not use kT as a unit for a multi-phase material without a single well-defined temperature.')
 
-Testing ""
-  with matcfg "phases<0.001*solid::Be/1gcm3;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
-  -> geomcfg   = "sphere;r=0.1567945"
-  -> srccfg    = "circular;z=-0.1567945;r=0.1567945;wl=1.8;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = ""
+  cfgstr   = "phases<0.001*solid::Be/1gcm3;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
 
-Testing "1BT on 1m"
-  with matcfg "void.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=4;n=1e6"
-  -> enginecfg = ""
+    -> short_title   = "1.8Aa neutron on 31.3589cm diameter sphere"
+    -> cfgstr   = "phases<0.001*solid::Be/1gcm3;temp=100&0.999*solid::Al/1gcm3;temp=200>"
+    -> geomcfg   = "sphere;r=0.1567945"
+    -> srccfg    = "circular;z=-0.1567945;r=0.1567945;wl=1.8;n=1e6"
+    -> enginecfg = ""
 
-Testing "1BT on 1mfp"
-  with matcfg "void.ncmat"
-  -> geomcfg   = "sphere;r=0.005"
-  -> srccfg    = "circular;z=-0.005;r=0.005;wl=4;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1BT on 1m"
+  cfgstr   = "void.ncmat"
 
-Testing "100 on 1m"
-  with matcfg "stdlib::Al_sg225.ncmat"
+    -> short_title   = "4Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "void.ncmat"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=4;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1BT on 1mfp"
+  cfgstr   = "void.ncmat"
+
+    -> short_title   = "4Aa neutron on 10mm diameter sphere"
+    -> cfgstr   = "void.ncmat"
+    -> geomcfg   = "sphere;r=0.005"
+    -> srccfg    = "circular;z=-0.005;r=0.005;wl=4;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "100 on 1m"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Missing energy unit on "100". Possible units include Aa, meV, eV, kT (=kB*temperature), BT (=Bragg threshold in Aa, or 4Aa if not available).')
 
-Testing "1Aa on 1m"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e6"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1Aa on 1m"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1000 1Aa on 1m"
-  with matcfg "stdlib::Al_sg225.ncmat"
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e6"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1000 1Aa on 1m"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 Caught expected NCBadInput('Invalid MiniMC scenario string: "1000 1Aa on 1m". Expected keyword "on" but got "1Aa".')
 
-Testing "1Aa on 1m 123400 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=123400"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1Aa on 1m 123400 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1Aa on 1m 1234000 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1234e3"
-  -> enginecfg = ""
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=123400"
+    -> enginecfg = ""
 
-Testing "1Aa on 1m 12340000 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1234e4"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1Aa on 1m 1234000 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1Aa on 1m 1 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1"
-  -> enginecfg = ""
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1234e3"
+    -> enginecfg = ""
 
-Testing "1Aa on 1m 999 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=999"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1Aa on 1m 12340000 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1Aa on 1m 1.2345e4 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=12345"
-  -> enginecfg = ""
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1234e4"
+    -> enginecfg = ""
 
-Testing "1Aa on 1m 10000000 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e7"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1Aa on 1m 1 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1Aa on 1m 1e7 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e7"
-  -> enginecfg = ""
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1"
+    -> enginecfg = ""
 
-Testing "1Aa on 1m 1000 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e3"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1Aa on 1m 999 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1Aa on 1m 1e+03 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e3"
-  -> enginecfg = ""
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=999"
+    -> enginecfg = ""
 
-Testing "1Aa on 1m 1.000 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1Aa on 1m 1.2345e4 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1Aa on 1m 1.000e-0 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1"
-  -> enginecfg = ""
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=12345"
+    -> enginecfg = ""
 
-Testing "1Aa on 1m times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-Caught expected NCBadInput('Invalid count specification "1m". Count must be a positive integral value (and at most 1e19).')
+>>> Testing
+  scenario = "1Aa on 1m 10000000 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1Aa on 1m 1e19 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e19"
-  -> enginecfg = ""
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e7"
+    -> enginecfg = ""
 
-Testing "1Aa on 1m 1.1e18 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-  -> geomcfg   = "sphere;r=0.5"
-  -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=11e17"
-  -> enginecfg = ""
+>>> Testing
+  scenario = "1Aa on 1m 1e7 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1Aa on 1m 1.1e19 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-Caught expected NCBadInput('Invalid count specification "1.1e19". Count must be a positive integral value (and at most 1e19).')
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e7"
+    -> enginecfg = ""
 
-Testing "1Aa on 1m 0 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-Caught expected NCBadInput('Invalid count specification "0". Count must be a positive integral value (and at most 1e19).')
+>>> Testing
+  scenario = "1Aa on 1m 1000 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "1Aa on 1m 100.4 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-Caught expected NCBadInput('Invalid count specification "100.4". Count must be a positive integral value (and at most 1e19).')
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e3"
+    -> enginecfg = ""
 
-Testing "1Aa on 1m -100 times"
-  with matcfg "stdlib::Al_sg225.ncmat"
-Caught expected NCBadInput('Invalid count specification "-100". Count must be a positive integral value (and at most 1e19).')
+>>> Testing
+  scenario = "1Aa on 1m 1e+03 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-Testing "3Aa on 1mm"
-  with matcfg "Ge_sg227.ncmat;mos=20.0arcmin;dir1=@crys_hkl:5,1,1@lab:0,0,1;dir2=@crys_hkl:0,-1,1@lab:0,1,0"
-  -> geomcfg   = "sphere;r=0.0005"
-  -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=3;n=1e5"
-  -> enginecfg = ""
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e3"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1Aa on 1m 1.000 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1Aa on 1m 1.000e-0 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1Aa on 1m times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+Caught expected NCBadInput('Invalid count specification "1m". Count must be a positive integral value (and at most 1e18).')
+
+>>> Testing
+  scenario = "1Aa on 1m 1e9 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e9"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1Aa on 1m 1e10 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e10"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1Aa on 1m 1e12 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e12"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1Aa on 1m 1e17 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e17"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1Aa on 1m 1.1e17 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=11e16"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1Aa on 1m 1e18 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e18"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1Aa on 1m 1.0e18 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "1Aa neutron on 100cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.5"
+    -> srccfg    = "circular;z=-0.5;r=0.5;wl=1;n=1e18"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1Aa on 1m 1e19 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+Caught expected NCBadInput('Invalid count specification "1e19". Count must be a positive integral value (and at most 1e18).')
+
+>>> Testing
+  scenario = "1Aa on 1m 1.1e19 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+Caught expected NCBadInput('Invalid count specification "1.1e19". Count must be a positive integral value (and at most 1e18).')
+
+>>> Testing
+  scenario = "1Aa on 1m 1.1e18 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+Caught expected NCBadInput('Invalid count specification "1.1e18". Count must be a positive integral value (and at most 1e18).')
+
+>>> Testing
+  scenario = "1Aa on 1m 0 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+Caught expected NCBadInput('Invalid count specification "0". Count must be a positive integral value (and at most 1e18).')
+
+>>> Testing
+  scenario = "1Aa on 1m 100.4 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+Caught expected NCBadInput('Invalid count specification "100.4". Count must be a positive integral value (and at most 1e18).')
+
+>>> Testing
+  scenario = "1Aa on 1m -100 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+Caught expected NCBadInput('Invalid count specification "-100". Count must be a positive integral value (and at most 1e18).')
+
+>>> Testing
+  scenario = "3Aa on 1mm"
+  cfgstr   = "Ge_sg227.ncmat;mos=20.0arcmin;dir1=@crys_hkl:5,1,1@lab:0,0,1;dir2=@crys_hkl:0,-1,1@lab:0,1,0"
+
+    -> short_title   = "3Aa neutron on 1mm diameter sphere"
+    -> cfgstr   = "Ge_sg227.ncmat;dir1=@crys_hkl:5,1,1@lab:0,0,1;dir2=@crys_hkl:0,-1,1@lab:0,1,0;mos=20.0arcmin"
+    -> geomcfg   = "sphere;r=0.0005"
+    -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=3;n=1e5"
+    -> enginecfg = ""

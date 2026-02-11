@@ -35,20 +35,29 @@ from NCTestUtils.env import ncsetenv
 import NCTestUtils.reprint_escaped_warnings # noqa F401
 
 def main(do_plot):
+
+    assert ( ncmmc_alt.runsim_diffraction_pattern
+             is ncmmc.runsim_diffraction_pattern )
+
     mmc_qdp = ncmmc.quick_diffraction_pattern
     assert ncmmc_alt.quick_diffraction_pattern is mmc_qdp
 
     if not do_plot:
         ncsetenv('FAKEPYPLOT','1')
 
-    pattern = mmc_qdp('AgBr_sg225_SilverBromide.ncmat;temp=200K',
+    #NB: Using "comp=", nthreads=None, nstat=1e3 for reproducible reflogs
+    pattern = mmc_qdp('AgBr_sg225_SilverBromide.ncmat;temp=200K;comp=',
                       neutron_energy = '1.8Aa',
-                      material_thickness = '1cm')
+                      material_thickness = '1cm',
+                      nstat=1e3,
+                      nthreads=1)
     pattern.plot_breakdown(rebin_factor=10,logy=True)
 
-    pattern = mmc_qdp('AgBr_sg225_SilverBromide.ncmat;temp=200K',
+    pattern = mmc_qdp('AgBr_sg225_SilverBromide.ncmat;temp=200K;comp=',
                       neutron_energy = '1 eV',
-                      material_thickness = '1 cm')
+                      material_thickness = '1 cm',
+                      nstat=1e3,
+                      nthreads=1)
     pattern.plot_breakdown(rebin_factor=50)
 
 if __name__ == '__main__':

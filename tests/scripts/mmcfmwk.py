@@ -22,12 +22,14 @@
 
 # NEEDS: numpy
 
-import NCrystalDev._mmc as ncmmc
-from NCrystalDev._mmc_results import MMCDiffractionResults as Results
+import NCrystalDev.minimc as ncmmc
 from NCTestUtils.env import ncsetenv
 import NCTestUtils.dirs as dirs
 
 def main(do_plot, do_update):
+    mmc_run = ncmmc.minimc_run
+    mmc_run_scen = ncmmc.minimc_run_scenario
+
     if not do_plot:
         ncsetenv('FAKEPYPLOT','1')
 
@@ -40,33 +42,73 @@ def main(do_plot, do_update):
     reffileA = datadir.joinpath('mmcfmwkA.json')
     reffileB = datadir.joinpath('mmcfmwkB.json')
 
-    resA = ncmmc.runsim_diffraction_pattern(
+
+    print("Run two MiniMC scenarios")
+
+    resA = mmc_run(
         cfgstr='Al_sg225.ncmat;comp=bragg;dcutoff=0.8',
         srccfg = 'constant;wl=1.8;z=-0.009999999;n=1e4',
         geomcfg = 'sphere;r=0.1',
-        nthreads = 1
-    ).rebin(50)
-    resB = ncmmc.quick_diffraction_pattern( 'Al_sg225.ncmat;comp=inelas',
-                                            neutron_energy = "2.0Aa",
-                                            material_thickness = "0.1mfp",
-                                            nthreads = 2,
-                                            nstat = 1e4).rebin(50).clone()
-    #Basic serialisation/deserialisation check:
+        enginecfg='nthreads=1;tally=mu;tallybins=mu:36:0:180'
+    )
+    resB = mmc_run_scen( 'Al_sg225.ncmat;comp=inelas',
+                         '2.0Aa on 0.1mfp 1e4 times',
+                         extra_engineopts = (';nthreads=2;tally=mu'
+                                             ';tallybins=mu:36:0:180') )
+
+    print("Basic serialisation/deserialisation check")
     j = resA.to_json()
     d = resA.to_dict()
-    res_j = Results.from_json(j)
-    res_d = Results.from_dict(d)
-    n = len(resA.histograms)
-    assert len(res_j.histograms) == n
-    assert len(res_d.histograms) == n
-    for i in range(n):
+    res_j = ncmmc.MMCResults(j)
+    res_d = ncmmc.MMCResults(d)
+
+    def assert_dict_same(d1,d2,_dir=''):
+        assert isinstance(d1,dict)
+        assert isinstance(d2,dict)
+        if not d1.keys()==d2.keys():
+            raise RuntimeError('Incompatible keys at lvl'
+                               '="%s": %s vs %s'%(_dir,
+                                                  d1.keys(),
+                                                  d2.keys()))
+        for k in d1.keys():
+            if d1[k] != d2[k]:
+                keyprint = k
+                if _dir:
+                    keyprint=_dir+'/'+keyprint
+                print('Issues with  key=%s'%keyprint)
+                if isinstance(d1[k],dict):
+                    assert_dict_same(d1[k],d2[k],_dir=_dir+'/%s'%k)
+                else:
+                    print(type(d1[k]))
+                    print(type(d2[k]))
+                    print('equal:',d1[k]==d2[k])
+                raise RuntimeError('Issues with key=%s'%keyprint)
+        assert d1 == d2
+
+    assert_dict_same(res_j.to_dict(), d)
+    assert_dict_same(res_d.to_dict(), d)
+    assert res_j.to_dict() == d
+    assert res_d.to_dict() == d
+    nt = len(resA.tallies)
+    assert len(res_j.tallies) == nt
+    assert len(res_d.tallies) == nt
+    tns = resA.tally_names
+    assert len(tns)==nt
+    for tn in tns:
         for r in [res_j,res_d]:
-            resA.histograms[i].check_compat(r.histograms[i],
-                                            threshold = 1.0,
-                                            check=True)
+            t1 = resA.tally(tn)
+            t2 = r.tally(tn)
+            h1 = t1.histograms
+            h2 = t2.histograms
+            assert h1.keys()==h2.keys()
+            assert 'SINGLESCAT_ELAS' in h1
+            assert 'total' in h1
+            for hk in h1.keys():
+                assert h1[hk] == h2[hk]
 
     #Rely on reference files, to check stability and to have stable output for
     #further testing:
+
     if do_update:
         reffileA.write_text(resA.to_json())
         print(f"Updated {reffileA}")
@@ -75,21 +117,12 @@ def main(do_plot, do_update):
         print("Aborting due to update")
         return
     #load refs and check compatibility:
-    resA_ref = Results.from_json(reffileA.read_text())
-    resB_ref = Results.from_json(reffileB.read_text())
 
-    def check_compat(h1,h2):
-        h1.check_compat( h2, check=True, threshold = 0.001 )
+    print("Loading reference files")
+    resA_ref = ncmmc.MMCResults(reffileA.read_text())
+    resB_ref = ncmmc.MMCResults(reffileB)
 
-    print("Verifying resA stability.")
-    check_compat(resA.histogram_main,resA_ref.histogram_main)
-    print("Verifying resB stability.")
-    check_compat(resB.histogram_main,resB_ref.histogram_main)
-    #Proceed with ref data, for stable values in printouts:
-    print("Done. Proceed with ref data.")
-    resA = resA_ref
-    resB = resB_ref
-
+    print("Test plotting code")
     def plotcmp( h, href, title ):
         href.plot(
             do_show=False,error_bands=1.0,
@@ -102,33 +135,64 @@ def main(do_plot, do_update):
         plt.legend()
         plt.grid()
         plt.show()
-    plotcmp( resA.histogram_main, resA_ref.histogram_main, 'A' )
-    plotcmp( resB.histogram_main, resB_ref.histogram_main, 'B' )
+    plotcmp( resA.tally('mu').hist_total, resA_ref.tally('mu').hist_total, 'A' )
+    if do_plot:
+        #resB fluctuates too much since nthreads=2, so should not leave plot
+        #curves in reflogs.
+        plotcmp( resB.tally('mu').hist_total,
+                 resB_ref.tally('mu').hist_total, 'B' )
 
-    resA.plot_breakdown(rebin_factor=2,logy=True)
-    resB.plot_breakdown(rebin_factor=2,logy=True)
+    #Note that Since A is generated with nthreads=1, we can in principle expect
+    #the same results if running again on the same machine. However, there are
+    #potential FP issues if changing platform, and B has nthreads=2 which ruins
+    #it even on the same platform. Thus, we will only check for statistical
+    #compatiblility with the reference files.
 
-    resA.plot(rebin_factor=2,logy=False)
-    resA.histogram_main.clone(rebin_factor=2).dump()
-    print("resA.histogram_main.title=%s"%repr(resA.histogram_main.title))
-    print(resA.histogram_titles)
-    h = resA.histogram_sum(select=['NOSCAT','MULTISCAT_PUREELAS'],
-                           exclude='SINGLESCAT_ELAS')
+    print("Verifying resA conversion stability.")
+    assert resA.check_compat( resA, threshold=1.0 ) is True
+    resA_ref2 = ncmmc.MMCResults(reffileA.read_bytes())
+    resA_ref3 = ncmmc.MMCResults(reffileA)
+    assert resA_ref._raw_data() == resA_ref2._raw_data()
+    assert resA_ref._raw_data() == resA_ref3._raw_data()
+
+    #Next check could in principle fail (but unlikely):
+    resA_ref.check_compat( resA, threshold=0.05, check=True )
+
+    print("Verifying resB conversion stability.")
+    assert resB.check_compat( resB, threshold=1.0 ) is True
+    assert resB_ref.check_compat( resB, threshold=0.01 ) is True
+
+    print("Verifying extreme check_compat.")
+    assert resA.check_compat( resA ) is True
+    assert resA.check_compat( resB, threshold=1.0 ) is False
+    assert resA.check_compat( resB, threshold=0.0 ) is False
+
+    print("Proceed with ref data only.")
+    resA = resA_ref
+    resB = resB_ref
+    del resA_ref
+    del resA_ref2
+    del resA_ref3
+    del resB_ref
+
+    print("More plotting code test")
+    resA.tally('mu').plot(rebin_factor=2,logy=True)
+    if do_plot:
+        #Again, resB with nthreads=2 give irreproducible plot curves:
+        resB.tally('mu').plot(rebin_factor=2,logy=True)
+    resA.tally('mu').plot(rebin_factor=2,logy=False)
+    print("Dump test")
+    resA.tally('mu').hist_total.clone(rebin_factor=2).dump()
+    print("resA.tally('mu').hist_total.title=%s"%repr(resA.tally('mu').hist_total.title))
+    print(resA.tally_names)
+    print("Sum test")
+    h = resA.tally('mu').histogram_sum(select=['NOSCAT','MULTISCAT_PUREELAS'],
+                                       exclude='SINGLESCAT_ELAS')
     h.clone(rebin_factor=2).plot(logy=True)
-    h = resA.histogram_sum(select='NOSCAT')
-    assert h is resA.histogram('NOSCAT')
-    assert resA.histogram_sum() is resA.histogram('MAIN')
-    assert resA.histogram_sum() is resA.histogram_main
-    print( [k for k in sorted(resA.histogram_breakdown.keys())] )
-
-
-    print(ncmmc.quick_diffraction_pattern_autoparams('Be_sg194.ncmat'))
-    for x in [0.0,1e-12, 1e-10, 2.123456789e-10, 1e-6, 2.123456789e-6, 1e-3,
-              2.123456789e-3, 1e-2, 2.123456789e-2, 1e-1, 2.123456789e-2,
-              1.0, 2.1234567893, 1004343.0 ]:
-        for r2d in [True,False]:
-            s=ncmmc._encode_length_to_str( x, round2digits=r2d )
-            print( 'format length=%.14g (m) round2=%i -> %s'%(x,r2d,repr(s)))
+    h = resA.tally('mu').histogram_sum(select='NOSCAT')
+    assert h is resA.tally('mu').histograms['NOSCAT']
+    assert resA.tally('mu').histogram_sum() is resA.tally('mu').hist_total
+    print( sorted(resA.tally('mu').hist_breakdown.keys()) )
 
 if __name__ == '__main__':
     import sys

@@ -649,6 +649,7 @@ Caught expected ArgumentError('argument --mc: expected 2 arguments')
 
 usage: nctool --mc SRCCFG GEOMCFG MATCFG
 
+FIXME update
 Invoke the embedded stepping Monte Carlo to display a 4pi diffraction pattern of
 neutrons going through a simple sample. SRCCFG describes the source of neutrons,
 GEOMCFG the shape of the sample volume, and MATCFG is a normal NCrystal
@@ -680,6 +681,7 @@ interactive plot being launched.
 
 usage: nctool --mc SRCCFG GEOMCFG MATCFG
 
+FIXME update
 Invoke the embedded stepping Monte Carlo to display a 4pi diffraction pattern of
 neutrons going through a simple sample. SRCCFG describes the source of neutrons,
 GEOMCFG the shape of the sample volume, and MATCFG is a normal NCrystal
@@ -708,8 +710,6 @@ interactive plot being launched.
 
 ===========================================
 ============= CLI >>--mc 2Aa 2cm 'Al_sg225.ncmat;temp=250K'<< ====================
-===========================================
-============= CLI >>--mc 'constant;wl=2' 'sphere;r=0.02' 'Al_sg225.ncmat;vdoslux=1;comp=inelas;inelas=0'<< ====================
 ===========================================
 ============= CLI >>--cfg 'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' --coh_elas<< ====================
 ==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"

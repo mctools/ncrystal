@@ -22,10 +22,10 @@
 
 # NEEDS: numpy
 
-import NCrystalDev._mmc as ncmmc #fixme update imports
+import NCrystalDev.minimc as ncmmc
 from NCrystalDev.core import NCBadInput
 from NCTestUtils.common import ensure_error
-import numpy#before fpe
+import numpy # noqa F401 (before fpe)
 import NCTestUtils.enable_fpe # noqa F401
 
 def testbad(cfgstr,scenario, expecterr):
@@ -33,8 +33,9 @@ def testbad(cfgstr,scenario, expecterr):
 
 def test(cfgstr,scenario, expecterr = None):
     print()
-    print(f'Testing "{scenario}"')
-    print(f'  with matcfg "{cfgstr}"')
+    print('>>> Testing')
+    print(f'  scenario = "{scenario}"')
+    print(f'  cfgstr   = "{cfgstr}"')
     def f():
         return ncmmc.minimc_decode_scenario( cfgstr, scenario )
 
@@ -46,14 +47,17 @@ def test(cfgstr,scenario, expecterr = None):
     assert isinstance(s,dict)
     assert all(isinstance(k,str) for k,v in s.items())
     assert all(isinstance(v,str) for k,v in s.items())
-    assert set(s.keys())==set(['cfgstr','geomcfg','srccfg','enginecfg'])
-    assert s['cfgstr'] == cfgstr
-    print('  -> geomcfg   = "%s"'%s['geomcfg'])
-    print('  -> srccfg    = "%s"'%s['srccfg'])
-    print('  -> enginecfg = "%s"'%s['enginecfg'])
+    assert set(s.keys())==set(['cfgstr','geomcfg','srccfg','enginecfg',
+                               'short_title'])
+    print()
+    print('    -> short_title   = "%s"'%s['short_title'])
+    print('    -> cfgstr   = "%s"'%s['cfgstr'])
+    print('    -> geomcfg   = "%s"'%s['geomcfg'])
+    print('    -> srccfg    = "%s"'%s['srccfg'])
+    print('    -> enginecfg = "%s"'%s['enginecfg'])
 
 def main():
-    c = 'stdlib::Al_sg225.ncmat'
+    c = 'stdlib:: Al_sg225.ncmat   ;temp=20 C'
     c_mp = ( 'phases<0.001*stdlib::C_sg194_pyrolytic_graphite.ncmat'
              '&0.999*solid::Al/1gcm3>' )
     c_sc = ("Ge_sg227.ncmat;mos=20.0arcmin"
@@ -92,9 +96,10 @@ def main():
     testbad(c,'[',
             'Forbidden character "[" in MiniMC scenario string: "["')
     weird_char = '\u2300'
+    weird_char_oslash= (b'\xe2\x8c\x80').decode('utf-8')
     testbad(c,f'4.0{weird_char} on 1mm',
             'Forbidden character "\\x0-30" in MiniMC scenario'
-            ' string: "4.0⌀ on 1mm"')
+            f' string: "4.0{weird_char_oslash} on 1mm"')
     test(c,'1.0Aa on 2.0mm')
     test(c,'1.0Aa pencil on 2.0mm')
     test(c,'1Aa on slab')
@@ -105,7 +110,7 @@ def main():
             'invalid length: "0.5miles". Must be a value followed by'
             ' either the special unit "mfp" (mean-free-path between'
             ' scatterings) or one of the standard length units: Aa, '
-            'nm, mu, mm, cm, m');
+            'nm, mu, mm, cm, m')
     testbad(c,'1.8Aa on 0.5e-3.2cm',
             'Invalid thickness specification in "0.5e-3.2cm".')
     testbad(c,'1eV on 1e-250Aa',
@@ -153,21 +158,32 @@ def main():
     test(c,'1Aa on 1m 1.000 times')
     test(c,'1Aa on 1m 1.000e-0 times')
     testbad(c,'1Aa on 1m times','Invalid count specification "1m". Count '
-            'must be a positive integral value (and at most 1e19).')
-    test(c,'1Aa on 1m 1e19 times')
-    test(c,'1Aa on 1m 1.1e18 times')
+            'must be a positive integral value (and at most 1e18).')
+    test(c,'1Aa on 1m 1e9 times')
+    test(c,'1Aa on 1m 1e10 times')
+    test(c,'1Aa on 1m 1e12 times')
+    test(c,'1Aa on 1m 1e17 times')
+    test(c,'1Aa on 1m 1.1e17 times')
+    test(c,'1Aa on 1m 1e18 times')
+    test(c,'1Aa on 1m 1.0e18 times')
+    testbad(c,'1Aa on 1m 1e19 times',
+            'Invalid count specification "1e19". Count must be a'
+            ' positive integral value (and at most 1e18).')
     testbad(c,'1Aa on 1m 1.1e19 times',
             'Invalid count specification "1.1e19". Count must be a'
-            ' positive integral value (and at most 1e19).')
+            ' positive integral value (and at most 1e18).')
+    testbad(c,'1Aa on 1m 1.1e18 times',
+            'Invalid count specification "1.1e18". Count must be a'
+            ' positive integral value (and at most 1e18).')
     testbad(c,'1Aa on 1m 0 times',
             'Invalid count specification "0". Count must be a'
-            ' positive integral value (and at most 1e19).')
+            ' positive integral value (and at most 1e18).')
     testbad(c,'1Aa on 1m 100.4 times',
             'Invalid count specification "100.4". Count must be a'
-            ' positive integral value (and at most 1e19).')
+            ' positive integral value (and at most 1e18).')
     testbad(c,'1Aa on 1m -100 times',
             'Invalid count specification "-100". Count must be a'
-            ' positive integral value (and at most 1e19).')
+            ' positive integral value (and at most 1e18).')
 
     test(c_sc,'3Aa on 1mm')
 

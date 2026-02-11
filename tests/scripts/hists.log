@@ -6,7 +6,7 @@ Library "TestMod_hists" (7 functions):
   void nctestdetail_clear_lasterror()
   const char * nctestdetail_get_lasterror()
   int nctestdetail_has_lasterror()
-JSON: {"title":"","stats":{"integral":1.0,"rms":0.0,"mean":12.34,"minfilled":12.34,"maxfilled":12.34},"bindata":{"xmin":0.0,"xmax":100.0,"nbins":5,"content":[1.0,0.0,0.0,0.0,0.0],"errorsq":[1.0,0.0,0.0,0.0,0.0]}}
+JSON: {"datatype":"NCrystalHist1D_v1","title":"","stats":{"integral":1.0,"rms":0.0,"mean":12.34,"minfilled":12.34,"maxfilled":12.34},"bindata":{"xmin":0.0,"xmax":100.0,"nbins":5,"content":[1.0,0.0,0.0,0.0,0.0],"errorsq":[1.0,0.0,0.0,0.0,0.0]}}
 Hist1D(nbins=5,xmin=0,xmax=100):
   title     : <none>
   integral  : 1
@@ -98,8 +98,8 @@ Hist1D(nbins=5,xmin=0,xmax=100):
   overflow  : 0.02 +- 0.0141421
 h1.bindata:  {'xmin': 0.0, 'xmax': 100.0, 'nbins': 5, 'content': [0.0, 0.0, 0.02, 0.0, 0.0], 'errorsq': [0.0, 0.0, 0.0002, 0.0, 0.0], 'underflow_errorsq': 0.0002, 'overflow_errorsq': 0.0002, 'underflow': 0.02, 'overflow': 0.02}
 h1.stats:  {'integral': 0.06, 'rms': 48.98979485566356, 'mean': 50.0, 'minfilled': -10.0, 'maxfilled': 110.0}
-h1.to_dict:  {'stats': {'integral': 0.06, 'rms': 48.98979485566356, 'mean': 50.0, 'minfilled': -10.0, 'maxfilled': 110.0}, 'title': 'My Title', 'bindata': {'xmin': 0.0, 'xmax': 100.0, 'nbins': 5, 'content': [0.0, 0.0, 0.02, 0.0, 0.0], 'errorsq': [0.0, 0.0, 0.0002, 0.0, 0.0], 'underflow_errorsq': 0.0002, 'overflow_errorsq': 0.0002, 'underflow': 0.02, 'overflow': 0.02}}
-h1.to_json:  {"stats": {"integral": 0.06, "rms": 48.98979485566356, "mean": 50.0, "minfilled": -10.0, "maxfilled": 110.0}, "title": "My Title", "bindata": {"xmin": 0.0, "xmax": 100.0, "nbins": 5, "content": [0.0, 0.0, 0.02, 0.0, 0.0], "errorsq": [0.0, 0.0, 0.0002, 0.0, 0.0], "underflow_errorsq": 0.0002, "overflow_errorsq": 0.0002, "underflow": 0.02, "overflow": 0.02}}
+h1.to_dict:  {'datatype': 'NCrystalHist1D_v1', 'stats': {'integral': 0.06, 'rms': 48.98979485566356, 'mean': 50.0, 'minfilled': -10.0, 'maxfilled': 110.0}, 'title': 'My Title', 'bindata': {'xmin': 0.0, 'xmax': 100.0, 'nbins': 5, 'content': [0.0, 0.0, 0.02, 0.0, 0.0], 'errorsq': [0.0, 0.0, 0.0002, 0.0, 0.0], 'underflow_errorsq': 0.0002, 'overflow_errorsq': 0.0002, 'underflow': 0.02, 'overflow': 0.02}}
+h1.to_json:  {"datatype": "NCrystalHist1D_v1", "stats": {"integral": 0.06, "rms": 48.98979485566356, "mean": 50.0, "minfilled": -10.0, "maxfilled": 110.0}, "title": "My Title", "bindata": {"xmin": 0.0, "xmax": 100.0, "nbins": 5, "content": [0.0, 0.0, 0.02, 0.0, 0.0], "errorsq": [0.0, 0.0, 0.0002, 0.0, 0.0], "underflow_errorsq": 0.0002, "overflow_errorsq": 0.0002, "underflow": 0.02, "overflow": 0.02}}
 p-value: 1
 Hist1D(nbins=20,xmin=-10,xmax=10):
   title     : Foo title

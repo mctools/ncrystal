@@ -1,90 +1,72 @@
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The quick_diffraction_pattern(..) function is obsolete. Please migrate your code to use the NCrystal.mmc.minimc_run(..) or NCrystal.mmc.minimc_run_scenario(..) functions instead. [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The quick_diffraction_pattern(..) function is obsolete. Please migrate your code to use the NCrystal.minimc.minimc_run(..) or NCrystal.minimc.minimc_run_scenario(..) functions instead. [warn#1]
 CALLING plt.figure()
 CALLING plt.gca()
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['0.145', '0.145', '0.402', '...', '0.576', '0.129', '0.129'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='orange',label='MULTISCAT_OTHER (0.231%)')
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['0.145', '0.145', '0.402', '...', '9.77', '4.01', '4.01'],['0.145', '0.145', '0.402', '...', '0.576', '0.129', '0.129'],edgecolor='none',facecolor='orangered',label='SINGLESCAT_INELAS (2.4%)')
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['0.963', '0.963', '1.44', '...', '9.82', '4.03', '4.03'],['0.145', '0.145', '0.402', '...', '9.77', '4.01', '4.01'],edgecolor='none',facecolor='cornflowerblue',label='MULTISCAT_PUREELAS (0.126%)')
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['1.12', '1.12', '1.97', '...', '10.0', '4.09', '4.09'],['0.963', '0.963', '1.44', '...', '9.82', '4.03', '4.03'],edgecolor='none',facecolor='blue',label='SINGLESCAT_ELAS (3.04%)')
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['1.87e+05', '1.87e+05', '1.97', '...', '10.0', '4.09', '4.09'],['1.12', '1.12', '1.97', '...', '10.0', '4.09', '4.09'],edgecolor='none',facecolor='green',label='Transmitted (18.7%)')
-CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['0.5', '1.5', '2.5', '...', '178.0', '178.0', '180.0'],xerr=0.5,y=['1.87e+05', '1.97', '2.79', '...', '17.8', '10.0', '4.09'],yerr=array([1.87273262e+02, 1.64789367e-01, 2.20375758e-01, 2.49710061e-01,
-       2.57729341e-01, 3.30233423e-01, 3.86875118e-01, 4.04734069e-01,
-       4.10859506e-01, 4.37267927e-01, 4.92152021e-01, 4.97110011e-01,
-       5.09290122e-01, 5.71413477e-01, 5.58596114e-01, 6.07339727e-01,
-       6.62597385e-01, 6.56552921e-01, 6.93185119e-01, 7.49931190e-01,
-       7.56766390e-01, 8.05833837e-01, 7.99900058e-01, 8.49823616e-01,
-       9.08505215e-01, 9.35888245e-01, 9.72259081e-01, 9.89105304e-01,
-       1.02800685e+00, 1.08707989e+00, 1.10714465e+00, 1.58875229e+00,
-       1.14811455e+00, 1.18956878e+00, 1.22733983e+00, 1.26604160e+00,
-       1.22651640e+01, 1.35815489e+00, 1.41977725e+00, 1.42223171e+00,
-       1.50112531e+00, 1.51369436e+00, 1.57452197e+00, 1.60520203e+00,
-       1.59039842e+00, 1.68163455e+00, 1.72520605e+00, 1.75002285e+00,
-       1.80217070e+00, 1.87011974e+00, 1.86811321e+00, 1.94867634e+00,
-       1.48480452e+01, 2.08067261e+00, 2.13558002e+00, 2.13572567e+00,
-       2.24810724e+00, 2.25359782e+00, 2.36174967e+00, 2.36548041e+00,
-       2.37719166e+00, 2.45868955e+00, 2.89534819e+00, 2.60546938e+00,
-       2.63889722e+00, 1.16133975e+01, 2.79852906e+00, 2.81682770e+00,
-       2.91952285e+00, 2.97126856e+00, 2.93713799e+00, 3.05694576e+00,
-       3.13700306e+00, 3.20955955e+00, 3.23874243e+00, 3.25925075e+00,
-       3.38429096e+00, 1.02171044e+01, 3.42694301e+00, 3.54838745e+00,
-       3.58866139e+00, 3.78796869e+00, 3.78497282e+00, 3.83525371e+00,
-       3.95001773e+00, 4.30138387e+00, 4.03546503e+00, 4.11740559e+00,
-       1.95064909e+01, 4.24955465e+00, 4.31300251e+00, 4.33417893e+00,
-       4.45957360e+00, 4.45598293e+00, 4.55011417e+00, 4.46202716e+00,
-       4.54734340e+00, 4.59007618e+00, 4.59470580e+00, 1.93715074e+01,
-       4.74854459e+00, 4.74317793e+00, 4.85448100e+00, 4.80421744e+00,
-       4.98139336e+00, 4.82189500e+00, 4.99562216e+00, 4.97971669e+00,
-       5.24130702e+00, 4.95647996e+00, 5.08907795e+00, 5.03487730e+00,
-       5.02625660e+00, 4.98378806e+00, 5.17951971e+00, 5.11939690e+00,
-       5.19144771e+00, 5.02739448e+00, 5.09895294e+00, 5.09104173e+00,
-       5.27909616e+00, 5.22491715e+00, 5.12911861e+00, 1.30538357e+01,
-       5.07081443e+00, 5.04392306e+00, 5.11169601e+00, 5.16260123e+00,
-       5.02962485e+00, 5.08025868e+00, 5.06512145e+00, 4.96659202e+00,
-       4.98696040e+00, 4.90088373e+00, 5.38102599e+00, 4.96300795e+00,
-       4.89025140e+00, 4.89166160e+00, 1.84672329e+01, 4.91909147e+00,
-       4.76834979e+00, 4.67882253e+00, 4.68808671e+00, 4.74809002e+00,
-       4.76845854e+00, 4.54132645e+00, 4.55383609e+00, 4.54417458e+00,
-       4.42545778e+00, 4.40071681e+00, 4.31630841e+00, 4.13855162e+00,
-       4.22408574e+00, 4.05321692e+00, 4.01894080e+00, 4.13421660e+00,
-       3.92328234e+00, 3.88874798e+00, 3.86393721e+00, 3.84867403e+00,
-       1.55309206e+01, 3.58470425e+00, 3.46529340e+00, 3.32175137e+00,
-       3.22881543e+00, 3.19707180e+00, 3.06395117e+00, 2.94951413e+00,
-       2.72625585e+00, 2.77209878e+00, 2.67729258e+00, 2.41403155e+00,
-       2.28905500e+00, 2.16847947e+00, 1.92779801e+00, 1.64723027e+00,
-       1.51656912e+00, 1.29614462e+00, 9.63218857e-01, 6.49743673e-01]))
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['232.0', '232.0', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (23.2%)')
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['0.5', '1.5', '2.5', '...', '178.0', '178.0', '180.0'],xerr=0.5,y=['232.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],yerr=array([7.34552955, 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        ]))
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150.,
        165., 180.]),minor=True)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Exit Angle (degrees)')
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
-CALLING ResultOf[plt.gca(..)].set_title('$10^6$ 1.8Aa neutrons through sphere with radius 5mm')
-CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (75.5%)')
-CALLING plt.legend([<NCrystalDev._mmc_utils._plot_tally.<locals>.FakeHandle object at SNIPADDR>, <NCrystalDev._mmc_utils._plot_tally.<locals>.FakeHandle object at SNIPADDR>, <NCrystalDev._mmc_utils._plot_tally.<locals>.FakeHandle object at SNIPADDR>, <NCrystalDev._mmc_utils._plot_tally.<locals>.FakeHandle object at SNIPADDR>, <NCrystalDev._mmc_utils._plot_tally.<locals>.FakeHandle object at SNIPADDR>, <NCrystalDev._mmc_utils._plot_tally.<locals>.FakeHandle object at SNIPADDR>],['MULTISCAT_OTHER (0.231%)', 'SINGLESCAT_INELAS (2.4%)', 'MULTISCAT_PUREELAS (0.126%)', 'SINGLESCAT_ELAS (3.04%)', 'Transmitted (18.7%)', 'Absorbed (75.5%)'])
+CALLING ResultOf[plt.gca(..)].set_title('$10^3$ 1.8Aa neutrons through sphere with radius 5mm')
+CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (76.8%)')
+CALLING plt.legend([FakeHandle, FakeHandle],['Transmitted (23.2%)', 'Absorbed (76.8%)'])
 CALLING plt.semilogy()
 CALLING plt.show()
 CALLING plt.figure()
 CALLING plt.gca()
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '5.0', '5.0', '...', '175.0', '175.0', '180.0'],['26.2', '26.2', '77.4', '...', '79.8', '25.5', '25.5'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='orange',label='MULTISCAT_OTHER (1.38%)')
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '5.0', '5.0', '...', '175.0', '175.0', '180.0'],['36.9', '36.9', '237.0', '...', '887.0', '299.0', '299.0'],['26.2', '26.2', '77.4', '...', '79.8', '25.5', '25.5'],edgecolor='none',facecolor='orangered',label='SINGLESCAT_INELAS (14.4%)')
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '5.0', '5.0', '...', '175.0', '175.0', '180.0'],['37.2', '37.2', '238.0', '...', '887.0', '299.0', '299.0'],['36.9', '36.9', '237.0', '...', '887.0', '299.0', '299.0'],edgecolor='none',facecolor='cornflowerblue',label='MULTISCAT_PUREELAS (0.000708%)')
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '5.0', '5.0', '...', '175.0', '175.0', '180.0'],['55.7', '55.7', '1.09e+03', '...', '887.0', '299.0', '299.0'],['37.2', '37.2', '238.0', '...', '887.0', '299.0', '299.0'],edgecolor='none',facecolor='blue',label='SINGLESCAT_ELAS (0.287%)')
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '5.0', '5.0', '...', '175.0', '175.0', '180.0'],['6.36e+05', '6.36e+05', '1.09e+03', '...', '887.0', '299.0', '299.0'],['55.7', '55.7', '1.09e+03', '...', '887.0', '299.0', '299.0'],edgecolor='none',facecolor='green',label='Transmitted (63.6%)')
-CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['2.5', '7.5', '12.5', '...', '168.0', '172.0', '178.0'],xerr=2.5,y=['6.36e+05', '1.09e+03', '1.43e+03', '...', '1.46e+03', '887.0', '299.0'],yerr=array([635.71233714,  12.01777281,  13.61353205,  16.06213155,
-        18.727478  ,  20.41763978,  22.14161977,  23.43948552,
-        24.88394254,  26.08389445,  27.29367455,  28.19440224,
-        28.97359921,  29.82225007,  30.39977422,  30.86394306,
-        31.08141406,  31.24048291,  31.27590515,  31.36330714,
-        30.91003557,  30.53406488,  30.18815055,  29.34195535,
-        28.55100722,  27.72616392,  26.81631195,  25.2868123 ,
-        24.12912468,  22.65754225,  20.95636136,  19.19778072,
-        16.76864128,  14.2263268 ,  11.08222459,   6.45342304]))
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '5.0', '5.0', '...', '175.0', '175.0', '180.0'],['793.0', '793.0', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (79.3%)')
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['2.5', '7.5', '12.5', '...', '168.0', '172.0', '178.0'],xerr=2.5,y=['793.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],yerr=array([25.07627717,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+        0.        ]))
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150.,
        165., 180.]),minor=True)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Exit Angle (degrees)')
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
-CALLING ResultOf[plt.gca(..)].set_title('$10^6$ 1eV neutrons through sphere with radius 5mm')
-CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (20.4%)')
-CALLING plt.legend([<NCrystalDev._mmc_utils._plot_tally.<locals>.FakeHandle object at SNIPADDR>, <NCrystalDev._mmc_utils._plot_tally.<locals>.FakeHandle object at SNIPADDR>, <NCrystalDev._mmc_utils._plot_tally.<locals>.FakeHandle object at SNIPADDR>, <NCrystalDev._mmc_utils._plot_tally.<locals>.FakeHandle object at SNIPADDR>, <NCrystalDev._mmc_utils._plot_tally.<locals>.FakeHandle object at SNIPADDR>, <NCrystalDev._mmc_utils._plot_tally.<locals>.FakeHandle object at SNIPADDR>],['MULTISCAT_OTHER (1.38%)', 'SINGLESCAT_INELAS (14.4%)', 'MULTISCAT_PUREELAS (0.000708%)', 'SINGLESCAT_ELAS (0.287%)', 'Transmitted (63.6%)', 'Absorbed (20.4%)'])
+CALLING ResultOf[plt.gca(..)].set_title('$10^3$ 1eV neutrons through sphere with radius 5mm')
+CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (20.7%)')
+CALLING plt.legend([FakeHandle, FakeHandle],['Transmitted (79.3%)', 'Absorbed (20.7%)'])
 CALLING plt.show()
