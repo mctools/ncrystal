@@ -74,7 +74,7 @@ def main(do_plot):
     h2.fill( 50.0, w=0.01 )
     h2.fill( 110.0, w=0.01 )
     h2 = h2.toPyHist()
-    h2.rebin(1)
+    h2.clone(rebin_factor=1)
 
     h1.add_contents(h2.clone())
     h1.dump()
@@ -154,7 +154,7 @@ def main(do_plot):
     with ensure_error(NCBadInput,
                       'Can not rebin nbins=20 with rebin_factor=3 '
                       '(rebin_factor must be a divisor of nbins).'):
-        h1.rebin(3)
+        h1.clone(rebin_factor=3)
 
     with ensure_error(NCBadInput,
                       'Invalid integration range requested.'):

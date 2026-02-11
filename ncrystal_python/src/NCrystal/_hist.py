@@ -19,9 +19,10 @@
 ##                                                                            ##
 ################################################################################
 
-# In this internal file we provide a histogram class which can be used to load
-# the JSON data representing the (likewise internal) histograms from
-# "NCrystal/internal/utils/NCHists.hh".
+"""Histogram class which is primarily intended as an objected-oriented
+representation of the histogram data returned by the MiniMC framework.
+
+"""
 
 __all__ = ['Hist1D']
 
@@ -31,10 +32,23 @@ import math
 
 class Hist1D:
 
+    """Histogram class which is primarily intended as an objected-oriented
+    representation of the histogram data returned by the MiniMC framework.
+
+    The histograms contents are created on the C++ side (using a class declared
+    the NCHists.hh C++ header file), and are usually exported as JSON data. This
+    data can be loaded via the present Python API in order to facilitate
+    plotting and data analysis. Users should not normally instantiate these
+    objects directly themselves.
+
+    """
+
     def __init__( self, data ):
+
         """Initialise histogram. This is intended to be using data provided by
         the C++ histogram's toJSON() method, or from the .to_dict() or
-        .to_json() of this Python Hist1D class itself
+        .to_json() of this Python Hist1D class itself. Most users should not
+        have a need to call this directly.
         """
 
         if data=='_no_init_':
@@ -96,12 +110,39 @@ class Hist1D:
         if self.__stat_integral is None:
             self.__stat_integral = self.integrate_bins()[0]
 
+    @classmethod
+    def objectify_data( cls, data ):
+        """Traverse data and replace any dictionaries inside it that are really
+        the result of a Hist1D.to_dict() (or histogram JSON data) with a
+        corresponding Hist1D object.  Returns a new object with the result of
+        the transformation.
+        """
+        import copy
+        def o( d ):
+            if isinstance(d,list):
+                return [o(e) for e in d]
+            if isinstance(d,tuple):
+                return tuple([o(e) for e in d])
+            if isinstance(d,dict):
+                if d.get('datatype')=='NCrystalHist1D_v1':
+                    return cls(d)
+                else:
+                    return dict( (copy.deepcopy(k),o(v))
+                                 for k,v in d.items() )
+            #something else, just pass through:
+            return copy.deepcopy( d )
+        return o( data )
+
+    def _to_json_compat_object( self ):
+        return self.to_dict( json_compat = True )
+
     def to_dict( self, json_compat = False ):
         """Serialise as dictionary. The returned string can be used to
         initialise a Hist1D object again. If json_compat is True, the returned
         dictionary will contain lists rather than numpy arrays.
         """
-        return dict( stats = self.stats,
+        return dict( datatype = 'NCrystalHist1D_v1',
+                     stats = self.stats,
                      title = self.__title,
                      bindata = self.bindata( json_compat = json_compat ) )
 
@@ -112,9 +153,9 @@ class Hist1D:
         return json.dumps( self.to_dict( json_compat = True ) )
 
     def clone( self, rebin_factor = 1 ):
-        """Return clone of object . This is useful to keep the original
-        histogram intact in case of subsequent operations on the histogram is
-        desired, such as rebinning.
+        """Return clone of object. Optionally, the resulting histogram can be
+        rebinning by a given factor, which must be a divisor in the current
+        number of bins.
         """
         c = Hist1D('_no_init_')
         c.__stat_integral = self.__stat_integral
@@ -134,7 +175,7 @@ class Hist1D:
         c.__yerrsq = self.__yerrsq.copy() if self.__yerrsq is not None else None
         c.__yerr = self.__yerr.copy() if self.__yerr is not None else None
         if rebin_factor > 1:
-            c.rebin( rebin_factor )
+            c.__rebin( rebin_factor )
         return c
 
     def integrate( self, xlow, xhigh, tolerance = 1e-5 ):
@@ -332,12 +373,6 @@ class Hist1D:
             self.__title = o.__title
         return self
 
-    def _flow_signature( self ):
-        return ( self.__flow_under is None,
-                 self.__flow_under_errorsq is None,
-                 self.__flow_over is None,
-                 self.__flow_over_errorsq is None )
-
     def add_contents( self, other_hist ):
         """Add the contents of other histogram to this histogram. The two
         histograms should have compatible binnings and over/underflow
@@ -350,7 +385,13 @@ class Hist1D:
             raise NCBadInput("incompatible binning (%i,%g,%g) vs. (%i,%g,%g)."
                              %( *self.binning, *o.binning))
 
-        if self._flow_signature() != o._flow_signature():
+        def flow_sig( obj ):
+            return ( obj.__flow_under is None,
+                     obj.__flow_under_errorsq is None,
+                     obj.__flow_over is None,
+                     obj.__flow_over_errorsq is None )
+
+        if flow_sig(self) != flow_sig(o):
             raise NCBadInput("incompatible under/overflow settings.")
 
         assert self.__xmin == o.__xmin
@@ -412,15 +453,13 @@ class Hist1D:
                 self.__yerrsq += o.__yerrsq
         self.__y += o.__y
 
-    def rebin( self, rebin_factor ):
-        """Reduce granularity of binnings in histogram by provided factor, which
-        must be a divisor in the current number of bins. Returns self."""
+    def __rebin( self, rebin_factor ):
+        if rebin_factor == 1:
+            return
         if not rebin_factor>=1 or not self.__nbins % rebin_factor == 0:
             raise NCBadInput( f'Can not rebin nbins={self.__nbins} with '
                               f'rebin_factor={rebin_factor} (rebin_factor'
                               ' must be a divisor of nbins).' )
-        if rebin_factor == 1:
-            return self
         def _dorebin(x):
             return _np.sum( x.reshape( len(x)//rebin_factor, rebin_factor ),
                             axis=1)
@@ -431,7 +470,6 @@ class Hist1D:
         self.__nbins = self.__nbins // rebin_factor
         assert self.__yerrsq is None or len(self.__yerrsq)==len(self.__y)
         assert self.__nbins==len(self.__y)
-        return self
 
     @property
     def stats( self ):
@@ -739,6 +777,21 @@ class Hist1D:
         if f > 0.0:
             self.scale( 1.0 / f )
         return self
+
+    def __eq__(self, o ):
+        if id(self) == id(o):
+            return True
+        if ( self.binning != o.binning
+             or self.stats != o.stats
+             or self.title != o.title
+             or not _np.array_equal(self.__y,o.__y) ):
+            return False
+        if ( self.__flow_under != o.__flow_under
+             or self.__flow_under_errorsq != o.__flow_under_errorsq
+             or self.__flow_over != o.__flow_over
+             or self.__flow_over_errorsq != o.__flow_over_errorsq ):
+            return False
+        return _np.array_equal( self.errors_squared, o.errors_squared )
 
     def check_compat( self, other_hist,
                       threshold = 0.05,
