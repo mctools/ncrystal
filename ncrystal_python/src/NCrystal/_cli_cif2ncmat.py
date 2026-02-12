@@ -23,6 +23,13 @@ from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point,
                         print )
 
+def climod_metadata():
+    return dict(
+        displaygroup = 'conv',
+        displayorder = 10,
+        descr = "Create NCMAT data based on CIF input."
+    )
+
 def parseArgs( progname, arglist, return_parser=False ):
     import textwrap
     helpw = 60

@@ -23,6 +23,14 @@ from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point,
                         print )
 
+def climod_metadata():
+    return dict(
+        displaygroup = 'main',
+        displayorder = 30,
+        descr=("Investigate multiple scattering and geometry effects via "
+               "NCrystal's own Monte Carlo simulation framework.")
+    )
+
 #Fixme unit test examples in mmcscenario.py test!
 #Examples, in form of (description, cfgstr, scenariocfg):
 

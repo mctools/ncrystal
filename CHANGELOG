@@ -4,6 +4,17 @@ v4.2.13 (work-in-progress)
        the MiniMC framework, but going forward it gives a very convenient and
        easy way to provide access to information to the Python or cmdline APIs
        in the future, without having to update C or C++ ABIs.
+     * Add new CLI command "ncrystal" which can be used to invoke any of the
+       other ncrystal_xxx commands. For instance, a command such as
+       "ncrystal_minimc Al_sg225.ncmat" can now also be invoked as the command
+       (notice the missing underscore): "ncrystal minimc Al_sg225.ncmat". For
+       more instructions, run "ncrystal -h" (or just run "ncrystal" with no
+       arguments). At some point in the future we plan to remove most of the
+       ncrystal_xxx commands in favour of invocation via "ncrystal xxx", which
+       has the advantage of simplifying deployment, not cluttering environments
+       with many NCrystal commands, etc. However, for the time being none of the
+       existing commands are being removed, and documentation will still
+       primarily refer to commands using the ncrystal_xxx syntax.
      * The MiniMC should now be accessed in the C-API via the new
        ncrystal_jsonquery function, which interacts solely via cfg-strings (like
        for material, source, geometry, engine) and returns results via

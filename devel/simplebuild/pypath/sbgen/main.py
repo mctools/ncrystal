@@ -352,6 +352,17 @@ mod.main()
         add_file( f'pkgs/{cfg.sbpkgname_cli}/scripts/{sbscriptname}',
                   content=content,
                   make_executable = True)
+
+    #Also the general "ncrystal" script:
+    add_file( f'pkgs/{cfg.sbpkgname_cli}/scripts/ncrystal',
+              content="""#!/usr/bin/env python3
+import NCrystalDev._clientry as mod
+mod.main()
+""",
+              make_executable = True)
+
+
+
     for subpath,fn in [('include/NCrystal/internal/utils/NCCFileUtils.hh',
                         'NCCFileUtils.h'),
                        ('src/utils/NCCFileUtils.cc','NCCFileUtils.c'),

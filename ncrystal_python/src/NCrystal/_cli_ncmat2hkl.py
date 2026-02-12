@@ -23,6 +23,13 @@ from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point,
                         print, warn )
 
+def climod_metadata():
+    return dict(
+        displaygroup = 'conv',
+        displayorder = 30,
+        descr = "Export crystal reflection lists to .laz/.lau formats."
+    )
+
 def parseArgs( progname, arglist, return_parser=False ):
 
     progname_tool='nctool'

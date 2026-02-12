@@ -62,6 +62,7 @@ wheel.py-api = "py3" # as close to "noarch" as possible (ABI3)
 
 [project.scripts]
 ncrystal-config = "_ncrystal_core_monolithic.info:_ncrystal_config_cli_wrapper"
+ncrystal = "NCrystal._clientry:main"
 nctool = "NCrystal._cli_nctool:main"
 ncrystal_cif2ncmat = "NCrystal._cli_cif2ncmat:main"
 ncrystal_endf2ncmat = "NCrystal._cli_endf2ncmat:main"

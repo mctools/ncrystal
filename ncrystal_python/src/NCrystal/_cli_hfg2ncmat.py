@@ -23,6 +23,13 @@ from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point,
                         print )
 
+def climod_metadata():
+    return dict(
+        displaygroup = 'conv',
+        displayorder = 20,
+        descr = "Create NCMAT data for amorphous hydrogen-rich materials."
+    )
+
 def _parseArgs( default_debye_temp, progname, arglist, return_parser=False ):
     from argparse import RawTextHelpFormatter
 

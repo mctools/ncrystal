@@ -30,6 +30,13 @@ from . import core as nccore
 import warnings
 import pathlib
 
+def climod_metadata():
+    return dict(
+        displaygroup = 'conv',
+        displayorder = 999,
+        descr = "Import ENDF data to NCMAT format (based on PyNE)."
+    )
+
 __pynecache=[None]
 def import_pyne():
     global __pynecache
@@ -38,10 +45,12 @@ def import_pyne():
 
     try:
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")#silence annoying pyne.endf QAWarning's.
+            #silence annoying pyne.endf QAWarning's:
+            warnings.simplefilter("ignore")
             import pyne.endf
     except ImportError:
-        raise RuntimeError('Could not "import pyne.endf". You probably need to install PyNE (see http://pyne.io/)')
+        raise RuntimeError('Could not "import pyne.endf". You probably need'
+                           ' to install PyNE (see http://pyne.io/)')
 
     #Monkey-patch pyne.endf reader, which was ignoring optional sections with teff
     #curves of non-principal atoms (see

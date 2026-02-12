@@ -26,6 +26,13 @@ from ._cliimpl import ( create_ArgumentParser,
                         print, warn )
 from . import _common as nccommon
 
+def climod_metadata():
+    return dict(
+        displaygroup = 'main',
+        displayorder = 10,
+        descr=("Main tool for investigating materials, files, plugins, etc.")
+    )
+
 @cli_entry_point
 def main( progname, arglist ):
     if '--bench' in arglist:

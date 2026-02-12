@@ -238,6 +238,7 @@ def _check_project_scripts_impl( data, *, cli_scripts, extra ):
             n = bn[5:]
             n = f'ncrystal_{n}' if n!='nctool' else n
             expected[n] = f'NCrystal.{bn}:main'
+        expected['ncrystal'] = "NCrystal._clientry:main"
     if expected == from_toml:
         return True#all ok
     descr = describe( data )

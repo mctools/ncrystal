@@ -47,6 +47,7 @@ classifiers = [
 "Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
 
 [project.scripts]
+ncrystal = "NCrystal._clientry:main"
 nctool = "NCrystal._cli_nctool:main"
 ncrystal_cif2ncmat = "NCrystal._cli_cif2ncmat:main"
 ncrystal_endf2ncmat = "NCrystal._cli_endf2ncmat:main"

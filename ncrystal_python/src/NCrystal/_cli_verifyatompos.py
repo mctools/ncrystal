@@ -24,6 +24,13 @@ from ._cliimpl import ( create_ArgumentParser,
                         print )
 import pathlib
 
+def climod_metadata():
+    return dict(
+        displaygroup = 'misc',
+        displayorder = 20,
+        descr = "Verify consistency of atom positions in NCMAT data."
+    )
+
 def parseArgs( progname, args, return_parser=False ):
 
     descr="""

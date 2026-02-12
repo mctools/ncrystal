@@ -256,7 +256,7 @@ def cli_tool_list_impl( canonical_names = True  ):
                     pathlib.Path(__file__).parent.glob('_cli_*.py') ]
     short_names.append('config')
     short_names.sort()
-    if short_names:
+    if not canonical_names:
         return short_names
     else:
         return [ _map_shortname_2_canonical_name(sn) for sn in short_names ]

@@ -22,10 +22,19 @@
 from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point,
                         print )
+
 from ._common import write_text
 from .constants import ( constant_planck, constant_boltzmann )
 from .vdos import vdos_units_2_eV
 import pathlib
+
+def climod_metadata():
+    return dict(
+        displaygroup = 'misc',
+        displayorder = 10,
+        descr = "Prepare phonon VDOS data for inclusion in NCMAT data."
+    )
+
 units_2_fact = vdos_units_2_eV
 units_opts = ', '.join(sorted(units_2_fact.keys()))
 

@@ -22,6 +22,13 @@
 from ._cliimpl import ( create_ArgumentParser,
                         cli_entry_point )
 
+def climod_metadata():
+    return dict(
+        displaygroup = 'conv',
+        displayorder = 40,
+        descr = "Export ENDF data (based on endf-parserpy)."
+    )
+
 longopt_metadata = '--mdata'
 metavar_elastic = 'MODE'
 metavar_matname = 'NAME'

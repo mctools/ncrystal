@@ -1,0 +1,170 @@
+
+================================================================================
+==> Invoking: /some/where/ncrystal
+================================================================================
+Usage:
+
+  $> ncrystal MODULE <module options>
+
+Here MODULE is the name of a specific command-line module, like "nctool",
+"minimc", etc.
+
+Use the -h or --help flag to get information about the options available for a
+given module. For example:
+
+  $> ncrystal minimc --help
+
+The full list of available modules are:
+
+  Most important modules:
+  =======================
+
+     nctool        : Main tool for investigating materials, files, plugins, etc.
+     config        : Access technical info about NCrystal installation.
+     minimc        : Investigate multiple scattering and geometry effects via
+                     NCrystal's own Monte Carlo simulation framework.
+
+  Modules related to material data conversions:
+  =============================================
+
+     cif2ncmat     : Create NCMAT data based on CIF input.
+     hfg2ncmat     : Create NCMAT data for amorphous hydrogen-rich materials.
+     ncmat2hkl     : Export crystal reflection lists to .laz/.lau formats.
+     ncmat2endf    : Export ENDF data (based on endf-parserpy).
+     endf2ncmat    : Import ENDF data to NCMAT format (based on PyNE).
+
+  Miscellaneous modules:
+  ======================
+
+     vdos2ncmat    : Prepare phonon VDOS data for inclusion in NCMAT data.
+     verifyatompos : Verify consistency of atom positions in NCMAT data.
+     ncmat2cpp     : Produce C++ code with inline NCMAT data.
+     mcstasunion   : Generate McStas-Union code for using NCrystal materials.
+
+================================================================================
+==> Ended with no error
+================================================================================
+
+================================================================================
+==> Invoking: /some/where/ncrystal -l
+================================================================================
+cif2ncmat config endf2ncmat hfg2ncmat mcstasunion minimc ncmat2cpp ncmat2endf ncmat2hkl nctool vdos2ncmat verifyatompos
+================================================================================
+==> Ended with no error
+================================================================================
+
+================================================================================
+==> Invoking: /some/where/ncrystal --list
+================================================================================
+cif2ncmat config endf2ncmat hfg2ncmat mcstasunion minimc ncmat2cpp ncmat2endf ncmat2hkl nctool vdos2ncmat verifyatompos
+================================================================================
+==> Ended with no error
+================================================================================
+
+================================================================================
+==> Invoking: /some/where/ncrystal -h
+================================================================================
+Usage:
+
+  $> ncrystal MODULE <module options>
+
+Here MODULE is the name of a specific command-line module, like "nctool",
+"minimc", etc.
+
+Use the -h or --help flag to get information about the options available for a
+given module. For example:
+
+  $> ncrystal minimc --help
+
+The full list of available modules are:
+
+  Most important modules:
+  =======================
+
+     nctool        : Main tool for investigating materials, files, plugins, etc.
+     config        : Access technical info about NCrystal installation.
+     minimc        : Investigate multiple scattering and geometry effects via
+                     NCrystal's own Monte Carlo simulation framework.
+
+  Modules related to material data conversions:
+  =============================================
+
+     cif2ncmat     : Create NCMAT data based on CIF input.
+     hfg2ncmat     : Create NCMAT data for amorphous hydrogen-rich materials.
+     ncmat2hkl     : Export crystal reflection lists to .laz/.lau formats.
+     ncmat2endf    : Export ENDF data (based on endf-parserpy).
+     endf2ncmat    : Import ENDF data to NCMAT format (based on PyNE).
+
+  Miscellaneous modules:
+  ======================
+
+     vdos2ncmat    : Prepare phonon VDOS data for inclusion in NCMAT data.
+     verifyatompos : Verify consistency of atom positions in NCMAT data.
+     ncmat2cpp     : Produce C++ code with inline NCMAT data.
+     mcstasunion   : Generate McStas-Union code for using NCrystal materials.
+
+================================================================================
+==> Ended with no error
+================================================================================
+
+================================================================================
+==> Invoking: /some/where/ncrystal --help
+================================================================================
+Usage:
+
+  $> ncrystal MODULE <module options>
+
+Here MODULE is the name of a specific command-line module, like "nctool",
+"minimc", etc.
+
+Use the -h or --help flag to get information about the options available for a
+given module. For example:
+
+  $> ncrystal minimc --help
+
+The full list of available modules are:
+
+  Most important modules:
+  =======================
+
+     nctool        : Main tool for investigating materials, files, plugins, etc.
+     config        : Access technical info about NCrystal installation.
+     minimc        : Investigate multiple scattering and geometry effects via
+                     NCrystal's own Monte Carlo simulation framework.
+
+  Modules related to material data conversions:
+  =============================================
+
+     cif2ncmat     : Create NCMAT data based on CIF input.
+     hfg2ncmat     : Create NCMAT data for amorphous hydrogen-rich materials.
+     ncmat2hkl     : Export crystal reflection lists to .laz/.lau formats.
+     ncmat2endf    : Export ENDF data (based on endf-parserpy).
+     endf2ncmat    : Import ENDF data to NCMAT format (based on PyNE).
+
+  Miscellaneous modules:
+  ======================
+
+     vdos2ncmat    : Prepare phonon VDOS data for inclusion in NCMAT data.
+     verifyatompos : Verify consistency of atom positions in NCMAT data.
+     ncmat2cpp     : Produce C++ code with inline NCMAT data.
+     mcstasunion   : Generate McStas-Union code for using NCrystal materials.
+
+================================================================================
+==> Ended with no error
+================================================================================
+
+================================================================================
+==> Invoking: /some/where/ncrystal nctool --cfg 'Al_sg225.ncmat ;temp=200K'
+================================================================================
+==> Debugging cfg-string: "Al_sg225.ncmat ;temp=200K"
+==> Normalised cfg-string : "Al_sg225.ncmat;temp=200"
+==> Absorption process (code level objects):
+                           AbsOOV(sigma_2200=0.231barn)
+==> Scattering process (code level objects):
+                           ProcComposition(3 components, isotropic)
+                              |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
+                              |-- PowderBragg(nplanes=239;2dmax=4.67605Aa;max_contrib=1.71094barn)
+                              \-- SABScatter(nalpha=400;nbeta=800;Emax=5eV;T=200K;M=26.9815u;sigma_free=1.39667barn)
+================================================================================
+==> Ended with no error
+================================================================================

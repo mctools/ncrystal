@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 ################################################################################
 ##                                                                            ##
@@ -19,20 +20,36 @@
 ##                                                                            ##
 ################################################################################
 
-from ._cliimpl import cli_entry_point
+import NCrystalDev._clientry as ncclientry
+import shlex
 
-def climod_metadata():
-    return dict(
-        displaygroup = 'misc',
-        displayorder = 30,
-        descr = "Produce C++ code with inline NCMAT data."
-    )
+def ncrystalcmd(*args):
+    argv = ['/some/where/ncrystal']+[str(e) for e in args]
+    print()
+    print('='*80)
+    print("==> Invoking: %s"%(shlex.join(argv)))
+    print('='*80)
+    errmsg=None
+    try:
+        ncclientry.main(argv)
+    except SystemExit as e:
+        se=str(e)
+        if se not in ('','0'):
+            errmsg = se
+    print('='*80)
+    if errmsg is None:
+        print("==> Ended with no error")
+    else:
+        print("==> Ended with SystemExit(%s)"%se)
+    print('='*80)
 
-def create_argparser_for_sphinx( progname ):
-    from ._ncmat2cpp_impl import parseArgs
-    return parseArgs(progname,[],return_parser=True)
+def main():
+    ncrystalcmd()
+    ncrystalcmd('-l')
+    ncrystalcmd('--list')
+    ncrystalcmd('-h')
+    ncrystalcmd('--help')
+    ncrystalcmd('nctool','--cfg','Al_sg225.ncmat ;temp=200K')
 
-@cli_entry_point
-def main( progname, arglist ):
-    from ._ncmat2cpp_impl import main as main_impl
-    main_impl( progname, arglist )
+if __name__ == '__main__':
+    main()

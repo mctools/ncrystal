@@ -22,15 +22,28 @@
 
 from ._cliimpl import cli_entry_point
 
+def climod_metadata():
+    return dict(
+        displaygroup = 'main',
+        displayorder = 20,
+        descr = "Access technical info about NCrystal installation."
+    )
+
 def create_argparser_for_sphinx( progname ):
     raise RuntimeError('Do not call create_argparser_for_sphinx'
                        ' for ncrystal-config')
 
 @cli_entry_point
 def main( progname, arglist ):
+    import pathlib
     import subprocess
     import shutil
-    cmd = shutil.which('ncrystal-config')
-    assert cmd, 'ncrystal-config command not found!'
+    cmdname='ncrystal-config'
+    is_simplebuild_devel = ( pathlib.Path(__file__).parent
+                             .joinpath('_is_sblddevel.py').is_file() )
+    if is_simplebuild_devel:
+        cmdname = 'sb_nccmd_config'
+    cmd = shutil.which( cmdname )
+    assert cmd, f'{cmdname} command not found!'
     rv = subprocess.run( [cmd]+arglist[:] )
     raise SystemExit(rv.returncode)
