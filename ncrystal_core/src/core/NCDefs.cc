@@ -22,6 +22,10 @@
 
 namespace NCRYSTAL_NAMESPACE {
 
+  static_assert( std::numeric_limits<std::size_t>::max()
+                 >= std::numeric_limits<std::uint64_t>::max(),
+                 "NCrystal is no longer supported on 32bit systems"
+                 );
   static_assert(std::is_trivially_copyable<ThreeVector>::value,"");
   static_assert(std::is_trivially_destructible<ThreeVector>::value,"");
   static_assert(std::is_nothrow_destructible<ThreeVector>::value,"");

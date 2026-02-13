@@ -15,6 +15,7 @@ v4.2.13 (work-in-progress)
        with many NCrystal commands, etc. However, for the time being none of the
        existing commands are being removed, and documentation will still
        primarily refer to commands using the ncrystal_xxx syntax.
+     * Drop support for 32bit systems.
      * The MiniMC should now be accessed in the C-API via the new
        ncrystal_jsonquery function, which interacts solely via cfg-strings (like
        for material, source, geometry, engine) and returns results via
