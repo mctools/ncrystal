@@ -1,4 +1,6 @@
 v4.2.13 (work-in-progress)
+     * NCrystal MiniMC gets supports for new shapes: a slab of infinite
+       transverse dimension, or a rectangular box.
      * Add ncrystal_minimc function in C-API, which interacts solely via the
        four relevant cfg-strings (material, source, geometry, engine) and
        returns results via JSON. This provides a more flexible and maintainable

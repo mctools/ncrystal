@@ -57,6 +57,21 @@ namespace NCRYSTAL_NAMESPACE {
                            NeutronBasket& b,
                            double * ncrestrict mu_vals );
 
+      //Helper function suitable for implementing distToVolumeExit (see
+      //NCMMC_Geom.hh) for an infinite slab bounded by planes at
+      //x = +-slab_halfthickness.
+      void distToSlabExit( const double * ncrestrict x,
+                           const double * ncrestrict ux,
+                           double * ncrestrict out_dist,
+                           std::size_t n, double slab_halfthickness );
+
+      //Helper function suitable for implementing distToVolumeEntry (see
+      //NCMMC_Geom.hh) for an infinite slab bounded by planes at
+      //x = +-slab_halfthickness.
+      void distToSlabEntry( const double * ncrestrict x,
+                            const double * ncrestrict ux,
+                            double * ncrestrict out_dist,
+                            std::size_t n, double slab_halfthickness );
 
       //Fixme: Move the following explanation somewhere more appropriate and
       //maintainable, and refer to it there?
