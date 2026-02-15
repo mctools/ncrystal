@@ -435,6 +435,34 @@ namespace NCRYSTAL_NAMESPACE {
           m_hists.at(i).merge( o.m_hists.at(i) );
       };
 
+      const hist_t& accessHistogram( StrView histname,
+                                     Optional<DetailedHistsID>
+                                     detailid = NullOpt ) const
+      {
+        //fixme: unit test
+        const hist_t * histptr = nullptr;
+        for ( auto& h : m_hists ) {
+          if ( histname != h.main.title() )
+            continue;
+          if ( !detailid.has_value() ) {
+            histptr = &h.main;
+          } else {
+            //SmallVector<hist_t,5> detailed;
+            auto histidx = static_cast<std::size_t>( detailid.value() );
+            if ( h.detailed.empty() || !(histidx < h.detailed.size()) )
+              NCRYSTAL_THROW( BadInput,
+                              "Detailed breakdown histograms not available" );
+            histptr = & vectAt(h.detailed,histidx);
+          }
+          break;
+        }
+        if ( !histptr )
+          NCRYSTAL_THROW2( BadInput,
+                           "Tally histogram not available: \""<<histname<<"\".");
+        return *histptr;
+      }
+
+
       //FIXME: Rename as "toJSONItems", since it will be adding key,value pairs!
       VectS tallyItemNames() const override
       {
