@@ -46,6 +46,7 @@ namespace NCRYSTAL_NAMESPACE {
       static constexpr unsigned ndetail
       = static_cast<unsigned>(DetailedHistsID::END);
       static_assert( ndetail == 5, "" );
+
     private:
       using this_class_t = TallyStdHists;
       using TFlags = TallyFlags::Flags;

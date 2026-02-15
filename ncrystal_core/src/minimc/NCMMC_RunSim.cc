@@ -43,13 +43,14 @@ NCMMC::SimOutputMetadata NCMMC::runSim_StdEngine( GeometryPtr geom,
   auto tallymgr = makeSO<TallyMgr>( tally->cloneSetup() );
   NCMMC::SimMgrMT<SimClass> mgr(geom,src,eopts,
                                 sim_engine,tallymgr);
-  auto missCounts = mgr.launchSimulations( eopts.nthreads,
-                                           eopts.seed );
+  auto launchSimStats = mgr.launchSimulations( eopts.nthreads,
+                                               eopts.seed );
   auto tally_result = tallymgr->getFinalResult();
   tally->merge( std::move( *tally_result ) );
 
   NCMMC::SimOutputMetadata simoutmd;
-  simoutmd.miss = missCounts;
+  simoutmd.miss = launchSimStats.miss;
+  simoutmd.tallied = launchSimStats.tallied;
   simoutmd.provided = src->particlesProvided();
   return simoutmd;
 }
@@ -97,6 +98,8 @@ void NCMMC::simOutMetaDataToJSON(std::ostream& os,const SimOutputMetadata& md )
   pcsToJSON(os,md.provided);
   os << ",\"miss\":";
   pcsToJSON(os,md.miss);
+  os << ",\"tallied\":";
+  pcsToJSON(os,md.tallied);
   os << '}';
 }
 

@@ -494,7 +494,8 @@ class MMCResults:
     def tally_names( self ):
         return sorted(self.__data['output']['tally'].keys())
 
-    #FIXME: Too many properties here??
+    #FIXME: Too many properties here?? Also, we need to unit test all fields
+    #('tallied' data are for sure not tested).
 
     @property
     def src_miss_counts( self ):
@@ -511,6 +512,14 @@ class MMCResults:
     @property
     def src_provided_totalweight( self ):
         return self.__data['output']['metadata']['provided']['weight']
+
+    @property
+    def src_tallied_counts( self ):
+        return self.__data['output']['metadata']['tallied']['count']
+
+    @property
+    def src_tallied_totalweight( self ):
+        return self.__data['output']['metadata']['tallied']['weight']
 
     @property
     def setup_material_cfgstr( self ):
@@ -582,6 +591,8 @@ class MMCResults:
         f_w = outmd['miss']['weight']*100.0/outmd['provided']['weight']
         o.append('    src rays miss fraction:'
                  ' %g%% (by count) %g%% (by weight)'%(f_c,f_w))
+        o.append('    tallied ray count: %s particles (weight sum: %g)'%(
+            fmti(outmd['tallied']['count']),outmd['tallied']['weight']))
         for t in self.tallies:
             o.append('    tally "%s":'%t.name)
             o += t.hist_total.dump( prefix = '      ',

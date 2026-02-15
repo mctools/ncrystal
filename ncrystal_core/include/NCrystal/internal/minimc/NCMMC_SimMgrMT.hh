@@ -72,9 +72,13 @@ namespace NCRYSTAL_NAMESPACE {
       shared_obj<const basketmgr_t> basketMgrPtr() const { return m_basketmgr; }
       const basket_srcfiller_t& srcFiller() const { return *m_srcfiller; }
 
+      struct LaunchSimReturnVal {
+        ParticleCountSum miss;
+        ParticleCountSum tallied;
+      };
       //returns particles missing geometry
-      ParticleCountSum launchSimulations( ThreadCount nthreads,
-                                          std::uint64_t seed )
+      LaunchSimReturnVal launchSimulations( ThreadCount nthreads,
+                                            std::uint64_t seed )
       {
 #ifndef NCRYSTAL_DISABLE_THREADS
         return launchSimulationsImpl(nthreads, seed);
@@ -206,8 +210,8 @@ namespace NCRYSTAL_NAMESPACE {
         }
       }
 
-      ParticleCountSum launchSimulationsImpl( ThreadCount nthreads,
-                                              std::uint64_t seed )
+      LaunchSimReturnVal launchSimulationsImpl( ThreadCount nthreads,
+                                                std::uint64_t seed )
       {
         if ( nthreads.indicatesAutoDetect() )
           nthreads = ThreadCount{ std::thread::hardware_concurrency() };
@@ -222,7 +226,9 @@ namespace NCRYSTAL_NAMESPACE {
         const bool do_ignoreMiss = ( m_engineOpts.ignoreMiss
                                      == EngineOpts::IgnoreMiss::YES );
         std::vector<ParticleCountSum> missStats;
+        std::vector<ParticleCountSum> ntalliedStats;
         missStats.resize( nthreads.get() );
+        ntalliedStats.resize( nthreads.get() );
         auto rng_next = createBuiltinRNG( seed );
         auto nthrval = nthreads.get();
         nc_assert_always( nthrval >=1 && nthrval <= 99999 );
@@ -231,9 +237,11 @@ namespace NCRYSTAL_NAMESPACE {
             rng_next = rng_next->createJumped();
           std::shared_ptr<RNGStream> rng = rng_next;
           ParticleCountSum& thread_missStats = missStats.at(i);
+          ParticleCountSum& thread_ntalliedStats = ntalliedStats.at(i);
           m_workers.push_back(std::thread([rng,sf_copy,sim_copy,tallymgr_copy,
                                            &common,do_ignoreMiss,
-                                           &thread_missStats]()
+                                           &thread_missStats,
+                                           &thread_ntalliedStats]()
           {
             NCRYSTAL_DEBUGMMCMSG( "In thread "<<std::this_thread::get_id()
                                   <<" RNG @ "<<(void*)rng.get()
@@ -248,9 +256,19 @@ namespace NCRYSTAL_NAMESPACE {
             tally_t * downcast_tallyptr = dynamic_cast<tally_t*>(thetallyptr.get());
             nc_assert_always(downcast_tallyptr!=nullptr);
             std::function<void(const basket_t&)> result_fct
-              = [downcast_tallyptr] (const basket_t& b)
+              = [downcast_tallyptr,&thread_ntalliedStats] (const basket_t& b)
               {
-                return downcast_tallyptr->registerResults(b);
+                {
+                  const std::size_t n = b.size();
+                  double w = 0.0;
+                  const double * it = b.neutrons.w;
+                  const double * itE = it + n;
+                  for ( ; it!=itE; ++it )
+                    w += *it;
+                  thread_ntalliedStats.count += n;
+                  thread_ntalliedStats.weight += w;
+                }
+                downcast_tallyptr->registerResults(b);
               };
 
             RNG * rawrng = rng.get();
@@ -267,16 +285,20 @@ namespace NCRYSTAL_NAMESPACE {
         for(auto& t : m_workers)
           t.join();
         m_workers.clear();
-        //combine miss counts:
-        ParticleCountSum missStat;
+        //combine stats in return value:
+        LaunchSimReturnVal rv;
         for ( auto& e : missStats ) {
-          missStat.count += e.count;
-          missStat.weight += e.weight;
+          rv.miss.count += e.count;
+          rv.miss.weight += e.weight;
         };
-        return missStat;
+        for ( auto& e : ntalliedStats ) {
+          rv.tallied.count += e.count;
+          rv.tallied.weight += e.weight;
+        }
+        return rv;
       }
 #else
-      ParticleCountSum launchSimulationsImpl( std::uint64_t seed )
+      LaunchSimReturnVal launchSimulationsImpl( std::uint64_t seed )
       {
         const bool do_ignoreMiss = ( m_engineOpts.ignoreMiss
                                      == EngineOpts::IgnoreMiss::YES );
@@ -287,10 +309,21 @@ namespace NCRYSTAL_NAMESPACE {
         //basket type:
         tally_t * downcast_tallyptr = dynamic_cast<tally_t*>(tallyptr.get());
         nc_assert_always(downcast_tallyptr!=nullptr);
+        ParticleCountSum ntalliedStats;
         std::function<void(const basket_t&)>
-          result_fct = [downcast_tallyptr](const basket_t& b)
+          result_fct = [downcast_tallyptr,&ntalliedStats](const basket_t& b)
           {
-            return downcast_tallyptr->registerResults(b);
+            {
+              const std::size_t n = b.size();
+              double w = 0.0;
+              const double * it = b.neutrons.w;
+              const double * itE = it + n;
+              for ( ; it!=itE; ++it )
+                w += *it;
+              ntalliedStats.count += n;
+              ntalliedStats.weight += w;
+            }
+            downcast_tallyptr->registerResults(b);
           };
         std::function<void(const basket_t&)> result_fct_srcmiss(nullptr);
         if ( !do_ignoreMiss )
@@ -313,7 +346,11 @@ namespace NCRYSTAL_NAMESPACE {
                                     result_fct );
         }
         m_tallymgr->addResult( std::move(tallyptr) );
-        return missStats;
+
+        LaunchSimReturnVal rv;
+        rv.miss = missStats;
+        rv.tallied = ntalliedStats;
+        return rv;
       }
 #endif
     };

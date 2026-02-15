@@ -56,6 +56,9 @@ namespace NCRYSTAL_NAMESPACE {
 
       //Particles missing geometry:
       ParticleCountSum miss;
+
+      //Particles provided to the tallies:
+      ParticleCountSum tallied;
     };
     void simOutMetaDataToJSON(std::ostream&,const SimOutputMetadata&);
 
