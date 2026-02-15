@@ -99,6 +99,10 @@ v4.2.13 (work-in-progress)
        like std::string::data() does.
      * Internal JSON writing utilities gets built-in support for values wrapped
        in Optional or EncapsulatedValue.
+     * Bugfix in NCMATComposer.update_atomdb: A value of 0 is no longer
+       considered as "value unset", preventing setting scattering lengths or
+       cross sections to 0. This was not an issue if providing the data encoded
+       in a single string in NCMAT @ATOMDB format.
      * ...
 
 v4.2.12 2026-01-05

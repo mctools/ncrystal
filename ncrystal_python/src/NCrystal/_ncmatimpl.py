@@ -1685,7 +1685,8 @@ def _decode_update_atomdb(element_or_isotope, data, *,  mass=None, coh_scat_len=
         raise _nc_core.NCBadInput(f'Invalid element or isotope label (must be of form "Al", "O16", "D", ...): {e}')
     label = e
 
-    nphys = int(bool(mass))+int(bool(coh_scat_len))+int(bool(incoh_xs))+int(bool(abs_xs))
+    nphys = sum( (1 if e is not None else 0)
+                 for e in (mass,coh_scat_len,incoh_xs,abs_xs) )
     hasdata = data is not None
     if not hasdata and not nphys:
         raise _nc_core.NCBadInput('Missing data parameter(s).')
