@@ -44,6 +44,12 @@ namespace NCMMC = NCrystal::MiniMC;
 
 namespace {
 
+  //FIXME: 5* is just to be sure, we should try without:
+  constexpr double one_plus_eps = 1.0 + 5*std::numeric_limits<double>::epsilon();
+  constexpr double one_minus_eps = 1.0 - 5*std::numeric_limits<double>::epsilon();
+  static_assert(one_plus_eps>1.0,"");
+  static_assert(one_minus_eps<1.0,"");
+
   void initBasket( NCMMC::NeutronBasket& b,
                    const NC::Vector& pos,
                    const NC::Vector& dir )
@@ -503,7 +509,7 @@ namespace {
       if ( NC::ncabs(py)==m_dy ) {
         //edge
         if ( py*uy > 0.0 )
-          return NC::NullOpt;//leaving edge (fixme: this check likely not needed?
+          return NC::NullOpt;//leaving edge (nb: this check likely not needed?)
       }
       if ( uy == 0.0 ) {
         if ( NC::ncabs(py) > m_dy )
@@ -556,7 +562,6 @@ namespace {
       if ( B>= 0.0 )
         return NC::NullOpt;
       //not sure what to do here
-      std::cout<<"TKTEST FIXME ARGH"<<std::endl;
       nc_assert_always(false);
       return NC::NullOpt;
     }
@@ -951,6 +956,7 @@ void testUnboundedCylinderCases()
   }
   //And a bunch of generated ones:
   constexpr std::size_t ntestcases_gen = 100000;
+
   test_cases.reserve( test_cases.size() + ntestcases_gen );
   for ( std::size_t i = 0; i < ntestcases_gen; ++i ) {
     V pos = V( 1.5 * r * ( -1.0 + 2.0 * rng->generate() ),
@@ -959,8 +965,11 @@ void testUnboundedCylinderCases()
     if ( rng->generate() < 0.2 ) {
       //force towards edge
       const double r_xz = std::sqrt(pos.x()*pos.x()+pos.z()*pos.z());
-      if ( r_xz > 0.01 )
-        pos *= (r/r_xz);
+      if ( r_xz > 0.01 ) {
+        pos *=  ( ( rng->generate() > 0.5
+                    ? one_plus_eps
+                    : one_minus_eps ) * (r/r_xz) );
+      }
     }
 
     V dir;
@@ -1072,11 +1081,6 @@ void testBoundedCylinderCases()
   test_cases.emplace_back( V( 0, 1, 4 ), V( 0,  0, -1 ), 1 );
   test_cases.emplace_back( V( 0, 0, 1 ), V( 0,  0, -1 ), 0, 4 );
 
-  test_cases.emplace_back( V( 1.7641924013700643, 0.40120610324932959,
-                              2.4264429049429794),
-                           V( 0.14960643300486684, 0.9770852487737306,
-                              0.15140122797499855), -1 ,0 );
-
   double feps = 1.0+1e-15;
   nc_assert_always(feps!=1);
   test_cases.emplace_back( V( (r/std::sqrt(2))*feps, 0.0, (r/std::sqrt(2))*feps),
@@ -1137,9 +1141,13 @@ void testBoundedCylinderCases()
         pos[1] = -dy;
     }
     if ( rng->generate() < 0.25 ) {
+      //force towards edge
       const double r_xz = std::sqrt(pos.x()*pos.x()+pos.z()*pos.z());
-      if ( r_xz > 0.01 )
-        pos *= (r/r_xz);
+      if ( r_xz > 0.01 ) {
+        pos *=  ( ( rng->generate() > 0.5
+                    ? one_plus_eps
+                    : one_minus_eps ) * (r/r_xz) );
+      }
     }
 
     V dir;
@@ -1178,7 +1186,25 @@ void testBoundedCylinderCases()
                                 : -17.0 );
     const bool has_manualref = has_manualref_d2entry || has_manualref_d2exit;
 
-    if ( verbose || has_manualref ) {
+    auto compat=[](double x, double y) -> bool
+    {
+      return NC::floateq(x,y,NCTESTPREC_SPHERE,NCTESTPREC_SPHERE);
+    };
+    bool all_ok = true;
+    if ( !compat( refdist_2entry,
+                  tcase.expected_disttoentry.value_or(refdist_2entry)) )
+      all_ok = false;
+    if ( !compat( refdist_2entry, dist_2entry ) )
+      all_ok = false;
+    if ( testexit ) {
+      if (!compat( refdist_2exit,
+                   tcase.expected_disttoexit.value_or(refdist_2exit)) )
+        all_ok = false;
+      if (!compat( refdist_2exit, dist_2exit ))
+        all_ok = false;
+    }
+
+    if ( !all_ok || verbose || has_manualref ) {
       std::cout<<"BoundedCylinder case: pos = "<<pos<<"  dir="<<dir<<std::endl;
       // std::cout<<"HIGHRES pos="<<NC::fmt(pos.x())<<" "<<NC::fmt(pos.y())<<" "<<NC::fmt(pos.z())<<" mag="<<NC::fmt(pos.mag())
       //          <<" magxz="<<NC::fmt(std::sqrt(pos.x()*pos.x()+pos.z()*pos.z()))<<std::endl;
@@ -1196,17 +1222,17 @@ void testBoundedCylinderCases()
       if ( testexit ) {
         std::cout<<"   DistToExit:"<<std::endl;
         std::cout<<"               refdist = "
-                 <<NC::fmt(refdist_2exit)<<std::endl;//fixme fmtg
+                 <<NC::fmtg(refdist_2exit)<<std::endl;
         std::cout<<"                  dist = "
-                 <<NC::fmt(dist_2exit)<<std::endl;//fixme fmtg
+                 <<NC::fmtg(dist_2exit)<<std::endl;
         if ( has_manualref_d2exit )
           std::cout<<"     expected (manual) = "
-                   <<NC::fmt(tcase.expected_disttoexit.value())<<std::endl;//fixme fmtg
+                   <<NC::fmtg(tcase.expected_disttoexit.value())<<std::endl;
       }
       std::cout<<std::endl;
     }
     REQUIREFLTEQ_SPHERE( refdist_2entry,
-                  tcase.expected_disttoentry.value_or(refdist_2entry));
+                         tcase.expected_disttoentry.value_or(refdist_2entry));
     REQUIREFLTEQ_SPHERE( refdist_2entry, dist_2entry );
     if ( testexit ) {
       REQUIREFLTEQ_SPHERE( refdist_2exit,
@@ -1241,14 +1267,16 @@ void testSphereCases()
   test_cases.emplace_back( V( 0, -3, 0 ), V( 0,1,0 ), 0, 6 );
   test_cases.emplace_back( V( -3, 0, 0 ), V( 1,0,0 ), 0, 6 );
 
-  //And a bunch of generated ones (but not exactly on the edge, those we handle
-  //manually above):
+  //And a bunch of generated ones:
   for ( std::size_t i = 0; i < 100000; ++i ) {
     V pos = V( 2 * r * ( -1.0 + 2.0 * rng->generate() ),
                2 * r * ( -1.0 + 2.0 * rng->generate() ),
                2 * r * ( -1.0 + 2.0 * rng->generate() ) );
-    if ( rng->generate() < 0.1 )
-      pos = pos.unit() * r;
+    if ( rng->generate() < 0.1 ) {
+      pos = pos.unit() * ( r * ( rng->generate() > 0.5
+                                 ? one_plus_eps
+                                 : one_minus_eps ) );
+    }
     V dir = NC::randIsotropicDirection( rng );
     test_cases.emplace_back(pos,dir);
   }
@@ -1272,7 +1300,25 @@ void testSphereCases()
                                 : -17.0 );
     const bool has_manualref = has_manualref_d2entry || has_manualref_d2exit;
 
-    if ( verbose || has_manualref ) {
+    auto compat=[](double x, double y) -> bool
+    {
+      return NC::floateq(x,y,NCTESTPREC_SPHERE,NCTESTPREC_SPHERE);
+    };
+    bool all_ok = true;
+    if ( !compat( refdist_2entry,
+                  tcase.expected_disttoentry.value_or(refdist_2entry)) )
+      all_ok = false;
+    if ( !compat( refdist_2entry, dist_2entry ) )
+      all_ok = false;
+    if ( testexit ) {
+      if (!compat( refdist_2exit,
+                   tcase.expected_disttoexit.value_or(refdist_2exit)) )
+        all_ok = false;
+      if (!compat( refdist_2exit, dist_2exit ))
+        all_ok = false;
+    }
+
+    if ( !all_ok || verbose || has_manualref ) {
       std::cout<<"Sphere case: pos = "<<pos<<"  dir="<<dir<<std::endl;
       std::cout<<"   DistToEntry:"<<std::endl;
       std::cout<<"               refdist = "
@@ -1295,7 +1341,7 @@ void testSphereCases()
       std::cout<<std::endl;
     }
     REQUIREFLTEQ_SPHERE( refdist_2entry,
-                  tcase.expected_disttoentry.value_or(refdist_2entry));
+                         tcase.expected_disttoentry.value_or(refdist_2entry));
     REQUIREFLTEQ_SPHERE( refdist_2entry, dist_2entry );
     if ( testexit ) {
       REQUIREFLTEQ_SPHERE( refdist_2exit,

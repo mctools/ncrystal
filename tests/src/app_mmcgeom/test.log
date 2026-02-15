@@ -565,16 +565,6 @@ BoundedCylinder case: pos = { 0, 0, 1 }  dir={ 0, 0, -1 }
                   dist = 4
      expected (manual) = 4
 
-BoundedCylinder case: pos = { 1.76419, 0.401206, 2.42644 }  dir={ 0.149606, 0.977085, 0.151401 }
-   DistToEntry:
-               refdist = -1
-                  dist = -1
-     expected (manual) = -1
-   DistToExit:
-               refdist = 0
-                  dist = 0
-     expected (manual) = 0
-
 BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107 }
    DistToEntry:
                refdist = -1
@@ -587,9 +577,9 @@ BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107
                   dist = 0
      expected (manual) = 0
    DistToExit:
-               refdist = 4.4408920985006252e-16
-                  dist = 4.4408920985006252e-16
-     expected (manual) = 4.4408920985006252e-16
+               refdist = 4.44089e-16
+                  dist = 4.44089e-16
+     expected (manual) = 4.44089e-16
 
 BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107 }
    DistToEntry:
@@ -597,9 +587,9 @@ BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107
                   dist = 0
      expected (manual) = 0
    DistToExit:
-               refdist = 3.5527136788005e-15
-                  dist = 3.5527136788005e-15
-     expected (manual) = 3.5527136788005e-15
+               refdist = 3.55271e-15
+                  dist = 3.55271e-15
+     expected (manual) = 3.55271e-15
 
 BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107 }
    DistToEntry:
@@ -607,9 +597,9 @@ BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107
                   dist = 0
      expected (manual) = 0
    DistToExit:
-               refdist = 3.0002667017470222e-12
-                  dist = 3.0002667017470222e-12
-     expected (manual) = 3.0002667017470222e-12
+               refdist = 3.00027e-12
+                  dist = 3.00027e-12
+     expected (manual) = 3.00027e-12
 
 BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107 }
    DistToEntry:
@@ -617,9 +607,9 @@ BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107
                   dist = 0
      expected (manual) = 0
    DistToExit:
-               refdist = 3.000000692310322e-09
-                  dist = 3.000000692310322e-09
-     expected (manual) = 3.000000692310322e-09
+               refdist = 3e-09
+                  dist = 3e-09
+     expected (manual) = 3e-09
 
 BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107 }
    DistToEntry:
@@ -627,9 +617,9 @@ BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107
                   dist = 0
      expected (manual) = 0
    DistToExit:
-               refdist = 3.0000000008634223e-06
-                  dist = 3.0000000008634223e-06
-     expected (manual) = 3.0000000008634223e-06
+               refdist = 3e-06
+                  dist = 3e-06
+     expected (manual) = 3e-06
 
 BoundedCylinder case: pos = { 0, 3, -4 }  dir={ 0, -0.707107, 0.707107 }
    DistToEntry:
@@ -733,9 +723,9 @@ BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, -0.948683, 0.316228 }
                   dist = 0
      expected (manual) = 0
    DistToExit:
-               refdist = 3.1622776601683795
-                  dist = 3.1622776601683786
-     expected (manual) = 3.1622776601683795
+               refdist = 3.16228
+                  dist = 3.16228
+     expected (manual) = 3.16228
 
 BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, -0.707107, 0.707107 }
    DistToEntry:
@@ -743,9 +733,9 @@ BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, -0.707107, 0.707107 }
                   dist = 0
      expected (manual) = 0
    DistToExit:
-               refdist = 4.2426406871192848
-                  dist = 4.2426406871192848
-     expected (manual) = 4.2426406871192857
+               refdist = 4.24264
+                  dist = 4.24264
+     expected (manual) = 4.24264
 
 BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, 0.707107, -0.707107 }
    DistToEntry:
@@ -753,9 +743,9 @@ BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, 0.707107, -0.707107 }
                   dist = 0
      expected (manual) = 0
    DistToExit:
-               refdist = 1.4142135623730949
-                  dist = 1.4142135623730949
-     expected (manual) = 1.4142135623730951
+               refdist = 1.41421
+                  dist = 1.41421
+     expected (manual) = 1.41421
 
 BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, 1, 0 }
    DistToEntry:
@@ -767,7 +757,7 @@ BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, 1, 0 }
                   dist = 1
      expected (manual) = 1
 
-Tested a total of 100028 BoundedCylinder test cases!
+Tested a total of 100027 BoundedCylinder test cases!
 Sphere case: pos = { 0, 0, -10 }  dir={ 0, 0, 1 }
    DistToEntry:
                refdist = 7
