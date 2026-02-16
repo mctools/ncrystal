@@ -31,8 +31,8 @@ namespace NCRYSTAL_NAMESPACE {
 
     //Basket size (note, if we migrate to dynamic sizes, we could increase the
     //maximum size to e.g. 65536). It should be a power of two.
-    static constexpr size_t basket_N = 4096;
-    static constexpr size_t basket_N_almost_Full = basket_N*7/8;
+    static constexpr std::size_t basket_N = 4096;
+    static constexpr std::size_t basket_N_almost_Full = basket_N*7/8;
 
     using ProcImpl::ProcPtr;
     using ProcImpl::OptionalProcPtr;
@@ -50,6 +50,52 @@ namespace NCRYSTAL_NAMESPACE {
       std::size_t count = 0;
       double weight = 0.0;
     };
+
+    struct BasketValBufDbl final {
+      static constexpr auto N = basket_N;
+      double data[N];
+      ncconstexpr17 double operator[]( std::size_t i ) const ncnoexceptndebug
+      {
+        nc_assert(i<N);
+        return data[i];
+      }
+      ncconstexpr17 double& operator[]( std::size_t i ) ncnoexceptndebug
+      {
+        nc_assert(i<N);
+        return data[i];
+      }
+    };
+
+    struct BasketValBufInt final {
+      static constexpr auto N = basket_N;
+      int data[N];
+      ncconstexpr17 int operator[]( std::size_t i ) const ncnoexceptndebug
+      {
+        nc_assert(i<N);
+        return data[i];
+      }
+      ncconstexpr17 int& operator[]( std::size_t i ) ncnoexceptndebug
+      {
+        nc_assert(i<N);
+        return data[i];
+      }
+    };
+
+    struct BasketValBufBool final {
+      static constexpr auto N = basket_N;
+      bool data[N];
+      ncconstexpr17 bool operator[]( std::size_t i ) const ncnoexceptndebug
+      {
+        nc_assert(i<N);
+        return data[i];
+      }
+      ncconstexpr17 bool& operator[]( std::size_t i ) ncnoexceptndebug
+      {
+        nc_assert(i<N);
+        return data[i];
+      }
+    };
+
   }
 }
 

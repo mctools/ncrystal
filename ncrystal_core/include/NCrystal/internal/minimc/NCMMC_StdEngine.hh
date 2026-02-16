@@ -47,9 +47,9 @@ namespace NCRYSTAL_NAMESPACE {
     struct DPCacheData {
       using data_t = DPCacheData;
       using idx_t = std::size_t;
-      int nscat[NeutronBasket::N];
-      bool sawinelas[NeutronBasket::N];
-      double scatxsval[NeutronBasket::N];//if we already know scat-xs (<0.0 means unknown)
+      BasketValBufInt nscat;
+      BasketValBufBool sawinelas;
+      BasketValBufDbl scatxsval;//if already know scat-xs (<0.0 means unknown)
 
       void markAsMissedTarget( std::size_t i ) noexcept { this->nscat[i] = -1; }
 
@@ -81,11 +81,13 @@ namespace NCRYSTAL_NAMESPACE {
                                  std::size_t i_o, std::size_t n ) ncnoexceptndebug
       {
         nc_assert( this != &o );
-        nc_assert( i+n <= NeutronBasket::N );
-        nc_assert( i_o+n <= NeutronBasket::N );
-        detail::memcpydata<int>( nscat + i,o.nscat + i_o,n );
-        detail::memcpydata<bool>( sawinelas + i, o.sawinelas + i_o, n );
-        detail::memcpydata<double>( scatxsval + i, o.scatxsval + i_o, n );
+        nc_assert( i+n <= basket_N );
+        nc_assert( i_o+n <= basket_N );
+        detail::memcpydata<int>( nscat.data + i,o.nscat.data + i_o,n );
+        detail::memcpydata<bool>( sawinelas.data + i,
+                                  o.sawinelas.data + i_o, n );
+        detail::memcpydata<double>( scatxsval.data + i,
+                                    o.scatxsval.data + i_o, n );
       }
 
     };

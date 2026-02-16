@@ -106,7 +106,7 @@ namespace NCRYSTAL_NAMESPACE {
 
         //First do the geometry distance calculations:
         nc_assert(m_srcParticlesMightBeOutside);
-        double dist_results[NeutronBasket::N];
+        double dist_results[basket_N];
         m_geom->distToVolumeEntry( b.neutrons, dist_results, offset );
 
         //Next, reserve a basket for results (those that missed):
@@ -117,7 +117,7 @@ namespace NCRYSTAL_NAMESPACE {
           bmiss = &bh_results.value().basket();
         }
 
-        std::size_t i_first_hole = NeutronBasket::N;
+        std::size_t i_first_hole = basket_N;
         const std::size_t b_size = b.size();
         ParticleCountSum missStat;
 
@@ -130,7 +130,7 @@ namespace NCRYSTAL_NAMESPACE {
             ++(missStat.count);
             if (bmiss)
               bmiss->appendEntryFromOther( b, i );
-            if ( i_first_hole == NeutronBasket::N )
+            if ( i_first_hole == basket_N )
               i_first_hole = i;
           } else {
             //Keep this. In case of holes, we also have to move it.
@@ -145,7 +145,7 @@ namespace NCRYSTAL_NAMESPACE {
         missCount.count += missStat.count;
 
         //shrink-to-fit:
-        if ( i_first_hole != NeutronBasket::N )
+        if ( i_first_hole != basket_N )
           b.neutrons.nused = i_first_hole;
 
         nc_assert( offset <= b.neutrons.nused );

@@ -261,7 +261,7 @@ namespace NCRYSTAL_NAMESPACE {
                 {
                   const std::size_t n = b.size();
                   double w = 0.0;
-                  const double * it = b.neutrons.w;
+                  const double * it = b.neutrons.w.data;
                   const double * itE = it + n;
                   for ( ; it!=itE; ++it )
                     w += *it;

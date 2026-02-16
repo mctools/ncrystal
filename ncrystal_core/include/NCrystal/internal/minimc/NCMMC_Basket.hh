@@ -27,16 +27,6 @@
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
-    namespace detail {
-      template<class TData>
-      inline void memcpydata( TData* ncrestrict dst,
-                              const TData* ncrestrict src,
-                              std::size_t n ) noexcept
-      {
-        std::memcpy( (void*)dst, (void*)src, n*sizeof(TData));
-      }
-    }
-
     //For efficiency, handle larger number of neutrons at once, with each field
     //in a separate array. This has several advantages:
     //
@@ -46,16 +36,27 @@ namespace NCRYSTAL_NAMESPACE {
     // 3) Easy to export the particles in a basket to a Python layer, since we
     //    can simply create a Numpy array-view of each data array.
 
-    struct NeutronBasket : NoCopyMove {
-      static constexpr auto N = basket_N;
-      double x[N];
-      double y[N];
-      double z[N];
-      double ux[N];
-      double uy[N];
-      double uz[N];
-      double w[N];
-      double ekin[N];
+    namespace detail {
+      //type-safe memcopy:
+      template<class TData>
+      inline void memcpydata( TData* ncrestrict dst,
+                              const TData* ncrestrict src,
+                              std::size_t n ) ncnoexceptndebug
+      {
+        nc_assert((dst>=src+n)||(src>=dst+n));//no overlap
+        std::memcpy( (void*)dst, (void*)src, n*sizeof(TData));
+      }
+    }
+
+    struct NeutronBasket final : NoCopyMove {
+      BasketValBufDbl x;
+      BasketValBufDbl y;
+      BasketValBufDbl z;
+      BasketValBufDbl ux;
+      BasketValBufDbl uy;
+      BasketValBufDbl uz;
+      BasketValBufDbl w;
+      BasketValBufDbl ekin;
       //TODO: Time as well? (remember to update it in all propagations if so)
       std::size_t nused = 0;
 
@@ -64,8 +65,10 @@ namespace NCRYSTAL_NAMESPACE {
 #ifndef NDEBUG
         nc_assert( nused <= basket_N );
         for ( std::size_t i = 0; i < nused; ++i ) {
-          nc_assert( std::isfinite(x[i]) && std::isfinite(y[i]) && std::isfinite(z[i]) );
-          nc_assert( std::isfinite(ux[i]) && std::isfinite(uy[i]) && std::isfinite(uz[i]) );
+          nc_assert( std::isfinite(x[i])
+                     && std::isfinite(y[i]) && std::isfinite(z[i]) );
+          nc_assert( std::isfinite(ux[i])
+                     && std::isfinite(uy[i]) && std::isfinite(uz[i]) );
           nc_assert( std::isfinite(w[i]) && std::isfinite(ekin[i]) );
           nc_assert( ncabs(ux[i]*ux[i]+uy[i]*uy[i]+uz[i]*uz[i]-1.0)<1e-9 );
         }
@@ -74,21 +77,26 @@ namespace NCRYSTAL_NAMESPACE {
       ncnodiscard17 NeutronEnergy& ekin_obj( std::size_t i ) noexcept
       {
         static_assert(sizeof(NeutronEnergy)==sizeof(double),"");
-        return *reinterpret_cast<NeutronEnergy*>( &ekin[i] );
+        return *reinterpret_cast<NeutronEnergy*>( &ekin.data[i] );
       }
       ncnodiscard17 const NeutronEnergy& ekin_obj( std::size_t i ) const noexcept
       {
         static_assert(sizeof(NeutronEnergy)==sizeof(double),"");
-        return *reinterpret_cast<const NeutronEnergy*>( &ekin[i] );
+        return *reinterpret_cast<const NeutronEnergy*>( &ekin.data[i] );
       }
 
-      ncnodiscard17 NeutronDirection dir_obj( std::size_t i ) const noexcept { return NeutronDirection{ ux[i], uy[i], uz[i] }; }
+      ncnodiscard17 NeutronDirection dir_obj( std::size_t i ) const noexcept
+      {
+        return NeutronDirection{ ux[i], uy[i], uz[i] };
+      }
 
-      constexpr bool full() const noexcept { return nused==N; }
+      constexpr bool full() const noexcept { return nused==basket_N; }
       constexpr bool empty() const noexcept { return nused==0; }
       constexpr std::size_t size() const noexcept { return nused; }
 
-      void copyEntryFromOther( const NeutronBasket& o, std::size_t i_o, std::size_t i ) ncnoexceptndebug
+      void copyEntryFromOther( const NeutronBasket& o,
+                               std::size_t i_o,
+                               std::size_t i ) ncnoexceptndebug
       {
         x[i] = o.x[i_o];
         y[i] = o.y[i_o];
@@ -100,7 +108,9 @@ namespace NCRYSTAL_NAMESPACE {
         ekin[i] = o.ekin[i_o];
       }
 
-      void appendEntriesFromOther( const NeutronBasket& o, std::size_t i_o, std::size_t n ) ncnoexceptndebug
+      void appendEntriesFromOther( const NeutronBasket& o,
+                                   std::size_t i_o,
+                                   std::size_t n ) ncnoexceptndebug
       {
         nc_assert( this != &o );
         nc_assert( n>=1 );
@@ -108,14 +118,14 @@ namespace NCRYSTAL_NAMESPACE {
         nc_assert( i_o + n <= o.size() );
         const std::size_t p = this->size();
         this->nused += n;
-        detail::memcpydata<double>( this->x + p, o.x + i_o, n);
-        detail::memcpydata<double>( this->y + p, o.y + i_o, n);
-        detail::memcpydata<double>( this->z + p, o.z + i_o, n);
-        detail::memcpydata<double>( this->ux + p, o.ux + i_o, n);
-        detail::memcpydata<double>( this->uy + p, o.uy + i_o, n);
-        detail::memcpydata<double>( this->uz + p, o.uz + i_o, n);
-        detail::memcpydata<double>( this->w + p, o.w + i_o, n);
-        detail::memcpydata<double>( this->ekin + p, o.ekin + i_o, n);
+        detail::memcpydata<double>( this->x.data + p, o.x.data + i_o, n);
+        detail::memcpydata<double>( this->y.data + p, o.y.data + i_o, n);
+        detail::memcpydata<double>( this->z.data + p, o.z.data + i_o, n);
+        detail::memcpydata<double>( this->ux.data + p, o.ux.data + i_o, n);
+        detail::memcpydata<double>( this->uy.data + p, o.uy.data + i_o, n);
+        detail::memcpydata<double>( this->uz.data + p, o.uz.data + i_o, n);
+        detail::memcpydata<double>( this->w.data + p, o.w.data + i_o, n);
+        detail::memcpydata<double>( this->ekin.data + p, o.ekin.data + i_o, n);
       }
 
     };
@@ -140,7 +150,9 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr bool empty() const noexcept { return neutrons.empty(); }
       constexpr std::size_t size() const noexcept { return neutrons.size(); }
 
-      void copyEntryFromOther( const CachedNeutronBasket& o, std::size_t i_o, std::size_t i ) ncnoexceptndebug
+      void copyEntryFromOther( const CachedNeutronBasket& o,
+                               std::size_t i_o,
+                               std::size_t i ) ncnoexceptndebug
       {
         nc_assert( i_o < o.size() );
         nc_assert( i < this->size() );
@@ -149,12 +161,14 @@ namespace NCRYSTAL_NAMESPACE {
           this->cache.copyEntryFromOther( o.cache, i_o, i );
       }
 
-      void copyEntry( std::size_t i_tgt, std::size_t i_src ) ncnoexceptndebug
+      void copyEntry( std::size_t i_tgt,
+                      std::size_t i_src ) ncnoexceptndebug
       {
         this->copyEntryFromOther( *this, i_src, i_tgt );
       }
 
-      std::size_t appendEntryFromOther( const CachedNeutronBasket& o, std::size_t i_o ) ncnoexceptndebug
+      std::size_t appendEntryFromOther( const CachedNeutronBasket& o,
+                                        std::size_t i_o ) ncnoexceptndebug
       {
         nc_assert(!this->full());
         std::size_t i = neutrons.nused++;
@@ -162,15 +176,18 @@ namespace NCRYSTAL_NAMESPACE {
         return i;
       }
 
-      void appendEntriesFromOther( const CachedNeutronBasket& o, std::size_t i_o, std::size_t n ) ncnoexceptndebug
+      void appendEntriesFromOther( const CachedNeutronBasket& o,
+                                   std::size_t i_o,
+                                   std::size_t n ) ncnoexceptndebug
       {
         nc_assert( this != &o );
         nc_assert( n>=1 );
-        nc_assert( this->size() + n <= NeutronBasket::N );
+        nc_assert( this->size() + n <= basket_N );
         nc_assert( i_o + n <= o.size() );
 
         const std::size_t p = this->size();
-        neutrons.appendEntriesFromOther( o.neutrons, i_o, n );//nb: call updates this->neutrons.nused value.
+        //Note, this call also updates this->neutrons.nused value:
+        neutrons.appendEntriesFromOther( o.neutrons, i_o, n );
         if (!std::is_empty<TCache>::value)
           this->cache.copyEntriesFromOther( o.cache, p, i_o, n );
       }

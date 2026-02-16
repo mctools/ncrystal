@@ -72,7 +72,8 @@ namespace NCRYSTAL_NAMESPACE {
       {
         nc_assert( tgt.size() >= nb.nused);
         nc_assert( offset < nb.nused);
-        Utils::distToSlabEntry( nb.z + offset, nb.uz + offset,
+        Utils::distToSlabEntry( nb.z.data + offset,
+                                nb.uz.data + offset,
                                 tgt.data() + offset, nb.nused - offset,
                                 m_dz );
       }
@@ -81,7 +82,8 @@ namespace NCRYSTAL_NAMESPACE {
                              Span<double> tgt ) const
       {
         nc_assert( tgt.size() >= nb.nused);
-        Utils::distToSlabExit( nb.z, nb.uz, tgt.data(), nb.nused, m_dz );
+        Utils::distToSlabExit( nb.z.data, nb.uz.data, tgt.data(),
+                               nb.nused, m_dz );
       }
     };
 

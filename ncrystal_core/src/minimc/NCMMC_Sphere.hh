@@ -105,17 +105,22 @@ namespace NCRYSTAL_NAMESPACE {
         nc_assert( tgt.size() >= nb.nused);
         nc_assert( offset < nb.nused);
         nc_assert( nb.nused - offset > 0 );
-        distToVolumeEntryImpl( nb.x + offset, nb.y + offset, nb.z + offset,
-                               nb.ux + offset, nb.uy + offset, nb.uz + offset,
-                               tgt.data() + offset, nb.nused - offset );
+        distToVolumeEntryImpl( nb.x.data + offset,
+                               nb.y.data + offset,
+                               nb.z.data + offset,
+                               nb.ux.data + offset,
+                               nb.uy.data + offset,
+                               nb.uz.data + offset,
+                               tgt.data() + offset,
+                               nb.nused - offset );
       }
 
       void distToVolumeExit( const NeutronBasket& nb,
                              Span<double> tgt ) const
       {
         nc_assert( tgt.size() >= nb.nused);
-        distToVolumeExitImpl( nb.x, nb.y, nb.z,
-                              nb.ux, nb.uy, nb.uz,
+        distToVolumeExitImpl( nb.x.data, nb.y.data, nb.z.data,
+                              nb.ux.data, nb.uy.data, nb.uz.data,
                               tgt.data(), nb.nused );
       }
 
@@ -201,7 +206,7 @@ namespace NCRYSTAL_NAMESPACE {
         for ( std::size_t i = 0; i < n; ++i )
           tgt[i] += m_radiusSq;
 
-        double buf_pd[NeutronBasket::N];
+        double buf_pd[basket_N];
         //buf_pd[i] = x[i]*ux[i]+y[i]*uy[i]+z[i]*uz[i];
         for ( std::size_t i = 0; i < n; ++i )
           buf_pd[i] = x[i]*ux[i];

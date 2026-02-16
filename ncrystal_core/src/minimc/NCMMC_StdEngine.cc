@@ -44,10 +44,10 @@ NCMMC::StdEngine::StdEngine( matdef_t md, const EngineOpts& eopts )
 }
 
 void NCMMC::StdEngine::advanceSimulation( RNG& rng,
-                                         const Geometry& geom,
-                                         basket_holder_t&& inbasket_holder,
-                                         basketmgr_t& mgr,
-                                         const resultfct_t& resultFct )
+                                          const Geometry& geom,
+                                          basket_holder_t&& inbasket_holder,
+                                          basketmgr_t& mgr,
+                                          const resultfct_t& resultFct )
 {
   NCRYSTAL_DEBUGMMCMSG("StdEngine::advanceSimulation inbasket.size()="
                        <<inbasket_holder.basket().size());
@@ -80,7 +80,7 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
     if ( absorption_is_isotropic ) {
       ProcImpl::NewABI::evalManyXSIsotropic( *m_mat.absorption,
                                              m_abs_cacheptr,
-                                             inbasket.neutrons.ekin,
+                                             inbasket.neutrons.ekin.data,
                                              inbasket.size(),
                                              m_buf_xs_abs );
     } else {
@@ -142,7 +142,7 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
   MiniMC::Utils::calcProbTransm( m_mat.numDens,
                                  inbasket.size(),
                                  geom_is_unbounded,
-                                 inbasket.cache.scatxsval,
+                                 inbasket.cache.scatxsval.data,
                                  m_buf_disttoexit,
                                  m_buf_ptransm );
 
@@ -156,7 +156,7 @@ void NCMMC::StdEngine::advanceSimulation( RNG& rng,
   MiniMC::Utils::sampleRandDists(rng,
                                  m_mat.numDens,
                                  m_buf_disttoexit,
-                                 inbasket.cache.scatxsval,
+                                 inbasket.cache.scatxsval.data,
                                  inbasket.size(),
                                  m_buf_disttoscat );
 

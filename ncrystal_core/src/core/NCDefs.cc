@@ -26,6 +26,11 @@ namespace NCRYSTAL_NAMESPACE {
                  >= std::numeric_limits<std::uint64_t>::max(),
                  "NCrystal is no longer supported on 32bit systems"
                  );
+  static_assert( std::numeric_limits<int>::max()
+                 >= std::numeric_limits<std::int32_t>::max(),
+                 "NCrystal is no longer supported on systems where \"int\""
+                 " is not at least 32bits wide."
+                 );
   static_assert(std::is_trivially_copyable<ThreeVector>::value,"");
   static_assert(std::is_trivially_destructible<ThreeVector>::value,"");
   static_assert(std::is_nothrow_destructible<ThreeVector>::value,"");
@@ -102,3 +107,5 @@ void NCrystal::RNG::generateRandomBits( std::size_t nbytes, uint8_t* data )
   }
 }
 #endif
+//FIXME:   inline ncconstexpr17 std::ostream& operator<< (std::ostream& os, const FixedVector<TValue,N>& dir)
+//                 does not use fmt!!!
