@@ -1,0 +1,8 @@
+NCrystal WARNING: The ncrystal_decodecfg_packfact function is obsolete and now always returns 1.0. Please stop using it and instead emulate a packing factor in the cfg-string with a parameter like ";density=0.6x".
+NCrystal WARNING: The ncrystal_clear_info_caches function is obsolete and for now simply redirects to ncrystal_clear_caches(). Please stop using it and instead call ncrystal_clear_caches() directly.
+NCrystal WARNING: The ncrystal_info_hasatompos function is obsolete. Please stop using it and instead call ncrystal_info_natominfo() which returns 0 when atom positions are unavailable.
+NCrystal WARNING: The ncrystal_info_hasanydebyetemp function is obsolete. Please stop using it and instead call ncrystal_info_hasatomdebyetemp().
+NCrystal WARNING: The ncrystal_info_getdebyetempbyelement function is obsolete. Please stop using it.
+NCrystal WARNING: The ncrystal_info_getglobaldebyetemp function is obsolete. Please stop using it.
+NCrystal WARNING: The ncrystal_get_file_contents function is obsolete. Please stop using it and use the ncrystal_get_text_data function instead.
+NCrystal WARNING: The ncrystal_genscatter_nonoriented function is obsolete. Please use the ncrystal_samplescatterisotropic function instead.

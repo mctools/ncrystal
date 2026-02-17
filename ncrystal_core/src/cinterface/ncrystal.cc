@@ -318,6 +318,19 @@ namespace NCRYSTAL_NAMESPACE {
         setError("<unknown>","std::exception");
     }
 
+    class WarnFirstTime {
+      std::mutex m_mtx;
+      bool m_first = true;
+    public:
+      void operator()(const char * msg)
+      {
+        NCRYSTAL_LOCK_GUARD(m_mtx);
+        if ( m_first ) {
+          m_first = false;
+          NCRYSTAL_WARN(msg);
+        }
+      }
+    };
   }
   }
 }
@@ -780,6 +793,11 @@ void ncrystal_raw_vdos2knl( const double* vdos_egrid,
                             double** sab )
 {
   //obsolete fct:
+  try {
+    static ncc::WarnFirstTime wf;
+    wf("The ncrystal_raw_vdos2knl function is obsolete. Please use"
+       " the ncrystal_raw_vdos2kernel function instead.");
+  } NCCATCH;
   double target_emax = 0.0;
   double suggested_emax;
   ncrystal_raw_vdos2kernel( vdos_egrid,
@@ -1229,14 +1247,18 @@ void ncrystal_samplescatter_many( ncrystal_scatter_t o,
 void ncrystal_genscatter_nonoriented( ncrystal_scatter_t o, double ekin, double* result_angle, double* result_dekin )
 {
   //obsolete fct:
+  *result_angle = -999.0;
+  *result_dekin = -999.0;
   try {
+    static ncc::WarnFirstTime wf;
+    wf("The ncrystal_genscatter_nonoriented function is obsolete. Please use"
+       " the ncrystal_samplescatterisotropic function instead.");
     auto& sc = ncc::extract(o);
     auto outcome = sc.sampleScatterIsotropic( NC::NeutronEnergy{ekin} );
     *result_dekin = outcome.ekin.get() - ekin;
     *result_angle = std::acos(outcome.mu.get());
     return;
   } NCCATCH;
-  //nb: should set everything to some dummy values here, but the fct is obsolete anyway...
 }
 
 void ncrystal_genscatter_nonoriented_many( ncrystal_scatter_t o,
@@ -1248,6 +1270,10 @@ void ncrystal_genscatter_nonoriented_many( ncrystal_scatter_t o,
 {
   //obsolete fct:
   try {
+    static ncc::WarnFirstTime wf;
+    wf("The ncrystal_genscatter_nonoriented_many function is obsolete."
+       " Please use the ncrystal_samplescatterisotropic_many"
+       " function instead.");
     auto& sc = ncc::extract(o);
     while (repeat--) {
       for (unsigned long i = 0; i < n_ekin; ++i) {
@@ -1272,6 +1298,10 @@ void ncrystal_genscatter_many( ncrystal_scatter_t o,
 {
   //obsolete fct:
   try {
+    static ncc::WarnFirstTime wf;
+    wf("The ncrystal_genscatter_many function is obsolete."
+       " Please use the ncrystal_samplescatter_many"
+       " function instead.");
     NC::NeutronDirection dir{ *indir };
     auto& sc = ncc::extract(o);
     while (repeat--) {
@@ -1291,6 +1321,10 @@ void ncrystal_genscatter( ncrystal_scatter_t o, double ekin, const double (*dire
 {
   //obsolete fct.
   try {
+    static ncc::WarnFirstTime wf;
+    wf("The ncrystal_genscatter function is obsolete."
+       " Please use the ncrystal_samplescatter"
+       " function instead.");
     auto& sc = ncc::extract(o);
     auto outcome = sc.sampleScatter(NC::NeutronEnergy{ekin}, NC::NeutronDirection{*direction} );
     *result_deltaekin = outcome.ekin.get() - ekin;
@@ -1301,15 +1335,28 @@ void ncrystal_genscatter( ncrystal_scatter_t o, double ekin, const double (*dire
   *result_deltaekin = 0.0;
 }
 
-
 int ncrystal_info_hasatompos( ncrystal_info_t ci_t ) {
   //obsolete fct:
-  try { return int(ncc::extract(ci_t)->hasAtomInfo()); } NCCATCH;  return 0;
+  try {
+    static ncc::WarnFirstTime wf;
+    wf("The ncrystal_info_hasatompos function is obsolete."
+       " Please stop using it and instead call"
+       " ncrystal_info_natominfo() which returns 0"
+       " when atom positions are unavailable.");
+    return int(ncc::extract(ci_t)->hasAtomInfo());
+  } NCCATCH;
+  return 0;
 }
 
 int ncrystal_info_hasanydebyetemp( ncrystal_info_t ci_t )
 {
-  //obsolete fct.
+  //obsolete fct:
+  try {
+    static ncc::WarnFirstTime wf;
+    wf("The ncrystal_info_hasanydebyetemp function is obsolete."
+       " Please stop using it and instead call"
+       " ncrystal_info_hasatomdebyetemp().");
+  } NCCATCH;
   return ncrystal_info_hasatomdebyetemp(ci_t);
 }
 
@@ -1317,6 +1364,9 @@ double ncrystal_info_getglobaldebyetemp( ncrystal_info_t ci )
 {
   //obsolete fct.
   try {
+    static ncc::WarnFirstTime wf;
+    wf("The ncrystal_info_getglobaldebyetemp function is obsolete."
+       " Please stop using it.");
     ncc::extract(ci);//trigger type checking
     return -1.0;//Always return "n/a" now
   } NCCATCH;
@@ -1327,6 +1377,9 @@ double ncrystal_info_getdebyetempbyelement( ncrystal_info_t ci,
 {
   //obsolete fct
   try {
+    static ncc::WarnFirstTime wf;
+    wf("The ncrystal_info_getdebyetempbyelement function is obsolete."
+       " Please stop using it.");
     NC::AtomIndex idx{atomdataindex};
     for ( auto& ai : ncc::extract(ci)->getAtomInfos() ) {
       if ( ai.indexedAtomData().index == idx )
@@ -1393,23 +1446,14 @@ ncrystal_info_t ncrystal_create_info( const char * cfgstr )
 
 double ncrystal_decodecfg_packfact( const char * cfgstr )
 {
-  //fixme: same kind of obsoletion msg elsewhere.
-
   //Obsolete, returns 1 (but we still decode the cfgstr just to help the user
   //catch errors).
   try {
-    {
-      static std::mutex mtx;
-      static bool first = true;
-      NCRYSTAL_LOCK_GUARD(mtx);
-      if ( first ) {
-        first = false;
-        NCRYSTAL_WARN("ncrystal_decodecfg_packfact function is obsolete"
-                      " and now always returns 1.0. Please stop using it"
-                      " and instead emulate a packing factor in the "
-                      "cfg-string with a parameter like \";density=0.6x\".");
-      }
-    }
+    static ncc::WarnFirstTime wf;
+    wf("The ncrystal_decodecfg_packfact function is obsolete"
+       " and now always returns 1.0. Please stop using it"
+       " and instead emulate a packing factor in the "
+       "cfg-string with a parameter like \";density=0.6x\".");
     NC::MatCfg cfg(cfgstr);
     (void)cfg;
     return 1.0;
@@ -1498,7 +1542,14 @@ void ncrystal_clear_caches(void)
 
 void ncrystal_clear_info_caches(void)
 {
-  //deprecated, now simply redirects to ncrystal_clear_caches.
+  //obsolete, now simply redirects to ncrystal_clear_caches.
+  try {
+    static ncc::WarnFirstTime wf;
+    wf("The ncrystal_clear_info_caches function is obsolete"
+       " and for now simply redirects to"
+       " ncrystal_clear_caches(). Please stop using it"
+       " and instead call ncrystal_clear_caches() directly.");
+  } NCCATCH;
   ncrystal_clear_caches();
 }
 
@@ -1538,9 +1589,27 @@ unsigned ncrystal_info_natominfo( ncrystal_info_t ci_t )
   return 0;
 }
 
-int ncrystal_info_hasatommsd( ncrystal_info_t ci_t ) { try { return int(ncc::extract(ci_t)->hasAtomMSD()); } NCCATCH;  return 0; }
-int ncrystal_info_hasatomdebyetemp( ncrystal_info_t ci_t ) { try { return int(ncc::extract(ci_t)->hasAtomDebyeTemp()); } NCCATCH;  return 0; }
-int ncrystal_info_hasdebyetemp( ncrystal_info_t ci_t ) { return ncrystal_info_hasatomdebyetemp(ci_t); }//alias
+int ncrystal_info_hasatommsd( ncrystal_info_t ci_t )
+{
+  try {
+    return int(ncc::extract(ci_t)->hasAtomMSD());
+  } NCCATCH;
+  return 0;
+}
+
+int ncrystal_info_hasatomdebyetemp( ncrystal_info_t ci_t )
+{
+  try {
+    return int(ncc::extract(ci_t)->hasAtomDebyeTemp());
+  } NCCATCH;
+  return 0;
+}
+
+int ncrystal_info_hasdebyetemp( ncrystal_info_t ci_t )
+{
+  //alias
+  return ncrystal_info_hasatomdebyetemp(ci_t);
+}
 
 void ncrystal_info_getatominfo( ncrystal_info_t ci, unsigned iatom,
                                 unsigned* atomdataindex,
@@ -2058,6 +2127,12 @@ void ncrystal_get_plugin_list( unsigned* nstrs,
 char* ncrystal_get_file_contents( const char * name )
 {
   try {
+    static ncc::WarnFirstTime wf;
+    wf("The ncrystal_get_file_contents function is obsolete."
+       " Please stop using it and use the ncrystal_get_text_data"
+       " function instead.");
+  } NCCATCH;
+  try {
     auto textData = NC::FactImpl::createTextData( name );
     return ncc::createString(textData->rawData().begin(), textData->rawData().end());
   } catch ( NC::Error::FileNotFound& e ) {
@@ -2363,14 +2438,12 @@ void ncrystal_runmmcsim_stdengine( unsigned, unsigned, const char *,
                                    const char *, const char *, char ** a,
                                    unsigned * b, double ** c, double ** d )
 {
-  //Fixme: mark as obsolete in header and docs (and output warning via
-  //NCRYSTAL_MSG).
   *a = nullptr;
   *b = 0;
   *c = nullptr;
   *d = nullptr;
   try {
-    NCRYSTAL_MSG("WARNING: The ncrystal_runmmcsim_stdengine(..) function "
+    NCRYSTAL_WARN("The ncrystal_runmmcsim_stdengine(..) function "
                  "is obsoleted. Please migrate to use the "
                  "ncrystal_jsonquery(..) function instead.");
     NCRYSTAL_THROW(LogicError,"The ncrystal_runmmcsim_stdengine function"

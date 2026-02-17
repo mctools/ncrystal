@@ -1323,7 +1323,7 @@ extern "C" {
                                               double * results_dekin );
 
 
-  /* Same as ncrystal_raw_vdos2knl but without target_emax/suggested_emax: */
+  /* Same as ncrystal_raw_vdos2kernel but without target_emax/suggested_emax: */
   NCRYSTAL_API void ncrystal_raw_vdos2knl( const double* vdos_egrid,
                                            const double* vdos_density,
                                            unsigned vdos_egrid_npts,
@@ -1339,8 +1339,8 @@ extern "C" {
                                            double** beta,
                                            double** sab );
 
-  /* Obsolete function. Calling it will result in an error. Use the            */
-  /* ncrystal_jsonquery(..) function instead.                                  */
+  /* Obsolete function. Calling it will result in an error. Use the           */
+  /* ncrystal_jsonquery(..) function instead.                                 */
   NCRYSTAL_API void ncrystal_runmmcsim_stdengine( unsigned, unsigned,
                                                   const char *, const char *,
                                                   const char *, char **,
