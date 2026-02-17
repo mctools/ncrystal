@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/minimc/NCMMC_StdTallies.hh"
 #include "NCrystal/internal/minimc/NCMMC_Source.hh"
+#include "NCrystal/internal/minimc/NCMMC_Utils.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
 
 namespace NC = NCrystal;
@@ -276,7 +277,10 @@ namespace NCRYSTAL_NAMESPACE {
           constexpr double fact_ekin2ksq = ekin2ksq(1.0);
           for ( std::size_t i = 0; i < n; ++i )
             q.data[i] *= fact_ekin2ksq;
-          //fixme: take absolute value? And what about units?
+          //From q^2 to |q|:
+          for ( std::size_t i = 0; i < n; ++i )
+            q.data[i] = Utils::fast_sqrt_clippos(q.data[i]);
+
           auto& h = vectAt(data.hists,data.histidx_q);
           hgfill_main( h, q, neutrons.w, n );
           if ( dethistid )

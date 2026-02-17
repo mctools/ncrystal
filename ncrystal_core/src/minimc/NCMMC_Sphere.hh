@@ -35,18 +35,6 @@ namespace NCRYSTAL_NAMESPACE {
     //A few utilities here that might be used also by the other geometry
     //implementations:
 
-    inline double fast_sqrt_clippos( double x ) noexcept {
-      //Using this in a loop does not actually allow for vectorization,
-      //https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91645 . However, perhaps
-      //this will be solved in GCC 13/14 or is already solved in clang/msvc?
-      //Further investigations needed.
-#if defined(__clang__) || defined(__GNUC__)
-      return __builtin_sqrt(__builtin_fmax(0.0,x));
-#else
-      return std::sqrt(ncmax(0.0,x));
-#endif
-    }
-
     void fmt_length_meters( std::ostream& os, double length_meters )
     {
       MiniMC::Utils::fmtBestUnit(os,Length{length_meters},"%.6g");
@@ -224,7 +212,7 @@ namespace NCRYSTAL_NAMESPACE {
         //distances should arise from FP instability only, and we must be on
         //the edge.
         for ( std::size_t i = 0; i < n; ++i )
-          tgt[i] = fast_sqrt_clippos(tgt[i]);//sqrtD
+          tgt[i] = Utils::fast_sqrt_clippos(tgt[i]);//sqrtD
         for ( std::size_t i = 0; i < n; ++i )
           tgt[i] -= buf_pd[i];
         for ( std::size_t i = 0; i < n; ++i )

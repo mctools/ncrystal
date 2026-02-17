@@ -78,6 +78,18 @@ namespace NCRYSTAL_NAMESPACE {
       void fmtBestUnit( std::ostream& os, Length,
                         const char* fmtstr = nullptr );
 
+      inline double fast_sqrt_clippos( double x ) noexcept {
+        //Using this in a loop does not actually allow for vectorization,
+        //https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91645 . However, perhaps
+        //this will be solved in GCC 13/14 or is already solved in clang/msvc?
+        //Further investigations needed.
+#if defined(__clang__) || defined(__GNUC__)
+        return __builtin_sqrt(__builtin_fmax(0.0,x));
+#else
+        return std::sqrt(ncmax(0.0,x));
+#endif
+      }
+
       //Fixme: Move the following explanation somewhere more appropriate and
       //maintainable, and refer to it there?
       //
