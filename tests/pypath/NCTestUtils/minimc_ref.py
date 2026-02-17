@@ -33,6 +33,7 @@ def minimc_unittest_stdsphere( *,
                                neutron_energy,#string like "1eV" or "1Aa"
                                illuminate_uniformly = False,
                                sphere_diam_meter = None,
+                               n = None,
                                **kwargs #passed to minimc_unittest
                                ):
     mat = ncload( cfgstr )
@@ -46,7 +47,8 @@ def minimc_unittest_stdsphere( *,
         assert sphere_diam == sphere_diam_meter
 
     sphere_radius = sphere_diam/2
-    n = 1e4 if mat.scatter.isOriented() else 1e5
+    if n is None:
+        n = 1e4 if mat.scatter.isOriented() else 1e5
     srcz = (-sphere_radius)*(1-1e-13)
 
     if illuminate_uniformly:
@@ -93,6 +95,8 @@ def minimc_unittest( *,
                      geomcfg,
                      do_plot = False,
                      do_updateref = False,
+                     tally='mu',
+                     tallybins=None
                     ):
     """Run MiniMC with chosen configuration and compare result with reference
     histogram. Will keep reference histogram in <testsdata>mmcrefs/key.json (if
@@ -124,17 +128,21 @@ def minimc_unittest( *,
         for_updates = do_updateref
     ).joinpath( key+'.json' )
 
+    if tallybins is None:
+        tallybins=';tallybins=mu:90:0:180' if tally=='mu' else ''
+    else:
+        tallybins=f';tallybins={tallybins}'
+
     res = ncminimc.minimc_run( cfgstr=cfgstr,
                                geomcfg=geomcfg,
                                srccfg=srccfg,
                                enginecfg=('nthreads=2'
-                                          ';tally=mu'
-                                          ';tallybins=mu:90:0:180'),
+                                          f';tally={tally}{tallybins}')
                               )
 
-    h = res.tally('mu').hist_total
+    h = res.tally(tally).hist_total
     if do_plot:
-        res.tally('mu').plot(logy=True)
+        res.tally(tally).plot(logy=True)
         #h.plot(logy=True)
 
     if do_updateref:
