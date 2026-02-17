@@ -23,7 +23,7 @@
 # inspect differences and update reference histograms in case of changes.
 import NCrystalDev.minimc as ncminimc
 from NCrystalDev.exceptions import NCBadInput
-from NCrystalDev._hist import Hist1D
+from NCrystalDev.hist import Hist1D
 from NCrystalDev.core import load as ncload
 
 #Specialisation for std case with which we might want to test many (or even all)

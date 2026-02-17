@@ -46,5 +46,5 @@ class Hist1Dcpp:
 
     def toPyHist( self ):
         data = self.toJSON()
-        from NCrystalDev._hist import Hist1D
+        from NCrystalDev.hist import Hist1D
         return Hist1D(data)

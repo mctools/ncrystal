@@ -23,7 +23,7 @@
 # NEEDS: numpy
 
 from NCrystalDev.exceptions import NCBadInput, NCCalcError
-from NCrystalDev._hist import Hist1D
+from NCrystalDev.hist import Hist1D
 from NCTestUtils.hists import Hist1Dcpp
 from NCTestUtils.randutils import TestRNG
 from NCTestUtils.common import ensure_error

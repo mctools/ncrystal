@@ -111,7 +111,7 @@ def _minimc_raw( cfgstr, *, geomcfg, srccfg, enginecfg, unpack=False ):
         import json
         res = json.loads(res)
         if unpack != 'json':
-            from ._hist import Hist1D
+            from .hist import Hist1D
             res = Hist1D.objectify_data(res)
     return res
 

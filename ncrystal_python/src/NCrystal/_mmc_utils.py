@@ -72,7 +72,7 @@ def _plot_tally( minimcresults_dict,
                  axis = None ):
 
     from .plot import _import_matplotlib_plt, _plt_final
-    from ._hist import Hist1D
+    from .hist import Hist1D
     assert isinstance(minimcresults_dict,dict)
     assert minimcresults_dict.get('datatype') == 'NCrystalMiniMCResults_v1'
     assert 'input' in minimcresults_dict
@@ -444,10 +444,10 @@ class MMCResults:
                or isinstance( data, str )
                or hasattr( data, '__fspath__' ) ):
             from ._common import flex_load_json
-            from ._hist import Hist1D
+            from .hist import Hist1D
             data = Hist1D.objectify_data( flex_load_json( data ) )
         elif isinstance(data,dict):
-            from ._hist import Hist1D
+            from .hist import Hist1D
             data = Hist1D.objectify_data(data)
         else:
             raise NCBadInput('Unsupported data format')
