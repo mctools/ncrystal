@@ -5,11 +5,11 @@ extd_utils
 factories
 infobld
 interfaces
-minimc
 misc
 ncmat
 phys_utils
 plugins
+query
 sab
 threads
 utils

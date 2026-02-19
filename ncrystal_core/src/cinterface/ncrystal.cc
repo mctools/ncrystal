@@ -44,9 +44,9 @@
 #include "NCrystal/internal/sab/NCSABUtils.hh"
 #include "NCrystal/internal/extd_utils/NCABIUtils.hh"
 #include "NCrystal/threads/NCFactThreads.hh"
-
 #include "NCrystal/internal/ncmat/NCParseNCMAT.hh"
 #include "NCrystal/misc/NCCompositionUtils.hh"
+#include "NCrystal/internal/query/NCQuery.hh"
 #include <cstdio>
 #include <chrono>
 #include <sstream>
@@ -2408,27 +2408,16 @@ void ncrystal_setmsghandler(void (*handler)(const char*,unsigned))
   } NCCATCH;
 }
 
-#include "NCrystal/internal/minimc/NCMMC_Query.hh"
-
-char* ncrystal_jsonquery( const char * rawquery )
+char* ncrystal_jsonquery( const char * raw )
 {
   char * result = nullptr;
   try {
-    if ( rawquery == nullptr )
-      rawquery = "";
+    if ( raw == nullptr )
+      raw = "";
     constexpr char splitchar = static_cast<char>(0x07);
-    using JSONQuery = NC::SmallVector<NC::StrView,8>;
-    JSONQuery query = NC::StrView(rawquery).split<JSONQuery::nsmall>(splitchar);
-    if ( query.empty() )
-      NCRYSTAL_THROW2(BadInput, "Invalid JSON query: \""<<rawquery<<'"');
-    const auto& key = query.front();
-    constexpr auto sv_mmc = NC::StrView::make("mmc");
+    NC::Query query = NC::StrView(raw).split<NC::Query::nsmall>(splitchar);
     std::ostringstream os;
-    if ( key == sv_mmc ) {
-      NC::MiniMC::Query::JSONQuery( os, query );
-    } else {
-      NCRYSTAL_THROW2(BadInput, "Invalid JSON query key: \""<<key<<'"');
-    }
+    NC::JSONQuery( os, query );
     result = ncc::createString(std::move(os).str());
   } NCCATCH;
   return result;

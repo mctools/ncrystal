@@ -25,7 +25,6 @@
 
 namespace NCRYSTAL_NAMESPACE {
 
-  class StrView;
   class StrView
   {
     // Simple string view class similar to std::string_view (which is
@@ -188,6 +187,7 @@ namespace NCRYSTAL_NAMESPACE {
     bool operator==(const StrView& o) const noexcept;
     bool operator!=(const StrView& o) const noexcept;
     bool operator<(const StrView& o) const noexcept;
+    bool operator==(char) const noexcept;
 
     //Equivalent constexpr comparisons have implementations not suitable for
     //runtime evaluation, so we keep them in these separate methods:
@@ -282,6 +282,11 @@ namespace NCRYSTAL_NAMESPACE {
   inline bool StrView::operator==(const StrView& o) const noexcept
   {
     return m_size == o.size() && 0 == std::strncmp( m_data, o.m_data, m_size );
+  }
+
+  inline bool StrView::operator==(char c) const noexcept
+  {
+    return m_size == 1 && m_data[0] == c;
   }
 
   inline bool StrView::operator!=(const StrView& o) const noexcept

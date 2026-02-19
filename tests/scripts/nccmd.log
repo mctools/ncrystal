@@ -37,6 +37,7 @@ The full list of available modules are:
   ======================
 
      vdos2ncmat    : Prepare phonon VDOS data for inclusion in NCMAT data.
+     query         : Send low-level queries for JSON data to NCrystal.
      verifyatompos : Verify consistency of atom positions in NCMAT data.
      ncmat2cpp     : Produce C++ code with inline NCMAT data.
      mcstasunion   : Generate McStas-Union code for using NCrystal materials.
@@ -48,7 +49,7 @@ The full list of available modules are:
 ================================================================================
 ==> Invoking: /some/where/ncrystal -l
 ================================================================================
-cif2ncmat config endf2ncmat hfg2ncmat mcstasunion minimc ncmat2cpp ncmat2endf ncmat2hkl nctool vdos2ncmat verifyatompos
+cif2ncmat config endf2ncmat hfg2ncmat mcstasunion minimc ncmat2cpp ncmat2endf ncmat2hkl nctool query vdos2ncmat verifyatompos
 ================================================================================
 ==> Ended with no error
 ================================================================================
@@ -56,7 +57,7 @@ cif2ncmat config endf2ncmat hfg2ncmat mcstasunion minimc ncmat2cpp ncmat2endf nc
 ================================================================================
 ==> Invoking: /some/where/ncrystal --list
 ================================================================================
-cif2ncmat config endf2ncmat hfg2ncmat mcstasunion minimc ncmat2cpp ncmat2endf ncmat2hkl nctool vdos2ncmat verifyatompos
+cif2ncmat config endf2ncmat hfg2ncmat mcstasunion minimc ncmat2cpp ncmat2endf ncmat2hkl nctool query vdos2ncmat verifyatompos
 ================================================================================
 ==> Ended with no error
 ================================================================================
@@ -99,6 +100,7 @@ The full list of available modules are:
   ======================
 
      vdos2ncmat    : Prepare phonon VDOS data for inclusion in NCMAT data.
+     query         : Send low-level queries for JSON data to NCrystal.
      verifyatompos : Verify consistency of atom positions in NCMAT data.
      ncmat2cpp     : Produce C++ code with inline NCMAT data.
      mcstasunion   : Generate McStas-Union code for using NCrystal materials.
@@ -145,6 +147,7 @@ The full list of available modules are:
   ======================
 
      vdos2ncmat    : Prepare phonon VDOS data for inclusion in NCMAT data.
+     query         : Send low-level queries for JSON data to NCrystal.
      verifyatompos : Verify consistency of atom positions in NCMAT data.
      ncmat2cpp     : Produce C++ code with inline NCMAT data.
      mcstasunion   : Generate McStas-Union code for using NCrystal materials.

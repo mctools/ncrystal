@@ -20,22 +20,36 @@
 ##                                                                            ##
 ################################################################################
 
-# NEEDS: numpy
-
-from NCrystalDev._common import json_query_cpplayer as ncquery
-import numpy # noqa F401 (before fpe)
 import NCTestUtils.enable_fpe # noqa F401
-from NCrystalDev.core import NCBadInput
+import NCrystalDev.cli as nc_cli
+from NCrystalDev.exceptions import NCBadInput
+from NCTestUtils.env import ncsetenv
 from NCTestUtils.common import ensure_error
+from argparse import ArgumentError
+import shlex
+import pathlib
+from NCrystalDev._common import json_query_cpplayer as ncquery
+
+def safefmt(s):
+    return str(s).encode('unicode_escape').decode('utf-8')
 
 def test(*query):
     print()
-    print(">>> Sending query: %s"%repr(list(e for e in query)))
+
+    print(">>> Sending query: %s"%repr(list(safefmt(e) for e in query)))
     r = ncquery(query)
     import pprint
     pprint.pprint(r)
 
+def test_cli( *args ):
+    print(f"============= CLI >>{shlex.join(safefmt(a) for a in args)}"
+          "<< ====================")
+    nc_cli.run('query',*args)
+    print("===========================================")
+
 def main():
+    from NCrystalDev._common import print
+    ncsetenv('FIX_QUERY_VERSION_FOR_TESTS','1')
 
     with ensure_error(NCBadInput,
                       'Missing or empty query'):
@@ -77,75 +91,66 @@ def main():
                           'Can not use character 0x07 (ASCII BEL) in JSON'
                           ' query strings'):
             test('foo',a)
-    with ensure_error(NCBadInput,
-                      'Invalid MiniMC JSON query: ["mmc","bla"]'):
-        test('mmc','bla')
-    with ensure_error(NCBadInput,
-                      'Invalid MiniMC JSON query: ["mmc","scenario"] (correct'
-                      ' usage: ["mmc","scenario",CFGSTR,SCENARIOSTR])'):
-        test('mmc','scenario')
-    with ensure_error(NCBadInput,
-                      'Invalid MiniMC JSON query: ["mmc","scenario","1.8Aa"]'
-                      ' (correct'
-                      ' usage: ["mmc","scenario",CFGSTR,SCENARIOSTR])'):
-        test('mmc','scenario','1.8Aa')
 
+    test_cli('--help')
+    test_cli('version')
+    test_cli('version','-j')
+    fn = 'tmp_test_file.json'
+    if pathlib.Path(fn).exists():
+        pathlib.Path(fn).unlink()
+    test_cli('version','-o',fn)
+    print(f"Contents of {fn}:",'='*40)
+    print(pathlib.Path(fn).read_text())
+    with ensure_error(RuntimeError,
+                      'File already exists (use --force to overwrite):'
+                      ' tmp_test_file.json'):
+        test_cli('list','-o',fn)
 
-    test('mmc','scenario','Al_sg225.ncmat','1.8Aa')
-    test('mmc','scenario','Al_sg225.ncmat','')
-
-    with ensure_error(NCBadInput,
-                      'Invalid MiniMC JSON query: ["mmc","inspectcfg"] (correct'
-                      ' usage: ["mmc","inspectcfg","src|geom|engine",STRCFG])'):
-        test('mmc','inspectcfg')
-    with ensure_error(NCBadInput,
-                      'Invalid MiniMC JSON query: ["mmc","inspectcfg","bla",""]'
-                      ' (correct'
-                      ' usage: ["mmc","inspectcfg","src|geom|engine",STRCFG])'):
-        test('mmc','inspectcfg','bla','')
-
-
+    test_cli('list','-o',fn,'--force')
+    print(f"Contents of {fn}:",'='*40)
+    print(pathlib.Path(fn).read_text())
 
     with ensure_error(NCBadInput,
-                      'Invalid src cfg: ""'):
-        test('mmc','inspectcfg','src','')
+                      'Invalid JSON query key: "foo"'):
+        test_cli('foo')
 
-    test('mmc','inspectcfg','src','constant; z=-10;wl=2.0')
-    test('mmc','inspectcfg','src','isotropic; z=-10;ekin=0.025')
-    test('mmc','inspectcfg','src','circular; r=0.1;z=-1;wl=1.8;ux=1')
+    test_cli('list')
+    test_cli('mmc','list')
+    test_cli('util','list')
+    test_cli('util','wl2ekin','1.8')
+    test_cli('util','ekin2wl','0.025')
 
-    #Test length formatting by testing various scale of thicknesses:
-    test('mmc','inspectcfg','geom','slab;dz=1e-10')
-    test('mmc','inspectcfg','geom','slab;dz=2e-6')
-    test('mmc','inspectcfg','geom','slab;dz=2e-3')
-    test('mmc','inspectcfg','geom','slab;dz=2e-2')
-    test('mmc','inspectcfg','geom','slab;dz=0.2')
-    test('mmc','inspectcfg','geom','slab;dz=10.2')
-    test('mmc','inspectcfg','geom','slab;dz=2000')
-
-    #Other shapes:
-    test('mmc','inspectcfg','geom','box;dx=1;dy=0.1;dz=0.001')
-    test('mmc','inspectcfg','geom','sphere;r=17.234')
-    test('mmc','inspectcfg','geom','cyl;r=0.5')
-    test('mmc','inspectcfg','geom','cyl;r=0.5;dy=12.0')
+    with ensure_error(ArgumentError,
+                      'the following arguments are required: STR'):
+        test_cli()
+    with ensure_error(NCBadInput,
+                      'Invalid JSON query key: "foo"'):
+        test_cli('foo')
+    with ensure_error(NCBadInput,
+                      'Invalid JSON query key: ""'):
+        test_cli('')
 
     with ensure_error(NCBadInput,
-                      'Invalid MiniMC JSON query: ["mmc","tallylist","bla"]'
-                      ' (no arguments should come after: ["mmc","tallylist"])'):
-        test('mmc','tallylist','bla')
-    test('mmc','tallylist')
+                      'Invalid JSON query key: ""'):
+        test_cli('')
+    with ensure_error(NCBadInput,
+                      'Invalid MiniMC JSON query: ["mmc",""]'):
+        test_cli('mmc','')
 
     with ensure_error(NCBadInput,
-                      'Invalid parameter for chosen engine: "whatever"'):
-        test('mmc','inspectcfg','engine','whatever = 0')
-    test('mmc','inspectcfg','engine','tally=nobreakdown,cosmu,cosmu')
-    test('mmc','inspectcfg','engine','')
-    test('mmc','inspectcfg','engine','nthreads=4')
-    test('mmc','inspectcfg','engine','roulette=0.8,0.001,1')
-    test('mmc','inspectcfg','engine','nthreads=0 ;   ignoremiss =1')
-    test('mmc','inspectcfg','engine','std;nthreads=0;ignoremiss=1')
-    test('mmc','inspectcfg','engine',
-         '\t  std ; nthreads=  auto  \t\n;ignoremiss= 0')
+                      'Query items can not start with a "-" character.'
+                      ' Problem found in: " -bla"'):
+        test_cli('mmc',' -bla')
+
+    with ensure_error(NCBadInput,
+                      'Invalid MiniMC JSON query: ["mmc","bla-bla"]'):
+        test_cli('mmc','bla-bla')
+
+    for a in ('bar'+'\x07','\x07','\x07\x07','\x07'+'bar'):
+        with ensure_error(NCBadInput,
+                          'Can not use character 0x07 (ASCII BEL) in JSON'
+                          ' query strings'):
+            test_cli('foo',a)
 
 if __name__ == '__main__':
     main()

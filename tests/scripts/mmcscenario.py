@@ -94,7 +94,9 @@ def main():
     test(c_nobragg+';temp=1000K','')
     test(c,'1.8meV')
     testbad(c,'[',
-            'Forbidden character "[" in MiniMC scenario string: "["')
+            'Forbidden character "[" in query! Problem found in: "["',
+            #'Forbidden character "[" in MiniMC scenario string: "["'
+            )
     weird_char = '\u2300'
     weird_char_oslash= (b'\xe2\x8c\x80').decode('utf-8')
     testbad(c,f'4.0{weird_char} on 1mm',

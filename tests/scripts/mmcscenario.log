@@ -133,7 +133,7 @@ NCrystal WARNING: Discarding 5 edges of provided kernel data due to missing S va
 >>> Testing
   scenario = "["
   cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
-Caught expected NCBadInput('Forbidden character "[" in MiniMC scenario string: "["')
+Caught expected NCBadInput('Forbidden character "[" in query! Problem found in: "["')
 
 >>> Testing
   scenario = "4.0⌀ on 1mm"

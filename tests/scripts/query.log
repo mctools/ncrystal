@@ -1,0 +1,124 @@
+
+>>> Sending query: []
+Caught expected NCBadInput('Missing or empty query')
+
+>>> Sending query: ['foo']
+Caught expected NCBadInput('Invalid JSON query key: "foo"')
+
+>>> Sending query: ['']
+Caught expected NCBadInput('Invalid JSON query key: ""')
+
+>>> Sending query: ['mmc', '']
+Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc",""]')
+
+>>> Sending query: ['mmc', '-bla']
+Caught expected NCBadInput('Query items can not start with a "-" character. Problem found in: "-bla"')
+
+>>> Sending query: ['mmc', '-bla']
+Caught expected NCBadInput('Query items can not start with a "-" character. Problem found in: "-bla"')
+
+>>> Sending query: ['mmc', ' -bla']
+Caught expected NCBadInput('Query items can not start with a "-" character. Problem found in: " -bla"')
+
+>>> Sending query: ['mmc', 'bla-bla']
+Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","bla-bla"]')
+
+>>> Sending query: ['foo', '117']
+Caught expected NCBadInput("Invalid query (not all entries are strings): ('foo', 117)")
+
+>>> Sending query: ['foo', 'bar\\x07']
+Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
+
+>>> Sending query: ['foo', '\\x07']
+Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
+
+>>> Sending query: ['foo', '\\x07\\x07']
+Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
+
+>>> Sending query: ['foo', '\\x07bar']
+Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
+============= CLI >>--help<< ====================
+usage: ncrystal_query [-h] [-j] [--output OUTPUT] [--force] STR [STR ...]
+
+Send low level queries for JSON data to the NCrystal C++ library. Queries
+consist of a series of strings and by default the returned JSON data will
+simply be decoded and printed to stdout (via the Python pprint module), but
+this behavour can be overridden by various flags. The actual queries and the
+JSON data returned is unless otherwise noted considered an implementation
+detail of NCrystal, and the format is NOT guaranteed to remain stable when new
+versions of NCrystal are released.
+
+positional arguments:
+  STR                  The actual strings which make up the query.
+
+options:
+  -h, --help           show this help message and exit
+  -j, --json           Output JSON rather than decoded Python dictionary if
+                       destination is stdout.
+  --output, -o OUTPUT  Output file name in which to store generated JSON
+                       (defaults to stdout).
+  --force, -f          Override output file if it already exists.
+
+===========================================
+============= CLI >>version<< ====================
+{'major': 123,
+ 'minor': 45,
+ 'patch': 6,
+ 'int': 123045006,
+ 'list': [123, 45, 6],
+ 'str': '123.45.6'}
+===========================================
+============= CLI >>version -j<< ====================
+{"major":123,"minor":45,"patch":6,"int":123045006,"list":[123,45,6],"str":"123.45.6"}
+===========================================
+============= CLI >>version -o tmp_test_file.json<< ====================
+Wrote: tmp_test_file.json
+===========================================
+Contents of tmp_test_file.json: ========================================
+{"major":123,"minor":45,"patch":6,"int":123045006,"list":[123,45,6],"str":"123.45.6"}
+============= CLI >>list -o tmp_test_file.json<< ====================
+Caught expected RuntimeError('File already exists (use --force to overwrite): tmp_test_file.json')
+============= CLI >>list -o tmp_test_file.json --force<< ====================
+Wrote: tmp_test_file.json
+===========================================
+Contents of tmp_test_file.json: ========================================
+["version", "util", "mmc"]
+============= CLI >>foo<< ====================
+Caught expected NCBadInput('Invalid JSON query key: "foo"')
+============= CLI >>list<< ====================
+['version', 'util', 'mmc']
+===========================================
+============= CLI >>mmc list<< ====================
+['run', 'scenario', 'inspectcfg', 'tallylist', 'cfgdoc']
+===========================================
+============= CLI >>util list<< ====================
+['wl2ekin', 'ekin2wl']
+===========================================
+============= CLI >>util wl2ekin 1.8<< ====================
+0.025248212841151512
+===========================================
+============= CLI >>util ekin2wl 0.025<< ====================
+1.808913592246251
+===========================================
+============= CLI >><< ====================
+Caught expected ArgumentError('the following arguments are required: STR')
+============= CLI >>foo<< ====================
+Caught expected NCBadInput('Invalid JSON query key: "foo"')
+============= CLI >>''<< ====================
+Caught expected NCBadInput('Invalid JSON query key: ""')
+============= CLI >>''<< ====================
+Caught expected NCBadInput('Invalid JSON query key: ""')
+============= CLI >>mmc ''<< ====================
+Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc",""]')
+============= CLI >>mmc ' -bla'<< ====================
+Caught expected NCBadInput('Query items can not start with a "-" character. Problem found in: " -bla"')
+============= CLI >>mmc bla-bla<< ====================
+Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","bla-bla"]')
+============= CLI >>foo 'bar\x07'<< ====================
+Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
+============= CLI >>foo '\x07'<< ====================
+Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
+============= CLI >>foo '\x07\x07'<< ====================
+Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
+============= CLI >>foo '\x07bar'<< ====================
+Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')

@@ -5,6 +5,24 @@ Caught expected NCBadInput('Missing or empty query')
 >>> Sending query: ['foo']
 Caught expected NCBadInput('Invalid JSON query key: "foo"')
 
+>>> Sending query: ['']
+Caught expected NCBadInput('Invalid JSON query key: ""')
+
+>>> Sending query: ['mmc', '']
+Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc",""]')
+
+>>> Sending query: ['mmc', '-bla']
+Caught expected NCBadInput('Query items can not start with a "-" character. Problem found in: "-bla"')
+
+>>> Sending query: ['mmc', '-bla']
+Caught expected NCBadInput('Query items can not start with a "-" character. Problem found in: "-bla"')
+
+>>> Sending query: ['mmc', ' -bla']
+Caught expected NCBadInput('Query items can not start with a "-" character. Problem found in: " -bla"')
+
+>>> Sending query: ['mmc', 'bla-bla']
+Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","bla-bla"]')
+
 >>> Sending query: ['foo', 117]
 Caught expected NCBadInput("Invalid query (not all entries are strings): ('foo', 117)")
 
