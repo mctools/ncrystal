@@ -56,7 +56,7 @@ def quick_diffraction_pattern( cfgstr, *,
     neutron_energy = ''.join(neutron_energy.split())
     material_thickness = ''.join(material_thickness.split())
     scenario_cfg = f'{neutron_energy} pencil on {material_thickness} sphere'
-    enginecfg = f';nthreads={nthreads};tally=mu;tallybins=mu:1800:0:180'
+    enginecfg = f';nthreads={nthreads};tally=theta;tallybins=theta:1800:0:180'
 
     def simfct( n, cfgstr ):
         import time
@@ -89,8 +89,8 @@ def quick_diffraction_pattern( cfgstr, *,
             self.__res = res
 
         def plot_breakdown(self,rebin_factor=1,logy=False):
-            self.__res.tally('mu').plot(rebin_factor=rebin_factor,
-                                        logy=logy)
+            self.__res.tally('theta').plot(rebin_factor=rebin_factor,
+                                           logy=logy)
 
         def __getattr__(self, name):
             if not name.startswith('_'):

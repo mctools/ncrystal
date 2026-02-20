@@ -141,9 +141,9 @@ def main():
     with ensure_error(NCBadInput,
                       'Invalid tally "nobreakdown"'
                       ' (use "tallybreakdown=0" to disable breakdowns)'):
-        test('mmc','inspectcfg','engine','tally=nobreakdown,mu,mu')
+        test('mmc','inspectcfg','engine','tally=nobreakdown,theta,theta')
 
-    test('mmc','inspectcfg','engine','tally=mu,mu;tallybreakdown=0')
+    test('mmc','inspectcfg','engine','tally=theta,theta;tallybreakdown=0')
 
     test('mmc','inspectcfg','engine','')
     test('mmc','inspectcfg','engine','nthreads=4')
@@ -153,7 +153,7 @@ def main():
     test('mmc','inspectcfg','engine',
          '\t  std ; nthreads=  auto  \t\n;ignoremiss= 0')
 
-    test('mmc','inspectcfg','engine','tally=q,mu;tallybins=+,;tallybreakdown=0')
+    test('mmc','inspectcfg','engine','tally=q,theta;tallybins=+,;tallybreakdown=0')
 
 
 if __name__ == '__main__':

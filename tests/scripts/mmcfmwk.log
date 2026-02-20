@@ -87,7 +87,7 @@ CALLING plt.legend([FakeHandle, FakeHandle, FakeHandle, FakeHandle],['MULTISCAT_
 CALLING plt.show()
 Dump test
 Hist1D(nbins=18,xmin=0,xmax=180):
-  title     : mu
+  title     : theta
   integral  : 8233.66
   mean      : 46.8037
   rms       : 52.5259
@@ -113,8 +113,8 @@ Hist1D(nbins=18,xmin=0,xmax=180):
   content[ibin=15] : 289.988 +- 6.8299
   content[ibin=16] : 246.496 +- 6.35863
   content[ibin=17] : 10.465 +- 0.868133
-resA.tally('mu').hist_total.title='mu'
-['mu']
+resA.tally('theta').hist_total.title='theta'
+['theta']
 Sum test
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([3876.07215052,   62.75250774,   84.5862355 ,  111.71542614,

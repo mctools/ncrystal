@@ -240,7 +240,7 @@ def _plot_tally( minimcresults_dict,
         if not logy:
             axis.set_ylim(0.0)
 
-    if tallyname=='mu':
+    if tallyname=='theta':
         axis.set_xticks(_np_linspace(0.0,180.0,180//30+1))
         axis.set_xticks(_np_linspace(0.0,180.0,180//15+1),minor=True)
         #FIXME: xlabel needs to be embedded in Tally?

@@ -37,8 +37,8 @@ namespace NCRYSTAL_NAMESPACE {
       struct Flags {
         //Flags enabling certain histograms:
         using value_type = uint32_t;
-        constexpr static value_type mu = 0x1;
-        constexpr static value_type cosmu = 0x2;
+        constexpr static value_type theta = 0x1;
+        constexpr static value_type mu = 0x2;
         constexpr static value_type nscat = 0x4;
         constexpr static value_type w = 0x8;
         constexpr static value_type e = 0x10;
@@ -55,7 +55,7 @@ namespace NCRYSTAL_NAMESPACE {
         constexpr static value_type ALLHISTS = 0xFF;//Enable all histograms
         constexpr static value_type ALL = 0x700FF;//all flags set at once
         constexpr static value_type NONE = 0x0;//No flags set
-        constexpr static value_type DEFAULT = mu;//Default flag values
+        constexpr static value_type DEFAULT = theta;//Default flag values
       };
       using value_type = Flags::value_type;
       using strlist_type = SmallVector<StrView,8>;

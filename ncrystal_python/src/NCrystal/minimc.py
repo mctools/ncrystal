@@ -120,7 +120,7 @@ def _minimc_raw( cfgstr, *, geomcfg, srccfg, enginecfg, unpack=False ):
 _cache_availtallies=[None]
 def available_tallies():
     """Returns dictionary with information about available MiniMC talies that
-    can be used in the enginecfg string like enginecfg="tally=cosmu,de").
+    can be used in the enginecfg string like enginecfg="tally=mu,de").
     """
     if _cache_availtallies[0] is None:
         from ._common import json_query_cpplayer

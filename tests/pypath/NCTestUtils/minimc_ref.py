@@ -95,7 +95,7 @@ def minimc_unittest( *,
                      geomcfg,
                      do_plot = False,
                      do_updateref = False,
-                     tally='mu',
+                     tally='theta',
                      tallybins=None
                     ):
     """Run MiniMC with chosen configuration and compare result with reference
@@ -129,7 +129,7 @@ def minimc_unittest( *,
     ).joinpath( key+'.json' )
 
     if tallybins is None:
-        tallybins=';tallybins=mu:90:0:180' if tally=='mu' else ''
+        tallybins=';tallybins=theta:90:0:180' if tally=='theta' else ''
     else:
         tallybins=f';tallybins={tallybins}'
 

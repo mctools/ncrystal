@@ -49,12 +49,12 @@ def main(do_plot, do_update):
         cfgstr='Al_sg225.ncmat;comp=bragg;dcutoff=0.8',
         srccfg = 'constant;wl=1.8;z=-0.009999999;n=1e4',
         geomcfg = 'sphere;r=0.1',
-        enginecfg='nthreads=1;tally=mu;tallybins=mu:36:0:180'
+        enginecfg='nthreads=1;tally=theta;tallybins=theta:36:0:180'
     )
     resB = mmc_run_scen( 'Al_sg225.ncmat;comp=inelas',
                          '2.0Aa on 0.1mfp 1e4 times',
-                         extra_engineopts = (';nthreads=2;tally=mu'
-                                             ';tallybins=mu:36:0:180') )
+                         extra_engineopts = (';nthreads=2;tally=theta'
+                                             ';tallybins=theta:36:0:180') )
 
     print("Basic serialisation/deserialisation check")
     j = resA.to_json()
@@ -135,12 +135,13 @@ def main(do_plot, do_update):
         plt.legend()
         plt.grid()
         plt.show()
-    plotcmp( resA.tally('mu').hist_total, resA_ref.tally('mu').hist_total, 'A' )
+    plotcmp( resA.tally('theta').hist_total,
+             resA_ref.tally('theta').hist_total, 'A' )
     if do_plot:
         #resB fluctuates too much since nthreads=2, so should not leave plot
         #curves in reflogs.
-        plotcmp( resB.tally('mu').hist_total,
-                 resB_ref.tally('mu').hist_total, 'B' )
+        plotcmp( resB.tally('theta').hist_total,
+                 resB_ref.tally('theta').hist_total, 'B' )
 
     #Note that Since A is generated with nthreads=1, we can in principle expect
     #the same results if running again on the same machine. However, there are
@@ -176,23 +177,23 @@ def main(do_plot, do_update):
     del resB_ref
 
     print("More plotting code test")
-    resA.tally('mu').plot(rebin_factor=2,logy=True)
+    resA.tally('theta').plot(rebin_factor=2,logy=True)
     if do_plot:
         #Again, resB with nthreads=2 give irreproducible plot curves:
-        resB.tally('mu').plot(rebin_factor=2,logy=True)
-    resA.tally('mu').plot(rebin_factor=2,logy=False)
+        resB.tally('theta').plot(rebin_factor=2,logy=True)
+    resA.tally('theta').plot(rebin_factor=2,logy=False)
     print("Dump test")
-    resA.tally('mu').hist_total.clone(rebin_factor=2).dump()
-    print("resA.tally('mu').hist_total.title=%s"%repr(resA.tally('mu').hist_total.title))
+    resA.tally('theta').hist_total.clone(rebin_factor=2).dump()
+    print("resA.tally('theta').hist_total.title=%s"%repr(resA.tally('theta').hist_total.title))
     print(resA.tally_names)
     print("Sum test")
-    h = resA.tally('mu').histogram_sum(select=['NOSCAT','MULTISCAT_PUREELAS'],
+    h = resA.tally('theta').histogram_sum(select=['NOSCAT','MULTISCAT_PUREELAS'],
                                        exclude='SINGLESCAT_ELAS')
     h.clone(rebin_factor=2).plot(logy=True)
-    h = resA.tally('mu').histogram_sum(select='NOSCAT')
-    assert h is resA.tally('mu').histograms['NOSCAT']
-    assert resA.tally('mu').histogram_sum() is resA.tally('mu').hist_total
-    print( sorted(resA.tally('mu').hist_breakdown.keys()) )
+    h = resA.tally('theta').histogram_sum(select='NOSCAT')
+    assert h is resA.tally('theta').histograms['NOSCAT']
+    assert resA.tally('theta').histogram_sum() is resA.tally('theta').hist_total
+    print( sorted(resA.tally('theta').hist_breakdown.keys()) )
 
 if __name__ == '__main__':
     import sys

@@ -25,7 +25,6 @@ namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
 
 //Fixme beamdir (and possibly other parameters) is not unit tested.
-//fixme: cosmu -> mu, mu->theta
 //fixme: let beamenergy accept wavelenghts, via "0.025eV" or "1.8Aa"?
 //fixme: shorter "short descriptions"?
 
@@ -37,16 +36,16 @@ namespace NCRYSTAL_NAMESPACE {
         //need to modify the description of the "tally" variable below.
         using F = TallyFlags::Flags;
         constexpr static const TallyFlags::value_type vals[]
-        = { F::cosmu, F::e, F::highres, F::l, F::lowres, F::mu,
-            F::nobreakdown, F::nscat, F::nscat_uw, F::q, F::w  };
+        = { F::e, F::highres, F::l, F::lowres, F::mu,
+            F::nobreakdown, F::nscat, F::nscat_uw, F::q, F::theta, F::w  };
         constexpr static const char* strs[]
-        = { "cosmu", "e","highres", "l", "lowres", "mu",
-            "nobreakdown", "nscat", "nscat_uw", "q", "w"  };
+        = { "e","highres", "l", "lowres","mu",
+            "nobreakdown", "nscat", "nscat_uw", "q", "theta", "w"  };
         constexpr static const char* strs_descr[]
-        = { "cosine scattering angle", "energy","more bins", "wavelength",
-            "less bins", "scattering angle","disable breakdown histograms",
+        = { "energy","more bins", "wavelength", "less bins",
+            "cosine scattering angle", "disable breakdown histograms",
             "number of scatterings", "unweighted number of scatterings",
-            "scattering vector", "weight"  };
+            "scattering vector", "scattering angle", "weight" };
         constexpr static int n = sizeof(vals)/sizeof(*vals);
         static_assert( n == sizeof(strs)/sizeof(*strs), "" );
         static_assert( n == sizeof(vals)/sizeof(*vals), "" );
@@ -64,7 +63,7 @@ namespace NCRYSTAL_NAMESPACE {
         ";roulette=0.1,0.01,2"
         ";beamenergy=auto"
         ";beamdir=auto"
-        ";tally=mu"
+        ";tally=theta"
         ";tallybins="
         ";tallybreakdown=1"
         ;
@@ -117,7 +116,7 @@ void NCMMC::engineOptsDocsToJSON( std::ostream& os )
     {
       "beamdir", "auto#0,0.5,1",
       "Incident direction to use as reference in tallies.",
-      "<SHORT> It affects tallies like \"mu\" or \"q\" which needs the"
+      "<SHORT> It affects tallies like \"theta\" or \"q\" which needs the"
       " initial direction of the neutron. If specified, it must contain"
       " three comma-separated values constituting a vector of finite"
       " length. Alternatively, it can be just the value \"auto\", which"
@@ -159,7 +158,7 @@ void NCMMC::engineOptsDocsToJSON( std::ostream& os )
       " encoded as \"P,W,N\"."
     },
     {
-      "tally", "mu#q#mu,q,e,l#q",
+      "tally", "q#mu,q,e,l#q",
       "Quantities to tally (available: <TALLYLISTSHORT>).",
       "Comma separated list of quantities to tally."
       " The quantities available for tally are: <TALLYLISTLONG>."

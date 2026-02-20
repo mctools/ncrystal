@@ -58,7 +58,7 @@ NCMMCT::TallyStdHists_Options::create( const EngineOpts& eo,
     optbd = src.nominalBeamDirection();
   if ( optbd.has_value() ) {
     //Note: We only store beamdir if it is not (0,0,1), since it makes
-    //it cheaper to calculate cos(mu) for this common case.
+    //it cheaper to calculate cos(theta) for this common case.
     auto v = optbd.value().as<Vector>().unit();
     if ( v.z() != 1.0 )
       opt.beamDir = v.as<NeutronDirection>();
@@ -115,11 +115,11 @@ NCMMCT::TallyStdHists_Data::create( const TallyStdHists_Options& opt )
   constexpr auto nbins_angular = 180;
   //Fixme for the TFlags::w histogram (i.e. non-weighted hist), the
   //fractions shown in the breakdown plots are very misleading.
-  if ( opt.flags.has(TFlags::mu) )
-    addhist( TFlags::mu, data.histidx_mu, nbins_angular,
+  if ( opt.flags.has(TFlags::theta) )
+    addhist( TFlags::theta, data.histidx_theta, nbins_angular,
              0.0, 180.0, false );
-  if ( opt.flags.has(TFlags::cosmu) )
-    addhist( TFlags::cosmu, data.histidx_cosmu, nbins_std,
+  if ( opt.flags.has(TFlags::mu) )
+    addhist( TFlags::mu, data.histidx_mu, nbins_std,
              -1.0, 1.0, false );
   if ( opt.flags.hasAny(TFlags::nscat|TFlags::nscat_uw) ) {
     unsigned nscatmax = ( opt.flags.has(TFlags::lowres) ? 10 : 20 );
@@ -248,14 +248,14 @@ namespace NCRYSTAL_NAMESPACE {
 
         void tallyRecord_q(  TallyStdHists_Data& data,
                              const NeutronEnergy& beamEnergy,
-                             const BasketValBufDbl& cosmu,
+                             const BasketValBufDbl& mu,
                              const NeutronBasket& neutrons,
                              const DetailedHistsIDVect * dethistid )
         {
           BasketValBufDbl q;
           //|qbar|^2 = |kfbar|^2+|kibar|^2-2kfbarDOTkibar
-          //         = |kf|^2+|ki|^2-2*cosmu*|kf||ki|
-          //         = ( Ef+Ei-2*cosmu*sqrt(Ef*Ei) ) * fact_ekin2ksq
+          //         = |kf|^2+|ki|^2-2*mu*|kf||ki|
+          //         = ( Ef+Ei-2*mu*sqrt(Ef*Ei) ) * fact_ekin2ksq
           const double Ei = beamEnergy.get();
           const std::size_t n = neutrons.size();
           for ( std::size_t i = 0; i < n; ++i )
@@ -267,7 +267,7 @@ namespace NCRYSTAL_NAMESPACE {
           for ( std::size_t i = 0; i < n; ++i )
             q.data[i] = std::sqrt( q.data[i] );
           for ( std::size_t i = 0; i < n; ++i )
-            q.data[i] *= cosmu.data[i];
+            q.data[i] *= mu.data[i];
           for ( std::size_t i = 0; i < n; ++i )
             q.data[i] *= (-2.0);
           for ( std::size_t i = 0; i < n; ++i )
@@ -287,73 +287,73 @@ namespace NCRYSTAL_NAMESPACE {
             hgfill_detail( h, *dethistid, q, neutrons.w, n );
         }
 
-        void tallyRecord_cosmu_mu_q( TallyStdHists_Data& data,
+        void tallyRecord_mu_theta_q( TallyStdHists_Data& data,
                                      const TallyStdHists_Options& opt,
                                      const NeutronBasket& b,
                                      const DetailedHistsIDVect * dethistid )
         {
           using TFlags = TallyFlags::Flags;
-          nc_assert( opt.flags.has(TFlags::cosmu)
-                     || opt.flags.has(TFlags::mu)
+          nc_assert( opt.flags.has(TFlags::mu)
+                     || opt.flags.has(TFlags::theta)
                      || opt.flags.has(TFlags::q) );
 
           //////////////////
-          //First find cosmu
+          //First find mu
           const std::size_t n = b.size();
-          BasketValBufDbl cosmu;
+          BasketValBufDbl mu;
           //fixme: if beamDIR has a value, we could look for (0,0,1) as a
           //special case. This can be done in the constructor.
           if ( !opt.beamDir.has_value() ) {
             //use (0,0,1) as reference, so just copy over uz values.
-            detail::memcpydata( cosmu.data, b.uz.data, n );
+            detail::memcpydata( mu.data, b.uz.data, n );
           } else {
             const double bx( opt.beamDir.value()[0] );
             const double by( opt.beamDir.value()[1] );
             const double bz( opt.beamDir.value()[2] );
             for ( std::size_t i = 0; i < n; ++i )
-              cosmu.data[i] = bx * b.ux[i];
+              mu.data[i] = bx * b.ux[i];
             for ( std::size_t i = 0; i < n; ++i )
-              cosmu.data[i] += by * b.uy[i];
+              mu.data[i] += by * b.uy[i];
             for ( std::size_t i = 0; i < n; ++i )
-              cosmu.data[i] += bz * b.uz[i];
+              mu.data[i] += bz * b.uz[i];
           }
 
 #ifndef NDEBUG
           for ( std::size_t i = 0; i < n; ++i ) {
-            nc_assert_always( cosmu.data[i] > -(1.0+1e-14) );
-            nc_assert_always( cosmu.data[i] <  (1.0+1e-14) );
+            nc_assert_always( mu.data[i] > -(1.0+1e-14) );
+            nc_assert_always( mu.data[i] <  (1.0+1e-14) );
           }
 #endif
           for ( std::size_t i = 0; i < n; ++i )
-            cosmu.data[i] = ncclamp(cosmu.data[i],-1.0,1.0);
+            mu.data[i] = ncclamp(mu.data[i],-1.0,1.0);
 
           /////////////
-          //Tally cosmu
-          if ( opt.flags.has(TFlags::cosmu) ) {
-            auto& h = vectAt(data.hists,data.histidx_cosmu);
-            hgfill_main( h, cosmu, b.w, n );
+          //Tally mu
+          if ( opt.flags.has(TFlags::mu) ) {
+            auto& h = vectAt(data.hists,data.histidx_mu);
+            hgfill_main( h, mu, b.w, n );
             if ( dethistid )
-              hgfill_detail( h, *dethistid, cosmu, b.w, n );
+              hgfill_detail( h, *dethistid, mu, b.w, n );
           }
 
           //////////
           //Tally q
           if ( opt.flags.has(TFlags::q) ) {
             nc_assert( opt.beamEnergy.has_value() );
-            tallyRecord_q( data, opt.beamEnergy.value(), cosmu, b, dethistid );
+            tallyRecord_q( data, opt.beamEnergy.value(), mu, b, dethistid );
           }
 
           ////////////////////////////////////////////////
-          //Tally mu (using cosmu array to hold mu values)
-          if ( opt.flags.has(TFlags::mu) ) {
+          //Tally theta (using mu array to hold theta values)
+          if ( opt.flags.has(TFlags::theta) ) {
             for ( std::size_t i = 0; i < n; ++i )
-              cosmu.data[i] = std::acos( cosmu.data[i] );
+              mu.data[i] = std::acos( mu.data[i] );
             for ( std::size_t i = 0; i < n; ++i )
-              cosmu.data[i] *= kToDeg;
-            auto& h = vectAt(data.hists,data.histidx_mu);
-            hgfill_main( h, cosmu, b.w, n );
+              mu.data[i] *= kToDeg;
+            auto& h = vectAt(data.hists,data.histidx_theta);
+            hgfill_main( h, mu, b.w, n );
             if ( dethistid )
-              hgfill_detail( h, *dethistid, cosmu, b.w, n );
+              hgfill_detail( h, *dethistid, mu, b.w, n );
           }
         }
       }
@@ -405,8 +405,8 @@ void NCMMCT::TallyStdHists_Data::merge(const TallyStdHists_Data& o)
 {
   const auto n = hists.size();
   nc_assert_always( o.hists.size() == n
+                    && histidx_theta == o.histidx_theta
                     && histidx_mu == o.histidx_mu
-                    && histidx_cosmu == o.histidx_cosmu
                     && histidx_nscat == o.histidx_nscat
                     && histidx_w == o.histidx_w
                     && histidx_e == o.histidx_e
@@ -473,10 +473,10 @@ void NCMMCT::tallyRecord( TallyStdHists_Data& data,
   }
 
   //////////////////////////////
-  //Fill cos(mu), mu, q tallies:
-  constexpr auto flag_miscmu = (TFlags::cosmu|TFlags::mu|TFlags::q );
+  //Fill cos(mu), theta, q tallies:
+  constexpr auto flag_miscmu = (TFlags::mu|TFlags::theta|TFlags::q );
   if ( opt.flags.hasAny(flag_miscmu) )
-    tallyRecord_cosmu_mu_q( data, opt, neutrons, histid );
+    tallyRecord_mu_theta_q( data, opt, neutrons, histid );
 
   constexpr auto flag_nonmiscmu = ( TFlags::ALLHISTS & (~flag_miscmu) );
   if ( !opt.flags.hasAny(flag_nonmiscmu) )

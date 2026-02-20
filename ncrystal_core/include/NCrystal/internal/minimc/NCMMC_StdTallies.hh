@@ -84,8 +84,8 @@ namespace NCRYSTAL_NAMESPACE {
       struct TallyStdHists_Data {
         //Histograms, including a cache of indices for efficient later access:
         std::vector<HistGroup> hists;
+        std::size_t histidx_theta = std::numeric_limits<std::size_t>::max();
         std::size_t histidx_mu = std::numeric_limits<std::size_t>::max();
-        std::size_t histidx_cosmu = std::numeric_limits<std::size_t>::max();
         std::size_t histidx_nscat = std::numeric_limits<std::size_t>::max();
         std::size_t histidx_w = std::numeric_limits<std::size_t>::max();
         std::size_t histidx_e = std::numeric_limits<std::size_t>::max();
