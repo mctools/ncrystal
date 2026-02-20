@@ -52,46 +52,46 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     struct BasketValBufDbl final {
-      static constexpr auto N = basket_N;
-      double data[N];
-      ncconstexpr17 double operator[]( std::size_t i ) const ncnoexceptndebug
+      double data[basket_N];
+      ncconstexpr17 const double& operator[]( std::size_t i )
+        const ncnoexceptndebug
       {
-        nc_assert(i<N);
+        nc_assert(i<basket_N);
         return data[i];
       }
       ncconstexpr17 double& operator[]( std::size_t i ) ncnoexceptndebug
       {
-        nc_assert(i<N);
+        nc_assert(i<basket_N);
         return data[i];
       }
     };
 
     struct BasketValBufInt final {
-      static constexpr auto N = basket_N;
-      int data[N];
-      ncconstexpr17 int operator[]( std::size_t i ) const ncnoexceptndebug
+      int data[basket_N];
+      ncconstexpr17 const int& operator[]( std::size_t i )
+        const ncnoexceptndebug
       {
-        nc_assert(i<N);
+        nc_assert(i<basket_N);
         return data[i];
       }
       ncconstexpr17 int& operator[]( std::size_t i ) ncnoexceptndebug
       {
-        nc_assert(i<N);
+        nc_assert(i<basket_N);
         return data[i];
       }
     };
 
     struct BasketValBufBool final {
-      static constexpr auto N = basket_N;
-      bool data[N];
-      ncconstexpr17 bool operator[]( std::size_t i ) const ncnoexceptndebug
+      bool data[basket_N];
+      ncconstexpr17 const bool& operator[]( std::size_t i )
+        const ncnoexceptndebug
       {
-        nc_assert(i<N);
+        nc_assert(i<basket_N);
         return data[i];
       }
       ncconstexpr17 bool& operator[]( std::size_t i ) ncnoexceptndebug
       {
-        nc_assert(i<N);
+        nc_assert(i<basket_N);
         return data[i];
       }
     };

@@ -166,7 +166,7 @@ namespace NCRYSTAL_NAMESPACE {
                           const BasketValBufDbl& w, std::size_t n)
         {
           for ( std::size_t i = 0; i < n; ++i)
-            hg.main.fill( x.data[i], w.data[i] );
+            hg.main.fill( static_cast<double>(x[i]), w[i] );
         }
 
         template<class TBasketValBuf>
@@ -178,14 +178,14 @@ namespace NCRYSTAL_NAMESPACE {
         {
           for ( std::size_t i = 0; i < n; ++i)
             vectAt(hg.detailed,static_cast<std::size_t>(hid.data[i]))
-              .fill(static_cast<double>(x.data[i]),w.data[i]);
+              .fill(static_cast<double>(x[i]),w[i]);
         }
 
         template<class TBasketValBuf>
         void hgfill_main( HistGroup& hg, const TBasketValBuf& x, std::size_t n)
         {
           for ( std::size_t i = 0; i < n; ++i)
-            hg.main.fill( x.data[i] );
+            hg.main.fill( static_cast<double>(x[i]) );
         }
 
         template<class TBasketValBuf>
@@ -196,7 +196,7 @@ namespace NCRYSTAL_NAMESPACE {
         {
           for ( std::size_t i = 0; i < n; ++i)
             vectAt(hg.detailed,static_cast<std::size_t>(hid.data[i]))
-              .fill(static_cast<double>(x.data[i]));
+              .fill(static_cast<double>(x[i]));
         }
 
         void init_dethistidvect( DetailedHistsIDVect& v,
@@ -230,15 +230,15 @@ namespace NCRYSTAL_NAMESPACE {
           BasketValBufDbl tmp;
           const std::size_t n = neutrons.size();
           for ( std::size_t i = 0; i < n; ++i )
-            tmp.data[i]
+            tmp[i]
               = 1.0 / ncmax( std::numeric_limits<double>::denorm_min(),
-                             neutrons.ekin[i]);
+                             neutrons.ekin[i] );
           for ( std::size_t i = 0; i < n; ++i )
-            tmp.data[i] = std::sqrt( tmp.data[i] );
+            tmp[i] = std::sqrt( tmp[i] );
           //Convert 1/sqrt(eV) to wavelength in Aa:
           constexpr double f2l = constexpr_ekin2wl(1.0);
           for ( std::size_t i = 0; i < n; ++i )
-            tmp.data[i] *= f2l;
+            tmp[i] *= f2l;
           //Fill:
           auto& h = vectAt(data.hists,data.histidx_l);
           hgfill_main( h, tmp, neutrons.w, n );
