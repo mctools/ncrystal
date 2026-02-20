@@ -42,7 +42,7 @@ int main()
   //debugging scenarios:
   testcfg("");
   testcfg("nthreads=4");
-  testcfg("tally = cosmu  , nobreakdown");
+  testcfg("tally = mu, q");
   testcfg("nthreads=0 ;   ignoremiss =1");
   testcfg("std;nthreads=0;ignoremiss=1");
   return 0;

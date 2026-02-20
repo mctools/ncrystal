@@ -138,7 +138,13 @@ def main():
     with ensure_error(NCBadInput,
                       'Invalid parameter for chosen engine: "whatever"'):
         test('mmc','inspectcfg','engine','whatever = 0')
-    test('mmc','inspectcfg','engine','tally=nobreakdown,cosmu,cosmu')
+    with ensure_error(NCBadInput,
+                      'Invalid tally "nobreakdown"'
+                      ' (use "tallybreakdown=0" to disable breakdowns)'):
+        test('mmc','inspectcfg','engine','tally=nobreakdown,mu,mu')
+
+    test('mmc','inspectcfg','engine','tally=mu,mu;tallybreakdown=0')
+
     test('mmc','inspectcfg','engine','')
     test('mmc','inspectcfg','engine','nthreads=4')
     test('mmc','inspectcfg','engine','roulette=0.8,0.001,1')
@@ -146,6 +152,9 @@ def main():
     test('mmc','inspectcfg','engine','std;nthreads=0;ignoremiss=1')
     test('mmc','inspectcfg','engine',
          '\t  std ; nthreads=  auto  \t\n;ignoremiss= 0')
+
+    test('mmc','inspectcfg','engine','tally=q,mu;tallybins=+,;tallybreakdown=0')
+
 
 if __name__ == '__main__':
     main()

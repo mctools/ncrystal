@@ -127,6 +127,11 @@ namespace NCRYSTAL_NAMESPACE {
         return val.value();
       }
 
+      inline StrView getValue_str_allowempty( const Tokens& tokens, StrView key )
+      {
+        return getValue(tokens,key).value_or(StrView(""));
+      }
+
       inline double getValue_dbl( const Tokens& tokens, StrView key )
       {
         auto val_str = getValue_str(tokens,key);

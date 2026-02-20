@@ -212,8 +212,11 @@ Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","tallylist","bla"]
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'whatever = 0']
 Caught expected NCBadInput('Invalid parameter for chosen engine: "whatever"')
 
->>> Sending query: ['mmc', 'inspectcfg', 'engine', 'tally=nobreakdown,cosmu,cosmu']
-{'cfgstr': 'tally=cosmu,nobreakdown',
+>>> Sending query: ['mmc', 'inspectcfg', 'engine', 'tally=nobreakdown,mu,mu']
+Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" to disable breakdowns)')
+
+>>> Sending query: ['mmc', 'inspectcfg', 'engine', 'tally=mu,mu;tallybreakdown=0']
+{'cfgstr': 'tallybreakdown=0',
  'decoded': {'absorption': True,
              'beamdir': None,
              'beamenergy': None,
@@ -224,7 +227,17 @@ Caught expected NCBadInput('Invalid parameter for chosen engine: "whatever"')
                           'psurvival': 0.1,
                           'weight_threshold': 0.01},
              'seed': 0,
-             'tally': ['cosmu', 'nobreakdown']},
+             'tally': ['mu'],
+             'tallybins': {'autobin_flags': [],
+                           'overrides': {'cosmu': None,
+                                         'e': None,
+                                         'l': None,
+                                         'mu': None,
+                                         'nscat': None,
+                                         'nscat_uw': None,
+                                         'q': None,
+                                         'w': None}},
+             'tallybreakdown': False},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', '']
@@ -239,7 +252,17 @@ Caught expected NCBadInput('Invalid parameter for chosen engine: "whatever"')
                           'psurvival': 0.1,
                           'weight_threshold': 0.01},
              'seed': 0,
-             'tally': ['mu']},
+             'tally': ['mu'],
+             'tallybins': {'autobin_flags': [],
+                           'overrides': {'cosmu': None,
+                                         'e': None,
+                                         'l': None,
+                                         'mu': None,
+                                         'nscat': None,
+                                         'nscat_uw': None,
+                                         'q': None,
+                                         'w': None}},
+             'tallybreakdown': True},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'nthreads=4']
@@ -254,7 +277,17 @@ Caught expected NCBadInput('Invalid parameter for chosen engine: "whatever"')
                           'psurvival': 0.1,
                           'weight_threshold': 0.01},
              'seed': 0,
-             'tally': ['mu']},
+             'tally': ['mu'],
+             'tallybins': {'autobin_flags': [],
+                           'overrides': {'cosmu': None,
+                                         'e': None,
+                                         'l': None,
+                                         'mu': None,
+                                         'nscat': None,
+                                         'nscat_uw': None,
+                                         'q': None,
+                                         'w': None}},
+             'tallybreakdown': True},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'roulette=0.8,0.001,1']
@@ -269,7 +302,17 @@ Caught expected NCBadInput('Invalid parameter for chosen engine: "whatever"')
                           'psurvival': 0.8,
                           'weight_threshold': 0.001},
              'seed': 0,
-             'tally': ['mu']},
+             'tally': ['mu'],
+             'tallybins': {'autobin_flags': [],
+                           'overrides': {'cosmu': None,
+                                         'e': None,
+                                         'l': None,
+                                         'mu': None,
+                                         'nscat': None,
+                                         'nscat_uw': None,
+                                         'q': None,
+                                         'w': None}},
+             'tallybreakdown': True},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'nthreads=0 ;   ignoremiss =1']
@@ -284,7 +327,17 @@ Caught expected NCBadInput('Invalid parameter for chosen engine: "whatever"')
                           'psurvival': 0.1,
                           'weight_threshold': 0.01},
              'seed': 0,
-             'tally': ['mu']},
+             'tally': ['mu'],
+             'tallybins': {'autobin_flags': [],
+                           'overrides': {'cosmu': None,
+                                         'e': None,
+                                         'l': None,
+                                         'mu': None,
+                                         'nscat': None,
+                                         'nscat_uw': None,
+                                         'q': None,
+                                         'w': None}},
+             'tallybreakdown': True},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'std;nthreads=0;ignoremiss=1']
@@ -299,7 +352,17 @@ Caught expected NCBadInput('Invalid parameter for chosen engine: "whatever"')
                           'psurvival': 0.1,
                           'weight_threshold': 0.01},
              'seed': 0,
-             'tally': ['mu']},
+             'tally': ['mu'],
+             'tallybins': {'autobin_flags': [],
+                           'overrides': {'cosmu': None,
+                                         'e': None,
+                                         'l': None,
+                                         'mu': None,
+                                         'nscat': None,
+                                         'nscat_uw': None,
+                                         'q': None,
+                                         'w': None}},
+             'tallybreakdown': True},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', '\t  std ; nthreads=  auto  \t\n;ignoremiss= 0']
@@ -314,5 +377,40 @@ Caught expected NCBadInput('Invalid parameter for chosen engine: "whatever"')
                           'psurvival': 0.1,
                           'weight_threshold': 0.01},
              'seed': 0,
-             'tally': ['mu']},
+             'tally': ['mu'],
+             'tallybins': {'autobin_flags': [],
+                           'overrides': {'cosmu': None,
+                                         'e': None,
+                                         'l': None,
+                                         'mu': None,
+                                         'nscat': None,
+                                         'nscat_uw': None,
+                                         'q': None,
+                                         'w': None}},
+             'tallybreakdown': True},
+ 'name': 'std'}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'engine', 'tally=q,mu;tallybins=+,;tallybreakdown=0']
+{'cfgstr': 'tally=mu,q;tallybreakdown=0;tallybins=+',
+ 'decoded': {'absorption': True,
+             'beamdir': None,
+             'beamenergy': None,
+             'ignoremiss': False,
+             'nscatlimit': None,
+             'nthreads': 'auto',
+             'roulette': {'nscat_threshold': 2,
+                          'psurvival': 0.1,
+                          'weight_threshold': 0.01},
+             'seed': 0,
+             'tally': ['mu', 'q'],
+             'tallybins': {'autobin_flags': ['+'],
+                           'overrides': {'cosmu': None,
+                                         'e': None,
+                                         'l': None,
+                                         'mu': None,
+                                         'nscat': None,
+                                         'nscat_uw': None,
+                                         'q': None,
+                                         'w': None}},
+             'tallybreakdown': False},
  'name': 'std'}

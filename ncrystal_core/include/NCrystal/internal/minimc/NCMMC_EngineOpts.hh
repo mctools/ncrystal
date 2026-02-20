@@ -84,6 +84,9 @@ namespace NCRYSTAL_NAMESPACE {
       void add( TallyFlags, const Binning& );
       const Binning& lookup( TallyFlags, const Binning& fallback ) const;
       bool operator==( const TallyBinningOverrides& ) const;
+      void toString( std::ostream& ) const;
+      void toJSON( std::ostream& ) const;
+      TallyFlags flagsAffected() const { return m_all; }
     private:
       TallyFlags::value_type m_all = 0;
       SmallVector_IC<std::pair<TallyFlags::value_type,Binning>,4> m_db;
@@ -146,10 +149,14 @@ namespace NCRYSTAL_NAMESPACE {
 
     //Output as a JSON dictionary. This will always include all options,
     //including those at default values.
-    void engineOptsToJSON(std::ostream&, const EngineOpts&);
+    void engineOptsToJSON( std::ostream&, const EngineOpts& );
+
+    //Documentation of all options as JSON dictionary:
+    void engineOptsDocsToJSON( std::ostream& );
 
   }
 }
+
 ////////////////////////////
 // Inline implementations //
 ////////////////////////////
