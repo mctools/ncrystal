@@ -354,8 +354,8 @@ namespace NCRYSTAL_NAMESPACE {
       void swap( AlignedHeapPtr& o ) noexcept { std::swap( data, o.data ); }
 
       //RAII breaking methods:
-      void* release_raw() { void* dt = nullptr; std::swap(dt,data); return dt; }
-      void set_raw(void*dt) { nc_assert(!data); data = dt; }
+      void* release_raw() noexcept { void* dt = nullptr; std::swap(dt,data); return dt; }
+      void set_raw(void*dt) ncnoexceptndebug { nc_assert(!data); data = dt; }
     };
   }
   //Backport of std::make_unique to C++11:
@@ -377,6 +377,7 @@ namespace NCRYSTAL_NAMESPACE {
 
 #if nc_cplusplus < 201402L
 //Make sure we can use std::make_unique from C++14 even in C++11 code
+//FIXME: use ncmake_unique from above instead!
 namespace std {
   template<typename T, typename ...Args>
   inline std::unique_ptr<T> make_unique( Args&& ...args )

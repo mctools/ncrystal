@@ -20,9 +20,10 @@
 
 #include "NCrystal/internal/minimc/NCMMC_RunSim.hh"
 #include "NCrystal/internal/minimc/NCMMC_StdEngine.hh"
-#include "NCrystal/internal/minimc/NCMMC_SimMgrMT.hh"
+#include "NCrystal/internal/minimc/NCMMC_SimMgrMT.hh"//fixme obsolete
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/internal/minimc/NCMMC_SimMgr.hh"
 
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
@@ -30,6 +31,43 @@ namespace NCMMC = NCrystal::MiniMC;
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
     namespace {
+
+      SimOutputMetadata
+      runSimNEW( GeometryPtr geom,
+                 SourcePtr src,
+                 TallyPtr tally,
+                 MatDef matdef,
+                 const EngineOpts& eopts,
+                 const Optional<CB::CBMgrInput>& callback )
+      {
+        if ( eopts.includeAbsorption
+             == EngineOpts::IncludeAbsorption::NO )
+          matdef.absorption = nullptr;
+
+        auto engine = createStdSimEngine( geom, std::move(matdef), eopts );
+        auto tallymgr = makeSO<TallyMgr>( tally->cloneSetup() );
+        BasketType bt = BasketType::Basic;
+        if ( callback.has_value() )//fixme: could also depend on eopts! I.e. if
+                                   //tally needs initial values (i.e. it does for q).
+          bt = BasketType::Extended;
+        auto bmgrs = createBasketManagement( geom,
+                                             src,
+                                             bt,
+                                             eopts.nthreads );
+        SimMgr mgr( eopts, engine, std::move(bmgrs), tallymgr, callback );
+        auto launchSimStats = mgr.launchSimulations( eopts.nthreads,
+                                                     eopts.seed );
+        auto tally_result = tallymgr->getFinalResult();
+        tally->merge( std::move( *tally_result ) );
+
+        SimOutputMetadata simoutmd;
+        simoutmd.miss = launchSimStats.miss;
+        simoutmd.tallied = launchSimStats.tallied;
+        simoutmd.provided = src->particlesProvided();
+        return simoutmd;
+      }
+
+
       template<class TCache>
       SimOutputMetadata
       runSim_StdEngine_impl( GeometryPtr geom,
@@ -61,6 +99,7 @@ namespace NCRYSTAL_NAMESPACE {
         simoutmd.provided = src->particlesProvided();
         return simoutmd;
       }
+
     }
   }
 }
@@ -73,7 +112,27 @@ NCMMC::runSim_StdEngine( GeometryPtr geom,
                          const EngineOpts& eopts,
                          const Optional<CB::CBMgrInput>& callback )
 {
-  return runSim_StdEngine_impl<DPCacheData>
+// #if 0
+//   //fixme: migrate to new (and also rename the current function to
+//   //runSimulation?)
+//   EngineOpts eopts = eopts_raw;
+//   bool use_old(true);
+//   if ( eopts.nthreads.get() == 99 )
+//     use_old = false;
+//   eopts.nthreads = ThreadCount{9999};
+
+
+//   if (!use_old) {
+//     return runSimNEW
+//       ( std::move(geom), std::move(src), std::move(tally), std::move(matdef),
+//         eopts, callback );
+//   } else {
+//     return runSim_StdEngine_impl<DPCacheData>
+//       ( std::move(geom), std::move(src), std::move(tally), std::move(matdef),
+//         eopts, callback );
+//   }
+// #endif
+  return runSimNEW
     ( std::move(geom), std::move(src), std::move(tally), std::move(matdef),
       eopts, callback );
 }

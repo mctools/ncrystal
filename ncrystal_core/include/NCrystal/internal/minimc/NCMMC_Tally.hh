@@ -23,6 +23,7 @@
 
 #include "NCrystal/internal/minimc/NCMMC_Defs.hh"
 #include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/minimc/NCMMC_UBView.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
@@ -44,6 +45,10 @@ namespace NCRYSTAL_NAMESPACE {
       //post-merge, so only happens once per simulation):
       virtual void tallyItemToJSON( std::ostream&, StrView itemName ) const = 0;
       virtual VectS tallyItemNames() const = 0;
+
+      //Fixme: for migration:
+      virtual void registerResultsUB( const UniversalBasket& b ) = 0;
+
     };
     using TallyPtr = shared_obj<TallyBase>;
 
@@ -56,6 +61,14 @@ namespace NCRYSTAL_NAMESPACE {
       //envision other schemes. Naturally, the simulation engine and tally
       //implementation must be in agreement on this:
       virtual void registerResults( const TBasket& ) = 0;
+
+      void registerResultsUB( const UniversalBasket& b ) override final
+      {
+        const TBasket* bb
+          = reinterpret_cast<const TBasket*>(b.raw_basket_address());
+        this->registerResults(*bb);
+      }
+
     };
 
     //The tally manager is a helper object responsible for dishing out tally

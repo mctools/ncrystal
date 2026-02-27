@@ -91,12 +91,13 @@ namespace NCRYSTAL_NAMESPACE {
       {
         nc_assert( tgt.size() >= nb.nused);
         nc_assert( offset < nb.nused);
-        distToVolumeEntryImpl( nb.x.data + offset,
-                               nb.y.data + offset,
-                               nb.z.data + offset,
-                               nb.ux.data + offset,
-                               nb.uy.data + offset,
-                               nb.uz.data + offset,
+        auto& f = nb.fields;
+        distToVolumeEntryImpl( f.x.data + offset,
+                               f.y.data + offset,
+                               f.z.data + offset,
+                               f.ux.data + offset,
+                               f.uy.data + offset,
+                               f.uz.data + offset,
                                tgt.data() + offset,
                                nb.nused - offset );
       }
@@ -105,8 +106,9 @@ namespace NCRYSTAL_NAMESPACE {
                              Span<double> tgt ) const
       {
         nc_assert( tgt.size() >= nb.nused);
-        distToVolumeExitImpl( nb.x.data, nb.y.data, nb.z.data,
-                              nb.ux.data, nb.uy.data, nb.uz.data,
+        auto& f = nb.fields;
+        distToVolumeExitImpl( f.x.data, f.y.data, f.z.data,
+                              f.ux.data, f.uy.data, f.uz.data,
                               tgt.data(), nb.nused );
       }
 

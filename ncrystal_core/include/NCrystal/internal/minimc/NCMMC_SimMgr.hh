@@ -1,5 +1,5 @@
-#ifndef NCrystal_MMC_SimMgrMT_hh
-#define NCrystal_MMC_SimMgrMT_hh
+#ifndef NCrystal_MMC_SimMgr_hh
+#define NCrystal_MMC_SimMgr_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -21,11 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/minimc/NCMMC_Geom.hh"
-#include "NCrystal/internal/minimc/NCMMC_Basket.hh"
-#include "NCrystal/internal/minimc/NCMMC_BasketSrcFiller.hh"
-#include "NCrystal/internal/minimc/NCMMC_BasketMgr.hh"
-#include "NCrystal/internal/minimc/NCMMC_Source.hh"
+#include "NCrystal/internal/minimc/NCMMC_UBView.hh"//fixme rename
 #include "NCrystal/internal/minimc/NCMMC_Tally.hh"
 #include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
 #include "NCrystal/internal/minimc/NCMMC_CBMgr.hh"
@@ -33,49 +29,31 @@
 #  include <thread>
 #  include <condition_variable>
 #endif
-#include <iostream>//fixme
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
-    //SimMgr for multi-threaded simulations:
-    template<class TSim>
-    class SimMgrMT : NoCopyMove {
-    public:
-      using basket_t = typename TSim::basket_t;
-      using basketmgr_t = BasketMgr<basket_t>;
-      using basket_holder_t = typename basketmgr_t::basket_holder_t;
-      using basket_srcfiller_t = BasketSrcFiller<basket_t>;
-      using tally_t = Tally<basket_t>;
+    //Simulation manager class, responsible for managing worker threads, etc.  .
 
-      SimMgrMT( GeometryPtr geom,
-                SourcePtr src,
-                EngineOpts eopts,
-                shared_obj<TSim> sim,
-                shared_obj<TallyMgr> tallymgr,
-                Optional<CB::CBMgrInput> callback = NullOpt,
-                Optional<shared_obj<basketmgr_t>> bm = NullOpt )
-        : m_geom(geom),
-          m_engineOpts(eopts),
-          m_basketmgr( bm.has_value()
-                       ? std::move(bm.value())
-                       : makeSO<basketmgr_t>() ),
-          m_srcfiller( makeSO<basket_srcfiller_t>(std::move(geom),
-                                                  std::move(src),
-                                                  m_basketmgr,
-                                                  ThreadedUsage::Multi) ),
-          m_sim( std::move(sim) ),
+    //fixme: pimpl everything?
+
+    class SimMgr final : NoCopyMove {
+    public:
+
+      SimMgr( const EngineOpts& eopts,
+              shared_obj<SimEngine> engine,
+              BasketManagementPair basketmgrs,
+              shared_obj<TallyMgr> tallymgr,
+              Optional<CB::CBMgrInput> callback = NullOpt )
+        : m_engineOpts(eopts),
+          m_bmgr( std::move( basketmgrs.first ) ),
+          m_bprovider( std::move( basketmgrs.second ) ),
+          m_engine( std::move(engine) ),
           m_tallymgr( std::move(tallymgr) )
       {
         if ( callback.has_value() )
           m_cbmgr.emplace( std::move(callback.value()) );
       }
-
-      basketmgr_t& basketMgr() { return *m_basketmgr; }
-      const basketmgr_t& basketMgr() const { return *m_basketmgr; }
-      shared_obj<basketmgr_t> basketMgrPtr() { return m_basketmgr; }
-      shared_obj<const basketmgr_t> basketMgrPtr() const { return m_basketmgr; }
-      const basket_srcfiller_t& srcFiller() const { return *m_srcfiller; }
 
       struct LaunchSimReturnVal {
         ParticleCountSum miss;
@@ -97,13 +75,18 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
     private:
-      GeometryPtr m_geom;
       EngineOpts m_engineOpts;
-      shared_obj<basketmgr_t> m_basketmgr;
-      shared_obj<basket_srcfiller_t> m_srcfiller;
-      shared_obj<TSim> m_sim;
+      shared_obj<UniversalBasketMgr> m_bmgr;
+      shared_obj<InputBasketProvider> m_bprovider;
+      shared_obj<SimEngine> m_engine;
       shared_obj<TallyMgr> m_tallymgr;
       Optional<CB::CBMgr> m_cbmgr;
+      // GeometryPtr m_geom;
+      // EngineOpts m_engineOpts;
+      // shared_obj<basketmgr_t> m_basketmgr;
+      // shared_obj<basket_srcfiller_t> m_srcfiller;
+      // shared_obj<TSim> m_sim;
+      // shared_obj<TallyMgr> m_tallymgr;
 #ifndef NCRYSTAL_DISABLE_THREADS
       SmallVector<std::thread,64> m_workers;
       struct CommonThreadWaitingInfo {
@@ -115,17 +98,18 @@ namespace NCRYSTAL_NAMESPACE {
 
       static ParticleCountSum
       doWork( RNG& rng,
-              TSim& sim,
-              basket_srcfiller_t& srcfiller,
-              std::function<void(const basket_t&)>& result_fct,
+              SimEngine& engine,
+              UniversalBasketMgr& basketManager,
+              InputBasketProvider& basketProvider,
+              std::function<void(const UniversalBasket&)>& result_fct,
               CommonThreadWaitingInfo& common,
               bool do_ignoreMiss )
       {
-        basket_holder_t basket{no_init};
-        std::function<void(const basket_t&)> result_fct_srcmiss(nullptr);
+        UniversalBasket basket;
+        std::function<void(const UniversalBasket&)> result_fct_srcmiss;
         if ( !do_ignoreMiss )
           result_fct_srcmiss = result_fct;
-        ParticleCountSum missStat;
+        ParticleCountSum missStats;
 
         while( true ) {
           //Get pending basket. If there are no more pending, it might
@@ -133,18 +117,18 @@ namespace NCRYSTAL_NAMESPACE {
           //retry after a while, since other threads might have something to
           //provide.
           auto tryFillBasket =  [&basket,
-                                 &srcfiller,
+                                 &basketManager,
+                                 &basketProvider,
                                  &rng,
                                  &result_fct_srcmiss,
                                  &common,
-                                 &missStat]
+                                 &missStats]
           {
             if ( !basket.valid() )
-              basket = srcfiller.getPendingBasket( common.nthreads,
-                                                   rng,
-                                                   result_fct_srcmiss,
-                                                   missStat );
-            nc_assert(!basket.valid()||basket.basket().size()>0);
+              basket = basketProvider.getInputBasket( rng,
+                                                      result_fct_srcmiss,
+                                                      missStats );
+            nc_assert(!basket.valid()||basket.size()>0);
             return basket.valid();
           };
 
@@ -165,7 +149,7 @@ namespace NCRYSTAL_NAMESPACE {
                 //Truly no more src particles!
                 std::unique_lock<std::mutex> lock(common.mutex);
                 common.condvar.notify_all();
-                return missStat;
+                return missStats;
               }
             }
           }
@@ -174,7 +158,9 @@ namespace NCRYSTAL_NAMESPACE {
             nc_assert_always( we_are_marked_inactive );
             //Ok, there was no pending baskets available and we have marked
             //ourselves as inactive, but there might be some other active
-            //threads. Let us wait for them to potentially give us something (via the common conditions variable):
+            //threads. Let us wait for them to potentially give us something
+            //(via the common conditions variable):
+
             std::unique_lock<std::mutex> lock(common.mutex);
             common.condvar.wait( lock, [&tryFillBasket,&allThreadsInactive]()
             {
@@ -183,8 +169,9 @@ namespace NCRYSTAL_NAMESPACE {
             if ( !basket.valid()
                  && allThreadsInactive()
                  && !tryFillBasket() ) {
-              common.condvar.notify_all();//make sure other waiting threads might notice
-              return missStat;//Truly no more src particles!
+              //make sure other waiting threads might notice
+              common.condvar.notify_all();
+              return missStats;//Truly no more src particles!
             }
             if ( basket.valid() && we_are_marked_inactive ) {
               common.nthreads_inactive.fetch_sub(1);
@@ -194,15 +181,9 @@ namespace NCRYSTAL_NAMESPACE {
 
           nc_assert_always(!we_are_marked_inactive);
           nc_assert_always(basket.valid());
-          nc_assert_always(basket.basket().size()>0);
+          nc_assert_always(basket.size()>0);
           //Got something, and we are marked as active. Process it:
-          sim.advanceSimulation( rng,
-                                 srcfiller.geometry(),
-                                 std::move(basket),
-                                 srcfiller.basketMgr(),
-                                 result_fct );
-          nc_assert_always(!basket.valid());//currently, the engine MUST consume
-                                            //the basket.
+          engine.step( std::move(basket), rng, basketManager, result_fct );
 
           //Probably our call to advanceSimulation has produced some pending
           //baskets. However, before we start notifying other threads, we can
@@ -224,8 +205,15 @@ namespace NCRYSTAL_NAMESPACE {
         if ( nthreads.get() < 1 )
           nthreads = ThreadCount{1};
         nc_assert_always( nthreads.get() >= 1 && nthreads.get() < 9999 );
-        auto sf_copy = m_srcfiller.getsp();
-        auto sim_copy = m_sim.getsp();
+      // EngineOpts m_engineOpts;
+      // shared_obj<UniversalBasketMgr> m_bmgr;
+      // shared_obj<InputBasketProvider> m_bprovider;
+      // shared_obj<SimEngine> m_engine;
+      // shared_obj<TallyMgr> m_tallymgr;
+        auto bprovider_copy = m_bprovider.getsp();
+        auto engine_copy = m_engine.getsp();
+        // auto sf_copy = m_srcfiller.getsp();
+        // auto sim_copy = m_sim.getsp();
         auto tallymgr_copy = m_tallymgr.getsp();
         CommonThreadWaitingInfo common;
         common.nthreads = nthreads;
@@ -241,13 +229,18 @@ namespace NCRYSTAL_NAMESPACE {
         for ( auto i : ncrange(nthrval) ) {
           if ( i )
             rng_next = rng_next->createJumped();
+          auto bmgr_copy = m_bmgr->cloneMgrForThread().getsp();
           std::shared_ptr<RNGStream> rng = rng_next;
           ParticleCountSum& thread_missStats = missStats.at(i);
           ParticleCountSum& thread_ntalliedStats = ntalliedStats.at(i);
           CB::CBMgr* cbmgrptr = nullptr;
           if ( m_cbmgr.has_value() )
             cbmgrptr = &m_cbmgr.value();
-          m_workers.push_back(std::thread([rng,sf_copy,sim_copy,tallymgr_copy,
+          m_workers.push_back(std::thread([rng,
+                                           bmgr_copy,
+                                           bprovider_copy,
+                                           engine_copy,
+                                           tallymgr_copy,
                                            &common,do_ignoreMiss,
                                            &thread_missStats,
                                            &thread_ntalliedStats,
@@ -256,44 +249,43 @@ namespace NCRYSTAL_NAMESPACE {
             NCRYSTAL_DEBUGMMCMSG( "In thread "<<std::this_thread::get_id()
                                   <<" RNG @ "<<(void*)rng.get()
                                   <<" (first val gen: "<<rng->generate()<<")" );
-            auto thesim_so = sim_copy->clone_so();
-            TSim& thesim = *thesim_so.get();
-            TallyPtr thetallyptr = tallymgr_copy->getIndependentTallyPtr();
-            basket_srcfiller_t& thesf = *sf_copy.get();
+            auto theengine_so = engine_copy->clone();
+            SimEngine& theengine = *theengine_so.get();
+            TallyPtr tally_so = tallymgr_copy->getIndependentTallyPtr();
+            UniversalBasketMgr& bmgr = *bmgr_copy.get();
+            InputBasketProvider& bprovider = *bprovider_copy.get();
+            auto tallyptr = tally_so.get();
 
-            //We must downcast the tally ptr to tally_t, which depends on the
-            //basket type:
-            tally_t * downcast_tallyptr = dynamic_cast<tally_t*>(thetallyptr.get());
-            nc_assert_always(downcast_tallyptr!=nullptr);
-
-            std::function<void(const basket_t&)> result_fct
-              = [downcast_tallyptr,cbmgrptr,
-                 &thread_ntalliedStats] (const basket_t& b)
+            std::function<void(const UniversalBasket&)> result_fct//fixme: typedef TallyFct
+              = [tallyptr,cbmgrptr,
+                 &thread_ntalliedStats] (const UniversalBasket& b)
               {
                 {
+                  nc_assert( b.valid()&& b.neutrons != nullptr );
                   const std::size_t n = b.size();
                   double w = 0.0;
-                  const double * it = b.neutrons.w.data;
+                  const double * it = b.neutrons->fields.w.data;
                   const double * itE = it + n;
                   for ( ; it!=itE; ++it )
                     w += *it;
                   thread_ntalliedStats.count += n;
                   thread_ntalliedStats.weight += w;
                 }
-                downcast_tallyptr->registerResults(b);
-                if ( cbmgrptr ) {
-                  auto bview = typename TSim::basket_view_t(&b);
-                  cbmgrptr->registerData( bview );
-                }
+
+                tallyptr->registerResultsUB(b);//fixme remove UB post migration
+                if ( cbmgrptr )
+                  cbmgrptr->registerData( BasketView_UniversalBasket(&b) );
               };
 
             RNG * rawrng = rng.get();
             nc_assert(rawrng!=nullptr);
-            thread_missStats = doWork( *rawrng, thesim, thesf,
+            thread_missStats = doWork( *rawrng, theengine,
+                                       bmgr,bprovider,
                                        result_fct, common,
                                        do_ignoreMiss );
+
             NCRYSTAL_DEBUGMMCMSG("Thread provides results.");
-            tallymgr_copy->addResult( std::move(thetallyptr) );
+            tallymgr_copy->addResult( std::move(tally_so) );
             NCRYSTAL_DEBUGMMCMSG("Thread ends.");
           }));
         }
@@ -320,66 +312,60 @@ namespace NCRYSTAL_NAMESPACE {
       }
 #else
       //Fixme: test non-MT builds in CI.
+      //Fixme: Less code duplication between MT and non-MT paths!!!!
       LaunchSimReturnVal launchSimulationsImpl( std::uint64_t seed )
       {
         const bool do_ignoreMiss = ( m_engineOpts.ignoreMiss
                                      == EngineOpts::IgnoreMiss::YES );
         //Single threaded:
         auto rng = createBuiltinRNG( seed );
-        auto tallyptr = m_tallymgr->getIndependentTallyPtr();
-        //We must downcast the tally ptr to tally_t, which depends on the
-        //basket type:
-        tally_t * downcast_tallyptr = dynamic_cast<tally_t*>(tallyptr.get());
-        nc_assert_always(downcast_tallyptr!=nullptr);
+        TallyPtr tally_so = m_tallymgr->getIndependentTallyPtr();
         ParticleCountSum ntalliedStats;
         CB::CBMgr* cbmgrptr = nullptr;
         if ( m_cbmgr.has_value() )
           cbmgrptr = &m_cbmgr.value();
+        auto tallyptr = tally_so.get();
 
-        std::function<void(const basket_t&)>
-          result_fct = [downcast_tallyptr,
+
+        std::function<void(const UniversalBasket&)>//fixme TallyFct typedef
+          result_fct = [tallyptr,
                         &ntalliedStats,
-                        cbmgrptr](const basket_t& b)
+                        cbmgrptr](const UniversalBasket& b)
           {
             {
+              nc_assert( b.valid()&& b.neutrons != nullptr );
               const std::size_t n = b.size();
               double w = 0.0;
-              const double * it = b.neutrons.w.data;
+              const double * it = b.neutrons->fields.w.data;
               const double * itE = it + n;
               for ( ; it!=itE; ++it )
                 w += *it;
               ntalliedStats.count += n;
               ntalliedStats.weight += w;
             }
-            downcast_tallyptr->registerResults(b);
-            //std::cout<<"TKTEST AHAHA"<<(void*)cbmgrptr<<std::endl;
-            if ( cbmgrptr ) {
-              auto bview = typename TSim::basket_view_t(&b);
-              //std::cout<<"  TKTEST AHAHA view neutrons size="<<bview.neutrons().size()<<std::endl;
-              cbmgrptr->registerData( bview );
-            }
+            tallyptr->registerResultsUB(b);//fixme remove UB post migration
+            if ( cbmgrptr )
+              cbmgrptr->registerData( BasketView_UniversalBasket(&b) );
           };
-        std::function<void(const basket_t&)> result_fct_srcmiss(nullptr);
+        std::function<void(const UniversalBasket&)> result_fct_srcmiss(nullptr);
         if ( !do_ignoreMiss )
           result_fct_srcmiss = result_fct;
 
         ParticleCountSum missStats;
         while ( true ) {
-          auto basket = m_srcfiller->getPendingBasket( ThreadCount{1},
-                                                       rng,
-                                                       result_fct_srcmiss,
-                                                       missStats);
+          auto basket = m_bprovider->getInputBasket( rng,
+                                                     result_fct_srcmiss,
+                                                     missStats );
           if ( !basket.valid() ) {
             //Nothing more to process apparently!
             break;
           }
-          m_sim->advanceSimulation( rng,
-                                    m_geom,
-                                    std::move(basket),
-                                    m_basketmgr,
-                                    result_fct );
+          nc_assert(basket.size()>0);
+
+          //Got something, and we are marked as active. Process it:
+          m_engine->step( std::move(basket), rng, m_bmgr, result_fct );
         }
-        m_tallymgr->addResult( std::move(tallyptr) );
+        m_tallymgr->addResult( std::move(tally_so) );
 
         //Flush callback buffers:
         if ( m_cbmgr.has_value() )

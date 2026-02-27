@@ -71,6 +71,7 @@ namespace NCRYSTAL_NAMESPACE {
         //Fixme: just have one global fieldstype/baskettype in NCDefs.hh
       public:
         enum class FieldsType : unsigned long {
+          //FIXME: Merge with BasketType
           NOT_INITIALISED = 0,
           BASIC = 1,// [x,y,z,ux,uy,uz,ekin,w,nscat,sawinelas]//fixme: sawinelas -> nscat_inelas?
           WITH_INITIAL = 2,// BASIC + [x0,y0,z0,ux0,uy0,uz0,ekin0,w0]

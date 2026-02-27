@@ -40,6 +40,7 @@
 #include "NCrystal/internal/minimc/NCMMC_RunSim.hh"
 #include "NCrystal/internal/minimc/NCMMC_Basket.hh"
 #include "NCrystal/internal/minimc/NCMMC_BasketMgr.hh"
+#include "NCrystal/internal/minimc/NCMMC_UBView.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
@@ -51,6 +52,7 @@ namespace NCRYSTAL_NAMESPACE {
       BasketValBufBool sawinelas;
       BasketValBufDbl scatxsval;//if already know scat-xs (<0.0 means unknown)
 
+      //fixme: Check which of these we really need?
       void markAsMissedTarget( std::size_t i ) noexcept { this->nscat[i] = -1; }
 
       void markScatteredElastic( std::size_t i ) noexcept
@@ -103,7 +105,7 @@ namespace NCRYSTAL_NAMESPACE {
       const NeutronBasket& neutrons() const override { return m_b->neutrons; }
       const BasketValBufInt * nscat() const override { return &m_b->cache.nscat; }
       const BasketValBufBool * sawinelas() const override { return &m_b->cache.sawinelas; }
-      const NeutronBasket* neutrons_original() const override { return nullptr; }
+      const NeutronBasketFields* neutrons_original() const override { return nullptr; }
     };
 
     class StdEngine final {
@@ -162,6 +164,40 @@ namespace NCRYSTAL_NAMESPACE {
                               basketmgr_t& mgr,
                               const resultfct_t& resultFct );
     };
+
+    class SimEngine : NoCopyMove {
+    public:
+      //Fixme: this interface should go somewhere else.
+      // A simulation engine is an engine which is able to move the simulation
+      // forward one step at a time, processing a pending basket of neutrons and
+      // either discard neutrons, pass them on for additional simulation steps,
+      // or serve them up for tallies. This is all done via the basket manager
+      // and result callback function, and for efficiency everything is done in
+      // terms of baskets of neutrons.
+      //
+      // The class implementing this will most likely accept options including
+      // for geometry, material and variance reduction in its constructor.
+
+      virtual ~SimEngine() = default;
+
+      //Produce a clone (most likely to have a different SimEngine object for
+      //each thread in a multithreaded simulation):
+      virtual shared_obj<SimEngine> clone() const = 0;
+
+      //Advance the simulation one step. This does not need to be multi-thread
+      //safe.
+      using TallyFct = std::function<void(const UniversalBasket&)>;
+      virtual void step( UniversalBasket,
+                         RNG&,
+                         UniversalBasketMgr&,
+                         const TallyFct& tallyfct ) = 0;
+    };
+
+    //Create a std simulation engine through this factory function:
+    shared_obj<SimEngine> createStdSimEngine( GeometryPtr,
+                                              MatDef,
+                                              const EngineOpts& opts = {} );
+
 
   }
 }

@@ -52,6 +52,8 @@ namespace NCRYSTAL_NAMESPACE {
       using basket_holder_t = BasketHolder<TBasket>;
       using basketmgr_t = BasketMgr<TBasket>;
 
+      //Fixme: could we make this work with just UniversalBaskets???
+
       BasketSrcFiller( GeometryPtr geom,
                        SourcePtr src,
                        shared_obj<basketmgr_t> bm,
@@ -66,12 +68,20 @@ namespace NCRYSTAL_NAMESPACE {
           m_srcmutex.emplace();
       }
 
+      //fixme: cleanup needed methods
       const Geometry& geometry() const { return m_geom; }
       const basketmgr_t& basketMgr() const { return m_basketmgr; }
       basketmgr_t& basketMgr() { return m_basketmgr; }
 
       void haltSource()
       {
+        //For stopping the source prematurely (fixme: not used?!?!?... should we
+        //use it from the python callbacks, to end in case of issues. Or perhaps
+        //we should allow the callbacks to return a special value to indicate
+        //end of simulation?). We could also (for e.g. visualisation) add an
+        //option to get callbacks whenever a pending basket is added back to the
+        //queue, or the source generates new neutrons. However, we should deal
+        //with the fact that the source can top off existing baskets.
         m_srcHalted.store( true );
       }
 
@@ -100,14 +110,14 @@ namespace NCRYSTAL_NAMESPACE {
         if ( offset >= b.size() )
           return;
 
-        b.neutrons.validateIfDbg();
+        b.validateIfDbg();
 
         const bool ignore_miss = (resultFct == nullptr);
 
         //First do the geometry distance calculations:
         nc_assert(m_srcParticlesMightBeOutside);
         double dist_results[basket_N];
-        m_geom->distToVolumeEntry( b.neutrons, dist_results, offset );
+        m_geom->distToVolumeEntry( b.get_neutrons(), dist_results, offset );
 
         //Next, reserve a basket for results (those that missed):
         Optional<basket_holder_t> bh_results;
@@ -126,7 +136,7 @@ namespace NCRYSTAL_NAMESPACE {
           if ( dist < 0.0 ) {
             //Missed the volume, register as result (or just ignore). In any
             //case, record the miss for statistics.
-            missStat.weight += b.neutrons.w[i];
+            missStat.weight += b.get_neutrons().fields.w[i];
             ++(missStat.count);
             if (bmiss)
               bmiss->appendEntryFromOther( b, i );
@@ -136,7 +146,8 @@ namespace NCRYSTAL_NAMESPACE {
             //Keep this. In case of holes, we also have to move it.
             std::size_t inew = i;
             if ( i_first_hole < i ) {
-              b.copyEntry( (inew=i_first_hole++), i );
+              b.copyEntryFromOther( b, i, (inew=i_first_hole++) );
+              //b.copyEntry( (inew=i_first_hole++), i );
               dist_results[inew] = dist;
             }
           }
@@ -146,14 +157,14 @@ namespace NCRYSTAL_NAMESPACE {
 
         //shrink-to-fit:
         if ( i_first_hole != basket_N )
-          b.neutrons.nused = i_first_hole;
+          b.get_neutrons().nused = i_first_hole;
 
-        nc_assert( offset <= b.neutrons.nused );
+        nc_assert( offset <= b.get_neutrons().nused );
 
         //Now we should propagate all the neutrons that were not already inside
         //the volume (those already inside have dist_results[i]=0, so the
         //propagation won't do anything)::
-        detail::propagateDistance( b.neutrons, offset, dist_results );
+        detail::propagateDistance( b.get_neutrons(), offset, dist_results );
 
         //And finally, return any neutrons that missed as a result, after
         //marking them as having missed the target.
@@ -161,7 +172,7 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert( bmiss != nullptr );
           if ( !bmiss->empty() ) {
             for ( auto i : ncrange( bmiss->size() ) )
-              bmiss->cache.markAsMissedTarget(i);
+              bmiss->markAsMissedTarget(i);
             resultFct( *bmiss );
           }
           m_basketmgr->deallocateBasket( std::move(bh_results.value()) );
@@ -181,7 +192,7 @@ namespace NCRYSTAL_NAMESPACE {
         //baskets if there are anyway less pending baskets than the number of
         //threads:
         auto bh = m_basketmgr->getPendingBasketOrAllocateEmpty( nthreads );
-        bh.basket().neutrons.validateIfDbg();
+        bh.basket().validateIfDbg();
 
         nc_assert(bh.valid());
         const std::size_t size_orig = bh.basket().size();
@@ -193,25 +204,27 @@ namespace NCRYSTAL_NAMESPACE {
         bool src_has_more = !m_srcHalted.load();
         if ( src_has_more ) {
           if ( !m_srcmutex.has_value() ) {
-            m_src->fillBasket( rng, bh.basket().neutrons );
+            m_src->fillBasket( rng, bh.basket().get_neutrons() );
           } else {
             NCRYSTAL_LOCK_GUARD(m_srcmutex.value());
-            m_src->fillBasket( rng, bh.basket().neutrons );
+            m_src->fillBasket( rng, bh.basket().get_neutrons() );
           }
-          bh.basket().neutrons.validateIfDbg();
-
           //Source provided neutron parameters, but we still need to initialise
           //any extra cache parameters as well.
           for( std::size_t i = size_orig; i < bh.basket().size(); ++i)
-            bh.basket().cache.init( i );
+            bh.basket().init_extra( i );
+
+          bh.basket().validateIfDbg();
 #ifndef NDEBUG
-          //Check that source provide normalised directions:
-          for( std::size_t i = size_orig; i < bh.basket().size(); ++i)
-            nc_assert(ncabs(ncsquare(bh.basket().neutrons.ux[i])
-                            +ncsquare(bh.basket().neutrons.uy[i])
-                            +ncsquare(bh.basket().neutrons.uz[i])-1.0 )<1e-13 );
+          //Check that source provide normalised directions (fixme: to validateIfDbg??):
+          {
+            auto& bnf = bh.basket().get_neutrons().fields;
+            for( std::size_t i = size_orig; i < bh.basket().size(); ++i)
+              nc_assert( ncabs( ncsquare(bnf.ux[i]) + ncsquare(bnf.uy[i])
+                                + ncsquare(bnf.uz[i]) - 1.0 ) < 1e-13 );
+          }
 #endif
-         const bool src_ran_out = !bh.basket().full();
+          const bool src_ran_out = !bh.basket().full();
           if ( src_ran_out ) {
             m_srcHalted.store( true );
             src_has_more = false;
@@ -220,10 +233,10 @@ namespace NCRYSTAL_NAMESPACE {
 
         //If source particles might be outside volume, we have to propagate them
         //to the volume (and record the rest as results already):
-        bh.basket().neutrons.validateIfDbg();
+        bh.basket().validateIfDbg();
         if ( m_srcParticlesMightBeOutside ) {
           propagateToVolume( bh.basket(), size_orig, resultFct, missCount );
-          bh.basket().neutrons.validateIfDbg();
+          bh.basket().validateIfDbg();
           if ( bh.basket().empty() ) {
             //Original basket was empty, and they *all* missed!
             //Try again, unless src ran out:

@@ -109,29 +109,30 @@ void NCMMCU::propagate( NeutronBasket& b,
                         bool geom_is_unbounded,
                         const double* ncrestrict dists )
 {
+  auto& bf = b.fields;
   if ( geom_is_unbounded ) {
     //dists might be inf, so we can't just multiply direction vectors with
     //dists, or we might end up with 0*inf.
     double tmp[basket_N];
-    std::copy( &b.ux[0], &b.ux[0]+b.size(), &tmp[0] );
+    std::copy( &bf.ux[0], &bf.ux[0]+b.size(), &tmp[0] );
     safe_mult_strongzero( tmp, dists, b.size() );
     for ( auto i : ncrange( b.size() ) )
-      b.x[i] += tmp[i];
-    std::copy( &b.uy[0], &b.uy[0]+b.size(), &tmp[0] );
+      bf.x[i] += tmp[i];
+    std::copy( &bf.uy[0], &bf.uy[0]+b.size(), &tmp[0] );
     safe_mult_strongzero( tmp, dists, b.size() );
     for ( auto i : ncrange( b.size() ) )
-      b.y[i] += tmp[i];
-    std::copy( &b.uz[0], &b.uz[0]+b.size(), &tmp[0] );
+      bf.y[i] += tmp[i];
+    std::copy( &bf.uz[0], &bf.uz[0]+b.size(), &tmp[0] );
     safe_mult_strongzero( tmp, dists, b.size() );
     for ( auto i : ncrange( b.size() ) )
-      b.z[i] += tmp[i];
+      bf.z[i] += tmp[i];
   } else {
     for ( auto i : ncrange( b.size() ) )
-      b.x[i] += dists[i] * b.ux[i];
+      bf.x[i] += dists[i] * bf.ux[i];
     for ( auto i : ncrange( b.size() ) )
-      b.y[i] += dists[i] * b.uy[i];
+      bf.y[i] += dists[i] * bf.uy[i];
     for ( auto i : ncrange( b.size() ) )
-      b.z[i] += dists[i] * b.uz[i];
+      bf.z[i] += dists[i] * bf.uz[i];
   }
 }
 
@@ -159,7 +160,7 @@ void NCMMCU::propagateAndAttenuate( NeutronBasket& b,
     for ( auto i : ncrange( b.size() ) )
       tmp[i] = std::exp( tmp[i] );
     for ( auto i : ncrange( b.size() ) ) {
-      b.w[i] *= tmp[i];
+      b.fields.w[i] *= tmp[i];
     }
     //fixme: for the special case of macroxs=0 and dist=inf we need to set w=0.
   }
@@ -169,7 +170,7 @@ void NCMMCU::propagateAndAttenuate( NeutronBasket& b,
     //always "lost" to the tallies by setting w=0. This is needed for when cross
     //sections are 0 but distances are infinite.
     for ( auto i : ncrange( b.size() ) )
-      b.w[i] *= (1.0-static_cast<double>(std::isinf(dists[i])));
+      b.fields.w[i] *= (1.0-static_cast<double>(std::isinf(dists[i])));
   }
 }
 

@@ -58,12 +58,13 @@ void NC::MiniMC::detail::propagateDistance( NeutronBasket& nb,
                                             const double* distances ) ncnoexceptndebug
 {
   nc_assert( basket_offset <= nb.size());
-  propagateDistanceImpl( nb.x.data + basket_offset,
-                         nb.y.data + basket_offset,
-                         nb.z.data + basket_offset,
-                         nb.ux.data + basket_offset,
-                         nb.uy.data + basket_offset,
-                         nb.uz.data + basket_offset,
+  auto& f = nb.fields;
+  propagateDistanceImpl( f.x.data + basket_offset,
+                         f.y.data + basket_offset,
+                         f.z.data + basket_offset,
+                         f.ux.data + basket_offset,
+                         f.uy.data + basket_offset,
+                         f.uz.data + basket_offset,
                          distances + basket_offset,
                          nb.size() - basket_offset );
 }

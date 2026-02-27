@@ -84,7 +84,6 @@ namespace NCRYSTAL_NAMESPACE {
                         const EngineOpts&,
                         const SimOutputMetadata& );
 
-
   }
 }
 

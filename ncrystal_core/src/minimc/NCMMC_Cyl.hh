@@ -100,14 +100,15 @@ namespace NCRYSTAL_NAMESPACE {
         nb.validateIfDbg();
         const std::size_t n = nb.nused;
         nc_assert( tgt.size() >= n);
-        distToVolumeExitUnboundedImpl( nb.x.data, nb.y.data, nb.z.data,
-                                       nb.ux.data, nb.uy.data, nb.uz.data,
+        auto& f = nb.fields;
+        distToVolumeExitUnboundedImpl( f.x.data, f.y.data, f.z.data,
+                                       f.ux.data, f.uy.data, f.uz.data,
                                        tgt.data(), n );
         if ( !m_dy )
           return;
         //check and apply slab limits as well:
         double tslab[basket_N];
-        Utils::distToSlabExit( nb.y.data, nb.uy.data, tslab, n, m_dy );
+        Utils::distToSlabExit( f.y.data, f.uy.data, tslab, n, m_dy );
         for ( std::size_t i = 0; i < n; ++i )
           tgt[i] = ncmin(tgt[i],tslab[i]);
       }
@@ -119,21 +120,22 @@ namespace NCRYSTAL_NAMESPACE {
         nb.validateIfDbg();
         nc_assert( tgt.size() >= nb.nused);
         nc_assert( offset < nb.nused);
+        auto& f = nb.fields;
         if ( !m_dy ) {
-          distToVolumeEntryUnboundedImpl( nb.x.data + offset,
-                                          nb.y.data + offset,
-                                          nb.z.data + offset,
-                                          nb.ux.data + offset,
-                                          nb.uy.data + offset,
-                                          nb.uz.data + offset,
+          distToVolumeEntryUnboundedImpl( f.x.data + offset,
+                                          f.y.data + offset,
+                                          f.z.data + offset,
+                                          f.ux.data + offset,
+                                          f.uy.data + offset,
+                                          f.uz.data + offset,
                                           tgt.data() + offset, nb.nused-offset );
         } else {
-          distToVolumeEntryBoundedImpl( nb.x.data + offset,
-                                        nb.y.data + offset,
-                                        nb.z.data + offset,
-                                        nb.ux.data + offset,
-                                        nb.uy.data + offset,
-                                        nb.uz.data + offset,
+          distToVolumeEntryBoundedImpl( f.x.data + offset,
+                                        f.y.data + offset,
+                                        f.z.data + offset,
+                                        f.ux.data + offset,
+                                        f.uy.data + offset,
+                                        f.uz.data + offset,
                                         tgt.data() + offset, nb.nused-offset );
         }
       }

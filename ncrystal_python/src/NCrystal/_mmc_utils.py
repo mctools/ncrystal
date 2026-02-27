@@ -385,6 +385,11 @@ class MMCTallyView:
             h.add_contents( o )
         return h
 
+    #Fixme: if we have a plot, we should also have a dump!
+    def dump( self, *args, **kwargs):
+        #fixme args and docstring
+        return self.hist_total.dump(*args,**kwargs)
+
     def plot( self,
               breakdown = 'auto',
               max_nbins = None,

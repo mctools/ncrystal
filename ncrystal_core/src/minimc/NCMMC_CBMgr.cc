@@ -66,17 +66,19 @@ namespace NCRYSTAL_NAMESPACE {
 
       namespace {
 
-        void data_append_neutronbasket( double** dst,
+        void data_append_neutronfields( double** dst,
                                         unsigned offset,
                                         std::size_t this_size,
-                                        const NeutronBasket& b )
+                                        const NeutronBasketFields& b,
+                                        std::size_t b_size )
         {
           //order: x,y,z,ux,uy,uz,ekin,w
-          const std::size_t o_size = b.size();
-          auto aa = [&dst,&offset,this_size,o_size]( const BasketValBufDbl& ov )
+          if (!b_size)
+            return;
+          auto aa = [&dst,&offset,this_size,b_size]( const BasketValBufDbl& ov )
           {
             double * arrB = dst[offset++];
-            detail::memcpydata<double>( arrB + this_size, ov.data, o_size );
+            detail::memcpydata<double>( arrB + this_size, ov.data, b_size );
           };
           aa(b.x);
           aa(b.y);
@@ -143,7 +145,9 @@ namespace NCRYSTAL_NAMESPACE {
                             == DataArea::FieldsType::WITH_INITIAL );
 
           auto& da_datacache = DataArea::Mutable::datacache(da);
-          data_append_neutronbasket( da_datacache, 0, da.size(), b.neutrons() );
+          data_append_neutronfields( da_datacache, 0, da.size(),
+                                     b.neutrons().fields,
+                                     b.neutrons().size() );
 
           //Convert nscat and sawinelas to doubles:
           {
@@ -169,12 +173,16 @@ namespace NCRYSTAL_NAMESPACE {
           if ( da_fieldsType == DataArea::FieldsType::WITH_INITIAL ) {
             auto nb_orig = b.neutrons_original();
             nc_assert_always( nb_orig != nullptr );
-            data_append_neutronbasket( da_datacache, 10, da.size(), *nb_orig );
+            //fixme nc_assert_always( nb_orig->size() == b.neutrons().size() );
+            data_append_neutronfields( da_datacache, 10, da.size(),
+                                       *nb_orig,
+                                       b.neutrons().size() );
           }
 
           DataArea::Mutable::size(da) += o_size;
         }
 
+#ifndef NCRYSTAL_DISABLE_THREADS
         void data_append_other( DataArea& dst, DataArea& o )
         {
           nc_assert_always( &dst != &o );
@@ -204,7 +212,7 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert_always(dst.size()<=dst.capacity());
           nc_assert_always(o.size()<=o.capacity());
         }
-
+#endif
       }
     }
   }
@@ -228,6 +236,7 @@ void NCMMC::CB::CBMgr::registerData( const BasketView& bview )
 #else
   if ( m_cache == nullptr ) {
     m_cache = ncmake_unique<DataArea>(m_nmax);
+    nc_assert(!(m_cache->size() + bview.neutrons().size() > m_nmax));
   } else if ( m_cache->size() + bview.neutrons().size() > m_nmax ) {
     flush();
   }

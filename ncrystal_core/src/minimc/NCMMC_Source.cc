@@ -287,30 +287,31 @@ namespace NCRYSTAL_NAMESPACE {
           auto counts = m_stat.updateBasketCounts( nb );
           NCRYSTAL_DEBUGMMCMSG("Source Filling n="<<(counts.N-counts.i0)
                                <<" with xyz: " <<m_x<<", "<<m_y<<", "<<m_z);
+          auto& f = nb.fields;
           for ( std::size_t i = counts.i0; i < counts.N; ++i ) {
             auto v = randIsotropicDirection( rng );
-            nb.ux[i] = v.x();
-            nb.uy[i] = v.y();
-            nb.uz[i] = v.z();
+            f.ux[i] = v.x();
+            f.uy[i] = v.y();
+            f.uz[i] = v.z();
           }
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.x[i] = m_x.dbl();
+            f.x[i] = m_x.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.y[i] = m_y.dbl();
+            f.y[i] = m_y.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.z[i] = m_z.dbl();
+            f.z[i] = m_z.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.w[i] = m_w;
+            f.w[i] = m_w;
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.ekin[i] = m_ekin.dbl();
+            f.ekin[i] = m_ekin.dbl();
           if ( m_minusr ) {
             //Move particles u*(-r):
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
-              nb.x[i] += nb.ux[i] * m_minusr;
+              f.x[i] += f.ux[i] * m_minusr;
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
-              nb.y[i] += nb.uy[i] * m_minusr;
+              f.y[i] += f.uy[i] * m_minusr;
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
-              nb.z[i] += nb.uz[i] * m_minusr;
+              f.z[i] += f.uz[i] * m_minusr;
           }
         }
       };
@@ -411,22 +412,23 @@ namespace NCRYSTAL_NAMESPACE {
           NCRYSTAL_DEBUGMMCMSG("Source Filling n="<<(counts.N-counts.i0)
                                <<" with xyz: " <<m_x<<", "<<m_y<<", "<<m_z
                                <<" and dir: "<<m_dir);
+          auto& f = nb.fields;
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.ux[i] = m_dir[0];
+            f.ux[i] = m_dir[0];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.uy[i] = m_dir[1];
+            f.uy[i] = m_dir[1];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.uz[i] = m_dir[2];
+            f.uz[i] = m_dir[2];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.x[i] = m_x.dbl();
+            f.x[i] = m_x.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.y[i] = m_y.dbl();
+            f.y[i] = m_y.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.z[i] = m_z.dbl();
+            f.z[i] = m_z.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.w[i] = m_w;
+            f.w[i] = m_w;
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.ekin[i] = m_ekin.dbl();
+            f.ekin[i] = m_ekin.dbl();
         }
       };
 
@@ -574,37 +576,37 @@ namespace NCRYSTAL_NAMESPACE {
         {
           auto counts = m_stat.updateBasketCounts( nb );
           NCRYSTAL_DEBUGMMCMSG("Source Filling n="<<(counts.N-counts.i0));
-
+          auto& f = nb.fields;
           if ( m_radius.get() > 0.0 ) {
             //Randomised positions:
             double a, b;
             for ( std::size_t i = counts.i0; i < counts.N; ++i ) {
               std::tie(a,b) = randPointInUnitCircle(rng);
               auto p = m_center + m_a * a + m_b * b;
-              nb.x[i] = p[0];
-              nb.y[i] = p[1];
-              nb.z[i] = p[2];
+              f.x[i] = p[0];
+              f.y[i] = p[1];
+              f.z[i] = p[2];
             }
           } else {
             //special case r=0:
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
-              nb.x[i] = m_center[0];
+              f.x[i] = m_center[0];
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
-              nb.y[i] = m_center[1];
+              f.y[i] = m_center[1];
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
-              nb.z[i] = m_center[2];
+              f.z[i] = m_center[2];
           }
           //Direction, weight, and energy are all constant:
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.ux[i] = m_dir[0];
+            f.ux[i] = m_dir[0];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.uy[i] = m_dir[1];
+            f.uy[i] = m_dir[1];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.uz[i] = m_dir[2];
+            f.uz[i] = m_dir[2];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.w[i] = m_w;
+            f.w[i] = m_w;
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            nb.ekin[i] = m_ekin.dbl();
+            f.ekin[i] = m_ekin.dbl();
         }
       };
 

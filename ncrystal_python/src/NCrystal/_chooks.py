@@ -867,19 +867,19 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             def load( i ):
                 return _cptr_to_nparray( data[i], n, dealloc=False)
 
-            data = dict( x = load(0), y = load(1), z = load(2),
-                         ux = load(3), uy = load(4), uz = load(5),
-                         ekin = load(6), w = load(7), nscat = load(8),
-                         sawinelas = load(9) )
+            pydata = dict( x = load(0), y = load(1), z = load(2),
+                           ux = load(3), uy = load(4), uz = load(5),
+                           ekin = load(6), w = load(7), nscat = load(8),
+                           sawinelas = load(9) )
             if cbtype==2:
-                data.update(
+                pydata.update(
                     dict( x0 = load(10), y0 = load(11), z0 = load(12),
                           ux0 = load(13),uy0 = load(14), uz0 = load(15),
                           ekin0 = load(16), w0 = load(17) )
                 )
 
             try:
-                user_callback( data )
+                user_callback( pydata )
                 #Fixme: we need to test the experience in case of an error from
                 #the user callback, or the user pressing ctrl-c. However, we
                 #should also the what happens if there is an exception during

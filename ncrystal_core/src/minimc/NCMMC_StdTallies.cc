@@ -229,10 +229,11 @@ namespace NCRYSTAL_NAMESPACE {
           //Calculate to 1/sqrt(ekin) without triggering zero division errors:
           BasketValBufDbl tmp;
           const std::size_t n = neutrons.size();
+          auto& nf = neutrons.fields;
           for ( std::size_t i = 0; i < n; ++i )
             tmp[i]
               = 1.0 / ncmax( std::numeric_limits<double>::denorm_min(),
-                             neutrons.ekin[i] );
+                             nf.ekin[i] );
           for ( std::size_t i = 0; i < n; ++i )
             tmp[i] = std::sqrt( tmp[i] );
           //Convert 1/sqrt(eV) to wavelength in Aa:
@@ -241,9 +242,9 @@ namespace NCRYSTAL_NAMESPACE {
             tmp[i] *= f2l;
           //Fill:
           auto& h = vectAt(data.hists,data.histidx_l);
-          hgfill_main( h, tmp, neutrons.w, n );
+          hgfill_main( h, tmp, nf.w, n );
           if ( dethistid )
-            hgfill_detail( h, *dethistid, tmp, neutrons.w, n );
+            hgfill_detail( h, *dethistid, tmp, nf.w, n );
         }
 
         void tallyRecord_q(  TallyStdHists_Data& data,
@@ -259,7 +260,7 @@ namespace NCRYSTAL_NAMESPACE {
           const double Ei = beamEnergy.get();
           const std::size_t n = neutrons.size();
           for ( std::size_t i = 0; i < n; ++i )
-            q.data[i] = neutrons.ekin[i] * Ei;
+            q.data[i] = neutrons.fields.ekin[i] * Ei;
 #ifndef NDEBUG
           for ( std::size_t i = 0; i < n; ++i )
             nc_assert( q.data[i]>=0.0 );
@@ -273,7 +274,7 @@ namespace NCRYSTAL_NAMESPACE {
           for ( std::size_t i = 0; i < n; ++i )
             q.data[i] += Ei;
           for ( std::size_t i = 0; i < n; ++i )
-            q.data[i] += neutrons.ekin[i];
+            q.data[i] += neutrons.fields.ekin[i];
           constexpr double fact_ekin2ksq = ekin2ksq(1.0);
           for ( std::size_t i = 0; i < n; ++i )
             q.data[i] *= fact_ekin2ksq;
@@ -282,9 +283,9 @@ namespace NCRYSTAL_NAMESPACE {
             q.data[i] = Utils::fast_sqrt_clippos(q.data[i]);
 
           auto& h = vectAt(data.hists,data.histidx_q);
-          hgfill_main( h, q, neutrons.w, n );
+          hgfill_main( h, q, neutrons.fields.w, n );
           if ( dethistid )
-            hgfill_detail( h, *dethistid, q, neutrons.w, n );
+            hgfill_detail( h, *dethistid, q, neutrons.fields.w, n );
         }
 
         void tallyRecord_mu_theta_q( TallyStdHists_Data& data,
@@ -303,19 +304,20 @@ namespace NCRYSTAL_NAMESPACE {
           BasketValBufDbl mu;
           //fixme: if beamDIR has a value, we could look for (0,0,1) as a
           //special case. This can be done in the constructor.
+          auto& bf = b.fields;
           if ( !opt.beamDir.has_value() ) {
             //use (0,0,1) as reference, so just copy over uz values.
-            detail::memcpydata( mu.data, b.uz.data, n );
+            detail::memcpydata( mu.data, bf.uz.data, n );
           } else {
             const double bx( opt.beamDir.value()[0] );
             const double by( opt.beamDir.value()[1] );
             const double bz( opt.beamDir.value()[2] );
             for ( std::size_t i = 0; i < n; ++i )
-              mu.data[i] = bx * b.ux[i];
+              mu.data[i] = bx * bf.ux[i];
             for ( std::size_t i = 0; i < n; ++i )
-              mu.data[i] += by * b.uy[i];
+              mu.data[i] += by * bf.uy[i];
             for ( std::size_t i = 0; i < n; ++i )
-              mu.data[i] += bz * b.uz[i];
+              mu.data[i] += bz * bf.uz[i];
           }
 
 #ifndef NDEBUG
@@ -331,9 +333,9 @@ namespace NCRYSTAL_NAMESPACE {
           //Tally mu
           if ( opt.flags.has(TFlags::mu) ) {
             auto& h = vectAt(data.hists,data.histidx_mu);
-            hgfill_main( h, mu, b.w, n );
+            hgfill_main( h, mu, bf.w, n );
             if ( dethistid )
-              hgfill_detail( h, *dethistid, mu, b.w, n );
+              hgfill_detail( h, *dethistid, mu, bf.w, n );
           }
 
           //////////
@@ -351,9 +353,9 @@ namespace NCRYSTAL_NAMESPACE {
             for ( std::size_t i = 0; i < n; ++i )
               mu.data[i] *= kToDeg;
             auto& h = vectAt(data.hists,data.histidx_theta);
-            hgfill_main( h, mu, b.w, n );
+            hgfill_main( h, mu, bf.w, n );
             if ( dethistid )
-              hgfill_detail( h, *dethistid, mu, b.w, n );
+              hgfill_detail( h, *dethistid, mu, bf.w, n );
           }
         }
       }
@@ -486,9 +488,9 @@ void NCMMCT::tallyRecord( TallyStdHists_Data& data,
   //Fill e tally:
   if ( opt.flags.has(TFlags::e) ) {
     auto& h = vectAt(data.hists,data.histidx_e);
-    hgfill_main( h, neutrons.ekin, neutrons.w, n );
+    hgfill_main( h, neutrons.fields.ekin, neutrons.fields.w, n );
     if ( histid )
-      hgfill_detail( h, *histid, neutrons.ekin, neutrons.w, n );
+      hgfill_detail( h, *histid, neutrons.fields.ekin, neutrons.fields.w, n );
   }
 
   ////////////////////
@@ -506,9 +508,9 @@ void NCMMCT::tallyRecord( TallyStdHists_Data& data,
 
   if ( opt.flags.has(TFlags::nscat) ) {
     auto& h = vectAt(data.hists,data.histidx_nscat);
-    hgfill_main( h, nscat, neutrons.w, n );
+    hgfill_main( h, nscat, neutrons.fields.w, n );
     if ( histid )
-      hgfill_detail( h, *histid, nscat, neutrons.w, n );
+      hgfill_detail( h, *histid, nscat, neutrons.fields.w, n );
   }
 
   if ( opt.flags.has(TFlags::nscat_uw) ) {
@@ -520,9 +522,9 @@ void NCMMCT::tallyRecord( TallyStdHists_Data& data,
 
   if ( opt.flags.has(TFlags::w) ) {
     auto& h = vectAt(data.hists,data.histidx_w);
-    hgfill_main( h, neutrons.w, n );
+    hgfill_main( h, neutrons.fields.w, n );
     if ( histid )
-      hgfill_detail( h, *histid, neutrons.w, n );
+      hgfill_detail( h, *histid, neutrons.fields.w, n );
   }
 
 }

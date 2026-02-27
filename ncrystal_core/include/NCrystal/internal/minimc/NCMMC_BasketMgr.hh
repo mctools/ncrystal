@@ -69,7 +69,10 @@ namespace NCRYSTAL_NAMESPACE {
       void allocate() { m_heapptr.allocate( N_SIZE ); }
       void deallocate() { if (m_heapptr.data) m_heapptr.deallocate(); }
       void swap( HeapMem& o ) noexcept { m_heapptr.swap( o.m_heapptr ); }
-      HeapMem release() noexcept { HeapMem h; swap(h); return h; }
+      HeapMem release() noexcept { HeapMem h; this->swap(h); return h; }
+      //RAII breaking methods:
+      void* release_raw() { return m_heapptr.release_raw(); }
+      void set_raw(void*data) { nc_assert(!m_heapptr.data); m_heapptr.set_raw(data); }
     private:
       AlignedAlloc::AlignedHeapPtr<N_ALIGN> m_heapptr;
     };
@@ -145,6 +148,12 @@ namespace NCRYSTAL_NAMESPACE {
         return *this;
       }
 
+      void set_raw_from_active_heapmem( heapmem_t&& hm ) noexcept
+      {
+        nc_assert( hm.data() != nullptr );
+        m_heapmem.swap(hm);
+        m_basket = reinterpret_cast<TBasket*>(m_heapmem.data());
+      }
     public:
       heapmem_t m_heapmem;
       TBasket * m_basket = nullptr;
@@ -160,10 +169,14 @@ namespace NCRYSTAL_NAMESPACE {
       heapmem_t allocate()
       {
         heapmem_t res;
+          nc_assert(res.data()==nullptr);
         if ( m_pool.empty() ) {
           res.allocate();
+          nc_assert(res.data());
         } else {
           res = m_pool.back().release();
+          nc_assert(m_pool.back().data()==nullptr);
+          nc_assert(res.data()!=nullptr);
           m_pool.pop_back();
         }
         nc_assert(res.data());
@@ -296,7 +309,7 @@ namespace NCRYSTAL_NAMESPACE {
             nc_assert_always( src_basket.size() > n_move );//won't become empty
             nc_assert_always( tgt_basket.size()+n_move <= basket_N );
             tgt_basket.appendEntriesFromOther( src_basket, src_basket.size()-n_move, n_move );
-            src_basket.neutrons.nused -= n_move;
+            src_basket.get_neutrons().nused -= n_move;
             nc_assert_always(src_basket.size()>0);
           }
         }//release lock!
@@ -328,7 +341,7 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert(ntransfer>0);//otherwise list was build wrongly.
           const std::size_t o_new_size = it->basket().size() - ntransfer;
           bh.basket().appendEntriesFromOther(  it->basket(), o_new_size, ntransfer );
-          it->basket().neutrons.nused = o_new_size;//"pop off" copied entries
+          it->basket().get_neutrons().nused = o_new_size;//"pop off" copied entries
         }
         //Ready to return bh, but first properly deal with other baskets in
         //[itB,itE] range:
@@ -355,6 +368,12 @@ namespace NCRYSTAL_NAMESPACE {
       {
         NCRYSTAL_LOCK_GUARD(m_mutex);
         m_mempool.deallocate( bh.stealMemory() );
+      }
+
+      void deallocateHeapMem( heapmem_t&& mem )
+      {
+        NCRYSTAL_LOCK_GUARD(m_mutex);
+        m_mempool.deallocate( std::move(mem) );
       }
 
     private:
