@@ -352,7 +352,26 @@ namespace NCRYSTAL_NAMESPACE {
       AlignedHeapPtr( const AlignedHeapPtr& ) = delete;
       AlignedHeapPtr& operator=( const AlignedHeapPtr& ) = delete;
       void swap( AlignedHeapPtr& o ) noexcept { std::swap( data, o.data ); }
+
+      //RAII breaking methods:
+      void* release_raw() { void* dt = nullptr; std::swap(dt,data); return dt; }
+      void set_raw(void*dt) { nc_assert(!data); data = dt; }
     };
+  }
+  //Backport of std::make_unique to C++11:
+  template<typename T, typename ...Args>
+  inline std::unique_ptr<T> ncmake_unique( Args&& ...args )
+  {
+    static_assert(std::is_array<T>::value == false,
+                  "use ncmake_unique_array");
+    return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
+  }
+  //But make array version explicit:
+  template<typename T>
+  inline std::unique_ptr<T[]> ncmake_unique_array( std::size_t n )
+  {
+    static_assert(std::is_array<T>::value == false, "");
+    return std::unique_ptr<T[]>( new T[n]() );
   }
 }
 
