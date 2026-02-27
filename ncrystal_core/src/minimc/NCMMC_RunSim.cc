@@ -27,32 +27,55 @@
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
 
-NCMMC::SimOutputMetadata NCMMC::runSim_StdEngine( GeometryPtr geom,
-                                                  SourcePtr src,
-                                                  TallyPtr tally,
-                                                  MatDef matdef,
-                                                  const EngineOpts& eopts )
+namespace NCRYSTAL_NAMESPACE {
+  namespace MiniMC {
+    namespace {
+      template<class TCache>
+      SimOutputMetadata
+      runSim_StdEngine_impl( GeometryPtr geom,
+                             SourcePtr src,
+                             TallyPtr tally,
+                             MatDef matdef,
+                             const EngineOpts& eopts,
+                             const Optional<CB::CBMgrInput>& callback )
+      {
+        using SimClass = StdEngine;
+        if ( eopts.includeAbsorption
+             == EngineOpts::IncludeAbsorption::NO )
+          matdef.absorption = nullptr;
+
+        auto sim_engine = makeSO<SimClass>( std::move( matdef ),
+                                            std::move( eopts ) );
+        auto tallymgr = makeSO<TallyMgr>( tally->cloneSetup() );
+
+        SimMgrMT<SimClass> mgr( geom, src, eopts,
+                                sim_engine, tallymgr, callback );
+        auto launchSimStats = mgr.launchSimulations( eopts.nthreads,
+                                                     eopts.seed );
+        auto tally_result = tallymgr->getFinalResult();
+        tally->merge( std::move( *tally_result ) );
+
+        SimOutputMetadata simoutmd;
+        simoutmd.miss = launchSimStats.miss;
+        simoutmd.tallied = launchSimStats.tallied;
+        simoutmd.provided = src->particlesProvided();
+        return simoutmd;
+      }
+    }
+  }
+}
+
+NCMMC::SimOutputMetadata
+NCMMC::runSim_StdEngine( GeometryPtr geom,
+                         SourcePtr src,
+                         TallyPtr tally,
+                         MatDef matdef,
+                         const EngineOpts& eopts,
+                         const Optional<CB::CBMgrInput>& callback )
 {
-  using SimClass = NCMMC::StdEngine;
-  if ( eopts.includeAbsorption
-       == EngineOpts::IncludeAbsorption::NO )
-    matdef.absorption = nullptr;
-
-  auto sim_engine = NC::makeSO<SimClass>( std::move( matdef ),
-                                          std::move( eopts ) );
-  auto tallymgr = makeSO<TallyMgr>( tally->cloneSetup() );
-  NCMMC::SimMgrMT<SimClass> mgr(geom,src,eopts,
-                                sim_engine,tallymgr);
-  auto launchSimStats = mgr.launchSimulations( eopts.nthreads,
-                                               eopts.seed );
-  auto tally_result = tallymgr->getFinalResult();
-  tally->merge( std::move( *tally_result ) );
-
-  NCMMC::SimOutputMetadata simoutmd;
-  simoutmd.miss = launchSimStats.miss;
-  simoutmd.tallied = launchSimStats.tallied;
-  simoutmd.provided = src->particlesProvided();
-  return simoutmd;
+  return runSim_StdEngine_impl<DPCacheData>
+    ( std::move(geom), std::move(src), std::move(tally), std::move(matdef),
+      eopts, callback );
 }
 
 namespace NCRYSTAL_NAMESPACE {

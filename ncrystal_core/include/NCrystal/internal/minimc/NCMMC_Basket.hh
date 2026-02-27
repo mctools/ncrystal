@@ -28,13 +28,11 @@ namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
     //For efficiency, handle larger number of neutrons at once, with each field
-    //in a separate array. This has several advantages:
+    //in a separate array. This has several advantages, mainly:
     //
     // 1) Call overhead (e.g. with virtual functions) neglible when treating
     //    many particles at once.
     // 2) Easier to achieve simd vectorisation, hot caches, etc.
-    // 3) Easy to export the particles in a basket to a Python layer, since we
-    //    can simply create a Numpy array-view of each data array.
 
     namespace detail {
       //type-safe memcopy:
@@ -43,10 +41,26 @@ namespace NCRYSTAL_NAMESPACE {
                               const TData* ncrestrict src,
                               std::size_t n ) ncnoexceptndebug
       {
-        nc_assert((dst>=src+n)||(src>=dst+n));//no overlap
+        nc_assert( n > 0 );
+        nc_assert( dst!=nullptr );
+        nc_assert( src!=nullptr );
+        nc_assert( ( dst >= src+n ) || ( src >= dst+n ) );//no overlap
         std::memcpy( (void*)dst, (void*)src, n*sizeof(TData));
       }
     }
+
+    struct NeutronBasket;
+    class BasketView : NoCopyMove {
+    public:
+      //Type erasure of Baskets.
+
+      //Basic neutron information is always there:
+      virtual const NeutronBasket& neutrons() const = 0;
+      //Optional (nullptr if not available):
+      virtual const BasketValBufInt * nscat() const = 0;
+      virtual const BasketValBufBool * sawinelas() const = 0;
+      virtual const NeutronBasket* neutrons_original() const = 0;
+    };
 
     struct NeutronBasket final : NoCopyMove {
       BasketValBufDbl x;
@@ -55,8 +69,8 @@ namespace NCRYSTAL_NAMESPACE {
       BasketValBufDbl ux;
       BasketValBufDbl uy;
       BasketValBufDbl uz;
-      BasketValBufDbl w;
       BasketValBufDbl ekin;
+      BasketValBufDbl w;
       //TODO: Time as well? (remember to update it in all propagations if so)
       std::size_t nused = 0;
 

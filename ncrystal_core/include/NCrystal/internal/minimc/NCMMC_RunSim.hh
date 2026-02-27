@@ -25,6 +25,7 @@
 #include "NCrystal/internal/minimc/NCMMC_Geom.hh"
 #include "NCrystal/internal/minimc/NCMMC_Source.hh"
 #include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
+#include "NCrystal/internal/minimc/NCMMC_CBMgr.hh"
 #include "NCrystal/factories/NCMatCfg.hh"
 
 // High level interface for a diffraction-pattern MMC application.
@@ -63,14 +64,15 @@ namespace NCRYSTAL_NAMESPACE {
     void simOutMetaDataToJSON(std::ostream&,const SimOutputMetadata&);
 
 
-    //Launch simulations. Outcomes will mostly be contained in the TallyPtr
-    //object afterwards, but additionally the SourcePtr might contain
-    //information about total weights generated, etc.
+    //Launch simulations. Apart from callbacks, Outcomes will mostly be
+    //contained in the TallyPtr object afterwards, but additionally the
+    //SourcePtr might contain information about total weights generated, etc.
     SimOutputMetadata runSim_StdEngine( GeometryPtr,
                                         SourcePtr,
                                         TallyPtr,
                                         MatDef,
-                                        const EngineOpts& = {} );
+                                        const EngineOpts& = {},
+                                        const Optional<CB::CBMgrInput>& = {} );
 
     //After the simulation has been run, the results can be encoded into JSON by
     //passing the same objects to the following function:

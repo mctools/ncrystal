@@ -32,6 +32,9 @@ v4.2.13 (work-in-progress)
      * The MiniMC Python API is now part of the public API and now reside in the
        NCrystal.minimc module. The API is changed, and all MiniMC functions from
        previous releases are obsoleted and should no longer be used.
+     * MiniMC results are now either picked from a set of standard histograms,
+       or alternatively the full event data of all tallied neutrons can be
+       accessed via a call-back function.
      * Add a dedicated ncrystal_minimc commandline script for quickly accessing
        the MiniMC.
      * The MiniMC gets supports for new shapes: a slab of infinite transverse

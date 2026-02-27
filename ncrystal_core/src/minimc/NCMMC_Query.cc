@@ -39,7 +39,8 @@ namespace NCRYSTAL_NAMESPACE {
                          const StrView& cfgstr,
                          const StrView& geomcfg,
                          const StrView& srccfg,
-                         const StrView& enginecfg )
+                         const StrView& enginecfg,
+                         const Optional<CB::CBMgrInput>& cb )
       {
         MatDef matdef( cfgstr.to_string() );
         auto geom = createGeometry( geomcfg );
@@ -47,15 +48,21 @@ namespace NCRYSTAL_NAMESPACE {
         auto eopts = parseEngineOpts( enginecfg );
         using basket_t = StdEngine::basket_t;
         auto tally = NC::makeSO<TallyStdHists<basket_t>>( eopts, *src );
-        auto resmd = runSim_StdEngine( geom, src, tally, matdef, eopts );
+        auto resmd = runSim_StdEngine( geom, src, tally, matdef, eopts, cb );
         resultsToJSON( os, geom, src, tally, matdef, eopts, resmd );
       }
     }
   }
 }
 
-void NCMMC::Query::JSONQuery( std::ostream& os,
-                              const Query& query )
+void NCMMC::Query::JSONQuery( std::ostream& os, const Query& query )
+{
+  JSONQuery_flexmmcrun( os, query, NullOpt );
+}
+
+void NCMMC::Query::JSONQuery_flexmmcrun( std::ostream& os,
+                                         const Query& query,
+                                         const Optional<CB::CBMgrInput>& cb )
 {
   auto invalid = [&query](const char * reason){
     std::ostringstream ss;
@@ -83,13 +90,17 @@ void NCMMC::Query::JSONQuery( std::ostream& os,
   constexpr auto sv_tallylist = StrView::make("tallylist");
   constexpr auto sv_cfgdoc = StrView::make("cfgdoc");
 
+  if ( cb.has_value() && key!=sv_run )
+    NCRYSTAL_THROW(BadInput,"MiniMC flexmmcrun only works when combined"
+                   "with an ['mmc','run',...] JSON query");
+
   if ( key == sv_run ) {
     if ( nargs != 4 && nargs != 2 )
       invalid("correct usage: [\"mmc\",\"run\","
               "CFGSTR,GEOMCFG,SRCCFG,ENGINECFG]"
               " or [\"mmc\",\"run\",CFGSTR,SCENARIOCFG]");
     if ( nargs == 4 ) {
-      query_mmcrun(os,arg(0),arg(1),arg(2),arg(3));
+      query_mmcrun(os,arg(0),arg(1),arg(2),arg(3),cb);
     } else {
       //fixme: use this mode for pyapi runscenario? And consistent that we
       //discard d.short_title? Perhaps we should get rid of scenario short
@@ -97,7 +108,7 @@ void NCMMC::Query::JSONQuery( std::ostream& os,
       auto matcfg = MatCfg(argstr(0));
       auto d = NCrystal::MiniMC::Utils::decodeScenario( matcfg,
                                                         argstr(1).c_str() );
-      query_mmcrun(os,arg(0),d.geomcfg,d.srccfg,d.enginecfg);
+      query_mmcrun(os,arg(0),d.geomcfg,d.srccfg,d.enginecfg,cb);
     }
   } else if ( key == sv_scenario ) {
     if ( nargs != 2 )

@@ -5,6 +5,7 @@ extd_utils
 factories
 infobld
 interfaces
+minimc
 misc
 ncmat
 phys_utils

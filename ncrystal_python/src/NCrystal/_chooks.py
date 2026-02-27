@@ -285,12 +285,15 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     functions['iter_hkllist']=iter_hkllist
 
     _raw_dealloc_dblptr = _wrap('ncrystal_dealloc_doubleptr',None,(_dblp,),hide=True)
-    def _cptr_to_nparray( cptr, n, free_after_with_ncrystal_dealloc = True ):
+
+    def _cptr_to_nparray( cptr, n, dealloc = True ):
         import numpy.ctypeslib as _np_ctypeslib
-        np_arr = _np_ctypeslib.as_array(cptr,shape=(int(n.value if hasattr(n,'value') else n),)).copy()
-        if free_after_with_ncrystal_dealloc:
+        s = (int( n.value if hasattr(n,'value') else n ),)
+        a = _np_ctypeslib.as_array( cptr, shape=s )
+        a = a.copy()
+        if dealloc:
             _raw_dealloc_dblptr(cptr)
-        return np_arr
+        return a
 
     _wrap('ncrystal_info_ndyninfo',_uint,(ncrystal_info_t,))
     _raw_di_base = _wrap('ncrystal_dyninfo_base',None,(ncrystal_info_t,_uint,_dblp,_uintp,_dblp,_uintp),hide=True)
@@ -822,7 +825,8 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     functions['setmsghandler'] = ncrystal_setmsghandler
 
     _raw_jsonquery = _wrap('ncrystal_jsonquery',_charptr,(_cstr,), hide=True)
-    def jsonquery( query ):
+
+    def prepare_query_cstr( query ):
         if not query:
             raise NCBadInput("Missing or empty query")
         sc = '\x07'
@@ -830,12 +834,69 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         if len(query) != str_query.count(sc)+1:
             raise NCBadInput("Can not use character 0x07 (ASCII BEL) in"
                              " JSON query strings" )
-        cstr_query = _str2cstr(str_query)
-        raw_str = _raw_jsonquery( cstr_query )
+        return _str2cstr(str_query)
+
+    def decode_query_result( raw_str ):
         assert raw_str is not None
         res=_cstr2str(ctypes.cast(raw_str,_cstr).value)
         _raw_deallocstr(raw_str)
         return res
+
+    def jsonquery( query ):
+        cstr_query = prepare_query_cstr(query)
+        raw_str = _raw_jsonquery( cstr_query )
+        return decode_query_result(raw_str)
     functions['jsonquery'] = jsonquery
+
+    _FLEXMMCRUNCBTYPE = ctypes.CFUNCTYPE( None, _dblpp, _ulong, _ulong )
+    _raw_flexmmcrun = _wrap( 'ncrystal_flexmmcrun',_charptr,
+                             (_cstr,_cstr,_FLEXMMCRUNCBTYPE ), hide=True )
+    def flexmmcrun( query, user_callback ):
+        _ensure_numpy()
+        cstr_query = prepare_query_cstr(query)
+        cb_errors = []
+
+        def cb_wrapper( data, cbtype, data_len ):
+            if cb_errors:
+                return
+            cbtype = int(cbtype)
+            assert cbtype in (1,2)
+
+            n = int(data_len)
+            assert 0 < n <= 1000000000
+            def load( i ):
+                return _cptr_to_nparray( data[i], n, dealloc=False)
+
+            data = dict( x = load(0), y = load(1), z = load(2),
+                         ux = load(3), uy = load(4), uz = load(5),
+                         ekin = load(6), w = load(7), nscat = load(8),
+                         sawinelas = load(9) )
+            if cbtype==2:
+                data.update(
+                    dict( x0 = load(10), y0 = load(11), z0 = load(12),
+                          ux0 = load(13),uy0 = load(14), uz0 = load(15),
+                          ekin0 = load(16), w0 = load(17) )
+                )
+
+            try:
+                user_callback( data )
+                #Fixme: we need to test the experience in case of an error from
+                #the user callback, or the user pressing ctrl-c. However, we
+                #should also the what happens if there is an exception during
+                #the simulation itself. Also, which type should we emit (we
+                #might want an NCrystal exception instead of the RuntimeError
+                #below).
+            except Exception as e:
+                print("User callback threw exception: aborting.")
+                cb_errors.append(e)
+
+        cb_c = _FLEXMMCRUNCBTYPE(cb_wrapper)
+        raw_str = _raw_flexmmcrun( cstr_query, None, cb_c )
+        if cb_errors:
+            raise RuntimeError('Exception encountered'
+                               ' during user callback') from cb_errors[0]
+        return decode_query_result(raw_str)
+
+    functions['flexmmcrun'] = flexmmcrun
 
     return functions

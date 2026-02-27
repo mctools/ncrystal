@@ -28,6 +28,7 @@
 #include "NCrystal/internal/minimc/NCMMC_Source.hh"
 #include "NCrystal/internal/minimc/NCMMC_Tally.hh"
 #include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
+#include "NCrystal/internal/minimc/NCMMC_CBMgr.hh"
 #ifndef NCRYSTAL_DISABLE_THREADS
 #  include <thread>
 #  include <condition_variable>
@@ -51,6 +52,7 @@ namespace NCRYSTAL_NAMESPACE {
                 EngineOpts eopts,
                 shared_obj<TSim> sim,
                 shared_obj<TallyMgr> tallymgr,
+                Optional<CB::CBMgrInput> callback = NullOpt,
                 Optional<shared_obj<basketmgr_t>> bm = NullOpt )
         : m_geom(geom),
           m_engineOpts(eopts),
@@ -64,6 +66,8 @@ namespace NCRYSTAL_NAMESPACE {
           m_sim( std::move(sim) ),
           m_tallymgr( std::move(tallymgr) )
       {
+        if ( callback.has_value() )
+          m_cbmgr.emplace( std::move(callback.value()) );
       }
 
       basketmgr_t& basketMgr() { return *m_basketmgr; }
@@ -98,6 +102,7 @@ namespace NCRYSTAL_NAMESPACE {
       shared_obj<basket_srcfiller_t> m_srcfiller;
       shared_obj<TSim> m_sim;
       shared_obj<TallyMgr> m_tallymgr;
+      Optional<CB::CBMgr> m_cbmgr;
 #ifndef NCRYSTAL_DISABLE_THREADS
       SmallVector<std::thread,64> m_workers;
       struct CommonThreadWaitingInfo {
@@ -238,10 +243,14 @@ namespace NCRYSTAL_NAMESPACE {
           std::shared_ptr<RNGStream> rng = rng_next;
           ParticleCountSum& thread_missStats = missStats.at(i);
           ParticleCountSum& thread_ntalliedStats = ntalliedStats.at(i);
+          CB::CBMgr* cbmgrptr = nullptr;
+          if ( m_cbmgr.has_value() )
+            cbmgrptr = &m_cbmgr.value();
           m_workers.push_back(std::thread([rng,sf_copy,sim_copy,tallymgr_copy,
                                            &common,do_ignoreMiss,
                                            &thread_missStats,
-                                           &thread_ntalliedStats]()
+                                           &thread_ntalliedStats,
+                                           cbmgrptr]()
           {
             NCRYSTAL_DEBUGMMCMSG( "In thread "<<std::this_thread::get_id()
                                   <<" RNG @ "<<(void*)rng.get()
@@ -255,8 +264,10 @@ namespace NCRYSTAL_NAMESPACE {
             //basket type:
             tally_t * downcast_tallyptr = dynamic_cast<tally_t*>(thetallyptr.get());
             nc_assert_always(downcast_tallyptr!=nullptr);
+
             std::function<void(const basket_t&)> result_fct
-              = [downcast_tallyptr,&thread_ntalliedStats] (const basket_t& b)
+              = [downcast_tallyptr,cbmgrptr,
+                 &thread_ntalliedStats] (const basket_t& b)
               {
                 {
                   const std::size_t n = b.size();
@@ -269,6 +280,10 @@ namespace NCRYSTAL_NAMESPACE {
                   thread_ntalliedStats.weight += w;
                 }
                 downcast_tallyptr->registerResults(b);
+                if ( cbmgrptr ) {
+                  auto bview = typename TSim::basket_view_t(&b);
+                  cbmgrptr->registerData( bview );
+                }
               };
 
             RNG * rawrng = rng.get();
@@ -285,6 +300,11 @@ namespace NCRYSTAL_NAMESPACE {
         for(auto& t : m_workers)
           t.join();
         m_workers.clear();
+
+        //Flush callback buffers:
+        if ( m_cbmgr.has_value() )
+          m_cbmgr.value().flush();
+
         //combine stats in return value:
         LaunchSimReturnVal rv;
         for ( auto& e : missStats ) {
@@ -298,6 +318,7 @@ namespace NCRYSTAL_NAMESPACE {
         return rv;
       }
 #else
+      //Fixme: test non-MT builds in CI.
       LaunchSimReturnVal launchSimulationsImpl( std::uint64_t seed )
       {
         const bool do_ignoreMiss = ( m_engineOpts.ignoreMiss
@@ -310,13 +331,20 @@ namespace NCRYSTAL_NAMESPACE {
         tally_t * downcast_tallyptr = dynamic_cast<tally_t*>(tallyptr.get());
         nc_assert_always(downcast_tallyptr!=nullptr);
         ParticleCountSum ntalliedStats;
+        CB::CBMgr* cbmgrptr = nullptr;
+        if ( m_cbmgr.has_value() )
+          cbmgrptr = &m_cbmgr.value();
+
+
         std::function<void(const basket_t&)>
-          result_fct = [downcast_tallyptr,&ntalliedStats](const basket_t& b)
+          result_fct = [downcast_tallyptr,
+                        &ntalliedStats,
+                        cbmgrptr](const basket_t& b)
           {
             {
               const std::size_t n = b.size();
               double w = 0.0;
-              const double * it = b.neutrons.w;
+              const double * it = b.neutrons.w.data;
               const double * itE = it + n;
               for ( ; it!=itE; ++it )
                 w += *it;
@@ -324,6 +352,10 @@ namespace NCRYSTAL_NAMESPACE {
               ntalliedStats.weight += w;
             }
             downcast_tallyptr->registerResults(b);
+            if ( cbmgrptr ) {
+              auto bview = typename TSim::basket_view_t(&b);
+              cbmgrptr->registerData( bview );
+            }
           };
         std::function<void(const basket_t&)> result_fct_srcmiss(nullptr);
         if ( !do_ignoreMiss )

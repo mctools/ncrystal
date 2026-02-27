@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/utils/NCStrView.hh"
+#include "NCrystal/internal/minimc/NCMMC_CBMgr.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -34,7 +35,12 @@ namespace NCRYSTAL_NAMESPACE {
       //Generic JSON query for the MiniMC subsystem (format to be described
       //elsewhere, FIXME):
       using Query = SmallVector<StrView,8>;
-      void JSONQuery( std::ostream&, const Query& query );
+      void JSONQuery( std::ostream&, const Query& );
+
+      //Same, but allowing simulation callback. If a callback is provided, query
+      //*must* be an ["mmc","run",...] query.
+      void JSONQuery_flexmmcrun( std::ostream&, const Query&,
+                                 const Optional<CB::CBMgrInput>& );
 
     }
   }

@@ -617,7 +617,6 @@ def copy_and_deobjectify_data( data ):
 #    candidates.sort( key=lambda k: k.size() )
 #    return candidates[0]
 
-
 def json_query_cpplayer( query, unpack=True ):
     """Sends query (list of string arguments) to the C++ layer and get a JSON
     response. Unless unpack is False, this JSON string will be decoded and the

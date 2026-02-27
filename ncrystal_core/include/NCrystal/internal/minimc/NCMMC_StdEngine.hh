@@ -91,20 +91,32 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
     };
+
     static_assert( std::is_standard_layout<DPCacheData>::value, "" );
+
+    class BasketView_StdEngine final : public BasketView {
+      //Fixme: We should migrate to a different view mechanism.
+      const CachedNeutronBasket<DPCacheData> * m_b;
+    public:
+      BasketView_StdEngine( const CachedNeutronBasket<DPCacheData> * b )
+        : m_b(b) {}
+      const NeutronBasket& neutrons() const override { return m_b->neutrons; }
+      const BasketValBufInt * nscat() const override { return &m_b->cache.nscat; }
+      const BasketValBufBool * sawinelas() const override { return &m_b->cache.sawinelas; }
+      const NeutronBasket* neutrons_original() const override { return nullptr; }
+    };
 
     class StdEngine final {
     public:
-      using Cache = DPCacheData;
-      using basket_t = CachedNeutronBasket<Cache>;
+      using cache_t = DPCacheData;
+      using basket_t = CachedNeutronBasket<cache_t>;
       using basketmgr_t = BasketMgr<basket_t>;
       using basket_holder_t = typename basketmgr_t::basket_holder_t;
-      static constexpr auto local_basket_max_poolsize = 4;
-      using heapmempool_t = HeapMemPool<basket_holder_t::heapmem_t,
-                                        (local_basket_max_poolsize==0
-                                         ?1:local_basket_max_poolsize)>;
-
+      static constexpr int local_basket_max_poolsize = 4;
+      using heapmem_t = typename basket_holder_t::heapmem_t;
+      using heapmempool_t = HeapMemPool<heapmem_t,local_basket_max_poolsize>;
       using matdef_t = MatDef;
+      using basket_view_t = BasketView_StdEngine;
     private:
       EngineOpts m_opt;
       double m_opt_roulette_survivor_boost;
@@ -119,6 +131,7 @@ namespace NCRYSTAL_NAMESPACE {
           return mgr.allocateBasket();
         return { m_mempool.allocate() };
       }
+
       void deallocateBasket( basketmgr_t& mgr, basket_holder_t&& bh )
       {
         if ( m_mempool.size() == local_basket_max_poolsize )

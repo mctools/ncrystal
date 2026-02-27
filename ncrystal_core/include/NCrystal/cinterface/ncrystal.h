@@ -641,6 +641,10 @@ extern "C" {
 #  undef ncrystal_jsonquery
 #endif
 #define ncrystal_jsonquery NCRYSTAL_APPLY_C_NAMESPACE(jsonquery)
+#ifdef ncrystal_flexmmcrun
+#  undef ncrystal_flexmmcrun
+#endif
+#define ncrystal_flexmmcrun NCRYSTAL_APPLY_C_NAMESPACE(flexmmcrun)
 
   /*============================================================================== */
   /*============================================================================== */
@@ -1231,6 +1235,28 @@ extern "C" {
   /* is bound to change between NCrystal versions.                           */
   /* Must free returned string with call to ncrystal_dealloc_string.         */
   NCRYSTAL_API char* ncrystal_jsonquery( const char * );
+
+  /* The MiniMC is usually invoked via the ncrystal_jsonquery function, but  */
+  /* in case it is needed to have access to all tallied neutrons via a       */
+  /* callback function, one must use the following function. The first       */
+  /* argument and the return value are the same as when calling the          */
+  /* ncrystal_jsonquery function with an ["mmc","run",...] query. The extra  */
+  /* parameters are related to the callback function.                        */
+  /*                                                                         */
+  /* First a string for call-back options, then the callback function        */
+  /* itself, which will most likely be invoked multiple times                */
+  /* (non-concurrently). The parameters are:                                 */
+  /*                                                                         */
+  /*     data: The data arrays (number and type implied by cbtype).          */
+  /*     cbtype: An integer specifying the type and number of data arrays.   */
+  /*             1 : x, y, z (fixme update)                                  */
+  /*     n : Length of each data array (i.e. number of neutrons).            */
+  NCRYSTAL_API char* ncrystal_flexmmcrun( const char * jsonquery,
+                                          const char * cb_options,
+                                          void (*cb)(const double* const* data,
+                                                     unsigned long cbtype,
+                                                     unsigned long n ) );
+
 
 
   /*============================================================================== */

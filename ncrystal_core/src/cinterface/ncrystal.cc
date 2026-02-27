@@ -868,6 +868,7 @@ void ncrystal_raw_vdos2kernel( const double* vdos_egrid,
 
 void ncrystal_dealloc_doubleptr( double* arr )
 {
+  //NB: Important that the memory was acquired with "new double[N]"
   delete[] arr;
 }
 
@@ -2408,14 +2409,26 @@ void ncrystal_setmsghandler(void (*handler)(const char*,unsigned))
   } NCCATCH;
 }
 
+namespace NCRYSTAL_NAMESPACE {
+
+  namespace NCCInterface {
+
+    namespace {
+      Query jsonQueryDecode( const char * raw )
+      {
+        if ( raw == nullptr )
+          raw = "";
+        constexpr char splitchar = static_cast<char>(0x07);
+        return StrView(raw).split<Query::nsmall>(splitchar);
+      }
+    }
+  }
+}
 char* ncrystal_jsonquery( const char * raw )
 {
   char * result = nullptr;
   try {
-    if ( raw == nullptr )
-      raw = "";
-    constexpr char splitchar = static_cast<char>(0x07);
-    NC::Query query = NC::StrView(raw).split<NC::Query::nsmall>(splitchar);
+    auto query = ncc::jsonQueryDecode(raw);
     std::ostringstream os;
     NC::JSONQuery( os, query );
     result = ncc::createString(std::move(os).str());
@@ -2439,6 +2452,45 @@ void ncrystal_runmmcsim_stdengine( unsigned, unsigned, const char *,
                    " should no longer be used.");
   } NCCATCH;
 
+}
+
+#include "NCrystal/internal/minimc/NCMMC_Query.hh"
+
+char* ncrystal_flexmmcrun( const char * jsonquery,
+                           const char * cb_options,
+                           void (*cbfct)(const double* const* data,
+                                         unsigned long cbtype,
+                                         unsigned long n) )
+{
+  char * result = nullptr;
+  try {
+    auto query = ncc::jsonQueryDecode(jsonquery);
+    if ( ! ( query.size()>2 && query.at(0)=="mmc" && query.at(1)=="run" ) ) {
+      NCRYSTAL_THROW(BadInput,"ncrystal_flexmmcrun only works with an"
+                     " ['mmc','run',...] JSON query");
+    }
+    auto sv_cboptions = NC::StrView(cb_options?cb_options:"").trimmed();
+    if (!sv_cboptions.empty())
+      NCRYSTAL_THROW(BadInput,"ncrystal_flexmmcrun: Currently no callback"
+                     " options are tunable through the C interface.");//fixme
+
+    NC::MiniMC::CB::CBMgrInput cbinput;
+    cbinput.callbackfct
+      = [&cbfct]( const NC::MiniMC::CB::DataArea& cbdata )
+    {
+      //And ensure any exceptions in any worker thread (or outside them) cause
+      //no further callbacks to be fired. Including also exceptions/errors
+      //occuring from inside the callback function.
+      nc_assert( cbdata.size() <= std::numeric_limits<unsigned long>::max() );
+      const auto n_neutrons = static_cast<unsigned long>( cbdata.size() );
+      //Invoke the user callback:
+      cbfct( cbdata.view_data(), cbdata.fieldsTypeForCallBack(), n_neutrons );
+    };
+    std::ostringstream os;
+    NC::MiniMC::Query::JSONQuery_flexmmcrun( os, query, cbinput );
+    result = ncc::createString(std::move(os).str());
+  } NCCATCH;
+  return result;
 }
 
 #include "NCrystal/interfaces/NCVersion.hh"
