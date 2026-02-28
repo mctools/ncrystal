@@ -1,0 +1,167 @@
+Hist1D(nbins=20,xmin=-10,xmax=10):
+  title     : test
+  integral  : 28
+  mean      : <n/a>
+  rms       : <n/a>
+  minfilled : <n/a>
+  maxfilled : <n/a>
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 8 +- 4
+  content[ibin=6] : 0 +- 0
+  content[ibin=7] : 0 +- 0
+  content[ibin=8] : 0 +- 0
+  content[ibin=9] : 8 +- 4
+  content[ibin=10] : 4 +- 2
+  content[ibin=11] : 0 +- 0
+  content[ibin=12] : 0 +- 0
+  content[ibin=13] : 0 +- 0
+  content[ibin=14] : 0 +- 0
+  content[ibin=15] : 8 +- 4
+  content[ibin=16] : 0 +- 0
+  content[ibin=17] : 0 +- 0
+  content[ibin=18] : 0 +- 0
+  content[ibin=19] : 0 +- 0
+===> CLONE EMPTY
+Hist1D(nbins=20,xmin=-10,xmax=10):
+  title     : test2
+  integral  : 0
+  mean      : <n/a>
+  rms       : <n/a>
+  minfilled : <n/a>
+  maxfilled : <n/a>
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 0 +- 0
+  content[ibin=6] : 0 +- 0
+  content[ibin=7] : 0 +- 0
+  content[ibin=8] : 0 +- 0
+  content[ibin=9] : 0 +- 0
+  content[ibin=10] : 0 +- 0
+  content[ibin=11] : 0 +- 0
+  content[ibin=12] : 0 +- 0
+  content[ibin=13] : 0 +- 0
+  content[ibin=14] : 0 +- 0
+  content[ibin=15] : 0 +- 0
+  content[ibin=16] : 0 +- 0
+  content[ibin=17] : 0 +- 0
+  content[ibin=18] : 0 +- 0
+  content[ibin=19] : 0 +- 0
+===> CLONE
+Hist1D(nbins=20,xmin=-10,xmax=10):
+  title     : test3
+  integral  : 28
+  mean      : <n/a>
+  rms       : <n/a>
+  minfilled : <n/a>
+  maxfilled : <n/a>
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 8 +- 4
+  content[ibin=6] : 0 +- 0
+  content[ibin=7] : 0 +- 0
+  content[ibin=8] : 0 +- 0
+  content[ibin=9] : 8 +- 4
+  content[ibin=10] : 4 +- 2
+  content[ibin=11] : 0 +- 0
+  content[ibin=12] : 0 +- 0
+  content[ibin=13] : 0 +- 0
+  content[ibin=14] : 0 +- 0
+  content[ibin=15] : 8 +- 4
+  content[ibin=16] : 0 +- 0
+  content[ibin=17] : 0 +- 0
+  content[ibin=18] : 0 +- 0
+  content[ibin=19] : 0 +- 0
+===> RESET CLONE
+Hist1D(nbins=20,xmin=-10,xmax=10):
+  title     : test3
+  integral  : 0
+  mean      : <n/a>
+  rms       : <n/a>
+  minfilled : <n/a>
+  maxfilled : <n/a>
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 0 +- 0
+  content[ibin=6] : 0 +- 0
+  content[ibin=7] : 0 +- 0
+  content[ibin=8] : 0 +- 0
+  content[ibin=9] : 0 +- 0
+  content[ibin=10] : 0 +- 0
+  content[ibin=11] : 0 +- 0
+  content[ibin=12] : 0 +- 0
+  content[ibin=13] : 0 +- 0
+  content[ibin=14] : 0 +- 0
+  content[ibin=15] : 0 +- 0
+  content[ibin=16] : 0 +- 0
+  content[ibin=17] : 0 +- 0
+  content[ibin=18] : 0 +- 0
+  content[ibin=19] : 0 +- 0
+===> CLONE AGAIN (no title override)
+Hist1D(nbins=20,xmin=-10,xmax=10):
+  title     : test
+  integral  : 28
+  mean      : <n/a>
+  rms       : <n/a>
+  minfilled : <n/a>
+  maxfilled : <n/a>
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 8 +- 4
+  content[ibin=6] : 0 +- 0
+  content[ibin=7] : 0 +- 0
+  content[ibin=8] : 0 +- 0
+  content[ibin=9] : 8 +- 4
+  content[ibin=10] : 4 +- 2
+  content[ibin=11] : 0 +- 0
+  content[ibin=12] : 0 +- 0
+  content[ibin=13] : 0 +- 0
+  content[ibin=14] : 0 +- 0
+  content[ibin=15] : 8 +- 4
+  content[ibin=16] : 0 +- 0
+  content[ibin=17] : 0 +- 0
+  content[ibin=18] : 0 +- 0
+  content[ibin=19] : 0 +- 0
+===> ADD CONTENTS OTHER
+Hist1D(nbins=20,xmin=-10,xmax=10):
+  title     : test
+  integral  : 56
+  mean      : <n/a>
+  rms       : <n/a>
+  minfilled : <n/a>
+  maxfilled : <n/a>
+  content[ibin=0] : 0 +- 0
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 16 +- 5.65685
+  content[ibin=6] : 0 +- 0
+  content[ibin=7] : 0 +- 0
+  content[ibin=8] : 0 +- 0
+  content[ibin=9] : 16 +- 5.65685
+  content[ibin=10] : 8 +- 2.82843
+  content[ibin=11] : 0 +- 0
+  content[ibin=12] : 0 +- 0
+  content[ibin=13] : 0 +- 0
+  content[ibin=14] : 0 +- 0
+  content[ibin=15] : 16 +- 5.65685
+  content[ibin=16] : 0 +- 0
+  content[ibin=17] : 0 +- 0
+  content[ibin=18] : 0 +- 0
+  content[ibin=19] : 0 +- 0

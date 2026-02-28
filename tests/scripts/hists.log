@@ -591,7 +591,7 @@ h vs. h_slightcompat p-value: 0.371925
 Caught expected NCCalcError('check_compat failed: p-value is not greater than 0.05.')
 h vs. h_incompat p-value: 0.0000000000
 Caught expected NCBadInput('chisquare_dist: incompatible histogram integrals.')
-Caught expected NCBadInput('chisquare_dist: incompatible binnings.')
+Caught expected NCBadInput('chisquare_dist: incompatible binnings ((100, 0.0, 100.0) vs (100, 0.0, 99.0)).')
 Caught expected NCBadInput('chisquare_dist: incompatible overflow settings.')
 Caught expected NCBadInput('histogram scale factor out of range.')
 Caught expected NCBadInput('histogram scale factor out of range.')

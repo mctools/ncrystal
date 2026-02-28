@@ -430,7 +430,8 @@ def main(do_plot):
                       'chisquare_dist: incompatible histogram integrals.'):
         h.check_compat(h_compat,force_norm=False)
 
-    with ensure_error(NCBadInput,'chisquare_dist: incompatible binnings.'):
+    with ensure_error(NCBadInput,'chisquare_dist: incompatible binnings'
+                      ' ((100, 0.0, 100.0) vs (100, 0.0, 99.0)).'):
         _=Hist1Dcpp( 100, 0.0, 100.0 ).toPyHist()
         _.check_compat(Hist1Dcpp( 100, 0.0, 99.0 ).toPyHist())
 

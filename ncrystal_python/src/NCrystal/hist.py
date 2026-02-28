@@ -19,12 +19,23 @@
 ##                                                                            ##
 ################################################################################
 
-"""Histogram class which is primarily intended as an objected-oriented
-representation of the histogram data returned by the MiniMC framework.
+"""A few simple Histogram classes to support other NCrystal features.
 
+Hist1D: A histogram class which is primarily intended as an objected-oriented
+        representation of the histogram data returned by the MiniMC framework,
+        and which allows for convenient plotting/dumping of contents,
+        serialisation, and statistical comparisons. It can be instantiated
+        either from the JSON data produced by the NCrystal C++ layer as a result
+        of MiniMC simulations, or via the HistFiller1D class.
+
+HistFiller1D: A class which can be used to efficiently histogram data which is
+              in the form of numpy arrays, making it suitable for usage in for
+              instance MiniMC callback functions. Once all data has been filled
+              into the histogram, it can be converted to a Hist1D object by
+              calling its .to_hist1d() method.
 """
 
-__all__ = ['Hist1D']
+__all__ = ['Hist1D','HistFiller1D']
 
 from ._numpy import _np, _ensure_numpy, _np_linspace
 from .exceptions import NCBadInput, NCCalcError
@@ -44,7 +55,6 @@ class Hist1D:
     """
 
     def __init__( self, data ):
-
         """Initialise histogram. This is intended to be using data provided by
         the C++ histogram's toJSON() method, or from the .to_dict() or
         .to_json() of this Python Hist1D class itself. Most users should not
@@ -380,6 +390,7 @@ class Hist1D:
         otherwise dropped. The title will be kept. Returns self.
 
         """
+        assert isinstance(other_hist,Hist1D)
         o = other_hist
         if self.binning != o.binning:
             raise NCBadInput("incompatible binning (%i,%g,%g) vs. (%i,%g,%g)."
@@ -486,7 +497,8 @@ class Hist1D:
         errors, as well as under/overflow information. If json_compat is True,
         the returned dictionary will contain lists rather than numpy arrays."""
         def export_array( a ):
-            return a.tolist() if (json_compat and hasattr(a,'tolist')) else a
+            return ( a.tolist()
+                     if (json_compat and hasattr(a,'tolist')) else a.copy() )
 
         d = dict( xmin = self.xmin,
                   xmax = self.xmax,
@@ -842,7 +854,8 @@ class Hist1D:
         """
 
         if self.binning != other.binning:
-            raise NCBadInput('chisquare_dist: incompatible binnings.')
+            raise NCBadInput('chisquare_dist: incompatible binnings '
+                             '(%s vs %s).'%(self.binning,other.binning))
         if self.has_flow != other.has_flow:
             raise NCBadInput('chisquare_dist: '
                              'incompatible overflow settings.')
@@ -859,7 +872,7 @@ class Hist1D:
         c2,e2 = o.content, o.errors
 
         #use mask to avoid zero division warnings in bins with no content in
-        #either dataset:
+        #either dataset (fixme: could this let something slip through??):
         mask = (e1>0.0) | (e2>0.0)
         c1, e1, c2, e2 = c1[mask], e1[mask], c2[mask], e2[mask]
 
@@ -900,3 +913,151 @@ def _chisq_cdf( x, k ):
                    -5/6,(1/(9*k)),(7/(648*k*k)),-(25/(2187*k*k*k))])
     s = math.fsum([(2/(18*k)),(2/(162*k*k)),-(74/(11664*k*k*k))])
     return 0.5*(1.0+math.erf(t/math.sqrt(s)))
+
+class HistFiller1D:
+    """Mutable utility class which is intended for filling numpy arrays into 1D
+    histograms, and ultimately either simply accessing the bin data with the
+    .bindata() method, or converting the results to a Hist1D object with the
+    to_hist1d() method, which contains more functionality for things like
+    persistification, plotting, and statistical comparisons.
+
+    To prepare a histogram of 100 bins from xmin=0.0 to xmax=1.0, with a title
+    'My histogram' you can use either of the calls:
+
+      h = HistFiller1D( 100, 0.0, 1.0, 'My histogram' )
+      h = HistFiller1D( (100, 0.0, 1.0), title = 'My histogram' )
+
+    The tuple (100, 0.0, 1.0) is also what h.binning returns afterwards. To
+    create a new empty histogram with the same binning (optionally overriding
+    the title) you can use h.clone_empty('new title').
+
+    To fill array data into the histogram, use the fill method which accepts
+    numpy arrays of data (if weights are not supplied, they will be assumed to
+    be unity):
+
+      h.fill( values, weights )
+
+    """
+
+    def __init__(self, nbins_or_binning, xmin=None, xmax=None, title = None):
+        """Initialise a HistFiller1D object. If xmin=xmax=None, the
+        nbins_or_binning argument must be a tuple of (nbins,xmin,xmax) values,
+        otherwise it must be nbins.
+        """
+        #fixme: Allow one or both of xmin to have values of "auto", which will
+        #delay booking until at least 100(?) values have been seen. In that
+        #case, accessing any information before booking is done will lead to an
+        #error.
+        _ensure_numpy()
+        if xmin is None and xmax is None:
+            nbins, xmin, xmax = nbins_or_binning
+        else:
+            nbins = nbins_or_binning
+        del nbins_or_binning
+        xmin, xmax = float(xmin), float(xmax)
+        assert int(nbins)==nbins and nbins >= 1
+        assert xmin < xmax
+        self.__nbins = nbins
+        self.__xmin, self.__xmax = float(xmin), float(xmax)
+        self.__title = str(title) or None
+        self.__invbw = nbins/(xmax-xmin)
+        self.__bin_edges = _np_linspace(xmin, xmax, nbins+1)
+        self.__sumw = _np.zeros(nbins, dtype=float)
+        self.__sumw2 = _np.zeros(nbins, dtype=float)
+
+    @property
+    def binning( self ):
+        """Tuple of (nbins,xmin,xmax)"""
+        return ( self.__nbins, self.__xmin, self.__xmax )
+
+    def clone_empty( self, title = None ):
+        """Create a new HistFiller1D object with the same binning. Unless a new
+        title is supplied, the title of the resulting object will also be the
+        same.
+        """
+        return HistFiller1D( self.binning,
+                             title = self.__title if title is None else title )
+
+    def clone( self, title = None ):
+        """Create a new HistFiller1D object with the same binning and
+        contents. Unless a new title is supplied, the title of the resulting
+        object will also be the same.
+        """
+        h = self.clone_empty(title=title)
+        h.__sumw = self.__sumw.copy()
+        h.__sumw2 = self.__sumw2.copy()
+        return h
+
+    def reset( self ):
+        """Reset histogram contents, as if no data was never filled into it."""
+        self.__sumw.fill(0.0)
+        self.__sumw2.fill(0.0)
+        return self
+
+    def fill(self, values, weights = None):
+        """Fill histogram with values (scalar or arrays). Unit weights are
+        assumed unless explicitly provided."""
+        def as_1darray( v ):
+            v = _np.asarray(v,dtype=float)
+            ns = len(v.shape)
+            assert ns<=1, "fill works only with 1-dimensional arrays"
+            return v if ns==1 else _np.array(v,ndmin=1)
+        x = as_1darray(values)
+        mask = (x >= self.__xmin) & (x <= self.__xmax)
+        x = x[mask]
+        n = len(x)
+        if n==0:
+            return
+        #For fixed bins, _np.bincount is a lot faster than _np.histogram:
+        idxs = ((x - self.__xmin)*self.__invbw).astype(int)
+        idxs = _np.clip(idxs, 0, self.__nbins - 1)
+        w = None
+        if weights is not None:
+            w = as_1darray(weights)
+            assert len(mask)==len(w), ("length of values and weight arrays"
+                                       " are unequal")
+            w = w[mask]
+        sw = _np.bincount(idxs, weights=w, minlength=self.__nbins)
+        self.__sumw += sw
+        self.__sumw2 += ( sw if w is None
+                          else _np.bincount(idxs, weights=w**2,
+                                            minlength=self.__nbins) )
+
+    def add_contents( self, other_hist ):
+        """Add the contents of other histogram to this histogram. The two
+        histograms should have compatible binnings. The title will be
+        kept. Returns self.
+        """
+        assert isinstance(other_hist,HistFiller1D)
+        if self.binning != other_hist.binning:
+            raise NCBadInput('Incompatible binnings')
+        self.__sumw += other_hist.__sumw
+        self.__sumw2 += other_hist.__sumw2
+        return self
+
+    def bindata( self, json_compat = False ):
+        """Return bindata as dictionary. This include binnings, contents, and
+        errors-squared. If json_compat is True, the returned dictionary will
+        contain lists rather than Numpy arrays.
+        """
+        def export_array( a ):
+            return ( a.tolist()
+                     if (json_compat and hasattr(a,'tolist'))
+                     else a.copy() )
+        return dict( xmin = self.__xmin,
+                     xmax = self.__xmax,
+                     nbins = self.__nbins,
+                     content = export_array(self.__sumw),
+                     errorsq = export_array(self.__sumw2) )
+
+    def to_dict(self, json_compat = False ):
+        """Serialise as dictionary. If json_compat is True, the returned
+        dictionary will contain lists rather than numpy arrays.
+        """
+        return dict ( title = self.__title,
+                      bindata = self.bindata(json_compat=json_compat) )
+
+    def to_hist1d(self):
+        """Initialise and return a Hist1D object representing this one."""
+        from .hist import Hist1D
+        return Hist1D( self.to_dict() )
