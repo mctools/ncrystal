@@ -29,6 +29,9 @@ else
         lp=/usr/lib/x86_64-linux-gnu/libprofiler.so
     fi
     if [ ! -f $lp ]; then
+        lp=/usr/lib/x86_64-linux-gnu/libprofiler.so.0
+    fi
+    if [ ! -f $lp ]; then
         echo "Error: neither /usr/lib64/libprofiler.so nor /usr/lib/libprofiler.so nor /usr/lib/x86_64-linux-gnu/libprofiler.so exists. Did you install gperftools?"
         exit 1
     fi
