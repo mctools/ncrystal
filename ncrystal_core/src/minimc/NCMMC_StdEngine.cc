@@ -26,282 +26,6 @@
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
 
-NCMMC::StdEngine::StdEngine( matdef_t md, const EngineOpts& eopts )
-  : m_opt( eopts ),
-    m_mat( std::move(md) )
-{
-  //fixme: to common eopts validation place: ?
-  if ( ! ( eopts.roulette.survival_probability > 1e-20 ) )
-    NCRYSTAL_THROW(BadInput,"roulette_survival_probability must be >1e-20");
-
-  if ( ! ( eopts.roulette.survival_probability < 1.0 ) )
-    NCRYSTAL_THROW(BadInput,"roulette_survival_probability must be <1.0");
-
-  if ( ! ( eopts.roulette.weight_threshold > 0.0 ) )
-    NCRYSTAL_THROW(BadInput,"roulette_weight_threshold must be >0.0");
-
-  //derived values:
-  m_opt_roulette_survivor_boost = 1.0 / eopts.roulette.survival_probability;
-}
-
-void NCMMC::StdEngine::advanceSimulation( RNG& rng,
-                                          const Geometry& geom,
-                                          basket_holder_t&& inbasket_holder,
-                                          basketmgr_t& mgr,
-                                          const resultfct_t& resultFct )
-{
-  NCRYSTAL_DEBUGMMCMSG("StdEngine::advanceSimulation inbasket.size()="
-                       <<inbasket_holder.basket().size());
-
-  nc_assert_always( m_opt.nScatLimit.value_or(0)
-                    <= (std::numeric_limits<int>::max()-1) );
-  const int nscatlimit = ( m_opt.nScatLimit.has_value()
-                         ? static_cast<int>(m_opt.nScatLimit.value() )
-                         : -1 );
-  nc_assert( resultFct != nullptr );
-  nc_assert( inbasket_holder.valid() );
-  nc_assert( !inbasket_holder.basket().empty() );
-  auto& inbasket = inbasket_holder.basket();//Not const, since we will update
-                                            //xsects in-place.
-  const bool has_scat = !( m_mat.scatter == nullptr
-                           || m_mat.scatter->isNull() );
-  const bool has_abs = !( m_mat.absorption == nullptr
-                          || m_mat.absorption->isNull() );
-  const bool scatter_is_isotropic = !(has_scat&&m_mat.scatter->isOriented());
-  const bool absorption_is_isotropic = !(has_abs&&m_mat.absorption->isOriented());
-  const bool geom_is_unbounded = geom.hasUnboundedDistToVolExit();
-
-  //Get distances out for all the particles (note, if geom_is_unbounded, this
-  //might include infinities):
-  geom.distToVolumeExit( inbasket.neutrons, m_buf_disttoexit );
-
-  //Get absorption cross sections:
-  const double * values_abs_xs_or_nullptr = nullptr;
-  if ( has_abs ) {
-    if ( absorption_is_isotropic ) {
-      ProcImpl::NewABI::evalManyXSIsotropic( *m_mat.absorption,
-                                             m_abs_cacheptr,
-                                             inbasket.neutrons.fields.ekin.data,
-                                             inbasket.size(),
-                                             m_buf_xs_abs );
-    } else {
-      for ( auto i : ncrange( inbasket.size() ) ) {
-        m_buf_xs_abs[i]
-          = m_mat.absorption->crossSection( m_abs_cacheptr,
-                                            inbasket.neutrons.ekin_obj(i),
-                                            inbasket.neutrons.dir_obj(i) ).dbl();
-      }
-    }
-    values_abs_xs_or_nullptr = &m_buf_xs_abs[0];
-  }
-
-  if (!has_scat) {
-    //Special case of no scattering, just transmit (in-place) and return:
-    MiniMC::Utils::propagateAndAttenuate( inbasket_holder.basket().neutrons,
-                                          m_mat.numDens,
-                                          geom_is_unbounded,
-                                          m_buf_disttoexit,
-                                          values_abs_xs_or_nullptr );
-
-    //NCRYSTAL_MSG("TKTEST tally special case");
-    resultFct( inbasket_holder.basket() );
-    deallocateBasket( mgr, std::move(inbasket_holder) );
-    return;
-  }
-
-  //Get scattering cross sections (potentially with cached values). Also, if
-  //nscatlimit is enabled, anything already scattered nscatlimit times will get
-  //a phony scattering cross section value of 0:
-
-  if ( scatter_is_isotropic ) {
-    if ( nscatlimit>=0 ) {
-      for ( auto i : ncrange( inbasket.size() ) )
-        if ( inbasket.cache.nscat[i] >= nscatlimit )
-          inbasket.cache.scatxsval[i] = 0.0;
-    }
-    for ( auto i : ncrange( inbasket.size() ) ) {
-      if ( inbasket.cache.scatxsval[i] < 0.0 )
-        inbasket.cache.scatxsval[i]
-          = m_mat.scatter->crossSectionIsotropic( m_sct_cacheptr,
-                                                  inbasket.neutrons.ekin_obj(i) ).dbl();
-    }
-  } else {
-    //not isotropic, always recalculate all xs values (except if nscatlimit is
-    //exceeded of course):
-    for ( auto i : ncrange( inbasket.size() ) ) {
-      if ( nscatlimit >= 0 && inbasket.cache.nscat[i] >= nscatlimit )
-        inbasket.cache.scatxsval[i] = 0.0;
-      else
-        inbasket.cache.scatxsval[i]
-          = m_mat.scatter->crossSection( m_sct_cacheptr,
-                                         inbasket.neutrons.ekin_obj(i),
-                                         inbasket.neutrons.dir_obj(i) ).dbl();
-    }
-  }
-
-  //Transmission probability (note, as a special case this will be set to 0 if
-  //disttoexit=inf):
-  MiniMC::Utils::calcProbTransm( m_mat.numDens,
-                                 inbasket.size(),
-                                 geom_is_unbounded,
-                                 inbasket.cache.scatxsval.data,
-                                 m_buf_disttoexit,
-                                 m_buf_ptransm );
-
-  //FIXME: Make sure we handle xs_scat=0 correctly!!
-
-  //fixme: stop recalculating macro_xs, but immediately convert xs values to
-  //macroscopic values right after query!
-
-  //Pick scattering points (note returns kInfinity if macro scat xs=0):
-
-  MiniMC::Utils::sampleRandDists(rng,
-                                 m_mat.numDens,
-                                 m_buf_disttoexit,
-                                 inbasket.cache.scatxsval.data,
-                                 inbasket.size(),
-                                 m_buf_disttoscat );
-
-  {
-    //Add a pending basket with scattered particles for further simulations. We
-    //also implement a russian roulette particle-killing scheme (otherwise the
-    //simulations would never terminate with our forced-collision scheme).
-    //
-    //Finally, we skip any particle with weight=0 or vanishing scattering cross
-    //section.
-
-    basket_holder_t pending = allocateBasket(mgr);
-    nc_assert( pending.valid() && pending.basket().empty() );
-    auto& outb = pending.basket();
-
-    auto& inb = inbasket;
-    nc_assert( m_opt.roulette.survival_probability < 1.0 );
-
-    for ( auto i : ncrange( inb.size() ) ) {
-      if ( inb.neutrons.fields.w[i]==0.0 )
-        continue;//no actual flux here, killed!
-
-      if ( std::isinf(m_buf_disttoscat[i] ) )
-        continue;//this comes from no scattering cross section (fixme: assert
-                 //that this is so).
-
-      const double macro_scat_xs
-        = macroXS( m_mat.numDens,
-                   CrossSect{ inbasket.cache.scatxsval[i] } );
-      if (!(macro_scat_xs > 0.0))
-        continue;//can't scatter (all relevant weight should have been delivered
-                 //to the tally already via ptransm).
-      //Implement russian-roulette:
-      double roulette_weight_factor = 1.0;
-      double roulette = ( ( inb.cache.nscat[i] >= m_opt.roulette.nscat_threshold
-                            && inb.neutrons.fields.w[i] < m_opt.roulette.weight_threshold )
-                          ? m_opt.roulette.survival_probability
-                          : 1.0 );
-      roulette = 0.8;//FIXME
-      if ( roulette < 1.0 ) {
-        if ( rng.generate() > roulette ) {
-          continue;//killed!
-        } else {
-          nc_assert( m_opt.roulette.survival_probability > 0.0 );
-          nc_assert( m_opt.roulette.survival_probability <= 1.0 );
-          roulette_weight_factor = m_opt_roulette_survivor_boost;
-          roulette_weight_factor = 1.0/roulette;//fixme
-        }
-      }
-
-      //Get macroscopic scattering cross section:
-      //fixme cache factor macroXS( m_mat.numDens, CrossSect{1.0}).
-      const double macro_abs_xs
-        = ( values_abs_xs_or_nullptr
-            ? macroXS( m_mat.numDens,
-                       CrossSect{ *std::next(values_abs_xs_or_nullptr,i) } )
-            : 0.0 );
-
-      nc_assert( !std::isinf(m_buf_disttoscat[i]));
-      const double weight_reduction_factor
-        = std::exp( -macro_abs_xs * m_buf_disttoscat[i] );
-
-      if (!(weight_reduction_factor>0.0))
-        continue;//did not survive to scatter point, kill!
-
-      //We are now in the "standard" situation:
-      //  macro_scat_xs > 0.0
-      //  weight_reduction_factor > 0.0
-      //  disttoscat < infinity
-      //
-      //So we process this particle further, i.e. copy it to the pending basket
-      //and update the weight (and then scatter it below):
-      nc_assert( outb.size() < basket_N );
-      std::size_t j = outb.appendEntryFromOther( inbasket, i );
-      outb.neutrons.fields.w[j] *= roulette_weight_factor;
-
-      //Move to scattering point and attenuate: (fixme: can disttoscat be inf if xs=0??)
-      outb.neutrons.fields.x[j] += m_buf_disttoscat[i] * outb.neutrons.fields.ux[j];
-      outb.neutrons.fields.y[j] += m_buf_disttoscat[i] * outb.neutrons.fields.uy[j];
-      outb.neutrons.fields.z[j] += m_buf_disttoscat[i] * outb.neutrons.fields.uz[j];
-      outb.neutrons.fields.w[j] *= weight_reduction_factor;
-
-      //Scatter:
-      nc_assert( has_scat );
-      auto outcome = m_mat.scatter->sampleScatter( m_sct_cacheptr,
-                                                   rng,
-                                                   outb.neutrons.ekin_obj(j),
-                                                   outb.neutrons.dir_obj(j));
-      nc_assert( ncabs(outcome.direction.as<Vector>().mag()-1) < 1e-9 );
-      outb.neutrons.fields.ux[j] = outcome.direction[0];
-      outb.neutrons.fields.uy[j] = outcome.direction[1];
-      outb.neutrons.fields.uz[j] = outcome.direction[2];
-      const bool was_elastic = (outb.neutrons.fields.ekin[j] == outcome.ekin.dbl());
-      outb.neutrons.fields.ekin[j] = outcome.ekin.dbl();
-      if ( was_elastic ) {
-        outb.cache.markScatteredElastic(j);
-      } else {
-        outb.cache.markScatteredInelastic(j);
-        outb.cache.scatxsval[j] = -1.0;//xs might have changed
-      }
-
-      //Fix weights for the forced collision. Note that when disttoexit=inf, we
-      //have ptransm=0 (to avoid anything transmitted cropping up in the
-      //tallies), so it is right that the final factor in (1-ptransm)=1. Nothing
-      //made it to the tally, we kept all for the scattering. In case scattering
-      //XS was also 0, that particle was simply lost (FIXME: This will have been
-      //counted as "absorbed" in our plots. We should calculate the "lost"
-      //separately? Or at least think carefully about what the correct behaviour
-      //is and then test that we get it)
-      outb.neutrons.fields.w[j] *= ( 1.0 - m_buf_ptransm[i] );
-    }
-    if ( !outb.empty() ) {
-      mgr.addPendingBasket( std::move(pending) );
-    } else {
-      deallocateBasket( mgr, std::move(pending) );
-    }
-  }
-
-  {
-    //Add a result basket with directly transmitted particles. For efficiency,
-    //we simply reuse the input basket (in case of infinite disttoexit we end up
-    //with w=0, but these will be ignored later):
-    auto& outb = inbasket_holder.basket();
-    MiniMC::Utils::propagateAndAttenuate( outb.neutrons,
-                                          m_mat.numDens,
-                                          geom_is_unbounded,
-                                          m_buf_disttoexit,
-                                          values_abs_xs_or_nullptr );
-    //We also reduce with the transmission probability (i.e. scatter-process
-    //attenuation, the above propagateAndAttenuate only took care of the
-    //absorption-process attenuation:
-    for ( auto i : ncrange(outb.size()) )
-      outb.neutrons.fields.w[i] *= m_buf_ptransm[i];
-
-    //NCRYSTAL_MSG("TKTEST tally outb.size()="<<inbasket_holder.basket().size());
-    resultFct( inbasket_holder.basket() );
-    deallocateBasket( mgr, std::move(inbasket_holder) );
-    return;
-  }
-}
-
-
-
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
     namespace {
@@ -325,9 +49,9 @@ namespace NCRYSTAL_NAMESPACE {
 
         static void checkBasketFields( const UniversalBasket& b )
         {
-          if ( ! ( b.buf1 && b.nscat && b.sawinelas ) )
+          if ( ! ( b.buf1 && b.nscat && b.nscat_inelas ) )
             NCRYSTAL_THROW(LogicError,"StdSimEngine requires a basket with"
-                           " nscat, sawinelas, and buf1 available.");
+                           " nscat, nscat_inelas, and buf1 available.");
         }
 
       public:
@@ -354,7 +78,6 @@ namespace NCRYSTAL_NAMESPACE {
             = 1.0 / m_opt.roulette.survival_probability;
           nc_assert_always( m_opt.nScatLimit.value_or(0)
                             <= (std::numeric_limits<int>::max()-1) );
-
         }
 
         void step( UniversalBasket inbasket,
@@ -362,8 +85,40 @@ namespace NCRYSTAL_NAMESPACE {
                    UniversalBasketMgr& mgr,
                    const TallyFct& tallyfct ) override
         {
-          NCRYSTAL_DEBUGMMCMSG("StdSimEngine::step inbasket.size()="
+          //In this engine, each step produce 1 basket for tallying and 1
+          //pending basket for further processing in a new step. In case the
+          //pending basket does not need filling, we immediately process it
+          //again, thus reducing the need to communicate with the global
+          //thread-safe queue in the mgr.
+          //
+          //Additionally, and for the same reason, we provide a single buffer
+          //basket to be reused between these calls.
+          UniversalBasket buf;
+          do {
+            inbasket = processBasket( std::move(inbasket), buf,
+                                      rng, mgr, tallyfct );
+          } while ( inbasket.valid()
+                    && inbasket.size() >= basket_N_almost_Full );
+          if ( inbasket.valid() ) {
+              //transfer to global queue:
+              mgr.addPendingBasket( std::move(inbasket) );
+          }
+          if ( buf.valid() )
+            mgr.deallocateBasket( std::move(buf) );
+        }
+
+      private:
+        UniversalBasket processBasket( UniversalBasket inbasket,
+                                       UniversalBasket& basket_buffer,
+                                       RNG& rng,
+                                       UniversalBasketMgr& mgr,
+                                       const TallyFct& tallyfct )
+        {
+          NCRYSTAL_DEBUGMMCMSG("StdSimEngine::processBasket inbasket.size()="
                                <<inbasket.size());
+
+          UniversalBasket result_basket;
+          nc_assert(!result_basket.valid());
 
           checkBasketFields( inbasket );
 
@@ -381,8 +136,8 @@ namespace NCRYSTAL_NAMESPACE {
           const bool absorption_is_isotropic = !(has_abs&&m_mat.absorption->isOriented());
           const bool geom_is_unbounded = m_geom->hasUnboundedDistToVolExit();
 
-          //Get distances out for all the particles (note, if geom_is_unbounded, this
-          //might include infinities):
+          //Get distances out for all the particles (note, if geom_is_unbounded,
+          //this might include infinities):
           m_geom->distToVolumeExit( *inbasket.neutrons, m_buf_disttoexit.data );//fixme: migrate fully to buffers
 
           //Get absorption cross sections:
@@ -406,22 +161,24 @@ namespace NCRYSTAL_NAMESPACE {
           }
 
           if (!has_scat) {
-            //Special case of no scattering, just transmit (in-place) and return:
+            //Special case of no scattering, just transmit (in-place) and return
+            //an empty basket (i.e. nothing needs further processing):
             MiniMC::Utils::propagateAndAttenuate( *inbasket.neutrons,
                                                   m_mat.numDens,
                                                   geom_is_unbounded,
                                                   m_buf_disttoexit.data,
                                                   values_abs_xs_or_nullptr );
 
-            //NCRYSTAL_MSG("TKTEST noscat special case");
             tallyfct( inbasket );
-            mgr.deallocateBasket( std::move(inbasket) );
-            return;
+            nc_assert_always(!basket_buffer.valid());
+            basket_buffer = std::move(inbasket);
+            return result_basket;
           }
 
-          //Get scattering cross sections (potentially with cached values). Also, if
-          //nscatlimit is enabled, anything already scattered nscatlimit times will get
-          //a phony scattering cross section value of 0:
+          //Get scattering cross sections (potentially with cached
+          //values). Also, if nscatlimit is enabled, anything already scattered
+          //nscatlimit times will get a phony scattering cross section value of
+          //0:
 
           auto buf_scatxsval = [](const UniversalBasket&b) -> BasketValBufDbl&
           {
@@ -429,35 +186,41 @@ namespace NCRYSTAL_NAMESPACE {
             return *b.buf1;
           };
 
-          if ( scatter_is_isotropic ) {
-            if ( nscatlimit>=0 ) {
-              for ( auto i : ncrange( inbasket.size() ) )
-                if ( inbasket.nscat->data[i] >= nscatlimit )
-                  buf_scatxsval(inbasket)[i] = 0.0;
-            }
-            for ( auto i : ncrange( inbasket.size() ) ) {
-              if ( inbasket.nscat->data[i] <= 0
-                   || buf_scatxsval(inbasket)[i] < 0.0 )
-                buf_scatxsval(inbasket)[i]
-                  = m_mat.scatter->crossSectionIsotropic( m_sct_cacheptr,
-                                                          inbasket.neutrons->ekin_obj(i) ).dbl();
-            }
+          if ( nscatlimit == 0 ) {
+            //special case, completely disable scattering.
+            for ( auto i : ncrange( inbasket.size() ) )
+              buf_scatxsval(inbasket)[i] = 0.0;
           } else {
-            //not isotropic, always recalculate all xs values (except if nscatlimit is
-            //exceeded of course):
-            for ( auto i : ncrange( inbasket.size() ) ) {
-              if ( nscatlimit >= 0 && inbasket.nscat->data[i] >= nscatlimit )
-                buf_scatxsval(inbasket)[i] = 0.0;
-              else
-                buf_scatxsval(inbasket)[i]
-                  = m_mat.scatter->crossSection( m_sct_cacheptr,
-                                                 inbasket.neutrons->ekin_obj(i),
-                                                 inbasket.neutrons->dir_obj(i) ).dbl();
+            if ( scatter_is_isotropic ) {
+              if ( nscatlimit>=0 ) {
+                for ( auto i : ncrange( inbasket.size() ) )
+                  if ( inbasket.nscat->data[i] >= nscatlimit )
+                    buf_scatxsval(inbasket)[i] = 0.0;
+              }
+              for ( auto i : ncrange(nscatlimit==0?0:inbasket.size()) ) {
+                if ( inbasket.nscat->data[i] <= 0
+                     || buf_scatxsval(inbasket)[i] < 0.0 )
+                  buf_scatxsval(inbasket)[i]
+                    = m_mat.scatter->crossSectionIsotropic( m_sct_cacheptr,
+                                                            inbasket.neutrons->ekin_obj(i) ).dbl();
+              }
+            } else {
+              //not isotropic, always recalculate all xs values (except if
+              //nscatlimit is exceeded of course):
+              for ( auto i : ncrange( inbasket.size() ) ) {
+                if ( nscatlimit >= 0 && inbasket.nscat->data[i] >= nscatlimit )
+                  buf_scatxsval(inbasket)[i] = 0.0;
+                else
+                  buf_scatxsval(inbasket)[i]
+                    = m_mat.scatter->crossSection( m_sct_cacheptr,
+                                                   inbasket.neutrons->ekin_obj(i),
+                                                   inbasket.neutrons->dir_obj(i) ).dbl();
+              }
             }
           }
 
-          //Transmission probability (note, as a special case this will be set to 0 if
-          //disttoexit=inf):
+          //Transmission probability (note, as a special case this will be set
+          //to 0 if disttoexit=inf):
           MiniMC::Utils::calcProbTransm( m_mat.numDens,
                                          inbasket.size(),
                                          geom_is_unbounded,
@@ -467,8 +230,8 @@ namespace NCRYSTAL_NAMESPACE {
 
           //FIXME: Make sure we handle xs_scat=0 correctly!!
 
-          //fixme: stop recalculating macro_xs, but immediately convert xs values to
-          //macroscopic values right after query!
+          //fixme: stop recalculating macro_xs, but immediately convert xs
+          //values to macroscopic values right after query!
 
           //Pick scattering points (note returns kInfinity if macro scat xs=0):
 
@@ -480,16 +243,21 @@ namespace NCRYSTAL_NAMESPACE {
                                          m_buf_disttoscat.data );
 
           {
-            //Add a pending basket with scattered particles for further simulations. We
-            //also implement a russian roulette particle-killing scheme (otherwise the
-            //simulations would never terminate with our forced-collision scheme).
+            //Add a pending basket with scattered particles for further
+            //simulations. We also implement a russian roulette particle-killing
+            //scheme (otherwise the simulations would never terminate with our
+            //forced-collision scheme).
             //
-            //Finally, we skip any particle with weight=0 or vanishing scattering cross
-            //section.
+            //We also skip any particle with weight=0 or vanishing scattering
+            //cross section.
 
-            UniversalBasket outb = mgr.allocateBasket();
-            checkBasketFields( outb );
+            UniversalBasket outb = std::move(basket_buffer);
+            if ( outb.valid() )
+              outb.neutrons->nused = 0;
+            else
+              outb = mgr.allocateBasket();
             nc_assert( outb.valid() && outb.empty() );
+            checkBasketFields( outb );
             auto& inb = inbasket;
             nc_assert( m_opt.roulette.survival_probability < 1.0 );
 
@@ -504,8 +272,11 @@ namespace NCRYSTAL_NAMESPACE {
               const double macro_scat_xs
                 = macroXS( m_mat.numDens,
                            CrossSect{ buf_scatxsval(inbasket)[i] } );
+
               if (!(macro_scat_xs > 0.0))
-                continue;//can't scatter (all relevant weight should have been delivered
+                continue;//can't scatter (all relevant weight should have been
+                         //delivered already).
+
               //to the tally already via ptransm).
               //Implement russian-roulette:
               double roulette_weight_factor = 1.0;
@@ -513,7 +284,6 @@ namespace NCRYSTAL_NAMESPACE {
                                     && inb.neutrons->fields.w[i] < m_opt.roulette.weight_threshold )
                                   ? m_opt.roulette.survival_probability
                                   : 1.0 );
-              roulette = 0.8;//FIXME
               if ( roulette < 1.0 ) {
                 if ( rng.generate() > roulette ) {
                   continue;//killed!
@@ -521,7 +291,6 @@ namespace NCRYSTAL_NAMESPACE {
                   nc_assert( m_opt.roulette.survival_probability > 0.0 );
                   nc_assert( m_opt.roulette.survival_probability <= 1.0 );
                   roulette_weight_factor = m_opt_roulette_survivor_boost;
-                  roulette_weight_factor = 1.0/roulette;//fixme
                 }
               }
 
@@ -545,14 +314,15 @@ namespace NCRYSTAL_NAMESPACE {
               //  weight_reduction_factor > 0.0
               //  disttoscat < infinity
               //
-              //So we process this particle further, i.e. copy it to the pending basket
-              //and update the weight (and then scatter it below):
+              //So we process this particle further, i.e. copy it to the pending
+              //basket and update the weight (and then scatter it below):
               nc_assert( outb.size() < basket_N );
               std::size_t j = outb.append1( inbasket, i );
               auto& outb_fields = outb.neutrons->fields;
               outb_fields.w[j] *= roulette_weight_factor;
 
-              //Move to scattering point and attenuate: (fixme: can disttoscat be inf if xs=0??)
+              //Move to scattering point and attenuate: (fixme: can disttoscat
+              //be inf if xs=0??)
               outb_fields.x[j] += m_buf_disttoscat[i] * outb_fields.ux[j];
               outb_fields.y[j] += m_buf_disttoscat[i] * outb_fields.uy[j];
               outb_fields.z[j] += m_buf_disttoscat[i] * outb_fields.uz[j];
@@ -570,48 +340,47 @@ namespace NCRYSTAL_NAMESPACE {
               outb_fields.uz[j] = outcome.direction[2];
               const bool was_elastic = (outb_fields.ekin[j] == outcome.ekin.dbl());
               outb_fields.ekin[j] = outcome.ekin.dbl();
-              // int * fixme = outb.nscat->data;
-              // fixme[i] += 1;
               ++( outb.nscat->data[j] );
               if ( !was_elastic ) {
-                outb.sawinelas->data[j] = true;
+                ++( outb.nscat_inelas->data[j] );
                 buf_scatxsval(outb)[j] = -1.0;//xs might have changed
               }
 
-              //Fix weights for the forced collision. Note that when disttoexit=inf, we
-              //have ptransm=0 (to avoid anything transmitted cropping up in the
-              //tallies), so it is right that the final factor in (1-ptransm)=1. Nothing
-              //made it to the tally, we kept all for the scattering. In case scattering
-              //XS was also 0, that particle was simply lost (FIXME: This will have been
-              //counted as "absorbed" in our plots. We should calculate the "lost"
-              //separately? Or at least think carefully about what the correct behaviour
-              //is and then test that we get it)
+              //Fix weights for the forced collision. Note that when
+              //disttoexit=inf, we have ptransm=0 (to avoid anything transmitted
+              //cropping up in the tallies), so it is right that the final
+              //factor is (1-ptransm)=1. Nothing made it to the tally, we kept
+              //all for the scattering. In case scattering XS was also 0, that
+              //particle was simply lost
               outb_fields.w[j] *= ( 1.0 - m_buf_ptransm[i] );
             }
-            mgr.addPendingBasket( std::move(outb) );
+
+            result_basket = std::move(outb);
           }
 
           {
-            //Add a result basket with directly transmitted particles. For efficiency,
-            //we simply reuse the input basket (in case of infinite disttoexit we end up
-            //with w=0, but these will be ignored later):
+            //Add a result basket with directly transmitted particles. For
+            //efficiency, we simply reuse the input basket (in case of infinite
+            //disttoexit we end up with w=0, but these will be ignored later):
             auto& outb = inbasket;
             MiniMC::Utils::propagateAndAttenuate( *outb.neutrons,
                                                   m_mat.numDens,
                                                   geom_is_unbounded,
                                                   m_buf_disttoexit.data,
                                                   values_abs_xs_or_nullptr );
-            //We also reduce with the transmission probability (i.e. scatter-process
-            //attenuation, the above propagateAndAttenuate only took care of the
-            //absorption-process attenuation:
+            //We also reduce with the transmission probability
+            //(i.e. scatter-process attenuation, the above propagateAndAttenuate
+            //only took care of the absorption-process attenuation:
             for ( auto i : ncrange(outb.size()) )
               outb.neutrons->fields.w[i] *= m_buf_ptransm[i];
 
-            //NCRYSTAL_MSG("TKTEST tally outb.size()="<<outb.size());
             tallyfct( outb );
-            mgr.deallocateBasket( std::move(inbasket) );
-            return;
+            //store the buffer for future use:
+            nc_assert( !basket_buffer.valid() );
+            basket_buffer = std::move(inbasket);
           }
+
+          return result_basket;
         }
       };
     }

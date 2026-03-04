@@ -50,24 +50,11 @@ namespace NCRYSTAL_NAMESPACE {
       }
     }
 
-    //fixme: remove
-    struct NeutronBasket;
-    struct NeutronBasketFields;
-
-    class BasketView : NoCopyMove {
-    public:
-      //Type erasure of Baskets.
-
-      //Basic neutron information is always there:
-      virtual const NeutronBasket& neutrons() const = 0;
-      //Optional (nullptr if not available):
-      virtual const BasketValBufInt * nscat() const = 0;
-      virtual const BasketValBufBool * sawinelas() const = 0;
-      virtual const NeutronBasketFields* neutrons_original() const = 0;
-    };
-
     struct NeutronBasketFields final : NoCopyMove {
       BasketValBufDbl x, y, z, ux, uy, uz, ekin, w;
+      //fixme: standalone functions in basketutils instead? The we can move
+      //NeutronBasketFields+NeutronBasket to Defs.hh
+
       void set( const NeutronBasketFields& o,
                 std::size_t i_o,
                 std::size_t i )//fixme switch arg order
@@ -120,8 +107,6 @@ namespace NCRYSTAL_NAMESPACE {
 
     struct NeutronBasket final : NoCopyMove {
       NeutronBasketFields fields;
-      //BasketValBufDbl x, y, z, ux, uy, uz, ekin, w;
-      //TODO: Time as well? (remember to update it in all propagations if so)
       std::size_t nused = 0;
 
       void validateIfDbg() const ncnoexceptndebug
@@ -159,90 +144,14 @@ namespace NCRYSTAL_NAMESPACE {
                                    std::size_t i_o,
                                    std::size_t n ) ncnoexceptndebug
       {
-        nc_assert( size() + n <= basket_N );
+        nc_assert( nused + n <= basket_N );
         nc_assert( i_o + n <= other.size() );
-        fields.setrange( other.fields, size(), i_o, n );
-        this->nused += n;
+        fields.setrange( other.fields, i_o, nused, n );
+        nused += n;
 
       }
 
     };
-
-    //We might need extra fields during a simulation, for e.g. caches
-    //(i.e. cross sections) or statistics collection
-    //(i.e. number-of-scatterings). Those caches will be templated (TCache) and
-    //a basket of those will be kept with the normal neutron basket in a
-    //CachedNeutronBasket object. To ensure we add no significant memory usage
-    //if TCache has no data members, we use the empty-base-object optimisation
-    //to add the cache data.
-
-    template<class TCache>
-    class CachedNeutronBasket {
-    public:
-      static_assert( std::is_standard_layout<TCache>::value, "" );
-      CachedNeutronBasket() noexcept {}
-      NeutronBasket neutrons;
-      TCache cache;
-
-      constexpr bool full() const noexcept { return neutrons.full(); }
-      constexpr bool empty() const noexcept { return neutrons.empty(); }
-      constexpr std::size_t size() const noexcept { return neutrons.size(); }
-
-      void markAsMissedTarget( std::size_t i ) noexcept { cache.markAsMissedTarget(i); }
-
-      NeutronBasket& get_neutrons() { return neutrons; }
-      const NeutronBasket& get_neutrons() const { return neutrons; }
-
-      void validateIfDbg() const ncnoexceptndebug
-      {
-        neutrons.validateIfDbg();
-      }
-
-      void init_extra( std::size_t i ) ncnoexceptndebug
-      {
-        cache.init(i);
-      }
-
-      //Fixme: the following can be standalone functions!
-      void copyEntryFromOther( const CachedNeutronBasket& o,
-                               std::size_t i_o,
-                               std::size_t i ) ncnoexceptndebug
-      {
-        nc_assert( i_o < o.size() );
-        nc_assert( i < this->size() );
-        neutrons.copyEntryFromOther( o.neutrons, i_o, i );
-        if (!std::is_empty<TCache>::value)
-          this->cache.copyEntryFromOther( o.cache, i_o, i );
-      }
-
-      std::size_t appendEntryFromOther( const CachedNeutronBasket& o,
-                                        std::size_t i_o ) ncnoexceptndebug
-      {
-        nc_assert(!this->full());
-        std::size_t i = neutrons.nused++;
-        this->copyEntryFromOther( o, i_o, i );
-        return i;
-      }
-
-      void appendEntriesFromOther( const CachedNeutronBasket& o,
-                                   std::size_t i_o,
-                                   std::size_t n ) ncnoexceptndebug
-      {
-        nc_assert( this != &o );
-        nc_assert( n>=1 );
-        nc_assert( this->size() + n <= basket_N );
-        nc_assert( i_o + n <= o.size() );
-
-        const std::size_t p = this->size();
-        //Note, this call also updates this->neutrons.nused value:
-        neutrons.appendEntriesFromOther( o.neutrons, i_o, n );
-        if (!std::is_empty<TCache>::value)
-          this->cache.copyEntriesFromOther( o.cache, p, i_o, n );
-      }
-
-
-    };
-
   }
 }
 

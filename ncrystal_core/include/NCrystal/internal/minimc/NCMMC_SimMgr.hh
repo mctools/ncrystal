@@ -81,12 +81,6 @@ namespace NCRYSTAL_NAMESPACE {
       shared_obj<SimEngine> m_engine;
       shared_obj<TallyMgr> m_tallymgr;
       Optional<CB::CBMgr> m_cbmgr;
-      // GeometryPtr m_geom;
-      // EngineOpts m_engineOpts;
-      // shared_obj<basketmgr_t> m_basketmgr;
-      // shared_obj<basket_srcfiller_t> m_srcfiller;
-      // shared_obj<TSim> m_sim;
-      // shared_obj<TallyMgr> m_tallymgr;
 #ifndef NCRYSTAL_DISABLE_THREADS
       SmallVector<std::thread,64> m_workers;
       struct CommonThreadWaitingInfo {
@@ -101,12 +95,12 @@ namespace NCRYSTAL_NAMESPACE {
               SimEngine& engine,
               UniversalBasketMgr& basketManager,
               InputBasketProvider& basketProvider,
-              std::function<void(const UniversalBasket&)>& result_fct,
+              const TallyFct& result_fct,
               CommonThreadWaitingInfo& common,
               bool do_ignoreMiss )
       {
         UniversalBasket basket;
-        std::function<void(const UniversalBasket&)> result_fct_srcmiss;
+        TallyFct result_fct_srcmiss;
         if ( !do_ignoreMiss )
           result_fct_srcmiss = result_fct;
         ParticleCountSum missStats;
@@ -117,11 +111,9 @@ namespace NCRYSTAL_NAMESPACE {
           //retry after a while, since other threads might have something to
           //provide.
           auto tryFillBasket =  [&basket,
-                                 &basketManager,
                                  &basketProvider,
                                  &rng,
                                  &result_fct_srcmiss,
-                                 &common,
                                  &missStats]
           {
             if ( !basket.valid() )
@@ -205,15 +197,8 @@ namespace NCRYSTAL_NAMESPACE {
         if ( nthreads.get() < 1 )
           nthreads = ThreadCount{1};
         nc_assert_always( nthreads.get() >= 1 && nthreads.get() < 9999 );
-      // EngineOpts m_engineOpts;
-      // shared_obj<UniversalBasketMgr> m_bmgr;
-      // shared_obj<InputBasketProvider> m_bprovider;
-      // shared_obj<SimEngine> m_engine;
-      // shared_obj<TallyMgr> m_tallymgr;
         auto bprovider_copy = m_bprovider.getsp();
         auto engine_copy = m_engine.getsp();
-        // auto sf_copy = m_srcfiller.getsp();
-        // auto sim_copy = m_sim.getsp();
         auto tallymgr_copy = m_tallymgr.getsp();
         CommonThreadWaitingInfo common;
         common.nthreads = nthreads;
@@ -256,9 +241,8 @@ namespace NCRYSTAL_NAMESPACE {
             InputBasketProvider& bprovider = *bprovider_copy.get();
             auto tallyptr = tally_so.get();
 
-            std::function<void(const UniversalBasket&)> result_fct//fixme: typedef TallyFct
-              = [tallyptr,cbmgrptr,
-                 &thread_ntalliedStats] (const UniversalBasket& b)
+            TallyFct result_fct = [tallyptr,cbmgrptr,&thread_ntalliedStats]
+              (const UniversalBasket& b)
               {
                 {
                   nc_assert( b.valid()&& b.neutrons != nullptr );
@@ -274,7 +258,7 @@ namespace NCRYSTAL_NAMESPACE {
 
                 tallyptr->registerResultsUB(b);//fixme remove UB post migration
                 if ( cbmgrptr )
-                  cbmgrptr->registerData( BasketView_UniversalBasket(&b) );
+                  cbmgrptr->registerData(b);
               };
 
             RNG * rawrng = rng.get();
@@ -327,27 +311,26 @@ namespace NCRYSTAL_NAMESPACE {
         auto tallyptr = tally_so.get();
 
 
-        std::function<void(const UniversalBasket&)>//fixme TallyFct typedef
-          result_fct = [tallyptr,
-                        &ntalliedStats,
-                        cbmgrptr](const UniversalBasket& b)
+        TallyFct result_fct = [tallyptr,
+                               &ntalliedStats,
+                               cbmgrptr](const UniversalBasket& b)
+        {
           {
-            {
-              nc_assert( b.valid()&& b.neutrons != nullptr );
-              const std::size_t n = b.size();
-              double w = 0.0;
-              const double * it = b.neutrons->fields.w.data;
-              const double * itE = it + n;
-              for ( ; it!=itE; ++it )
-                w += *it;
-              ntalliedStats.count += n;
-              ntalliedStats.weight += w;
-            }
-            tallyptr->registerResultsUB(b);//fixme remove UB post migration
-            if ( cbmgrptr )
-              cbmgrptr->registerData( BasketView_UniversalBasket(&b) );
-          };
-        std::function<void(const UniversalBasket&)> result_fct_srcmiss(nullptr);
+            nc_assert( b.valid()&& b.neutrons != nullptr );
+            const std::size_t n = b.size();
+            double w = 0.0;
+            const double * it = b.neutrons->fields.w.data;
+            const double * itE = it + n;
+            for ( ; it!=itE; ++it )
+              w += *it;
+            ntalliedStats.count += n;
+            ntalliedStats.weight += w;
+          }
+          tallyptr->registerResultsUB(b);
+          if ( cbmgrptr )
+            cbmgrptr->registerData(b);
+        };
+        TallyFct result_fct_srcmiss(nullptr);
         if ( !do_ignoreMiss )
           result_fct_srcmiss = result_fct;
 

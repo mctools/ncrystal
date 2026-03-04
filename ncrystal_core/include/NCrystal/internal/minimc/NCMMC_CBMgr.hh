@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/minimc/NCMMC_Basket.hh"
+#include "NCrystal/internal/utils/NCStrView.hh"
 
 #ifndef NCRYSTAL_DISABLE_THREADS
 #  include <thread>
@@ -50,38 +51,43 @@ namespace NCRYSTAL_NAMESPACE {
         //will always be allocated for this number in advance, so it is
         //important that it is not too large (values smaller than basket_N are
         //rounded up to basket_N):
-        std::size_t max_neutrons_per_callback = 262144;
+        constexpr static size_t cachelen_default = 262144;
+        constexpr static size_t cachelen_max = 1000000000;//largest allowed
+        std::size_t cachelen = cachelen_default;
+
 
         //Maximum number of caches to keep around. Too small, and threads might
         //stall while waiting for an available cache. Too big, and the memory
         //usage might get too large. The actual number of caches used, though,
-        //will not be above the number of threads used for the simulation:
-        std::size_t max_cache_areas = 8;//fixme: test with a value of 1
+        //will in practice not be above the number of threads used for the
+        //simulation:
+        constexpr static size_t ncaches_default = 8;
+        std::size_t ncaches = ncaches_default;
+
+        //By default, callbacks have access to extended baskets:
+        BasketType basketType = BasketType::Extended;
 
         //About memory usage: Total number of values per neutron is mostly
-        //likely around 100bytes, and more specifically from 69 to 160 bytes. So
-        //the default values above will lead to a maximum memory overhead of the
-        //callback caches between 0.14-0.42 gigabyte.
+        //likely around 100bytes, and more specifically from 69 (basic) to 160
+        //bytes (extended). So the default values above will lead to a maximum
+        //memory overhead of the callback caches between 0.14-0.42 gigabyte.
       };
+
+
+      //Initialise from a cfg-string (except that the callbackfct will not be
+      //set):
+      CBMgrInput decodeCBMgrInput( StrView );
 
       class DataArea final : NoCopyMove {
         //Data area where neutrons are collated into long arrays of double
         //precision values.
-
-        //Fixme: just have one global fieldstype/baskettype in NCDefs.hh
       public:
-        enum class FieldsType : unsigned long {
-          //FIXME: Merge with BasketType
-          NOT_INITIALISED = 0,
-          BASIC = 1,// [x,y,z,ux,uy,uz,ekin,w,nscat,sawinelas]//fixme: sawinelas -> nscat_inelas?
-          WITH_INITIAL = 2,// BASIC + [x0,y0,z0,ux0,uy0,uz0,ekin0,w0]
-        };
-        constexpr static unsigned nfieldsmax = 18;//BASIC 10, WITH_INITIAL 18
+        constexpr static unsigned nfieldsmax = 18;//BASIC 10, Extended 18
       private:
         std::unique_ptr<double[]> m_memholder;
         std::size_t m_size = 0;
         std::size_t m_capacity;
-        FieldsType m_fieldsType = FieldsType::NOT_INITIALISED;
+        BasketType m_basketType = BasketType::Invalid;
         double * m_datacache[nfieldsmax];
       public:
         DataArea( std::size_t capacity );
@@ -89,10 +95,11 @@ namespace NCRYSTAL_NAMESPACE {
         std::size_t size() const { return m_size; }
         const double * const * view_data() const { return m_datacache; }
         unsigned nFields() const;
-        unsigned long fieldsTypeForCallBack() const
+        unsigned long basketTypeForCallBack() const
         {
-          nc_assert_always(m_fieldsType != FieldsType::NOT_INITIALISED);
-          return static_cast<unsigned long>(m_fieldsType);
+          nc_assert_always(m_basketType != BasketType::Invalid);
+          return
+            static_cast<unsigned long>(static_cast<unsigned>(m_basketType));
         }
 
         //For internal usage:
@@ -109,7 +116,7 @@ namespace NCRYSTAL_NAMESPACE {
         ~CBMgr();
 
         //Function called by the worker threads:
-        void registerData( const BasketView& );
+        void registerData( const UniversalBasket& );
 
         //Function called after all worker threads have finished, but before
         //CBMgr is destructed:

@@ -133,7 +133,10 @@ namespace NCRYSTAL_NAMESPACE {
 
     //String splitting:
 
-    template< unsigned NPARTS_PREALLOC = 8>
+    constexpr static unsigned split_default_nprealloc = 8;
+    using SplitVect = SmallVector<StrView,split_default_nprealloc>;
+
+    template< unsigned NPARTS_PREALLOC = split_default_nprealloc>
     SmallVector<StrView,NPARTS_PREALLOC> split() const;//on normalised
                                                        //whitespace, trim parts,
                                                        //discard empty parts.
@@ -141,21 +144,21 @@ namespace NCRYSTAL_NAMESPACE {
     enum class SplitKeepEmpty { Yes, No };
     enum class SplitTrimParts { Yes, No };
 
-    template< unsigned NPARTS_PREALLOC = 8,
+    template< unsigned NPARTS_PREALLOC = split_default_nprealloc,
               SplitKeepEmpty keep_empty = SplitKeepEmpty::Yes,
               SplitTrimParts trim_parts = SplitTrimParts::No >
     SmallVector<StrView,NPARTS_PREALLOC> split( char sep ) const;
 
-    template< unsigned NPARTS_PREALLOC = 8,
+    template< unsigned NPARTS_PREALLOC = split_default_nprealloc,
               SplitKeepEmpty keep_empty = SplitKeepEmpty::Yes,
               SplitTrimParts trim_parts = SplitTrimParts::No >
     SmallVector<StrView,NPARTS_PREALLOC> split_any( const char * separators ) const;
 
-    template< unsigned NPARTS_PREALLOC = 8,
+    template< unsigned NPARTS_PREALLOC = split_default_nprealloc,
               SplitKeepEmpty keep_empty = SplitKeepEmpty::Yes >
     SmallVector<StrView,NPARTS_PREALLOC> splitTrimmed( char sep ) const;
 
-    template< unsigned NPARTS_PREALLOC = 8 >
+    template< unsigned NPARTS_PREALLOC = split_default_nprealloc >
     SmallVector<StrView,NPARTS_PREALLOC> splitTrimmedNoEmpty( char sep ) const;
 
     //startswith/endswith:

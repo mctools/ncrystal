@@ -19,15 +19,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/minimc/NCMMC_UBView.hh"
-//#define TKUSE_OLD
+#include "NCrystal/internal/minimc/NCMMC_BasketSrcFiller.hh"
+
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
-
-//fixme: different includes eventually. Actually, all the
-//basket.hh/basketmgr.hh/stdengine(basket parts) can move here, once the
-//basketsrcfiller is also rewritten:
-#include "NCrystal/internal/minimc/NCMMC_StdEngine.hh"
-#include "NCrystal/internal/minimc/NCMMC_BasketSrcFiller.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
@@ -46,12 +41,10 @@ namespace NCRYSTAL_NAMESPACE {
 
     namespace {
 
-      using BasketOld = CachedNeutronBasket<DPCacheData>;
-
       struct Basket_Basic final {
         NeutronBasket neutrons;
-        BasketValBufInt nscat;//fixme dbl
-        BasketValBufBool sawinelas;//fixme dbl
+        BasketValBufInt nscat;
+        BasketValBufInt nscat_inelas;
         BasketValBufDbl buf1;
 
         //Infrastructure:
@@ -68,9 +61,8 @@ namespace NCRYSTAL_NAMESPACE {
 
         void init_extra( std::size_t i ) ncnoexceptndebug
         {
-          //NCRYSTAL_MSG("INIT EXTRA BASIC i="<<i);
           nscat[i] = 0;
-          sawinelas[i] = false;
+          nscat_inelas[i] = 0;
           //Although the engine is responsible for any contents in buf1, we
           //initialise it anyway to ensure no uninitialised memory is ever
           //copied around or assigned. We initialise it to 0.0
@@ -86,17 +78,19 @@ namespace NCRYSTAL_NAMESPACE {
         {
           dst.neutrons = &neutrons;
           dst.nscat = &nscat;
-          dst.sawinelas = &sawinelas;
+          dst.nscat_inelas = &nscat_inelas;
           dst.buf1 = &buf1;
         }
 
-        //fixme: rename to assignEntry, and not o=self is ok.
-        void copyEntryFromOther( const Basket_Basic& o, std::size_t i_o, std::size_t i ) ncnoexceptndebug
+        //fixme: rename to assignEntry, and note that o=self is ok.
+        void copyEntryFromOther( const Basket_Basic& o,
+                                 std::size_t i_o,
+                                 std::size_t i ) ncnoexceptndebug
         {
           //NB: Does NOT update neutrons.nused!
           neutrons.copyEntryFromOther( o.neutrons, i_o, i );
           nscat[i] = o.nscat[i_o];
-          sawinelas[i] = o.sawinelas[i_o];
+          nscat_inelas[i] = o.nscat_inelas[i_o];
           buf1[i] = o.buf1[i_o];
         }
 
@@ -110,29 +104,18 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert( this->size() + n <= basket_N );
           nc_assert( i_o + n <= o.size() );
           const std::size_t i = this->size();
-          //Note, this call also updates this->neutrons.nused value:
-          neutrons.appendEntriesFromOther( o.neutrons, i_o, n );
+
           //extra fields:
           detail::memcpydata<int>( nscat.data + i,o.nscat.data + i_o,n );
-          detail::memcpydata<bool>( sawinelas.data + i,
-                                    o.sawinelas.data + i_o, n );
+          detail::memcpydata<int>( nscat_inelas.data + i,
+                                   o.nscat_inelas.data + i_o, n );
           detail::memcpydata<double>( buf1.data + i,
                                       o.buf1.data + i_o, n );
-      }
-
-
-      //   void copyEntriesFromOther( const data_t& o, std::size_t i,
-      //                              std::size_t i_o, std::size_t n ) ncnoexceptndebug
-      //   {
-      //     nc_assert( this != &o );
-      //     nc_assert( i+n <= basket_N );
-      //     nc_assert( i_o+n <= basket_N );
-      //   detail::memcpydata<int>( nscat.data + i,o.nscat.data + i_o,n );
-      //   detail::memcpydata<bool>( sawinelas.data + i,
-      //                             o.sawinelas.data + i_o, n );
-      //   detail::memcpydata<double>( scatxsval.data + i,
-      //                               o.scatxsval.data + i_o, n );
-      // }
+          //Note, next call also updates this->neutrons.nused value:
+          neutrons.appendEntriesFromOther( o.neutrons, i_o, n );
+          nc_assert_always( neutrons.fields.x[i] == o.neutrons.fields.x[i_o] );
+          nc_assert_always( neutrons.fields.y[i] == o.neutrons.fields.y[i_o] );
+        }
 
         //fixme: rename as append1? also ok if o=self
         std::size_t appendEntryFromOther( const Basket_Basic& o,
@@ -168,7 +151,6 @@ namespace NCRYSTAL_NAMESPACE {
 
         void init_extra( std::size_t i ) ncnoexceptndebug
         {
-          //          NCRYSTAL_MSG("INIT EXTRA EXTENDED i="<<i);
           basic.init_extra(i);
           //The neutrons_initial parameters are just a copy of the initial
           //values of the neutrons:
@@ -242,8 +224,7 @@ namespace NCRYSTAL_NAMESPACE {
       template<class TBasket>
       struct UBHImpl{
         //typedef templated internal data structures:
-        //using cache_t = TBasketCache;
-        using basket_t = TBasket;//CachedNeutronBasket<cache_t>;
+        using basket_t = TBasket;
         using basket_src_filler_t = BasketSrcFiller<basket_t>;
         using basketmgr_t = BasketMgr<basket_t>;
         using basket_holder_t = typename basketmgr_t::basket_holder_t;
@@ -273,14 +254,7 @@ namespace NCRYSTAL_NAMESPACE {
           //fixme: next lines should depend on the templated basket, and
           //res.neutrons_initial should also be set in case of an extended basket.
           auto& src = *const_cast<basket_t*>(&src_c);
-#ifndef TKUSE_OLD
           src.assignToUB( dst );
-#else
-          dst.neutrons = &src.neutrons;
-          dst.nscat = &src.cache.nscat;
-          dst.sawinelas = &src.cache.sawinelas;
-          dst.buf1 = &src.cache.scatxsval;//fixme name
-#endif
         }
 
         static UniversalBasket toUniversalBasket( basket_holder_t&& bh ) {
@@ -346,9 +320,7 @@ namespace NCRYSTAL_NAMESPACE {
                        ? std::make_shared<basketmgr_t>()
                        : std::move(bmgr) ); }() )
           {
-            // NCRYSTAL_MSG("TKTEST Create UBMgr="<<this);
           }
-          // ~UBMgr() { NCRYSTAL_MSG("TKTEST Delete UBMgr="<<this); }
 
           UniversalBasket allocateBasket() override
           {
@@ -427,11 +399,11 @@ namespace NCRYSTAL_NAMESPACE {
                      SourcePtr src,
                      shared_obj<basketmgr_t> bmgr,
                      ThreadCount nthreads )
-          : m_srcfiller( std::move(geom),
-                         std::move(src),
-                         std::move(bmgr),
-                         determineThreadedUsage(nthreads) ),
-            m_nthreads( nthreads )
+            : m_srcfiller( std::move(geom),
+                           std::move(src),
+                           std::move(bmgr),
+                           determineThreadedUsage(nthreads) ),
+              m_nthreads( nthreads )
           {
           }
 
@@ -498,10 +470,6 @@ void NCMMC::UniversalBasket::dealloc_warn() noexcept
       auto bt = this->basketType();
       UniversalBasket tmp;
       tmp.swap(*this);
-#ifdef TKUSE_OLD
-      nc_assert_always(bt == BasketType::Basic);
-      UBHImpl<BasketOld>::moveToBasketHolder(std::move(tmp));
-#else
       if ( bt == BasketType::Basic ) {
         UBHImpl<Basket_Basic>::moveToBasketHolder(std::move(tmp));
       } else if ( bt == BasketType::Extended ) {
@@ -509,7 +477,6 @@ void NCMMC::UniversalBasket::dealloc_warn() noexcept
       } else {
         nc_assert_always(false);
       }
-#endif
     }
   } catch ( std::exception& e ) {
     //try something without exceptions:
@@ -526,17 +493,6 @@ NCMMC::createBasketManagement( GeometryPtr geom,
                                BasketType bt,
                                ThreadCount nthreads )
 {
-#ifdef TKUSE_OLD
-  nc_assert_always(bt == BasketType::Basic);
-  {
-    auto ubmgr = makeSO< UBHImpl<BasketOld>::UBMgr >();
-    auto prov
-      = makeSO<UBHImpl<BasketOld>::InBskProv>
-      ( std::move(geom), std::move(src), ubmgr->realManager(), nthreads );
-    return { std::move(ubmgr), std::move(prov) };
-
-  }
-#else
   if ( bt == BasketType::Basic ) {
     auto ubmgr = makeSO< UBHImpl<Basket_Basic>::UBMgr >();
     auto prov
@@ -552,5 +508,4 @@ NCMMC::createBasketManagement( GeometryPtr geom,
       ( std::move(geom), std::move(src), ubmgr->realManager(), nthreads );
     return { std::move(ubmgr), std::move(prov) };
   }
-#endif
 }

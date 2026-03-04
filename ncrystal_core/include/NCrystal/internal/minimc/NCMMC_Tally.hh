@@ -28,11 +28,9 @@
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
-    //All tallies must implement the following interface, split into two classes
-    //to allow templating on the basket type, but keeping most of the interface
-    //non-templated.
+    //All tallies must implement the following interface.
 
-    class TallyBase : NoCopyMove {
+    class TallyBase : NoCopyMove {//fixme rename as Tally.
     public:
       virtual ~TallyBase() = default;
 
@@ -46,75 +44,21 @@ namespace NCRYSTAL_NAMESPACE {
       virtual void tallyItemToJSON( std::ostream&, StrView itemName ) const = 0;
       virtual VectS tallyItemNames() const = 0;
 
-      //Fixme: for migration:
-      virtual void registerResultsUB( const UniversalBasket& b ) = 0;
-
+      //Results from simulations are delivered to the tally in the form of
+      //baskets of neutrons. These are usually neutrons exiting (or having
+      //missed) the geometry.
+      virtual void registerResultsUB( const UniversalBasket& ) = 0;//fixme: rename without UB
     };
     using TallyPtr = shared_obj<TallyBase>;
 
-    template<class TBasket>
-    class Tally : public TallyBase {
-    public:
-      //Results from simulations are delivered to the tally in the form of
-      //baskets of neutrons. These are usually neutrons exiting (or having
-      //missed) the geometry, but for e.g. 3D visualisation purposes we could
-      //envision other schemes. Naturally, the simulation engine and tally
-      //implementation must be in agreement on this:
-      virtual void registerResults( const TBasket& ) = 0;
-
-      void registerResultsUB( const UniversalBasket& b ) override final
-      {
-        const TBasket* bb
-          = reinterpret_cast<const TBasket*>(b.raw_basket_address());
-        this->registerResults(*bb);
-      }
-
-    };
-
-    //The tally manager is a helper object responsible for dishing out tally
-    //objects for all threads, and for later merging them upon work completion:
-
     class TallyMgr final : NoCopyMove {
     public:
-
-      TallyMgr( TallyPtr tally_template )
-        : m_template(std::move(tally_template)) {}
-
-      TallyPtr getIndependentTallyPtr() const
-      {
-        return m_template->cloneSetup();
-      }
-
-      void addResult( TallyPtr res_SO )
-      {
-        NCRYSTAL_DEBUGMMCMSG("TallyMgr::addResult");
-        std::shared_ptr<TallyBase> res = std::move(res_SO);
-        std::shared_ptr<TallyBase> to_merge;
-        {
-          NCRYSTAL_LOCK_GUARD(m_final_mutex);//hold it only briefly!
-          if ( m_final == nullptr ) {
-            //first time, or someone else is currently merging.
-            m_final = std::move(res);
-            return;
-          } else {
-            to_merge.swap(m_final);
-          }
-        }
-        if ( to_merge != nullptr ) {
-          //perform the merging in the current thread without holding a lock,
-          //and then put the merged result back:
-          to_merge->merge( std::move( *res.get() ) );
-          //Put result back:
-          res = nullptr;//to be safe (not strictly needed)
-          this->addResult( std::move(to_merge) );
-        }
-      }
-      TallyPtr getFinalResult()
-      {
-        NCRYSTAL_LOCK_GUARD(m_final_mutex);//should not really be needed if used correctly
-        nc_assert_always(m_final!=nullptr);
-        return std::move(m_final);
-      }
+      //Manager responsible for dishing out tally objects for all threads, and
+      //for later merging them upon work completion.
+      TallyMgr( TallyPtr tally_template );
+      TallyPtr getIndependentTallyPtr() const;
+      void addResult( TallyPtr );
+      TallyPtr getFinalResult();
     private:
       TallyPtr m_template;
       std::shared_ptr<TallyBase> m_final;

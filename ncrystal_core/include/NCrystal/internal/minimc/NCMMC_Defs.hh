@@ -34,6 +34,18 @@ namespace NCRYSTAL_NAMESPACE {
     static constexpr std::size_t basket_N = 4096;
     static constexpr std::size_t basket_N_almost_Full = basket_N*7/8;
 
+    //The basket type determines what will be available for tallies and
+    //callbacks:
+    enum class BasketType : unsigned {
+      Invalid = 0,
+      Basic = 1,//Neutron parameters + nscat/inelas
+      Extended = 2//Basic + initial neutron + (fixme?) neutron id
+    };
+
+    class UniversalBasket;
+    using TallyFct = std::function<void(const UniversalBasket&)>;
+
+    //Fixme: Are these next statements useful?
     using ProcImpl::ProcPtr;
     using ProcImpl::OptionalProcPtr;
     using ProcImpl::Process;
@@ -75,21 +87,6 @@ namespace NCRYSTAL_NAMESPACE {
         return data[i];
       }
       ncconstexpr17 int& operator[]( std::size_t i ) ncnoexceptndebug
-      {
-        nc_assert(i<basket_N);
-        return data[i];
-      }
-    };
-
-    struct BasketValBufBool final {
-      bool data[basket_N];
-      ncconstexpr17 const bool& operator[]( std::size_t i )
-        const ncnoexceptndebug
-      {
-        nc_assert(i<basket_N);
-        return data[i];
-      }
-      ncconstexpr17 bool& operator[]( std::size_t i ) ncnoexceptndebug
       {
         nc_assert(i<basket_N);
         return data[i];

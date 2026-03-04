@@ -27,11 +27,6 @@ namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
     namespace detail {
       namespace {
-        struct DummyEmpty {};
-        static_assert( sizeof(CachedNeutronBasket<DummyEmpty>)
-                       < sizeof(NeutronBasket)+1024, "" );
-
-
         void propagateDistanceImpl( double * ncrestrict x,
                                     double * ncrestrict y,
                                     double * ncrestrict z,

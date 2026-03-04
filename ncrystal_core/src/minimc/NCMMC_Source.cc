@@ -139,7 +139,7 @@ namespace NCRYSTAL_NAMESPACE {
                                    BasketValBufDbl& buf_ekin )
       {
         auto& fr = ecfg.flexrange.value();
-        nc_assert( fr.mode == FlexRangeValue::Mode::UniformRange );
+        nc_assert( fr.fr.mode == FlexRangeValue::Mode::UniformRange );
 
         const double genval1 = fr.fr.value;
         const double genval2 = fr.fr.secondary_value.value();
@@ -220,8 +220,8 @@ namespace NCRYSTAL_NAMESPACE {
           return;
         }
         if ( ecfg.maxwell.has_value() ) {
-          nc_assert( floateq( ecfg.maxwell.value().kT()*0.5
-                              - ecfg.cachevals.first ) );
+          nc_assert( floateq( ecfg.maxwell.value().kT()*0.5,
+                              ecfg.cachevals.first ) );
           setEnergy_Maxwell( ecfg.cachevals.first, counts, rng, buf_ekin);
         } else {
           auto& fr = ecfg.flexrange.value();

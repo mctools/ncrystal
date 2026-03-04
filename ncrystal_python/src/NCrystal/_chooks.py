@@ -851,11 +851,10 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     _FLEXMMCRUNCBTYPE = ctypes.CFUNCTYPE( None, _dblpp, _ulong, _ulong )
     _raw_flexmmcrun = _wrap( 'ncrystal_flexmmcrun',_charptr,
                              (_cstr,_cstr,_FLEXMMCRUNCBTYPE ), hide=True )
-    def flexmmcrun( query, user_callback ):
+    def flexmmcrun( query, user_callback, callback_options ):
         _ensure_numpy()
         cstr_query = prepare_query_cstr(query)
         cb_errors = []
-
         def cb_wrapper( data, cbtype, data_len ):
             if cb_errors:
                 return
@@ -870,7 +869,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             pydata = dict( x = load(0), y = load(1), z = load(2),
                            ux = load(3), uy = load(4), uz = load(5),
                            ekin = load(6), w = load(7), nscat = load(8),
-                           sawinelas = load(9) )
+                           nscat_inelas = load(9) )
             if cbtype==2:
                 pydata.update(
                     dict( x0 = load(10), y0 = load(11), z0 = load(12),
@@ -891,7 +890,10 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
                 cb_errors.append(e)
 
         cb_c = _FLEXMMCRUNCBTYPE(cb_wrapper)
-        raw_str = _raw_flexmmcrun( cstr_query, None, cb_c )
+        cbopt_c = None
+        if callback_options is not None and callback_options.strip():
+            cbopt_c = _str2cstr(callback_options)
+        raw_str = _raw_flexmmcrun( cstr_query, cbopt_c, cb_c )
         if cb_errors:
             raise RuntimeError('Exception encountered'
                                ' during user callback') from cb_errors[0]

@@ -32,7 +32,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     class Source;
 
-    namespace TallyStdHistsImpl {
+    namespace Tallies {
 
       using tally_hist_t =
         Hists::Hist1D<Hists::AllowWeights::YES,
@@ -105,10 +105,9 @@ namespace NCRYSTAL_NAMESPACE {
                         const TallyStdHists_Options&,
                         const NeutronBasket&,
                         const BasketValBufInt&,
-                        const BasketValBufBool& );
+                        const BasketValBufInt& );
 
-      template<class TBasket>
-      class TallyStdHists final : public Tally<TBasket> {
+      class TallyStdHists final : public TallyBase {
       public:
         using Options = TallyStdHists_Options;
         using Data = TallyStdHists_Data;
@@ -125,64 +124,22 @@ namespace NCRYSTAL_NAMESPACE {
 
         //Initialise from engine and source options (could in principle also
         //depend on geometry options):
-        TallyStdHists( const EngineOpts& eo, const Source& src)
-          : TallyStdHists( private_constructor_t{},
-                           Options::create(eo,src) )
-        {
-        }
-
-        using basket_t = TBasket;
-
-        void registerResults( const basket_t& b ) override
-        {
-          tallyRecord( m_data, m_opt,
-                       b.neutrons, b.cache.nscat, b.cache.sawinelas );
-        }
-
-        //Don't use this constructor from outside the class:
-        TallyStdHists( private_constructor_t, Options opt )
-          : m_opt(opt), m_data(Data::create(opt))
-        {
-        }
-
-        shared_obj<TallyBase> cloneSetup() const override
-        {
-          //NB: Cloning without histogram contents!
-          return makeSO<this_class_t>( private_constructor_t{}, m_opt );
-        }
-
-        void merge(TallyBase&& o_base) override
-        {
-          auto optr = dynamic_cast<this_class_t*>(&o_base);
-          nc_assert_always(optr!=nullptr);
-          const this_class_t& o = *optr;
-          nc_assert_always( m_opt == o.m_opt );
-          m_data.merge( o.m_data );
-        };
-
+        TallyStdHists( const EngineOpts&, const Source&);
+        void registerResultsUB( const UniversalBasket&) override;
+        shared_obj<TallyBase> cloneSetup() const override;
+        void merge(TallyBase&&) override;
         const tally_hist_t& accessHistogram( StrView histname,
                                              Optional<DetailedHistsID>
-                                             detailid = NullOpt ) const
-        {
-          return m_data.accessHistogram(histname,detailid);
-        }
+                                             detailid = NullOpt ) const;
+        VectS tallyItemNames() const;
+        void tallyItemToJSON( std::ostream&, StrView itemName ) const;
 
-        VectS tallyItemNames() const override
-        {
-          return m_data.titles();
-        }
-
-        void tallyItemToJSON( std::ostream& os, StrView itemName ) const override
-        {
-          m_data.histToJSONFindByTitle( os, itemName );
-        }
+        //Don't use this constructor from outside the class:
+        TallyStdHists( private_constructor_t, Options );
       };
     }
-
-    template<class TBasket>
-    using TallyStdHists = TallyStdHistsImpl::TallyStdHists<TBasket>;
+    using TallyStdHists = Tallies::TallyStdHists;
   }
 }
-//fixme: "Aborting plotting of empty histogram" -> we should just show it!
 
 #endif

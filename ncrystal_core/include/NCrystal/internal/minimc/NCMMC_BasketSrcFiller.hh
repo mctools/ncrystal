@@ -52,8 +52,6 @@ namespace NCRYSTAL_NAMESPACE {
       using basket_holder_t = BasketHolder<TBasket>;
       using basketmgr_t = BasketMgr<TBasket>;
 
-      //Fixme: could we make this work with just UniversalBaskets???
-
       BasketSrcFiller( GeometryPtr geom,
                        SourcePtr src,
                        shared_obj<basketmgr_t> bm,
@@ -67,11 +65,6 @@ namespace NCRYSTAL_NAMESPACE {
         if ( tu == ThreadedUsage::Multi && !m_src->metaData().concurrent )
           m_srcmutex.emplace();
       }
-
-      //fixme: cleanup needed methods
-      const Geometry& geometry() const { return m_geom; }
-      const basketmgr_t& basketMgr() const { return m_basketmgr; }
-      basketmgr_t& basketMgr() { return m_basketmgr; }
 
       void haltSource()
       {

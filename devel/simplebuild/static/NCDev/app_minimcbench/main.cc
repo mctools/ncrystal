@@ -67,12 +67,7 @@ int the_main_fct( int argc, char ** argv ) {
   auto src = NCMMC::createSource(src_cfgstr);
   auto eopts = NCMMC::parseEngineOpts( enginecfg );
   auto srcmd = src->metaData();
-  using basket_t = NCMMC::StdEngine::basket_t;//clumsy!
-#ifdef NCDEV_BENCH_USE_SIMPLER_TALLY
-  auto tally = NC::makeSO<NCMMC::CountingTally<basket_t>>();
-#else
-  auto tally = NC::makeSO<NCMMC::TallyStdHists<basket_t>>( eopts, *src );
-#endif
+  auto tally = NC::makeSO<NCMMC::TallyStdHists>( eopts, *src );
 
   nc_assert_always( nthreads.get() > 0 );
 

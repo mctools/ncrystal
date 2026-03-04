@@ -25,7 +25,7 @@
 
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
-namespace NCMMCT = NCrystal::MiniMC::TallyStdHistsImpl;
+namespace NCMMCT = NCrystal::MiniMC::Tallies;
 
 NCMMCT::HistGroup::HistGroup( const Hists::Binning& b, const char * title)
   : main( b, title )
@@ -157,7 +157,7 @@ NCMMCT::TallyStdHists_Data::create( const TallyStdHists_Options& opt )
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
-    namespace TallyStdHistsImpl {
+    namespace Tallies {
       namespace {
 
         template<class TBasketValBuf>
@@ -201,18 +201,18 @@ namespace NCRYSTAL_NAMESPACE {
 
         void init_dethistidvect( DetailedHistsIDVect& v,
                                  const BasketValBufInt& nscat,
-                                 const BasketValBufBool& sawinelas,
+                                 const BasketValBufInt& nscat_inelas,
                                  std::size_t n )
         {
           auto& d = v.data;
           for ( std::size_t i = 0; i < n; ++i ) {
             if (nscat[i]>1) nclikely {
-                d[i] = ( sawinelas[i]
+                d[i] = ( nscat_inelas[i]
                          ? DetailedHistsID::MULTISCAT_OTHER
                          : DetailedHistsID::MULTISCAT_PUREELAS );
               } else {
               if ( nscat[i] == 1 ) {
-                d[i] = ( sawinelas[i]
+                d[i] = ( nscat_inelas[i]
                          ? DetailedHistsID::SINGLESCAT_INELAS
                          : DetailedHistsID::SINGLESCAT_ELAS );
               } else {
@@ -342,6 +342,8 @@ namespace NCRYSTAL_NAMESPACE {
           //Tally q
           if ( opt.flags.has(TFlags::q) ) {
             nc_assert( opt.beamEnergy.has_value() );
+            //FIXME: We should use extended baskets if tallying for q and the
+            //enginecfg did not get a beamenergy value.
             tallyRecord_q( data, opt.beamEnergy.value(), mu, b, dethistid );
           }
 
@@ -460,7 +462,7 @@ void NCMMCT::tallyRecord( TallyStdHists_Data& data,
                           const TallyStdHists_Options& opt,
                           const NeutronBasket& neutrons,
                           const BasketValBufInt& nscat,
-                          const BasketValBufBool& sawinelas )
+                          const BasketValBufInt& nscat_inelas )
 {
   using TFlags = TallyFlags::Flags;
   const std::size_t n = neutrons.size();
@@ -470,7 +472,7 @@ void NCMMCT::tallyRecord( TallyStdHists_Data& data,
   DetailedHistsIDVect histid_buf;
   const DetailedHistsIDVect * histid = nullptr;
   if ( !opt.flags.has(TFlags::nobreakdown) ) {
-    init_dethistidvect( histid_buf, nscat, sawinelas, n );
+    init_dethistidvect( histid_buf, nscat, nscat_inelas, n );
     histid = &histid_buf;
   }
 
@@ -526,5 +528,58 @@ void NCMMCT::tallyRecord( TallyStdHists_Data& data,
     if ( histid )
       hgfill_detail( h, *histid, neutrons.fields.w, n );
   }
-
 }
+
+void NCMMCT::TallyStdHists::merge(TallyBase&& o_base)
+{
+  auto optr = dynamic_cast<this_class_t*>(&o_base);
+  nc_assert_always(optr!=nullptr);
+  const this_class_t& o = *optr;
+  nc_assert_always( m_opt == o.m_opt );
+  m_data.merge( o.m_data );
+};
+
+NCMMCT::TallyStdHists::TallyStdHists( const EngineOpts& eo, const Source& src)
+  : TallyStdHists( private_constructor_t{},
+                   Options::create(eo,src) )
+{
+}
+
+void NCMMCT::TallyStdHists::registerResultsUB( const UniversalBasket& b)
+{
+  nc_assert( b.neutrons );
+  nc_assert( b.nscat );
+  nc_assert( b.nscat_inelas );
+  tallyRecord( m_data, m_opt, *b.neutrons, *b.nscat, *b.nscat_inelas );
+}
+
+NCMMCT::TallyStdHists::TallyStdHists( private_constructor_t, Options opt )
+  : m_opt(opt), m_data(Data::create(opt))
+{
+}
+
+NC::shared_obj<NCMMC::TallyBase> NCMMCT::TallyStdHists::cloneSetup() const
+{
+  //NB: Cloning without histogram contents!
+  return makeSO<this_class_t>( private_constructor_t{}, m_opt );
+}
+
+const NCMMCT::tally_hist_t&
+NCMMCT::TallyStdHists::accessHistogram( StrView histname,
+                                        Optional<DetailedHistsID>
+                                        detailid ) const
+{
+  return m_data.accessHistogram(histname,detailid);
+}
+
+NC::VectS NCMMCT::TallyStdHists::tallyItemNames() const
+{
+  return m_data.titles();
+}
+
+void NCMMCT::TallyStdHists::tallyItemToJSON( std::ostream& os,
+                                             StrView itemName ) const
+{
+  m_data.histToJSONFindByTitle( os, itemName );
+}
+//fixme: "Aborting plotting of empty histogram" -> we should just show it!

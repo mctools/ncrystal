@@ -560,7 +560,7 @@ class MMCResults:
 
     def short_title( self, latex = False ):
         n = self.src_provided_counts#fixme: weights?
-        s = self.setup_source_cfgstr_decoded['nominal_beam_energy_str']
+        s = self.setup_source_cfgstr_decoded['energy_description']
         g = self.setup_geometry_cfgstr_decoded['short_description']
         if latex:
             from ._common import _latex_format

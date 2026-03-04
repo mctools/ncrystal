@@ -2469,12 +2469,9 @@ char* ncrystal_flexmmcrun( const char * jsonquery,
       NCRYSTAL_THROW(BadInput,"ncrystal_flexmmcrun only works with an"
                      " ['mmc','run',...] JSON query");
     }
-    auto sv_cboptions = NC::StrView(cb_options?cb_options:"").trimmed();
-    if (!sv_cboptions.empty())
-      NCRYSTAL_THROW(BadInput,"ncrystal_flexmmcrun: Currently no callback"
-                     " options are tunable through the C interface.");//fixme
+    auto sv_cboptions = NC::StrView(cb_options?cb_options:"");
+    auto cbinput = NC::MiniMC::CB::decodeCBMgrInput( sv_cboptions );
 
-    NC::MiniMC::CB::CBMgrInput cbinput;
     cbinput.callbackfct
       = [&cbfct]( const NC::MiniMC::CB::DataArea& cbdata )
     {
@@ -2484,7 +2481,7 @@ char* ncrystal_flexmmcrun( const char * jsonquery,
       nc_assert( cbdata.size() <= std::numeric_limits<unsigned long>::max() );
       const auto n_neutrons = static_cast<unsigned long>( cbdata.size() );
       //Invoke the user callback:
-      cbfct( cbdata.view_data(), cbdata.fieldsTypeForCallBack(), n_neutrons );
+      cbfct( cbdata.view_data(), cbdata.basketTypeForCallBack(), n_neutrons );
     };
     std::ostringstream os;
     NC::MiniMC::Query::JSONQuery_flexmmcrun( os, query, cbinput );

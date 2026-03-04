@@ -435,6 +435,7 @@ def main( progname, arglist ):
         cmdquoted = cmdquoted.replace("'",'"')
         print('  %s'%cmdquoted)
         del _c, _g, _s, _e,_exargs,cmdquoted
+        return
 
     if res is None and any( e is not None
                             for e in (args.plot, args.outputfile, args.dump) ):
@@ -448,7 +449,11 @@ def main( progname, arglist ):
 
     if args.plot:
         assert res is not None
-        for t in res.tallies:
+        tallies=res.tallies
+        if not res.tallies:
+            from ._common import warn as ncwarn
+            ncwarn('No tallies are available to plot.')
+        for t in tallies:
             #fixme filter in case of input!!!
             t.plot()
             #FIXME: plots are missing a title! We should also get some output,

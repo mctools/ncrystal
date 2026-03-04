@@ -45,126 +45,6 @@
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
-    struct DPCacheData {
-      using data_t = DPCacheData;
-      using idx_t = std::size_t;
-      BasketValBufInt nscat;
-      BasketValBufBool sawinelas;
-      BasketValBufDbl scatxsval;//if already know scat-xs (<0.0 means unknown)
-
-      //fixme: Check which of these we really need?
-      void markAsMissedTarget( std::size_t i ) noexcept { this->nscat[i] = -1; }
-
-      void markScatteredElastic( std::size_t i ) noexcept
-      {
-        ++this->nscat[i];
-      }
-
-      void markScatteredInelastic( std::size_t i ) noexcept {
-        ++this->nscat[i];
-        this->sawinelas[i] = true;
-      }
-
-      void init( std::size_t i ) noexcept
-      {
-        nscat[i] = 0;
-        sawinelas[i] = false;
-        scatxsval[i] = -1.0;
-      }
-
-      void copyEntryFromOther( const data_t& o, std::size_t i_o, std::size_t i ) noexcept
-      {
-        nscat[i] = o.nscat[i_o];
-        sawinelas[i] = o.sawinelas[i_o];
-        scatxsval[i] = o.scatxsval[i_o];
-
-      }
-      void copyEntriesFromOther( const data_t& o, std::size_t i,
-                                 std::size_t i_o, std::size_t n ) ncnoexceptndebug
-      {
-        nc_assert( this != &o );
-        nc_assert( i+n <= basket_N );
-        nc_assert( i_o+n <= basket_N );
-        detail::memcpydata<int>( nscat.data + i,o.nscat.data + i_o,n );
-        detail::memcpydata<bool>( sawinelas.data + i,
-                                  o.sawinelas.data + i_o, n );
-        detail::memcpydata<double>( scatxsval.data + i,
-                                    o.scatxsval.data + i_o, n );
-      }
-
-    };
-
-    static_assert( std::is_standard_layout<DPCacheData>::value, "" );
-
-    class BasketView_StdEngine final : public BasketView {
-      //Fixme: We should migrate to a different view mechanism.
-      const CachedNeutronBasket<DPCacheData> * m_b;
-    public:
-      BasketView_StdEngine( const CachedNeutronBasket<DPCacheData> * b )
-        : m_b(b) {}
-      const NeutronBasket& neutrons() const override { return m_b->neutrons; }
-      const BasketValBufInt * nscat() const override { return &m_b->cache.nscat; }
-      const BasketValBufBool * sawinelas() const override { return &m_b->cache.sawinelas; }
-      const NeutronBasketFields* neutrons_original() const override { return nullptr; }
-    };
-
-    class StdEngine final {
-    public:
-      using cache_t = DPCacheData;
-      using basket_t = CachedNeutronBasket<cache_t>;
-      using basketmgr_t = BasketMgr<basket_t>;
-      using basket_holder_t = typename basketmgr_t::basket_holder_t;
-      static constexpr int local_basket_max_poolsize = 4;
-      using heapmem_t = typename basket_holder_t::heapmem_t;
-      using heapmempool_t = HeapMemPool<heapmem_t,local_basket_max_poolsize>;
-      using matdef_t = MatDef;
-      using basket_view_t = BasketView_StdEngine;
-    private:
-      EngineOpts m_opt;
-      double m_opt_roulette_survivor_boost;
-      matdef_t m_mat;
-      CachePtr m_sct_cacheptr;
-      CachePtr m_abs_cacheptr;
-
-      heapmempool_t m_mempool;
-      basket_holder_t allocateBasket( basketmgr_t& mgr )
-      {
-        if ( m_mempool.empty() )
-          return mgr.allocateBasket();
-        return { m_mempool.allocate() };
-      }
-
-      void deallocateBasket( basketmgr_t& mgr, basket_holder_t&& bh )
-      {
-        if ( m_mempool.size() == local_basket_max_poolsize )
-          mgr.deallocateBasket( std::move(bh) );
-        else
-          m_mempool.deallocate( bh.stealMemory() );
-      }
-
-      //We need a few buffers (careful with memory usage!):
-      double m_buf_disttoexit[basket_N];
-      double m_buf_xs_abs[basket_N];
-      double m_buf_ptransm[basket_N];
-      double m_buf_disttoscat[basket_N];
-
-    public:
-
-      StdEngine( matdef_t md, const EngineOpts& opts = {} );
-
-      shared_obj<StdEngine> clone_so()
-      {
-        return makeSO<StdEngine>( m_mat, m_opt );
-      }
-
-      using resultfct_t = std::function<void(const basket_t&)>;
-      void advanceSimulation( RNG& rng,
-                              const Geometry& geom,
-                              basket_holder_t&& inbasket_holder,
-                              basketmgr_t& mgr,
-                              const resultfct_t& resultFct );
-    };
-
     class SimEngine : NoCopyMove {
     public:
       //Fixme: this interface should go somewhere else.
@@ -186,7 +66,6 @@ namespace NCRYSTAL_NAMESPACE {
 
       //Advance the simulation one step. This does not need to be multi-thread
       //safe.
-      using TallyFct = std::function<void(const UniversalBasket&)>;
       virtual void step( UniversalBasket,
                          RNG&,
                          UniversalBasketMgr&,

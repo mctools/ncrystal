@@ -41,16 +41,17 @@ from ._mmc_utils import MMCResults, MMCTallyView
 #Various API entry points:
 
 def minimc_run( cfgstr, *, geomcfg, srccfg, enginecfg,
-                callback = None ):
+                callback = None, callback_options = None ):
     """Run the NCrystal MiniMC with the provided cfg-strings for material,
     geometry, source and engine. Returns result wrapped in an MMCResults object.
 
     Optionally, a callback function can be provided by expert users in order to
-    access on the full set of data of all tallied neutrons.
+    access the full set of all tallied neutrons.
     """
     res = _minimc_raw( cfgstr = cfgstr, geomcfg = geomcfg,
                        srccfg = srccfg, enginecfg = enginecfg,
-                       unpack = True, callback = callback )
+                       unpack = True, callback = callback,
+                       callback_options = callback_options )
     return MMCResults(res)
 
 def minimc_decode_scenario( cfgstr, scenario ):
@@ -70,7 +71,8 @@ def minimc_decode_scenario( cfgstr, scenario ):
 
 def minimc_run_scenario( cfgstr, scenario, *,
                          extra_engineopts = None,
-                         callback = None ):
+                         callback = None,
+                         callback_options = None ):
     """Convenience function which combines minimc_decode_scenario and minimc_run.
 
     First the minimc_decode_scenario(..) function is used to obtain geomcfg,
@@ -83,8 +85,8 @@ def minimc_run_scenario( cfgstr, scenario, *,
     If extra_engineopts is not None, it must be a string which will be appended
     to the automatically generated engineopts.
 
-    Any provided callback function is simply passed along to the minimc_run
-    call.
+    Any provided callback function or callback_options are simply passed along
+    to the minimc_run call.
 
     """
     dec = minimc_decode_scenario( cfgstr, scenario )
@@ -97,12 +99,14 @@ def minimc_run_scenario( cfgstr, scenario, *,
         geomcfg = dec['geomcfg'],
         srccfg = dec['srccfg'],
         enginecfg = ec,
-        callback = callback
+        callback = callback,
+        callback_options = callback_options,
     )
 
 def _minimc_raw( cfgstr, *,
                  geomcfg, srccfg, enginecfg,
-                 unpack=False, callback = None ):
+                 unpack=False,
+                 callback = None, callback_options = None ):
     """Raw invocation of the MiniMC engine via a low level query, accepting 4
     configuration strings and returning a JSON string with the results.
 
@@ -115,12 +119,15 @@ def _minimc_raw( cfgstr, *,
     assert isinstance(geomcfg, str), "geomcfg parameter must be a string"
     assert isinstance(srccfg, str), "srccfg parameter must be a string"
     assert isinstance(enginecfg, str), "enginecfg parameter must be a string"
+    if not callback_options is None:
+        assert isinstance(callback_options, str), ("callback_options parameter"
+                                                   " must be a string")
 
     query = ['mmc','run', cfgstr, geomcfg, srccfg, enginecfg]
     if callback:
         from ._chooks import _get_raw_cfcts
         _rawfct = _get_raw_cfcts()
-        res = _rawfct['flexmmcrun']( query, callback )
+        res = _rawfct['flexmmcrun']( query, callback, callback_options )
     else:
         from ._common import json_query_cpplayer
         res = json_query_cpplayer( query, unpack = False )
