@@ -23,6 +23,7 @@
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
 #include "NCrystal/internal/utils/NCStrView.hh"
+#include "NCrystal/internal/extd_utils/NCABIUtils.hh"
 #include "NCMMC_ParseCfg.hh"
 
 namespace NC = NCrystal;
@@ -33,6 +34,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     namespace {
       using EParsed = parseMMCCfg::EParsed;
+      using FlexRangeValue = parseMMCCfg::FlexRangeValue;
 
       class StatCount {
       public:
@@ -80,12 +82,177 @@ namespace NCRYSTAL_NAMESPACE {
         std::size_t m_norig;
       };
 
-      void sourceJSONHelper_energyItems( std::ostream& os, NeutronEnergy ekin )
+      void setEnergy_Maxwell( double halfkT,
+                              const StatCount::FillCounts& counts,
+                              RNG& rng,
+                              BasketValBufDbl& buf_ekin )
       {
-        os << ",\"wl\":";
-        streamJSON(os,ekin.wavelength().get());
-        os << ",\"ekin\":";
-        streamJSON(os,ekin.get());
+        //Essentially sample 3 std gaussian numbers, G1, G2, G3, then
+        //
+        //  E = ( G1^2+G2^2+G3^2 )*kT/2
+        //
+        //(the physics here is that we sample three velocity components
+        //independently, hence 3 gaussian numbers)
+
+        nc_assert( counts.N > counts.i0 );
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf_ekin[i] = randNorm( rng );
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf_ekin[i] *= buf_ekin[i];
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf_ekin[i] += ncsquare( randNorm( rng ) );
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf_ekin[i] += ncsquare( randNorm( rng ) );
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf_ekin[i] *= halfkT;
+      }
+
+      void convertBufWl2E( const StatCount::FillCounts& counts,
+                           BasketValBufDbl& buf )
+      {
+        //Converts lambda -> E, as E=k/lambda^2 in a way which handles
+        //infinities and zero divisions appropriately and without triggering
+        //zero division FPEs.
+        nc_assert( counts.N > counts.i0 );
+
+        //square:
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf[i] *= buf[i];
+
+        //Safe reciprocal which does not trigger zero division FPE and correctly
+        //maps 0 -> inf:
+        constexpr double tiny = std::numeric_limits<double>::denorm_min();
+        nc_assert( ncisinf(1.0/tiny) );
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf[i] = 1.0/ncmax(tiny,buf[i]);
+
+        //Final factor:
+        constexpr double conv_factor = wlsq2ekin(1.0);
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf[i] *= conv_factor;
+      }
+
+
+      void setEnergy_UniformRange( const EParsed& ecfg,
+                                   const StatCount::FillCounts& counts,
+                                   RNG& rng,
+                                   BasketValBufDbl& buf_ekin )
+      {
+        auto& fr = ecfg.flexrange.value();
+        nc_assert( fr.mode == FlexRangeValue::Mode::UniformRange );
+
+        const double genval1 = fr.fr.value;
+        const double genval2 = fr.fr.secondary_value.value();
+        const double delta_genval = genval2 - genval1;
+        nc_assert( delta_genval > 0 );
+        nc_assert( genval2 > genval1 );
+
+        //uniform from genval1 to genval2:
+        nc_assert( counts.N > counts.i0 );
+        std::size_t nvals = counts.N - counts.i0;
+        nc_assert( nvals <= basket_N );
+        NewABI::generateMany( rng, nvals, buf_ekin.data + counts.i0 );
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf_ekin[i] *= delta_genval;
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf_ekin[i] += genval1;
+
+        //clamp upper edge as added safety:
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf_ekin[i] = ncmin( genval2, buf_ekin[i] );
+
+        if ( fr.mode == EParsed::Mode::Wavelength )
+          convertBufWl2E( counts, buf_ekin );
+
+#ifndef NDEBUG
+        static int validate = []()
+        {
+          BasketValBufDbl vbuf;
+          vbuf[0] = 0.0;
+          vbuf[1] = std::numeric_limits<double>::infinity();
+          vbuf[2] = 1.8;
+          StatCount::FillCounts vcounts;
+          vcounts.i0 = 0;
+          vcounts.N = 3;
+          convertBufWl2E( vcounts, vbuf );
+          nc_assert( !(ncisnan(vbuf[0])||ncisnan(vbuf[1])||ncisnan(vbuf[2])) );
+          nc_assert( ncisinf(vbuf[0]) );
+          nc_assert( vbuf[1] == 0 );
+          nc_assert( floateq(ekin2wl(vbuf[2]),1.8) );
+          return 1;
+        }();
+        (void)validate;
+#endif
+      }
+
+      void setEnergy_LogNormal( const EParsed& ecfg,
+                                const StatCount::FillCounts& counts,
+                                RNG& rng,
+                                BasketValBufDbl& buf_ekin )
+      {
+        auto& fr = ecfg.flexrange.value();
+        const double& mu_n = ecfg.cachevals.first;
+        const double& sigma_n = ecfg.cachevals.second;
+        nc_assert( counts.N > counts.i0 );
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf_ekin[i] = randNorm( rng );
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf_ekin[i] *= sigma_n;
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf_ekin[i] += mu_n;
+        for ( std::size_t i = counts.i0; i < counts.N; ++i )
+          buf_ekin[i] = std::exp(buf_ekin[i]);
+        if ( fr.mode == EParsed::Mode::Wavelength )
+          convertBufWl2E( counts, buf_ekin );
+      }
+
+      void setEnergy( const EParsed& ecfg,
+                      const StatCount::FillCounts& counts,
+                      RNG& rng,
+                      BasketValBufDbl& buf_ekin ) {
+        if ( ecfg.fixed_ekin.has_value() ) {
+          //Fast path for fixed energy:
+          nc_assert( ecfg.flexrange.value().fr.mode
+                     == FlexRangeValue::Mode::Fixed );
+          const double eval = ecfg.fixed_ekin.value().get();
+          for ( std::size_t i = counts.i0; i < counts.N; ++i )
+            buf_ekin.data[i] = eval;
+          return;
+        }
+        if ( ecfg.maxwell.has_value() ) {
+          nc_assert( floateq( ecfg.maxwell.value().kT()*0.5
+                              - ecfg.cachevals.first ) );
+          setEnergy_Maxwell( ecfg.cachevals.first, counts, rng, buf_ekin);
+        } else {
+          auto& fr = ecfg.flexrange.value();
+          if (fr.fr.mode == FlexRangeValue::Mode::UniformRange ) {
+            setEnergy_UniformRange(ecfg,counts,rng,buf_ekin);
+          } else {
+            nc_assert( fr.fr.mode == FlexRangeValue::Mode::LogNormal );
+            setEnergy_LogNormal(ecfg,counts,rng,buf_ekin);
+          }
+        }
+      }
+      void sourceJSONHelper_energyItems( std::ostream& os, const EParsed& ep )
+      {
+        if ( ep.maxwell.has_value() ) {
+          os << ",\"wl\":null,\"ekin\":";
+          os << "{\"mode\":\"maxwell\",\"temperature\":";
+          streamJSON(os,ep.maxwell.value().get());
+          os << '}';
+        } else {
+          auto& fr = ep.flexrange.value();
+          if ( fr.mode == EParsed::Mode::Energy ) {
+            os << ",\"wl\":null,\"ekin\":";
+            fr.fr.toJSON(os);
+          } else {
+            os << ",\"wl\":";
+            fr.fr.toJSON(os);
+            os << ",\"ekin\":null";
+          }
+        }
+        os <<",\"energy_description\":";
+        streamJSON(os,ep.description);
       }
 
       void sourceJSONHelper_direction( std::ostream& os, NeutronDirection dir )
@@ -132,8 +299,9 @@ namespace NCRYSTAL_NAMESPACE {
                              src.nominalBeamDirection() );
         streamJSONDictEntry( os, "nominal_beam_energy",
                              src.nominalBeamEnergy() );
-        streamJSONDictEntry( os, "nominal_beam_energy_str",
-                             src.nominalBeamEnergyStr() );
+        //Already in "energy_description":
+        // streamJSONDictEntry( os, "beam_energy_str",
+        //                      src.beamEnergyStr() );
         os << "}}";
       }
 
@@ -148,19 +316,15 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       void sourceCfgStrHelper_energyItems( std::ostream& os,
-                                           NeutronEnergy ekin )
+                                           const EParsed& ep )
       {
-        auto wl = ekin.wavelength();
-        std::ostringstream ss_wl;
-        ss_wl << fmt(wl.get());
-        std::ostringstream ss_ekin;
-        ss_ekin << fmt(ekin.get());
-        std::string s_wl(ss_wl.str());
-        std::string s_ekin(ss_ekin.str());
-        if ( s_wl.size() < s_ekin.size() )
-          os << ";wl="<<s_wl;
-        else
-          os << ";ekin="<<s_ekin;
+        if ( ep.maxwell.has_value() ) {
+          os << ";ekin=thermal:"<<fmt(ep.maxwell.value().get())<<'K';
+        } else {
+          auto& fr = ep.flexrange.value();
+          os << ( fr.mode == EParsed::Mode::Energy ? ";ekin=" : ";wl=" );
+          fr.fr.toString(os);
+        }
       }
 
       void sourceCfgStrHelper_namexyzwn( std::ostream& os,
@@ -189,9 +353,8 @@ namespace NCRYSTAL_NAMESPACE {
         Length m_y;
         Length m_z;
         double m_w = 1.0;
-        NeutronEnergy m_ekin;
+        EParsed m_einfo;
         double m_minusr = 0.0;
-        std::string m_ekinstr;
      public:
 
         //Note: If radius is set to a positive value, we move particles
@@ -200,24 +363,24 @@ namespace NCRYSTAL_NAMESPACE {
         //that amount (i.e. a sphere radiating outwards).
 
         SourceIsotropic( std::size_t n,
-                         const EParsed& ekin_parsed,
+                         EParsed ekin_parsed,
                          double weight,
                          Length x = Length{0},
                          Length y = Length{0},
                          Length z = Length{0},
                          double radius = 0.0 )
           : m_stat(n), m_x(x), m_y(y), m_z(z),
-            m_w(weight), m_ekin(ekin_parsed.energy),
-            m_minusr(radius?-radius:0.0),
-            m_ekinstr(ekin_parsed.title)
+            m_w(weight),
+            m_einfo(std::move(ekin_parsed)),
+            m_minusr(radius?-radius:0.0)
         {
           nc_assert_always(m_w>0.0&&std::isfinite(m_w));
           nc_assert_always(std::isfinite(radius)&&ncabs(radius)<1e99);
         }
 
-        Optional<std::string> nominalBeamEnergyStr() const override
+        Optional<std::string> beamEnergyStr() const override
         {
-          return m_ekinstr;
+          return m_einfo.description;
         }
 
         Optional<NeutronDirection> nominalBeamDirection() const override
@@ -227,13 +390,13 @@ namespace NCRYSTAL_NAMESPACE {
 
         Optional<NeutronEnergy> nominalBeamEnergy() const override
         {
-          return m_ekin;
+          return m_einfo.nominal_beamenergy();
         }
 
         void toJSONDecodedCfgItems(std::ostream& os) const
         {
           sourceJSONHelper_namexyzwn(os,"isotropic",m_x,m_y,m_z,m_w,m_stat);
-          sourceJSONHelper_energyItems(os,m_ekin);
+          sourceJSONHelper_energyItems(os,m_einfo);
           os << ",\"r\":";
           streamJSON(os,(m_minusr?-m_minusr:0.0));
         }
@@ -247,7 +410,7 @@ namespace NCRYSTAL_NAMESPACE {
         {
           sourceCfgStrHelper_namexyzwn(os, "isotropic",
                                        m_x, m_y, m_z, m_w, m_stat );
-          sourceCfgStrHelper_energyItems( os, m_ekin );
+          sourceCfgStrHelper_energyItems( os, m_einfo );
           if ( m_minusr != 0.0 )
             os << ";r="<<fmt((m_minusr?-m_minusr:0.0));
         }
@@ -265,7 +428,8 @@ namespace NCRYSTAL_NAMESPACE {
           {
             //Fixme: should this just be the toCfgStr/toJSON now??
             std::ostringstream ss;
-            ss << "SourceIsotropic("<<m_ekin<<", pos=["
+            ss << "SourceIsotropic("<<m_einfo.description
+               <<", pos=["
                << m_x<<", "<< m_y<<", "<< m_z<<"]";
             if ( m_minusr )
               ss << ", r="<<(m_minusr?-m_minusr:0.0);
@@ -284,9 +448,13 @@ namespace NCRYSTAL_NAMESPACE {
 
         void fillBasket( RNG& rng, NeutronBasket& nb ) override
         {
+          nc_assert( !nb.full() );
           auto counts = m_stat.updateBasketCounts( nb );
           NCRYSTAL_DEBUGMMCMSG("Source Filling n="<<(counts.N-counts.i0)
                                <<" with xyz: " <<m_x<<", "<<m_y<<", "<<m_z);
+          if ( counts.N == counts.i0 )
+            return;
+          nc_assert( counts.N > counts.i0 );
           auto& f = nb.fields;
           for ( std::size_t i = counts.i0; i < counts.N; ++i ) {
             auto v = randIsotropicDirection( rng );
@@ -302,8 +470,7 @@ namespace NCRYSTAL_NAMESPACE {
             f.z[i] = m_z.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
             f.w[i] = m_w;
-          for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.ekin[i] = m_ekin.dbl();
+          setEnergy( m_einfo, counts, rng, f.ekin );
           if ( m_minusr ) {
             //Move particles u*(-r):
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
@@ -324,12 +491,11 @@ namespace NCRYSTAL_NAMESPACE {
         Length m_z;
         NeutronDirection m_dir;
         double m_w = 1.0;
-        NeutronEnergy m_ekin;
-        std::string m_ekinstr;
+        EParsed m_einfo;
       public:
 
         SourceConstant( std::size_t n,
-                        const EParsed& ekin_parsed,
+                        EParsed ekin_parsed,
                         double weight,
                         Length x,
                         Length y,
@@ -338,15 +504,14 @@ namespace NCRYSTAL_NAMESPACE {
           : m_stat(n), m_x(x), m_y(y), m_z(z),
             m_dir( direction.as<Vector>().unit().as<NeutronDirection>() ),
             m_w(weight),
-            m_ekin(ekin_parsed.energy),
-            m_ekinstr(ekin_parsed.title)
+            m_einfo(std::move(ekin_parsed))
         {
           nc_assert_always(m_w>0.0&&std::isfinite(m_w));
         }
 
-        Optional<std::string> nominalBeamEnergyStr() const override
+        Optional<std::string> beamEnergyStr() const override
         {
-          return m_ekinstr;
+          return m_einfo.description;
         }
 
         Optional<NeutronDirection> nominalBeamDirection() const override
@@ -356,13 +521,13 @@ namespace NCRYSTAL_NAMESPACE {
 
         Optional<NeutronEnergy> nominalBeamEnergy() const override
         {
-          return m_ekin;
+          return m_einfo.nominal_beamenergy();
         }
 
         void toJSONDecodedCfgItems(std::ostream& os) const
         {
           sourceJSONHelper_namexyzwn(os,"constant",m_x,m_y,m_z,m_w,m_stat);
-          sourceJSONHelper_energyItems(os,m_ekin);
+          sourceJSONHelper_energyItems(os,m_einfo);
           sourceJSONHelper_direction(os,m_dir);
         }
 
@@ -375,7 +540,7 @@ namespace NCRYSTAL_NAMESPACE {
         {
           sourceCfgStrHelper_namexyzwn( os, "constant",
                                         m_x, m_y, m_z, m_w, m_stat );
-          sourceCfgStrHelper_energyItems( os, m_ekin );
+          sourceCfgStrHelper_energyItems( os, m_einfo );
           sourceCfgStrHelper_direction( os, m_dir );
         }
 
@@ -388,11 +553,11 @@ namespace NCRYSTAL_NAMESPACE {
 
         SourceMetaData metaData() const override
         {
-
           SourceMetaData md;
           {
             std::ostringstream ss;
-            ss << "SourceConstant("<<m_ekin<<", pos=["<< m_x<<", "
+            ss << "SourceConstant("<<m_einfo.description
+               <<", pos=["<< m_x<<", "
                << m_y<<", "<< m_z<<"], dir="<<m_dir<<")";
             md.description = ss.str();
           }
@@ -406,12 +571,16 @@ namespace NCRYSTAL_NAMESPACE {
           return !geom.pointIsInside( { m_x.dbl(), m_y.dbl(), m_z.dbl() } );
         }
 
-        void fillBasket( RNG&, NeutronBasket& nb ) override
+        void fillBasket( RNG& rng, NeutronBasket& nb ) override
         {
+          nc_assert( !nb.full() );
           auto counts = m_stat.updateBasketCounts( nb );
           NCRYSTAL_DEBUGMMCMSG("Source Filling n="<<(counts.N-counts.i0)
                                <<" with xyz: " <<m_x<<", "<<m_y<<", "<<m_z
                                <<" and dir: "<<m_dir);
+          if ( counts.N == counts.i0 )
+            return;
+          nc_assert( counts.N > counts.i0 );
           auto& f = nb.fields;
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
             f.ux[i] = m_dir[0];
@@ -427,8 +596,7 @@ namespace NCRYSTAL_NAMESPACE {
             f.z[i] = m_z.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
             f.w[i] = m_w;
-          for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.ekin[i] = m_ekin.dbl();
+          setEnergy( m_einfo, counts, rng, f.ekin );
         }
       };
 
@@ -442,13 +610,12 @@ namespace NCRYSTAL_NAMESPACE {
         NeutronDirection m_dir;//beam direction
         Vector m_a, m_b;//basis vectors orthogonal to m_dir;
         double m_w = 1.0;
-        NeutronEnergy m_ekin;
         Length m_radius;//for metadata
-        std::string m_ekinstr;
+        EParsed m_einfo;
       public:
 
         SourceUniformCircularBeam( std::size_t n,
-                                   const EParsed& ekin_parsed,
+                                   EParsed ekin_parsed,
                                    double weight,
                                    Length radius,
                                    Length x,
@@ -458,9 +625,8 @@ namespace NCRYSTAL_NAMESPACE {
           : m_stat(n), m_center{ x.get(), y.get(), z.get() },
             m_dir( direction.as<Vector>().unit().as<NeutronDirection>() ),
             m_w(weight),
-            m_ekin(ekin_parsed.energy),
             m_radius(radius),
-            m_ekinstr(ekin_parsed.title)
+            m_einfo(std::move(ekin_parsed))
         {
           nc_assert_always(m_w>0.0&&std::isfinite(m_w));
           const Vector& vdir = m_dir.as<Vector>();
@@ -486,14 +652,15 @@ namespace NCRYSTAL_NAMESPACE {
             m_b *= m_radius.get();
           }
           NCRYSTAL_DEBUGMMCMSG("SourceUniformCircularBeam(center="
-                               <<m_center<<", dir="<<m_dir<<", ekin="<<m_ekin
+                               <<m_center<<", dir="<<m_dir
+                               <<", energy="<<m_einfo.description
                                <<", r="<<m_radius
                                <<", a="<<m_a<<", b="<<m_b);
         }
 
-        Optional<std::string> nominalBeamEnergyStr() const override
+        Optional<std::string> beamEnergyStr() const override
         {
-          return m_ekinstr;
+          return m_einfo.description;
         }
 
         Optional<NeutronDirection> nominalBeamDirection() const override
@@ -503,7 +670,7 @@ namespace NCRYSTAL_NAMESPACE {
 
         Optional<NeutronEnergy> nominalBeamEnergy() const override
         {
-          return m_ekin;
+          return m_einfo.nominal_beamenergy();
         }
 
         void toJSONDecodedCfgItems(std::ostream& os) const
@@ -513,7 +680,7 @@ namespace NCRYSTAL_NAMESPACE {
                                      Length{m_center[1]},
                                      Length{m_center[2]},
                                      m_w,m_stat);
-          sourceJSONHelper_energyItems(os,m_ekin);
+          sourceJSONHelper_energyItems(os,m_einfo);
           sourceJSONHelper_direction(os,m_dir);
           os << ",\"r\":";
           streamJSON(os,m_radius.get());
@@ -531,7 +698,7 @@ namespace NCRYSTAL_NAMESPACE {
                                        Length{m_center[1]},
                                        Length{m_center[2]},
                                        m_w, m_stat );
-          sourceCfgStrHelper_energyItems( os, m_ekin );
+          sourceCfgStrHelper_energyItems( os, m_einfo );
           sourceCfgStrHelper_direction( os, m_dir );
           //radius is always required, hence must always be here:
           os << ";r="<<fmt(m_radius.get());
@@ -550,7 +717,8 @@ namespace NCRYSTAL_NAMESPACE {
           SourceMetaData md;
           {
             std::ostringstream ss;
-            ss << "SourceUniformCircularBeam("<<m_ekin<<", r="<<m_radius
+            ss << "SourceUniformCircularBeam("<<m_einfo.description
+               <<", r="<<m_radius
                <<", pos=["<< Length{m_center.x()}
               <<", "<< Length{m_center.y()}
               <<", "<< Length{m_center.z()}<<"], dir="<<m_dir<<")";
@@ -574,8 +742,12 @@ namespace NCRYSTAL_NAMESPACE {
 
         void fillBasket( RNG& rng, NeutronBasket& nb ) override
         {
+          nc_assert( !nb.full() );
           auto counts = m_stat.updateBasketCounts( nb );
           NCRYSTAL_DEBUGMMCMSG("Source Filling n="<<(counts.N-counts.i0));
+          if ( counts.N == counts.i0 )
+            return;
+          nc_assert( counts.N > counts.i0 );
           auto& f = nb.fields;
           if ( m_radius.get() > 0.0 ) {
             //Randomised positions:
@@ -605,8 +777,7 @@ namespace NCRYSTAL_NAMESPACE {
             f.uz[i] = m_dir[2];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
             f.w[i] = m_w;
-          for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.ekin[i] = m_ekin.dbl();
+          setEnergy( m_einfo, counts, rng, f.ekin );
         }
       };
 
@@ -620,13 +791,12 @@ namespace NCRYSTAL_NAMESPACE {
         if ( !src_name.has_value() )
           NCRYSTAL_THROW2(BadInput,"Invalid src cfg: \""<<raw_srcstr<<"\"");
 
-        const char * common_defaults = "n=1e6;w=1.0";
-        // auto common_default_energy = NeutronWavelength{ 1.8 }.energy();
+        //Energy is the same for all sources:
+        auto energy = PMC::getValue_Energy( tokens,
+                                            StrView("1.8") );//default 1.8Aa
 
-        EParsed common_default_energy;
-        common_default_energy.energy = NeutronWavelength{ 1.8 };
-        common_default_energy.title = "1.8Aa";
-        auto energy = PMC::getValue_Energy( tokens, common_default_energy );
+        //Other common defaults:
+        const char * common_defaults = "n=1e6;w=1.0";
 
         if ( src_name == "constant" ) {
           PMC::applyDefaults( tokens, common_defaults );
@@ -634,7 +804,7 @@ namespace NCRYSTAL_NAMESPACE {
           PMC::checkNoUnknown(tokens,"ekin;wl;n;w;;x;y;z;ux;uy;uz","source");
           return makeSO<SourceConstant>
             ( PMC::getValue_sizet(tokens,"n"),
-              energy,
+              std::move(energy),
               PMC::getValue_weight( tokens, "w" ),
               Length{ PMC::getValue_dbl(tokens,"x") },
               Length{ PMC::getValue_dbl(tokens,"y") },
@@ -649,7 +819,7 @@ namespace NCRYSTAL_NAMESPACE {
           PMC::checkNoUnknown(tokens,"ekin;wl;n;w;;x;y;z;ux;uy;uz;r","source");
           return makeSO<SourceUniformCircularBeam>
             ( PMC::getValue_sizet(tokens,"n"),
-              energy,
+              std::move(energy),
               PMC::getValue_weight( tokens, "w" ),
               Length{ PMC::getValue_dbl(tokens,"r") },
               Length{ PMC::getValue_dbl(tokens,"x") },
@@ -668,7 +838,7 @@ namespace NCRYSTAL_NAMESPACE {
                              : 0.0 );
           return makeSO<SourceIsotropic>
             ( PMC::getValue_sizet(tokens,"n"),
-              energy,
+              std::move(energy),
               PMC::getValue_weight( tokens, "w" ),
               Length{ PMC::getValue_dbl(tokens,"x") },
               Length{ PMC::getValue_dbl(tokens,"y") },

@@ -114,6 +114,34 @@ def main():
     test('mmc','inspectcfg','src','isotropic; z=-10;ekin=0.025')
     test('mmc','inspectcfg','src','circular; r=0.1;z=-1;wl=1.8;ux=1')
 
+    test('mmc','inspectcfg','src','constant; z=-10;wl=2.0-3.0')
+    test('mmc','inspectcfg','src','constant; z=-10;ekin=0.025-1.0')
+    test('mmc','inspectcfg','src','constant; z=-10;wl=2.0+-0.1')
+    test('mmc','inspectcfg','src','constant; z=-10;ekin=0.025+-0.001')
+    test('mmc','inspectcfg','src','constant; z=-10;ekin=thermal:50K')
+    energy_helpstr="""
+    Examples for how to set: "ekin=0.025" (fixed in eV), "wl=1.8" (fixed in Aa),
+    "ekin=0.025-0.05" (uniform range in eV), "wl=1.8-5" (uniform range in Aa),
+    "ekin=0.025+-0.001" (log-normal of given mean and rms in eV), "wl=1.8+-0.01"
+    (log-normal of given mean and rms in Aa), "ekin=thermal:77" (thermal Maxwell
+    of given temperature in K).
+    """
+    energy_helpstr=' '.join(energy_helpstr.split())
+    with ensure_error(NCBadInput,
+                      f'Invalid value for parameter "ekin". {energy_helpstr}'):
+        test('mmc','inspectcfg','src','constant; z=-10;ekin=1eV')
+    with ensure_error(NCBadInput,
+                      f'Invalid value for parameter "wl". {energy_helpstr}'):
+        test('mmc','inspectcfg','src','constant; z=-10;wl=1Aa')
+    with ensure_error(NCBadInput,energy_helpstr):
+        test('mmc','inspectcfg','src','constant; z=-10;wl=help')
+    with ensure_error(NCBadInput,energy_helpstr):
+        test('mmc','inspectcfg','src','constant; z=-10;ekin=help')
+    with ensure_error(NCBadInput,
+                      'For a Maxwell distribution, do not use the "wl" para'
+                      'meter (use "ekin" instead, like "ekin=thermal:300K").'):
+        test('mmc','inspectcfg','src','constant; z=-10;wl=thermal:50K')
+
     #Test length formatting by testing various scale of thicknesses:
     test('mmc','inspectcfg','geom','slab;dz=1e-10')
     test('mmc','inspectcfg','geom','slab;dz=2e-6')

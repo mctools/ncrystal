@@ -171,39 +171,253 @@ namespace NCRYSTAL_NAMESPACE {
         return true;
       }
 
+      struct FlexRangeValue {
+        //Structure representing string values for positive quantities like
+        // energy or wavelength:
+        //  "<singleval>" (Mode::Fixed)
+        //  "<val1>-<val2>" (Mode::UniformRange)
+        //  "<val1>+-<val2>" (Mode::LogNormal)
+        enum class Mode { Fixed, UniformRange, LogNormal };
+        Mode mode = Mode::Fixed;
+        double value;
+        Optional<double> secondary_value;
+        SmallVector<std::string,2> strforms;
+        void toString( std::ostream& os ) const {
+          if ( mode == Mode::Fixed ) {
+            nc_assert(strforms.size()==1);
+            os << strforms.at(0);
+          } else {
+            nc_assert(strforms.size()==2);
+            os << strforms.at(0)
+               << ( mode==Mode::UniformRange ? "-" : "+-" )
+               << strforms.at(1);
+          }
+        }
+        void toStringWithUnit( std::ostream& os, StrView unit ) const {
+          if ( mode == Mode::Fixed ) {
+            toString(os);
+            os << unit;
+            return;
+          }
+          os << '(';
+          toString(os);
+          os << ')' << unit;
+        }
+
+        void toJSON( std::ostream& os ) const {
+          os << "{\"mode\":";
+          if ( mode == Mode::Fixed ) {
+            nc_assert(strforms.size()==1);
+            nc_assert(!secondary_value.has_value());
+            os << "\"fixed\",\"value\":";
+            streamJSON(os,value);
+          } else {
+            nc_assert(strforms.size()==2);
+            nc_assert(secondary_value.has_value());
+            if ( mode == Mode::UniformRange ) {
+              os << "\"uniformrange\",\"range_low\":";
+              streamJSON(os,value);
+              os << ",\"range_high\":";
+            } else {
+              nc_assert_always(mode == Mode::LogNormal);
+              os << "\"lognormal\",\"mean\":";
+              streamJSON(os,value);
+              os << ",\"rms\":";
+            }
+            streamJSON(os,secondary_value.value());
+          }
+          os << '}';
+        }
+      };
+
+      inline FlexRangeValue parse_flexrange( StrView val_str, StrView key,
+                                             const char * energy_helpstr )
+      {
+        auto bad = [&key,energy_helpstr]()
+        {
+          NCRYSTAL_THROW2(BadInput,
+                          "Invalid value for parameter \""<<key<<"\". "
+                          <<energy_helpstr);
+        };
+        FlexRangeValue res;
+        SmallVector<StrView,2> parts;
+        if ( val_str.contains("+-") ) {
+          res.mode = FlexRangeValue::Mode::LogNormal;
+          auto i = val_str.find_first_of("+-");
+          parts.emplace_back( val_str.substr(0,i) );
+          nc_assert( val_str.substr(i).startswith("+-") );
+          parts.emplace_back( val_str.substr(i+2) );
+        } else if ( val_str.contains('-') ) {
+          res.mode = FlexRangeValue::Mode::UniformRange;
+          parts = val_str.splitTrimmed<2>('-');
+        }
+        auto getPosVal = [&bad](StrView vstr)
+        {
+          auto v = vstr.toDbl();
+          if (!v.has_value()||!std::isfinite(v.value())||!(v.value()>0))
+            bad();
+          return v.value();
+        };
+
+        auto add_strform = [&res](double v, StrView sv)
+        {
+          std::string sv2;
+          {
+            std::stringstream ss;
+            ss << fmt(v);
+            sv2 = ss.str();
+          }
+          if ( sv.size() < sv2.size() )
+            res.strforms.emplace_back( sv.to_string() );
+          else
+            res.strforms.emplace_back( std::move(sv2) );
+        };
+
+        if ( res.mode == FlexRangeValue::Mode::Fixed ) {
+          nc_assert( parts.empty() );
+          res.value = getPosVal( val_str );
+          add_strform( res.value, val_str );
+        } else {
+          if ( parts.size() != 2 )
+            bad();
+          res.value = getPosVal( parts.at(0) );
+          res.secondary_value = getPosVal( parts.at(1) );
+          add_strform( res.value, parts.at(0) );
+          add_strform( res.secondary_value.value(), parts.at(1) );
+        }
+
+        if ( res.mode == FlexRangeValue::Mode::UniformRange ) {
+          nc_assert( res.secondary_value.has_value() );
+          if ( ! ( res.value < res.secondary_value.value() ) )
+            bad();
+        }
+
+        return res;
+      }
+
       struct EParsed {
-        NeutronEnergy energy;
-        std::string title;
+        //First two variables, that if set overrides all else:
+        Optional<NeutronEnergy> fixed_ekin;//fast way, set for usual code path
+        Optional<Temperature> maxwell;//maxwell temperature.
+        //for fixed, uniformrange, lognormal:
+        enum class Mode { Energy, Wavelength };
+        struct FRData {
+          Mode mode = Mode::Energy;
+          FlexRangeValue fr;
+        };
+        Optional<FRData> flexrange;
+        //general:
+        PairDD cachevals = PairDD{0.0,0.0};
+        std::string description;
+        Optional<NeutronEnergy> nominal_beamenergy() const
+        {
+          if ( maxwell.has_value() )
+            return NullOpt;
+          nc_assert_always( flexrange.has_value() );
+          auto& fr = flexrange.value();
+          if ( fr.fr.mode == FlexRangeValue::Mode::UniformRange )
+            return NullOpt;
+          if ( fr.mode == Mode::Energy )
+            return NeutronEnergy{ fr.fr.value };
+          return NeutronWavelength{ fr.fr.value }.energy();
+        }
       };
 
       inline EParsed getValue_Energy( const Tokens& tokens,
-                                      Optional<EParsed> def_val = NullOpt )
+                                      Optional<StrView> defval_strwl = NullOpt )
       {
+        Optional<StrView> str_ekin = getValue( tokens, "ekin" );
+        Optional<StrView> str_wl = getValue( tokens, "wl" );
+        if ( !str_ekin.has_value() && !str_wl.has_value() )
+          str_wl = defval_strwl;
+
         EParsed res;
-        if ( getValue( tokens, "ekin" ).has_value() ) {
-          double val = getValue_dbl(tokens,"ekin");
-          res.energy = NeutronEnergy{ val };
-          const char * unit = "eV";
-          if ( val < 0.1 ) {
-            val *= 1000.0;
-            unit = "meV";
-          } else if ( val > 100 ) {
-            val *= 0.001;
-            unit = "keV";
+        constexpr static auto energy_helpstr =
+          "Examples for how to set:"
+          " \"ekin=0.025\" (fixed in eV),"
+          " \"wl=1.8\" (fixed in Aa),"
+          " \"ekin=0.025-0.05\" (uniform range in eV),"
+          " \"wl=1.8-5\" (uniform range in Aa),"
+          " \"ekin=0.025+-0.001\" (log-normal of given mean and rms in eV),"
+          " \"wl=1.8+-0.01\" (log-normal of given mean and rms in Aa),"
+          " \"ekin=thermal:77\" (thermal Maxwell of given temperature in K).";
+        if ( !str_ekin.has_value() && !str_wl.has_value() )
+          NCRYSTAL_THROW2(BadInput,"Missing energy value. "<<energy_helpstr);
+        if ( str_ekin.has_value() ) {
+          auto& s_ekin = str_ekin.value();
+          if ( s_ekin == "help" )
+            NCRYSTAL_THROW(BadInput,energy_helpstr);
+          if ( str_wl.has_value() )
+            NCRYSTAL_THROW2(BadInput,
+                            "Do not set both \"ekin\" and \"wl\" parameters.");
+          if ( s_ekin.startswith("thermal") ) {
+            //Special hook for Maxwell ("thermal:300K"):
+            s_ekin = s_ekin.substr(7).trimmed();
+            Optional<double> tempval;
+            if (s_ekin.startswith(':')&&s_ekin.endswith('K'))
+              tempval = s_ekin.substr(1,s_ekin.size()-2).trimmed().toDbl();
+            if ( !tempval.has_value()
+                 || !(tempval.value()>1e-99)
+                 || !(tempval.value()<1e99) )
+              NCRYSTAL_THROW(BadInput,"Invalid format for Maxwell distribu"
+                             "tion. Use a format like \"ekin=thermal:300K\".");
+            res.maxwell = Temperature{ tempval.value() };
+            res.cachevals.first = res.maxwell.value().kT() * 0.5;//kT/2
+            std::ostringstream ss;
+            ss << "Maxwell("<<fmt(tempval.value())<<"K)";
+            res.description = ss.str();
+          } else {
+            res.flexrange.emplace();
+            auto& fr = res.flexrange.value();
+            fr.mode = EParsed::Mode::Energy;
+            fr.fr = parse_flexrange( s_ekin, "ekin", energy_helpstr );
+            std::ostringstream ss;
+            fr.fr.toStringWithUnit(ss,"eV");
+            res.description = ss.str();
           }
-          res.title = dbl2shortstr( val ).to_string();
-          res.title += unit;
-        } else if ( getValue( tokens, "wl" ).has_value() ) {
-          double val = getValue_dbl(tokens,"wl");
-          res.energy = NeutronWavelength{ val };
-          res.title = dbl2shortstr( val ).to_string();
-          res.title += "Aa";
         } else {
-          if ( !def_val.has_value() )
-            NCRYSTAL_THROW2(BadInput,"Missing energy value (set in eV or "
-                            "angstrom with \"ekin\" and \"wl\" parameters "
-                            "respectively).");
-          res = def_val.value();
+          nc_assert_always( str_wl.has_value() );
+          if ( str_wl.value() == "help" )
+            NCRYSTAL_THROW(BadInput,energy_helpstr);
+          if ( str_wl.value().startswith("thermal") ) {
+            NCRYSTAL_THROW(BadInput,"For a Maxwell distribution, do not use"
+                           " the \"wl\" parameter (use \"ekin\" instead,"
+                           " like \"ekin=thermal:300K\").");
+          }
+          res.flexrange.emplace();
+          auto& fr = res.flexrange.value();
+          fr.mode = EParsed::Mode::Wavelength;
+          fr.fr = parse_flexrange( str_wl.value(), "wl", energy_helpstr );
+          std::ostringstream ss;
+          fr.fr.toStringWithUnit(ss,"Aa");
+          res.description = ss.str();
+        }
+
+        if ( !res.maxwell.has_value() ) {
+          nc_assert_always(res.flexrange.has_value());
+          auto& fr = res.flexrange.value();
+          //cache fixed_ekin:
+          if ( fr.fr.mode == FlexRangeValue::Mode::Fixed ) {
+            if ( fr.mode == EParsed::Mode::Wavelength )
+              res.fixed_ekin
+                = NeutronWavelength( fr.fr.value ).energy();
+            else
+              res.fixed_ekin = NeutronEnergy( fr.fr.value );
+          }
+          //cache lognormal parameters:
+          if ( fr.fr.mode == FlexRangeValue::Mode::LogNormal ) {
+            //convert desired mu/sigma to mu/sigma of the inner gaussian, from
+            //which values are sampled before being fed to exp(..):
+            const double mu = fr.fr.value;
+            const double sigma = fr.fr.secondary_value.value();
+            nc_assert_always( ncsquare(mu) > 0 );
+            nc_assert_always( mu > 0 );
+            nc_assert_always( sigma > 0 );
+            const double tmp = 1+ncsquare(sigma)/ncsquare(mu);
+            const double mu_n = std::log( mu / std::sqrt(tmp) );
+            const double sigma_n = std::sqrt(std::log(tmp));
+            res.cachevals = PairDD{ mu_n, sigma_n };
+          }
         }
         return res;
       }

@@ -72,6 +72,9 @@ def _parse_sysargv():
 def main_minimc_unittest_stdsphere( *a, **kw ):
     minimc_unittest_stdsphere( *a, **kw, **_parse_sysargv() )
 
+def main_minimc_unittest( *a, **kw ):
+    minimc_unittest( *a, **kw, **_parse_sysargv() )
+
 def _detect_caller_filebasename( drop_ext = True ):
     #Find first file in callstack outside the present one.
     import inspect
@@ -96,7 +99,8 @@ def minimc_unittest( *,
                      do_plot = False,
                      do_updateref = False,
                      tally='theta',
-                     tallybins=None
+                     tallybins=None,
+                     extra_enginecfg=''
                     ):
     """Run MiniMC with chosen configuration and compare result with reference
     histogram. Will keep reference histogram in <testsdata>mmcrefs/key.json (if
@@ -137,13 +141,14 @@ def minimc_unittest( *,
                                geomcfg=geomcfg,
                                srccfg=srccfg,
                                enginecfg=('nthreads=2'
-                                          f';tally={tally}{tallybins}')
+                                          f';tally={tally}{tallybins}'
+                                          f';{extra_enginecfg}')
                               )
 
     h = res.tally(tally).hist_total
     if do_plot:
+        h.dump(contents=False)
         res.tally(tally).plot(logy=True)
-        #h.plot(logy=True)
 
     if do_updateref:
         reffile.write_text(h.to_json())

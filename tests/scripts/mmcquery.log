@@ -72,53 +72,157 @@ Caught expected NCBadInput('Invalid src cfg: ""')
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0']
 {'cfgstr': 'constant;n=1000000;z=0;wl=2',
- 'decoded': {'ekin': 0.020451052401332725,
+ 'decoded': {'ekin': None,
+             'energy_description': '2Aa',
              'n': 1000000,
              'name': 'constant',
              'nominal_beam_dir': [0.0, 0.0, 1.0],
              'nominal_beam_energy': 0.020451052401332725,
-             'nominal_beam_energy_str': '2Aa',
              'ux': 0.0,
              'uy': 0.0,
              'uz': 1.0,
              'w': 1.0,
-             'wl': 2.0,
+             'wl': {'mode': 'fixed', 'value': 2.0},
              'x': 0.0,
              'y': 0.0,
              'z': -10.0}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'isotropic; z=-10;ekin=0.025']
 {'cfgstr': 'isotropic;n=1000000;z=0;ekin=0.025',
- 'decoded': {'ekin': 0.025,
+ 'decoded': {'ekin': {'mode': 'fixed', 'value': 0.025},
+             'energy_description': '0.025eV',
              'n': 1000000,
              'name': 'isotropic',
              'nominal_beam_dir': None,
              'nominal_beam_energy': 0.025,
-             'nominal_beam_energy_str': '25meV',
              'r': 0.0,
              'w': 1.0,
-             'wl': 1.808913592246251,
+             'wl': None,
              'x': 0.0,
              'y': 0.0,
              'z': -10.0}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'circular; r=0.1;z=-1;wl=1.8;ux=1']
 {'cfgstr': 'circular;n=1000000;z=0;wl=1.8;ux=0.70710678118654746;uy=0;uz=0.70710678118654746;r=0.1',
- 'decoded': {'ekin': 0.025248212841151512,
+ 'decoded': {'ekin': None,
+             'energy_description': '1.8Aa',
              'n': 1000000,
              'name': 'circular',
              'nominal_beam_dir': [0.7071067811865475, 0.0, 0.7071067811865475],
              'nominal_beam_energy': 0.025248212841151512,
-             'nominal_beam_energy_str': '1.8Aa',
              'r': 0.1,
              'ux': 0.7071067811865475,
              'uy': 0.0,
              'uz': 0.7071067811865475,
              'w': 1.0,
-             'wl': 1.8,
+             'wl': {'mode': 'fixed', 'value': 1.8},
              'x': 0.0,
              'y': 0.0,
              'z': -1.0}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0-3.0']
+{'cfgstr': 'constant;n=1000000;z=0;wl=2-3',
+ 'decoded': {'ekin': None,
+             'energy_description': '(2-3)Aa',
+             'n': 1000000,
+             'name': 'constant',
+             'nominal_beam_dir': [0.0, 0.0, 1.0],
+             'nominal_beam_energy': None,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0,
+             'w': 1.0,
+             'wl': {'mode': 'uniformrange',
+                    'range_high': 3.0,
+                    'range_low': 2.0},
+             'x': 0.0,
+             'y': 0.0,
+             'z': -10.0}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=0.025-1.0']
+{'cfgstr': 'constant;n=1000000;z=0;ekin=0.025-1',
+ 'decoded': {'ekin': {'mode': 'uniformrange',
+                      'range_high': 1.0,
+                      'range_low': 0.025},
+             'energy_description': '(0.025-1)eV',
+             'n': 1000000,
+             'name': 'constant',
+             'nominal_beam_dir': [0.0, 0.0, 1.0],
+             'nominal_beam_energy': None,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0,
+             'w': 1.0,
+             'wl': None,
+             'x': 0.0,
+             'y': 0.0,
+             'z': -10.0}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0+-0.1']
+{'cfgstr': 'constant;n=1000000;z=0;wl=2+-0.1',
+ 'decoded': {'ekin': None,
+             'energy_description': '(2+-0.1)Aa',
+             'n': 1000000,
+             'name': 'constant',
+             'nominal_beam_dir': [0.0, 0.0, 1.0],
+             'nominal_beam_energy': 0.020451052401332725,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0,
+             'w': 1.0,
+             'wl': {'mean': 2.0, 'mode': 'lognormal', 'rms': 0.1},
+             'x': 0.0,
+             'y': 0.0,
+             'z': -10.0}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=0.025+-0.001']
+{'cfgstr': 'constant;n=1000000;z=0;ekin=0.025+-0.001',
+ 'decoded': {'ekin': {'mean': 0.025, 'mode': 'lognormal', 'rms': 0.001},
+             'energy_description': '(0.025+-0.001)eV',
+             'n': 1000000,
+             'name': 'constant',
+             'nominal_beam_dir': [0.0, 0.0, 1.0],
+             'nominal_beam_energy': 0.025,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0,
+             'w': 1.0,
+             'wl': None,
+             'x': 0.0,
+             'y': 0.0,
+             'z': -10.0}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=thermal:50K']
+{'cfgstr': 'constant;n=1000000;z=0;ekin=thermal:50K',
+ 'decoded': {'ekin': {'mode': 'maxwell', 'temperature': 50.0},
+             'energy_description': 'Maxwell(50K)',
+             'n': 1000000,
+             'name': 'constant',
+             'nominal_beam_dir': [0.0, 0.0, 1.0],
+             'nominal_beam_energy': None,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0,
+             'w': 1.0,
+             'wl': None,
+             'x': 0.0,
+             'y': 0.0,
+             'z': -10.0}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=1eV']
+Caught expected NCBadInput('Invalid value for parameter "ekin". Examples for how to set: "ekin=0.025" (fixed in eV), "wl=1.8" (fixed in Aa), "ekin=0.025-0.05" (uniform range in eV), "wl=1.8-5" (uniform range in Aa), "ekin=0.025+-0.001" (log-normal of given mean and rms in eV), "wl=1.8+-0.01" (log-normal of given mean and rms in Aa), "ekin=thermal:77" (thermal Maxwell of given temperature in K).')
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=1Aa']
+Caught expected NCBadInput('Invalid value for parameter "wl". Examples for how to set: "ekin=0.025" (fixed in eV), "wl=1.8" (fixed in Aa), "ekin=0.025-0.05" (uniform range in eV), "wl=1.8-5" (uniform range in Aa), "ekin=0.025+-0.001" (log-normal of given mean and rms in eV), "wl=1.8+-0.01" (log-normal of given mean and rms in Aa), "ekin=thermal:77" (thermal Maxwell of given temperature in K).')
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=help']
+Caught expected NCBadInput('Examples for how to set: "ekin=0.025" (fixed in eV), "wl=1.8" (fixed in Aa), "ekin=0.025-0.05" (uniform range in eV), "wl=1.8-5" (uniform range in Aa), "ekin=0.025+-0.001" (log-normal of given mean and rms in eV), "wl=1.8+-0.01" (log-normal of given mean and rms in Aa), "ekin=thermal:77" (thermal Maxwell of given temperature in K).')
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=help']
+Caught expected NCBadInput('Examples for how to set: "ekin=0.025" (fixed in eV), "wl=1.8" (fixed in Aa), "ekin=0.025-0.05" (uniform range in eV), "wl=1.8-5" (uniform range in Aa), "ekin=0.025+-0.001" (log-normal of given mean and rms in eV), "wl=1.8+-0.01" (log-normal of given mean and rms in Aa), "ekin=thermal:77" (thermal Maxwell of given temperature in K).')
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=thermal:50K']
+Caught expected NCBadInput('For a Maxwell distribution, do not use the "wl" parameter (use "ekin" instead, like "ekin=thermal:300K").')
 
 >>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=1e-10']
 {'cfgstr': 'slab;dz=1e-10',
