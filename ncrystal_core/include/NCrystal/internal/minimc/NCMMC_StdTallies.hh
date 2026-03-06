@@ -21,10 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/core/NCTypes.hh"
 #include "NCrystal/internal/minimc/NCMMC_Tally.hh"
-#include "NCrystal/internal/minimc/NCMMC_Basket.hh"
 #include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
+#include "NCrystal/core/NCTypes.hh"
 #include "NCrystal/internal/utils/NCHists.hh"
 
 namespace NCRYSTAL_NAMESPACE {

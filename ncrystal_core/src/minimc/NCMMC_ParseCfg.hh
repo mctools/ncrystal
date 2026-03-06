@@ -21,10 +21,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/minimc/NCMMC_Basket.hh"
+#include "NCrystal/internal/minimc/NCMMC_Defs.hh"
 #include "NCrystal/internal/utils/NCSpan.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
 #include "NCrystal/internal/utils/NCStrView.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {

@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/utils/NCVector.hh"
-#include "NCrystal/internal/minimc/NCMMC_Basket.hh"
+#include "NCrystal/internal/minimc/NCMMC_Defs.hh"
 #include "NCrystal/internal/minimc/NCMMC_Utils.hh"
 
 namespace NCRYSTAL_NAMESPACE {

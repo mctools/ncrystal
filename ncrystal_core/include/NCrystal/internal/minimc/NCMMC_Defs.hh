@@ -29,8 +29,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace MiniMC {
 
-    //Basket size (note, if we migrate to dynamic sizes, we could increase the
-    //maximum size to e.g. 65536). It should be a power of two.
+    //Basket size (should be power of 2).
     static constexpr std::size_t basket_N = 4096;
     static constexpr std::size_t basket_N_almost_Full = basket_N*7/8;
 
@@ -42,20 +41,9 @@ namespace NCRYSTAL_NAMESPACE {
       Extended = 2//Basic + initial neutron + (fixme?) neutron id
     };
 
+    //Function signature for acceptance of tally results:
     class UniversalBasket;
     using TallyFct = std::function<void(const UniversalBasket&)>;
-
-    //Fixme: Are these next statements useful?
-    using ProcImpl::ProcPtr;
-    using ProcImpl::OptionalProcPtr;
-    using ProcImpl::Process;
-
-    inline constexpr double macroXS( NumberDensity nd, CrossSect xs ) noexcept
-    {
-      //returns macroscocopic XS, or attenuation coefficient, in units of
-      //1/m. NB, using nc_as_const for pre C++17:
-      return 100.0 * nc_as_const(nd).dbl() * nc_as_const(xs).dbl();
-    }
 
     struct ParticleCountSum {
       //Number and total weight of particles.
@@ -65,32 +53,31 @@ namespace NCRYSTAL_NAMESPACE {
 
     struct BasketValBufDbl final {
       double data[basket_N];
-      ncconstexpr17 const double& operator[]( std::size_t i )
-        const ncnoexceptndebug
-      {
-        nc_assert(i<basket_N);
-        return data[i];
-      }
-      ncconstexpr17 double& operator[]( std::size_t i ) ncnoexceptndebug
-      {
-        nc_assert(i<basket_N);
-        return data[i];
-      }
+      constexpr const double& operator[]( std::size_t ) const ncnoexceptndebug;
+      ncconstexpr17 double& operator[]( std::size_t ) ncnoexceptndebug;
     };
 
     struct BasketValBufInt final {
       int data[basket_N];
-      ncconstexpr17 const int& operator[]( std::size_t i )
-        const ncnoexceptndebug
-      {
-        nc_assert(i<basket_N);
-        return data[i];
-      }
-      ncconstexpr17 int& operator[]( std::size_t i ) ncnoexceptndebug
-      {
-        nc_assert(i<basket_N);
-        return data[i];
-      }
+      constexpr const int& operator[]( std::size_t ) const ncnoexceptndebug;
+      ncconstexpr17 int& operator[]( std::size_t ) ncnoexceptndebug;
+    };
+
+    //For efficiency, handle larger number of neutrons at once, with each field
+    //in a separate array. This has several advantages, mainly to reduce
+    //overhead of context switches and branches, as well is making it easier to
+    //simd vectorisation, hot caches, etc.
+
+    struct NeutronBasketFields final : NoCopyMove {
+      BasketValBufDbl x, y, z, ux, uy, uz, ekin, w;
+    };
+
+    struct NeutronBasket final : NoCopyMove {
+      NeutronBasketFields fields;
+      std::size_t nused = 0;
+      constexpr bool full() const noexcept { return nused==basket_N; }
+      constexpr bool empty() const noexcept { return nused==0; }
+      constexpr std::size_t size() const noexcept { return nused; }
     };
 
   }
@@ -108,5 +95,37 @@ namespace NCRYSTAL_NAMESPACE {
 #else
 #  define NCRYSTAL_DEBUGMMCMSG(msg) {}
 #endif
+
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace MiniMC {
+    inline constexpr const double&
+    BasketValBufDbl::operator[]( std::size_t i ) const ncnoexceptndebug
+    {
+      return nc_assert_rv(i<basket_N), data[i];
+    }
+
+    inline ncconstexpr17 double&
+    BasketValBufDbl::operator[]( std::size_t i ) ncnoexceptndebug
+    {
+      return nc_assert_rv(i<basket_N), data[i];
+    }
+
+    inline constexpr const int&
+    BasketValBufInt::operator[]( std::size_t i ) const ncnoexceptndebug
+    {
+      return nc_assert_rv(i<basket_N), data[i];
+    }
+
+    inline ncconstexpr17 int&
+    BasketValBufInt::operator[]( std::size_t i ) ncnoexceptndebug
+    {
+      return nc_assert_rv(i<basket_N), data[i];
+    }
+  }
+}
 
 #endif

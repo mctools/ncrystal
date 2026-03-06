@@ -22,7 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/utils/NCVector.hh"
-#include "NCrystal/internal/minimc/NCMMC_Basket.hh"
+#include "NCrystal/internal/minimc/NCMMC_Defs.hh"
 #include "NCrystal/internal/minimc/NCMMC_Utils.hh"
 
 namespace NCRYSTAL_NAMESPACE {
@@ -97,7 +97,7 @@ namespace NCRYSTAL_NAMESPACE {
       void distToVolumeExit( const NeutronBasket& nb,
                              Span<double> tgt ) const
       {
-        nb.validateIfDbg();
+        BasketUtils::basket_validateIfDbg(nb);
         const std::size_t n = nb.nused;
         nc_assert( tgt.size() >= n);
         auto& f = nb.fields;
@@ -117,7 +117,7 @@ namespace NCRYSTAL_NAMESPACE {
                               Span<double> tgt,
                               std::size_t offset ) const
       {
-        nb.validateIfDbg();
+        BasketUtils::basket_validateIfDbg(nb);
         nc_assert( tgt.size() >= nb.nused);
         nc_assert( offset < nb.nused);
         auto& f = nb.fields;

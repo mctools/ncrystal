@@ -19,7 +19,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/minimc/NCMMC_UBView.hh"
-#include "NCrystal/internal/minimc/NCMMC_BasketSrcFiller.hh"
+#include "NCMMC_BasketSrcFiller.hh"
+#include "NCMMC_BasketUtils.hh"
 
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
@@ -71,7 +72,7 @@ namespace NCRYSTAL_NAMESPACE {
 
         void validateIfDbg() const ncnoexceptndebug
         {
-          neutrons.validateIfDbg();
+          BasketUtils::basket_validateIfDbg(neutrons);
         }
 
         void assignToUB( UniversalBasket& dst ) noexcept
@@ -88,7 +89,8 @@ namespace NCRYSTAL_NAMESPACE {
                                  std::size_t i ) ncnoexceptndebug
         {
           //NB: Does NOT update neutrons.nused!
-          neutrons.copyEntryFromOther( o.neutrons, i_o, i );
+          BasketUtils::basket_copyEntryFromOther( neutrons, o.neutrons,
+                                                  i_o, i );
           nscat[i] = o.nscat[i_o];
           nscat_inelas[i] = o.nscat_inelas[i_o];
           buf1[i] = o.buf1[i_o];
@@ -112,9 +114,11 @@ namespace NCRYSTAL_NAMESPACE {
           detail::memcpydata<double>( buf1.data + i,
                                       o.buf1.data + i_o, n );
           //Note, next call also updates this->neutrons.nused value:
-          neutrons.appendEntriesFromOther( o.neutrons, i_o, n );
-          nc_assert_always( neutrons.fields.x[i] == o.neutrons.fields.x[i_o] );
-          nc_assert_always( neutrons.fields.y[i] == o.neutrons.fields.y[i_o] );
+
+          BasketUtils::basket_appendEntriesFromOther( neutrons, o.neutrons,
+                                                      i_o, n );
+          nc_assert( neutrons.fields.x[i] == o.neutrons.fields.x[i_o] );
+          nc_assert( neutrons.fields.y[i] == o.neutrons.fields.y[i_o] );
         }
 
         //fixme: rename as append1? also ok if o=self
@@ -154,7 +158,8 @@ namespace NCRYSTAL_NAMESPACE {
           basic.init_extra(i);
           //The neutrons_initial parameters are just a copy of the initial
           //values of the neutrons:
-          neutrons_initial.set( basic.neutrons.fields, i, i );
+          BasketUtils::basketfields_set( neutrons_initial,
+                                         basic.neutrons.fields, i, i );
           nc_assert( neutrons_initial.x[i]
                      == basic.neutrons.fields.x[i] );
           nc_assert( neutrons_initial.ekin[i]
@@ -164,7 +169,8 @@ namespace NCRYSTAL_NAMESPACE {
         void validateIfDbg() const ncnoexceptndebug
         {
           basic.validateIfDbg();
-          neutrons_initial.validateIfDbg(basic.size());
+          BasketUtils::basketfields_validateIfDbg( neutrons_initial,
+                                                   basic.size() );
         }
 
         void assignToUB( UniversalBasket& dst ) noexcept
@@ -179,7 +185,8 @@ namespace NCRYSTAL_NAMESPACE {
         {
           //NB: Does NOT update neutrons.nused!
           basic.copyEntryFromOther( o.basic, i_o, i );
-          neutrons_initial.set( o.neutrons_initial, i_o, i );
+          BasketUtils::basketfields_set( neutrons_initial,
+                                         o.neutrons_initial, i_o, i );
         }
 
         void appendEntriesFromOther( const Basket_Extended& o,
@@ -190,9 +197,9 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert( n > 0 );
           nc_assert( this_size + n <= basket_N );
           basic.appendEntriesFromOther( o.basic, i_o, n );
-          neutrons_initial.setrange( o.neutrons_initial, i_o, this_size, n );
-          //appendEntriesFromOther( o.neutrons_initial, i_o, n );
-          //nc_assert(basic.neutrons.nused==neutrons_initial.nused);
+          BasketUtils::basketfields_setrange( neutrons_initial,
+                                              o.neutrons_initial,
+                                              i_o, this_size, n );
           nc_assert( neutrons_initial.x[this_size] == o.neutrons_initial.x[i_o] );
           nc_assert( basic.neutrons.fields.x[this_size] == o.basic.neutrons.fields.x[i_o] );
         }

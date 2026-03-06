@@ -21,7 +21,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/minimc/NCMMC_Basket.hh"
+#include "NCrystal/internal/minimc/NCMMC_Defs.hh"
 #include "NCrystal/internal/utils/NCStrView.hh"
 
 #ifndef NCRYSTAL_DISABLE_THREADS

@@ -21,8 +21,9 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "NCrystal/internal/minimc/NCMMC_Defs.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/core/NCTypes.hh"
-#include "NCrystal/internal/minimc/NCMMC_Basket.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -77,6 +78,13 @@ namespace NCRYSTAL_NAMESPACE {
       //NCFmt.hh:
       void fmtBestUnit( std::ostream& os, Length,
                         const char* fmtstr = nullptr );
+
+      //returns macroscocopic XS, or attenuation coefficient, in units of
+      //1/m. NB, using nc_as_const for pre C++17:
+      inline constexpr double macroXS( NumberDensity nd, CrossSect xs ) noexcept
+      {
+        return 100.0 * nc_as_const(nd).dbl() * nc_as_const(xs).dbl();
+      }
 
       inline double fast_sqrt_clippos( double x ) noexcept {
         //Using this in a loop does not actually allow for vectorization,

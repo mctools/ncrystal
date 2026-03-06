@@ -21,6 +21,7 @@
 #include "NCrystal/internal/minimc/NCMMC_StdTallies.hh"
 #include "NCrystal/internal/minimc/NCMMC_Source.hh"
 #include "NCrystal/internal/minimc/NCMMC_Utils.hh"
+#include "NCMMC_BasketUtils.hh"//for memcpyarray (fixme?)
 #include "NCrystal/internal/utils/NCVector.hh"
 
 namespace NC = NCrystal;

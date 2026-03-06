@@ -21,7 +21,6 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/minimc/NCMMC_Basket.hh"
 #include "NCrystal/internal/minimc/NCMMC_Geom.hh"
 #include "NCrystal/internal/minimc/NCMMC_Source.hh"
 

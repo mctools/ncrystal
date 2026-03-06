@@ -19,12 +19,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/minimc/NCMMC_Utils.hh"
+#include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
 #include "NCrystal/internal/extd_utils/NCABIUtils.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/internal/utils/NCStrView.hh"
 #include "NCrystal/internal/cfgutils/NCCfgTypes.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
-#include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
 
 namespace NC = NCrystal;
 namespace NCMMCU = NCrystal::MiniMC::Utils;

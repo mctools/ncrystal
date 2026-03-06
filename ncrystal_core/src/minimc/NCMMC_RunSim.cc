@@ -85,8 +85,8 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-NCMMC::MatDef::MatDef( OptionalProcPtr scatter_,
-                       OptionalProcPtr absorption_,
+NCMMC::MatDef::MatDef( ProcImpl::OptionalProcPtr scatter_,
+                       ProcImpl::OptionalProcPtr absorption_,
                        NumberDensity nd )
   : scatter( std::move( scatter_ ) ),
     absorption( std::move( absorption_ ) ),

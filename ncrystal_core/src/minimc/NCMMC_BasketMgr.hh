@@ -148,7 +148,7 @@ namespace NCRYSTAL_NAMESPACE {
         return *this;
       }
 
-      void set_raw_from_active_heapmem( heapmem_t&& hm ) noexcept
+      void set_raw_from_active_heapmem( heapmem_t&& hm ) ncnoexceptndebug
       {
         nc_assert( hm.data() != nullptr );
         m_heapmem.swap(hm);

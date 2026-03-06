@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/minimc/NCMMC_Geom.hh"
+#include "NCMMC_BasketUtils.hh"
 #include "NCMMC_Sphere.hh"//NB: Sphere first, since it contains a few utils.
 #include "NCMMC_Box.hh"
 #include "NCMMC_Slab.hh"
@@ -73,9 +74,9 @@ namespace NCRYSTAL_NAMESPACE {
           //final x,y,z,ux,uy,uz,n
           nc_assert( tgt.size() >= nb.nused);
           nc_assert( offset < nb.nused);
-          nb.validateIfDbg();
+          BasketUtils::basket_validateIfDbg(nb);
           m_vol.distToVolumeEntry(nb,tgt,offset);
-          nb.validateIfDbg();
+          BasketUtils::basket_validateIfDbg(nb);
         }
 
         bool hasUnboundedDistToVolExit() const override
@@ -86,9 +87,9 @@ namespace NCRYSTAL_NAMESPACE {
         void distToVolumeExit( const NeutronBasket& nb,
                                Span<double> tgt ) const override
         {
-          nb.validateIfDbg();
+          BasketUtils::basket_validateIfDbg(nb);
           m_vol.distToVolumeExit(nb,tgt);
-          nb.validateIfDbg();
+          BasketUtils::basket_validateIfDbg(nb);
         }
 
 

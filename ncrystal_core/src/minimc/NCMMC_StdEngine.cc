@@ -22,6 +22,7 @@
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/internal/extd_utils/NCABIUtils.hh"
 #include "NCrystal/internal/minimc/NCMMC_Utils.hh"
+#include "NCMMC_BasketUtils.hh"
 
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
@@ -153,8 +154,8 @@ namespace NCRYSTAL_NAMESPACE {
               for ( auto i : ncrange( inbasket.size() ) ) {
                 m_buf_xs_abs[i]
                   = m_mat.absorption->crossSection( m_abs_cacheptr,
-                                                    inbasket.neutrons->ekin_obj(i),
-                                                    inbasket.neutrons->dir_obj(i) ).dbl();
+                                                    BasketUtils::ekin_obj(*inbasket.neutrons,i),
+                                                    BasketUtils::dir_obj(*inbasket.neutrons,i) ).dbl();
               }
             }
             values_abs_xs_or_nullptr = &m_buf_xs_abs[0];
@@ -202,7 +203,7 @@ namespace NCRYSTAL_NAMESPACE {
                      || buf_scatxsval(inbasket)[i] < 0.0 )
                   buf_scatxsval(inbasket)[i]
                     = m_mat.scatter->crossSectionIsotropic( m_sct_cacheptr,
-                                                            inbasket.neutrons->ekin_obj(i) ).dbl();
+                                                            BasketUtils::ekin_obj(*inbasket.neutrons,i) ).dbl();
               }
             } else {
               //not isotropic, always recalculate all xs values (except if
@@ -213,8 +214,8 @@ namespace NCRYSTAL_NAMESPACE {
                 else
                   buf_scatxsval(inbasket)[i]
                     = m_mat.scatter->crossSection( m_sct_cacheptr,
-                                                   inbasket.neutrons->ekin_obj(i),
-                                                   inbasket.neutrons->dir_obj(i) ).dbl();
+                                                   BasketUtils::ekin_obj(*inbasket.neutrons,i),
+                                                   BasketUtils::dir_obj(*inbasket.neutrons,i) ).dbl();
               }
             }
           }
@@ -270,8 +271,8 @@ namespace NCRYSTAL_NAMESPACE {
               //that this is so).
 
               const double macro_scat_xs
-                = macroXS( m_mat.numDens,
-                           CrossSect{ buf_scatxsval(inbasket)[i] } );
+                = Utils::macroXS( m_mat.numDens,
+                                  CrossSect{ buf_scatxsval(inbasket)[i] } );
 
               if (!(macro_scat_xs > 0.0))
                 continue;//can't scatter (all relevant weight should have been
@@ -298,8 +299,8 @@ namespace NCRYSTAL_NAMESPACE {
               //fixme cache factor macroXS( m_mat.numDens, CrossSect{1.0}).
               const double macro_abs_xs
                 = ( values_abs_xs_or_nullptr
-                    ? macroXS( m_mat.numDens,
-                               CrossSect{ *std::next(values_abs_xs_or_nullptr,i) } )
+                    ? Utils::macroXS( m_mat.numDens,
+                                      CrossSect{ *std::next(values_abs_xs_or_nullptr,i) } )
                     : 0.0 );
 
               nc_assert( !std::isinf(m_buf_disttoscat[i]));
@@ -332,8 +333,8 @@ namespace NCRYSTAL_NAMESPACE {
               nc_assert( has_scat );
               auto outcome = m_mat.scatter->sampleScatter( m_sct_cacheptr,
                                                            rng,
-                                                           outb.neutrons->ekin_obj(j),
-                                                           outb.neutrons->dir_obj(j));
+                                                           BasketUtils::ekin_obj(*outb.neutrons,j),
+                                                           BasketUtils::dir_obj(*outb.neutrons,j));
               nc_assert( ncabs(outcome.direction.as<Vector>().mag()-1) < 1e-9 );
               outb_fields.ux[j] = outcome.direction[0];
               outb_fields.uy[j] = outcome.direction[1];
