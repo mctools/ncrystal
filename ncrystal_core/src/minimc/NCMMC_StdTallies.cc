@@ -52,7 +52,7 @@ NCMMCT::TallyNeutronInitialInfo::create( const EngineOpts& eopts,
   using TF = TallyFlags::Flags;
   constexpr TF::value_type flags_dir0 = TF::q|TF::mu|TF::theta;
   static_assert( flags_dir0 == 0x83, "" );//sanity check, value doesn't matter.
-  constexpr auto flags_e0 = TF::q;
+  constexpr auto flags_e0 = TF::q|TF::de;
   const bool needs_dir0 = eopts.tallyFlags.hasAny(flags_dir0);
   const bool needs_e0 = eopts.tallyFlags.hasAny(flags_e0);
 
@@ -149,8 +149,6 @@ NCMMCT::TallyStdHists_Data::create( const TallyStdHists_Options& opt )
   };
   constexpr auto nbins_std = 200;
   constexpr auto nbins_angular = 180;
-  //Fixme for the TFlags::w histogram (i.e. non-weighted hist), the
-  //fractions shown in the breakdown plots are very misleading.
   if ( opt.flags.has(TFlags::theta) )
     addhist( TFlags::theta, data.histidx_theta, nbins_angular,
              0.0, 180.0, false );
@@ -170,16 +168,16 @@ NCMMCT::TallyStdHists_Data::create( const TallyStdHists_Options& opt )
   }
   if ( opt.flags.has(TFlags::w) )
     addhist( TFlags::w, data.histidx_w, nbins_std,
-             0.0, 1.0, false );//fixme: logw? else upper limit should be
-  //related to initial src weight if known
-  //(maybe we should for now simply disallow
-  //changing initial weights).
+             0.0, 1.0, false );
 
-  //fixme: better max of e/l/q tallys? emax = 3*max(beamE,kT)?
+  //fixme: better max of e/l/de/q tallys? emax = 3*max(beamE,kT)? Also, we
+  //       should make sure we have unit tests for all tallies.
   if ( opt.flags.has(TFlags::e) )
     addhist( TFlags::e, data.histidx_e, nbins_std, 0.0, 1.0, false );
   if ( opt.flags.has(TFlags::l) )
     addhist( TFlags::l, data.histidx_l, nbins_std, 0.0, 10.0, false );
+  if ( opt.flags.has(TFlags::de) )
+    addhist( TFlags::de, data.histidx_de, nbins_std, -1.0, 1.0, false );
   if ( opt.flags.has(TFlags::q) )
     addhist( TFlags::q, data.histidx_q, nbins_std, 0.0, 10.0, false );
   if ( !opt.flags.has(TFlags::nobreakdown) ) {
@@ -281,6 +279,29 @@ namespace NCRYSTAL_NAMESPACE {
           hgfill_main( h, tmp, nf.w, n );
           if ( dethistid )
             hgfill_detail( h, *dethistid, tmp, nf.w, n );
+        }
+
+        void tallyRecord_de( TallyStdHists_Data& data,
+                             const Optional<NeutronEnergy>& fixedE0,
+                             const NeutronBasket& b,
+                             const DetailedHistsIDVect * dethistid,
+                             const NeutronBasketFields* neutrons0 )
+        {
+          BasketValBufDbl de;
+          const std::size_t n = b.size();
+          if ( fixedE0.has_value() ) {
+            const double Ei = fixedE0.value().get();
+            for ( std::size_t i = 0; i < n; ++i )
+              de.data[i] = Ei - b.fields.ekin[i];
+          } else {
+            nc_assert( neutrons0 != nullptr );
+            for ( std::size_t i = 0; i < n; ++i )
+              de.data[i] = neutrons0->ekin[i] - b.fields.ekin[i];
+          }
+          auto& h = vectAt(data.hists,data.histidx_de);
+          hgfill_main( h, de, b.fields.w, n );
+          if ( dethistid )
+            hgfill_detail( h, *dethistid, de, b.fields.w, n );
         }
 
         void tallyRecord_q(  TallyStdHists_Data& data,
@@ -474,6 +495,7 @@ void NCMMCT::TallyStdHists_Data::merge(const TallyStdHists_Data& o)
                     && histidx_nscat == o.histidx_nscat
                     && histidx_w == o.histidx_w
                     && histidx_e == o.histidx_e
+                    && histidx_de == o.histidx_de
                     && histidx_l == o.histidx_l
                     && histidx_nscat_uw == o.histidx_nscat_uw
                     && histidx_q == o.histidx_q );
@@ -555,6 +577,12 @@ void NCMMCT::tallyRecord( TallyStdHists_Data& data,
     if ( histid )
       hgfill_detail( h, *histid, neutrons.fields.ekin, neutrons.fields.w, n );
   }
+
+  ////////////////
+  //Fill de tally:
+  if ( opt.flags.has(TFlags::de) )
+    tallyRecord_de( data, opt.neutronInitialInfo.fixedEnergy,
+                    neutrons, histid, neutrons0 );
 
   ////////////////////
   //Fill lambda tally:
@@ -653,4 +681,3 @@ void NCMMCT::TallyStdHists::tallyItemToJSON( std::ostream& os,
 {
   m_data.histToJSONFindByTitle( os, itemName );
 }
-//fixme: "Aborting plotting of empty histogram" -> we should just show it!

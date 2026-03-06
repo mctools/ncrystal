@@ -35,13 +35,13 @@ namespace NCRYSTAL_NAMESPACE {
         //need to modify the description of the "tally" variable below.
         using F = TallyFlags::Flags;
         constexpr static const TallyFlags::value_type vals[]
-        = { F::e, F::highres, F::l, F::lowres, F::mu,
+        = { F::de, F::e, F::highres, F::l, F::lowres, F::mu,
             F::nobreakdown, F::nscat, F::nscat_uw, F::q, F::theta, F::w  };
         constexpr static const char* strs[]
-        = { "e","highres", "l", "lowres","mu",
+        = { "de", "e","highres", "l", "lowres","mu",
             "nobreakdown", "nscat", "nscat_uw", "q", "theta", "w"  };
         constexpr static const char* strs_descr[]
-        = { "energy","more bins", "wavelength", "less bins",
+        = { "energy loss", "energy","more bins", "wavelength", "less bins",
             "cosine scattering angle", "disable breakdown histograms",
             "number of scatterings", "unweighted number of scatterings",
             "scattering vector", "scattering angle", "weight" };

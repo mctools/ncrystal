@@ -45,6 +45,7 @@ namespace NCRYSTAL_NAMESPACE {
         constexpr static value_type l = 0x20;
         constexpr static value_type nscat_uw = 0x40;
         constexpr static value_type q = 0x80;
+        constexpr static value_type de = 0x100;
 
         //Flags controlling behaviour of all histograms:
         constexpr static value_type nobreakdown = 0x10000;//no comp. breakdown
@@ -52,8 +53,8 @@ namespace NCRYSTAL_NAMESPACE {
         constexpr static value_type highres = 0x40000;//more bins & binrange
 
         //Collections:
-        constexpr static value_type ALLHISTS = 0xFF;//Enable all histograms
-        constexpr static value_type ALL = 0x700FF;//all flags set at once
+        constexpr static value_type ALLHISTS = 0x1FF;//Enable all histograms
+        constexpr static value_type ALL = 0x701FF;//all flags set at once
         constexpr static value_type NONE = 0x0;//No flags set
         constexpr static value_type DEFAULT = theta;//Default flag values
       };

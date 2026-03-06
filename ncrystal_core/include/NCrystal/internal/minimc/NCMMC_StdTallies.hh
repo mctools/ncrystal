@@ -105,6 +105,7 @@ namespace NCRYSTAL_NAMESPACE {
         std::size_t histidx_l = std::numeric_limits<std::size_t>::max();
         std::size_t histidx_nscat_uw = std::numeric_limits<std::size_t>::max();
         std::size_t histidx_q = std::numeric_limits<std::size_t>::max();
+        std::size_t histidx_de = std::numeric_limits<std::size_t>::max();
         static TallyStdHists_Data create( const TallyStdHists_Options& );
         const tally_hist_t& accessHistogram( StrView histname,
                                                   Optional<DetailedHistsID>
@@ -146,8 +147,8 @@ namespace NCRYSTAL_NAMESPACE {
         const tally_hist_t& accessHistogram( StrView histname,
                                              Optional<DetailedHistsID>
                                              detailid = NullOpt ) const;
-        VectS tallyItemNames() const;
-        void tallyItemToJSON( std::ostream&, StrView itemName ) const;
+        VectS tallyItemNames() const override;
+        void tallyItemToJSON( std::ostream&, StrView itemName ) const override;
 
         //Don't use this constructor from outside the class:
         TallyStdHists( private_constructor_t, Options );
