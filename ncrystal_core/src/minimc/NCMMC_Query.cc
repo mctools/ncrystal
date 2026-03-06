@@ -46,7 +46,7 @@ namespace NCRYSTAL_NAMESPACE {
         auto geom = createGeometry( geomcfg );
         auto src = createSource( srccfg );
         auto eopts = parseEngineOpts( enginecfg );
-        auto tally = NC::makeSO<TallyStdHists>( eopts, *src );
+        auto tally = NC::makeSO<TallyStdHists>( eopts, src->metaData() );
         auto resmd = runSim_StdEngine( geom, src, tally, matdef, eopts, cb );
         resultsToJSON( os, geom, src, tally, matdef, eopts, resmd );
       }

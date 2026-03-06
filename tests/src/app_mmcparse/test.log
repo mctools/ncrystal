@@ -1,20 +1,20 @@
 
 Test engine opt string: ""
     -> obj: EngineOpts()
-    -> json: {"name":"std","cfgstr":"","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"beamdir":null,"beamenergy":null,"nscatlimit":null,"tally":["theta"],"tallybreakdown":true,"tallybins":{"overrides":{"e":null,"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":"auto"}}
+    -> json: {"name":"std","cfgstr":"","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"tallyref":"truth","nscatlimit":null,"tally":["theta"],"tallybreakdown":true,"tallybins":{"overrides":{"e":null,"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":"auto"}}
 
 Test engine opt string: "nthreads=4"
     -> obj: EngineOpts(nthreads=4)
-    -> json: {"name":"std","cfgstr":"nthreads=4","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"beamdir":null,"beamenergy":null,"nscatlimit":null,"tally":["theta"],"tallybreakdown":true,"tallybins":{"overrides":{"e":null,"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":4}}
+    -> json: {"name":"std","cfgstr":"nthreads=4","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"tallyref":"truth","nscatlimit":null,"tally":["theta"],"tallybreakdown":true,"tallybins":{"overrides":{"e":null,"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":4}}
 
 Test engine opt string: "tally = mu, q"
     -> obj: EngineOpts(tally=mu,q)
-    -> json: {"name":"std","cfgstr":"tally=mu,q","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"beamdir":null,"beamenergy":null,"nscatlimit":null,"tally":["mu","q"],"tallybreakdown":true,"tallybins":{"overrides":{"e":null,"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":"auto"}}
+    -> json: {"name":"std","cfgstr":"tally=mu,q","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"tallyref":"truth","nscatlimit":null,"tally":["mu","q"],"tallybreakdown":true,"tallybins":{"overrides":{"e":null,"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":"auto"}}
 
 Test engine opt string: "nthreads=0 ;   ignoremiss =1"
     -> obj: EngineOpts(ignoremiss=1;nthreads=0)
-    -> json: {"name":"std","cfgstr":"ignoremiss=1;nthreads=0","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":true,"absorption":true,"beamdir":null,"beamenergy":null,"nscatlimit":null,"tally":["theta"],"tallybreakdown":true,"tallybins":{"overrides":{"e":null,"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":0}}
+    -> json: {"name":"std","cfgstr":"ignoremiss=1;nthreads=0","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":true,"absorption":true,"tallyref":"truth","nscatlimit":null,"tally":["theta"],"tallybreakdown":true,"tallybins":{"overrides":{"e":null,"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":0}}
 
 Test engine opt string: "std;nthreads=0;ignoremiss=1"
     -> obj: EngineOpts(ignoremiss=1;nthreads=0)
-    -> json: {"name":"std","cfgstr":"ignoremiss=1;nthreads=0","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":true,"absorption":true,"beamdir":null,"beamenergy":null,"nscatlimit":null,"tally":["theta"],"tallybreakdown":true,"tallybins":{"overrides":{"e":null,"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":0}}
+    -> json: {"name":"std","cfgstr":"ignoremiss=1;nthreads=0","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":true,"absorption":true,"tallyref":"truth","nscatlimit":null,"tally":["theta"],"tallybreakdown":true,"tallybins":{"overrides":{"e":null,"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":0}}

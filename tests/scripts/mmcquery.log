@@ -73,11 +73,8 @@ Caught expected NCBadInput('Invalid src cfg: ""')
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0']
 {'cfgstr': 'constant;n=1000000;z=0;wl=2',
  'decoded': {'ekin': None,
-             'energy_description': '2Aa',
              'n': 1000000,
              'name': 'constant',
-             'nominal_beam_dir': [0.0, 0.0, 1.0],
-             'nominal_beam_energy': 0.020451052401332725,
              'ux': 0.0,
              'uy': 0.0,
              'uz': 1.0,
@@ -85,31 +82,35 @@ Caught expected NCBadInput('Invalid src cfg: ""')
              'wl': {'mode': 'fixed', 'value': 2.0},
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0}}
+             'z': -10.0},
+ 'metadata': {'energy_description': '2Aa',
+              'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': 0.020451052401332725,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.020451052401332725}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'isotropic; z=-10;ekin=0.025']
 {'cfgstr': 'isotropic;n=1000000;z=0;ekin=0.025',
  'decoded': {'ekin': {'mode': 'fixed', 'value': 0.025},
-             'energy_description': '0.025eV',
              'n': 1000000,
              'name': 'isotropic',
-             'nominal_beam_dir': None,
-             'nominal_beam_energy': 0.025,
              'r': 0.0,
              'w': 1.0,
              'wl': None,
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0}}
+             'z': -10.0},
+ 'metadata': {'energy_description': '0.025eV',
+              'fixed_dir': None,
+              'fixed_energy': 0.025,
+              'mean_dir': None,
+              'mean_energy': 0.025}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'circular; r=0.1;z=-1;wl=1.8;ux=1']
 {'cfgstr': 'circular;n=1000000;z=0;wl=1.8;ux=0.70710678118654746;uy=0;uz=0.70710678118654746;r=0.1',
  'decoded': {'ekin': None,
-             'energy_description': '1.8Aa',
              'n': 1000000,
              'name': 'circular',
-             'nominal_beam_dir': [0.7071067811865475, 0.0, 0.7071067811865475],
-             'nominal_beam_energy': 0.025248212841151512,
              'r': 0.1,
              'ux': 0.7071067811865475,
              'uy': 0.0,
@@ -118,16 +119,18 @@ Caught expected NCBadInput('Invalid src cfg: ""')
              'wl': {'mode': 'fixed', 'value': 1.8},
              'x': 0.0,
              'y': 0.0,
-             'z': -1.0}}
+             'z': -1.0},
+ 'metadata': {'energy_description': '1.8Aa',
+              'fixed_dir': [0.7071067811865475, 0.0, 0.7071067811865475],
+              'fixed_energy': 0.025248212841151512,
+              'mean_dir': [0.7071067811865475, 0.0, 0.7071067811865475],
+              'mean_energy': 0.025248212841151512}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0-3.0']
 {'cfgstr': 'constant;n=1000000;z=0;wl=2-3',
  'decoded': {'ekin': None,
-             'energy_description': '(2-3)Aa',
              'n': 1000000,
              'name': 'constant',
-             'nominal_beam_dir': [0.0, 0.0, 1.0],
-             'nominal_beam_energy': None,
              'ux': 0.0,
              'uy': 0.0,
              'uz': 1.0,
@@ -137,18 +140,20 @@ Caught expected NCBadInput('Invalid src cfg: ""')
                     'range_low': 2.0},
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0}}
+             'z': -10.0},
+ 'metadata': {'energy_description': '(2-3)Aa',
+              'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': None,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.013088673536852944}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=0.025-1.0']
 {'cfgstr': 'constant;n=1000000;z=0;ekin=0.025-1',
  'decoded': {'ekin': {'mode': 'uniformrange',
                       'range_high': 1.0,
                       'range_low': 0.025},
-             'energy_description': '(0.025-1)eV',
              'n': 1000000,
              'name': 'constant',
-             'nominal_beam_dir': [0.0, 0.0, 1.0],
-             'nominal_beam_energy': None,
              'ux': 0.0,
              'uy': 0.0,
              'uz': 1.0,
@@ -156,16 +161,18 @@ Caught expected NCBadInput('Invalid src cfg: ""')
              'wl': None,
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0}}
+             'z': -10.0},
+ 'metadata': {'energy_description': '(0.025-1)eV',
+              'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': None,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.5125}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0+-0.1']
 {'cfgstr': 'constant;n=1000000;z=0;wl=2+-0.1',
  'decoded': {'ekin': None,
-             'energy_description': '(2+-0.1)Aa',
              'n': 1000000,
              'name': 'constant',
-             'nominal_beam_dir': [0.0, 0.0, 1.0],
-             'nominal_beam_energy': 0.020451052401332725,
              'ux': 0.0,
              'uy': 0.0,
              'uz': 1.0,
@@ -173,16 +180,18 @@ Caught expected NCBadInput('Invalid src cfg: ""')
              'wl': {'mean': 2.0, 'mode': 'lognormal', 'rms': 0.1},
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0}}
+             'z': -10.0},
+ 'metadata': {'energy_description': '(2+-0.1)Aa',
+              'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': None,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.020451052401332725}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=0.025+-0.001']
 {'cfgstr': 'constant;n=1000000;z=0;ekin=0.025+-0.001',
  'decoded': {'ekin': {'mean': 0.025, 'mode': 'lognormal', 'rms': 0.001},
-             'energy_description': '(0.025+-0.001)eV',
              'n': 1000000,
              'name': 'constant',
-             'nominal_beam_dir': [0.0, 0.0, 1.0],
-             'nominal_beam_energy': 0.025,
              'ux': 0.0,
              'uy': 0.0,
              'uz': 1.0,
@@ -190,16 +199,18 @@ Caught expected NCBadInput('Invalid src cfg: ""')
              'wl': None,
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0}}
+             'z': -10.0},
+ 'metadata': {'energy_description': '(0.025+-0.001)eV',
+              'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': None,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.025}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=thermal:50K']
 {'cfgstr': 'constant;n=1000000;z=0;ekin=thermal:50K',
  'decoded': {'ekin': {'mode': 'maxwell', 'temperature': 50.0},
-             'energy_description': 'Maxwell(50K)',
              'n': 1000000,
              'name': 'constant',
-             'nominal_beam_dir': [0.0, 0.0, 1.0],
-             'nominal_beam_energy': None,
              'ux': 0.0,
              'uy': 0.0,
              'uz': 1.0,
@@ -207,7 +218,12 @@ Caught expected NCBadInput('Invalid src cfg: ""')
              'wl': None,
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0}}
+             'z': -10.0},
+ 'metadata': {'energy_description': 'Maxwell(50K)',
+              'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': None,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.006462997725}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=1eV']
 Caught expected NCBadInput('Invalid value for parameter "ekin". Examples for how to set: "ekin=0.025" (fixed in eV), "wl=1.8" (fixed in Aa), "ekin=0.025-0.05" (uniform range in eV), "wl=1.8-5" (uniform range in Aa), "ekin=0.025+-0.001" (log-normal of given mean and rms in eV), "wl=1.8+-0.01" (log-normal of given mean and rms in Aa), "ekin=thermal:77" (thermal Maxwell of given temperature in K).')
@@ -322,8 +338,6 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'tally=theta,theta;tallybreakdown=0']
 {'cfgstr': 'tallybreakdown=0',
  'decoded': {'absorption': True,
-             'beamdir': None,
-             'beamenergy': None,
              'ignoremiss': False,
              'nscatlimit': None,
              'nthreads': 'auto',
@@ -341,14 +355,13 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'q': None,
                                          'theta': None,
                                          'w': None}},
-             'tallybreakdown': False},
+             'tallybreakdown': False,
+             'tallyref': 'truth'},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', '']
 {'cfgstr': '',
  'decoded': {'absorption': True,
-             'beamdir': None,
-             'beamenergy': None,
              'ignoremiss': False,
              'nscatlimit': None,
              'nthreads': 'auto',
@@ -366,14 +379,13 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'q': None,
                                          'theta': None,
                                          'w': None}},
-             'tallybreakdown': True},
+             'tallybreakdown': True,
+             'tallyref': 'truth'},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'nthreads=4']
 {'cfgstr': 'nthreads=4',
  'decoded': {'absorption': True,
-             'beamdir': None,
-             'beamenergy': None,
              'ignoremiss': False,
              'nscatlimit': None,
              'nthreads': 4,
@@ -391,14 +403,13 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'q': None,
                                          'theta': None,
                                          'w': None}},
-             'tallybreakdown': True},
+             'tallybreakdown': True,
+             'tallyref': 'truth'},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'roulette=0.8,0.001,1']
 {'cfgstr': 'roulette=0.8,0.001,1',
  'decoded': {'absorption': True,
-             'beamdir': None,
-             'beamenergy': None,
              'ignoremiss': False,
              'nscatlimit': None,
              'nthreads': 'auto',
@@ -416,14 +427,13 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'q': None,
                                          'theta': None,
                                          'w': None}},
-             'tallybreakdown': True},
+             'tallybreakdown': True,
+             'tallyref': 'truth'},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'nthreads=0 ;   ignoremiss =1']
 {'cfgstr': 'ignoremiss=1;nthreads=0',
  'decoded': {'absorption': True,
-             'beamdir': None,
-             'beamenergy': None,
              'ignoremiss': True,
              'nscatlimit': None,
              'nthreads': 0,
@@ -441,14 +451,13 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'q': None,
                                          'theta': None,
                                          'w': None}},
-             'tallybreakdown': True},
+             'tallybreakdown': True,
+             'tallyref': 'truth'},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'std;nthreads=0;ignoremiss=1']
 {'cfgstr': 'ignoremiss=1;nthreads=0',
  'decoded': {'absorption': True,
-             'beamdir': None,
-             'beamenergy': None,
              'ignoremiss': True,
              'nscatlimit': None,
              'nthreads': 0,
@@ -466,14 +475,13 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'q': None,
                                          'theta': None,
                                          'w': None}},
-             'tallybreakdown': True},
+             'tallybreakdown': True,
+             'tallyref': 'truth'},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', '\t  std ; nthreads=  auto  \t\n;ignoremiss= 0']
 {'cfgstr': '',
  'decoded': {'absorption': True,
-             'beamdir': None,
-             'beamenergy': None,
              'ignoremiss': False,
              'nscatlimit': None,
              'nthreads': 'auto',
@@ -491,14 +499,13 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'q': None,
                                          'theta': None,
                                          'w': None}},
-             'tallybreakdown': True},
+             'tallybreakdown': True,
+             'tallyref': 'truth'},
  'name': 'std'}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'tally=q,theta;tallybins=+,;tallybreakdown=0']
 {'cfgstr': 'tally=q,theta;tallybreakdown=0;tallybins=+',
  'decoded': {'absorption': True,
-             'beamdir': None,
-             'beamenergy': None,
              'ignoremiss': False,
              'nscatlimit': None,
              'nthreads': 'auto',
@@ -516,5 +523,6 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'q': None,
                                          'theta': None,
                                          'w': None}},
-             'tallybreakdown': False},
+             'tallybreakdown': False,
+             'tallyref': 'truth'},
  'name': 'std'}

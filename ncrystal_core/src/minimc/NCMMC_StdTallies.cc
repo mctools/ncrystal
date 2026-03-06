@@ -43,43 +43,78 @@ void NCMMCT::HistGroup::merge( const HistGroup& o )
   }
 }
 
-NCMMCT::TallyStdHists_Options
-NCMMCT::TallyStdHists_Options::create( const EngineOpts& eo,
-                                       const Source& src)
+NCMMCT::TallyNeutronInitialInfo
+NCMMCT::TallyNeutronInitialInfo::create( const EngineOpts& eopts,
+                                         const SourceMetaData& srcmd )
 {
-  using TFlags = TallyFlags::Flags;
-  TallyStdHists_Options opt;
-  //Tally options from EngineOpts:
-  opt.flags = eo.tallyFlags;
-  opt.tallyBinnings = eo.tallyBinnings;
-  //Nominal beam dir + energy from source:
-  Optional<NeutronDirection> optbd = eo.tallyBeamDir;
-  if ( !optbd.has_value() )
-    optbd = src.nominalBeamDirection();
-  if ( optbd.has_value() ) {
-    //Note: We only store beamdir if it is not (0,0,1), since it makes
-    //it cheaper to calculate cos(theta) for this common case.
-    auto v = optbd.value().as<Vector>().unit();
-    if ( v.z() != 1.0 )
-      opt.beamDir = v.as<NeutronDirection>();
-  }
-  opt.beamEnergy = eo.tallyBeamEnergy;
-  if ( !opt.beamEnergy.has_value() )
-    opt.beamEnergy = src.nominalBeamEnergy();
+  TallyNeutronInitialInfo res;
+  using TF = TallyFlags::Flags;
+  constexpr TF::value_type flags_dir0 = TF::q|TF::mu|TF::theta;
+  static_assert( flags_dir0 == 0x83, "" );//sanity check, value doesn't matter.
+  constexpr auto flags_e0 = TF::q;
+  const bool needs_dir0 = eopts.tallyFlags.hasAny(flags_dir0);
+  const bool needs_e0 = eopts.tallyFlags.hasAny(flags_e0);
 
-  if ( !opt.beamEnergy.has_value() ) {
-    //fixme: actually test this branch (maybe allow
-    //       enginecfg.beamenergy=none to remove actual src.beamEnergy?)!
-    constexpr TallyFlags::value_type hists_needing_Ei = TFlags::q;
-    auto bf = opt.flags.getValue() & hists_needing_Ei;
-    if ( bf ) {
-      std::string bfl(joinstr(TallyFlags(bf).toStringList(),"\", \""));
-      NCRYSTAL_WARN("Disabling some tallies due to missing knowledge of "
-                    "incoming energy: \""<<bfl<<"\" (consider provi"
-                    "ding one with the enginecfg beamenergy parameter).");
-      opt.flags.remove( bf );
+  if ( !needs_dir0 && !needs_e0 )
+    return res;
+
+  nc_assert( eopts.tallyRef == EngineOpts::TallyReference::Truth
+             || eopts.tallyRef == EngineOpts::TallyReference::Source );
+  const bool tallyref_truth = ( eopts.tallyRef
+                                == EngineOpts::TallyReference::Truth );
+  auto& srcvar_dir0 = ( tallyref_truth
+                        ? srcmd.fixedDirection : srcmd.meanDirection );
+  auto& srcvar_e0 = ( tallyref_truth ? srcmd.fixedEnergy : srcmd.meanEnergy );
+
+  const bool src_missing_dir0 = needs_dir0 && !srcvar_dir0.has_value();
+  const bool src_missing_e0 = needs_e0 && !srcvar_e0.has_value();
+  const bool src_missing_anything = (src_missing_dir0||src_missing_e0);
+
+  if (src_missing_anything) {
+    if ( tallyref_truth ) {
+      //not an error in this case, but it does mean we must enable extended
+      //baskets.
+      res.needsExtendedBaskets = true;
+    } else {
+      nc_assert( eopts.tallyRef == EngineOpts::TallyReference::Source );
+      //"tallyref=src", but source is missing something => error.
+      auto giveerror = [&eopts](const char * quantitydescr,
+                                TallyFlags flags)
+      {
+        nc_assert_always( ( TF::ALLHISTS & flags.getValue() )
+                          == flags.getValue() );
+        auto badflags = TallyFlags( eopts.tallyFlags.getValue()
+                                    & flags.getValue() ).toStringList();
+        nc_assert_always(!badflags.empty());
+        NCRYSTAL_THROW2(BadInput,
+                        "tallyref=src but tally \""<<badflags.front()
+                        <<"\" needs a "<<quantitydescr
+                        <<" which is not well defined with the chosen source");
+      };
+      if ( src_missing_dir0 )
+        giveerror("direction",flags_dir0);
+      if ( src_missing_e0 )
+        giveerror("energy",flags_e0);
+      nc_assert_always(false);
     }
   }
+
+  //Cache quantities if relevant and available:
+  if ( needs_dir0 )
+    res.fixedDir = srcvar_dir0;
+  if ( needs_e0 )
+    res.fixedEnergy = srcvar_e0;
+  return res;
+}
+
+NCMMCT::TallyStdHists_Options
+NCMMCT::TallyStdHists_Options::create( const EngineOpts& eo,
+                                       const SourceMetaData& srcmd )
+{
+  TallyStdHists_Options opt;
+  opt.neutronInitialInfo = TallyNeutronInitialInfo::create( eo, srcmd );
+  opt.flags = eo.tallyFlags;
+  opt.tallyBinnings = eo.tallyBinnings;
   return opt;
 }
 
@@ -248,19 +283,27 @@ namespace NCRYSTAL_NAMESPACE {
         }
 
         void tallyRecord_q(  TallyStdHists_Data& data,
-                             const NeutronEnergy& beamEnergy,
+                             const Optional<NeutronEnergy>& fixedE0,
                              const BasketValBufDbl& mu,
                              const NeutronBasket& neutrons,
-                             const DetailedHistsIDVect * dethistid )
+                             const DetailedHistsIDVect * dethistid,
+                             const NeutronBasketFields* neutrons0 )
         {
           BasketValBufDbl q;
           //|qbar|^2 = |kfbar|^2+|kibar|^2-2kfbarDOTkibar
           //         = |kf|^2+|ki|^2-2*mu*|kf||ki|
           //         = ( Ef+Ei-2*mu*sqrt(Ef*Ei) ) * fact_ekin2ksq
-          const double Ei = beamEnergy.get();
+
           const std::size_t n = neutrons.size();
-          for ( std::size_t i = 0; i < n; ++i )
-            q.data[i] = neutrons.fields.ekin[i] * Ei;
+          if ( fixedE0.has_value() ) {
+            const double Ei = fixedE0.value().get();
+            for ( std::size_t i = 0; i < n; ++i )
+              q.data[i] = neutrons.fields.ekin[i] * Ei;
+          } else {
+            nc_assert( neutrons0 != nullptr );
+            for ( std::size_t i = 0; i < n; ++i )
+              q.data[i] = neutrons.fields.ekin[i] * neutrons0->ekin[i];
+          }
 #ifndef NDEBUG
           for ( std::size_t i = 0; i < n; ++i )
             nc_assert( q.data[i]>=0.0 );
@@ -271,8 +314,15 @@ namespace NCRYSTAL_NAMESPACE {
             q.data[i] *= mu.data[i];
           for ( std::size_t i = 0; i < n; ++i )
             q.data[i] *= (-2.0);
-          for ( std::size_t i = 0; i < n; ++i )
-            q.data[i] += Ei;
+          if ( fixedE0.has_value() ) {
+            const double Ei = fixedE0.value().get();
+            for ( std::size_t i = 0; i < n; ++i )
+              q.data[i] += Ei;
+          } else {
+            nc_assert( neutrons0 != nullptr );
+            for ( std::size_t i = 0; i < n; ++i )
+              q.data[i] += neutrons0->ekin[i];
+          }
           for ( std::size_t i = 0; i < n; ++i )
             q.data[i] += neutrons.fields.ekin[i];
           constexpr double fact_ekin2ksq = ekin2ksq(1.0);
@@ -291,7 +341,8 @@ namespace NCRYSTAL_NAMESPACE {
         void tallyRecord_mu_theta_q( TallyStdHists_Data& data,
                                      const TallyStdHists_Options& opt,
                                      const NeutronBasket& b,
-                                     const DetailedHistsIDVect * dethistid )
+                                     const DetailedHistsIDVect * dethistid,
+                                     const NeutronBasketFields* neutrons0 )
         {
           using TFlags = TallyFlags::Flags;
           nc_assert( opt.flags.has(TFlags::mu)
@@ -302,22 +353,33 @@ namespace NCRYSTAL_NAMESPACE {
           //First find mu
           const std::size_t n = b.size();
           BasketValBufDbl mu;
-          //fixme: if beamDIR has a value, we could look for (0,0,1) as a
-          //special case. This can be done in the constructor.
           auto& bf = b.fields;
-          if ( !opt.beamDir.has_value() ) {
-            //use (0,0,1) as reference, so just copy over uz values.
-            detail::memcpydata( mu.data, bf.uz.data, n );
+          if ( opt.neutronInitialInfo.fixedDir.has_value() ) {
+            const double bx = opt.neutronInitialInfo.fixedDir.value()[0];
+            const double by = opt.neutronInitialInfo.fixedDir.value()[1];
+            const double bz = opt.neutronInitialInfo.fixedDir.value()[2];
+            if ( bz==1 ) {
+              //using (0,0,1) as reference is such a normal case that it makes
+              //sense to take advantage of the fact that mu=uz in this case:
+              detail::memcpydata( mu.data, bf.uz.data, n );
+            } else {
+              for ( std::size_t i = 0; i < n; ++i )
+                mu.data[i] = bx * bf.ux[i];
+              for ( std::size_t i = 0; i < n; ++i )
+                mu.data[i] += by * bf.uy[i];
+              for ( std::size_t i = 0; i < n; ++i )
+                mu.data[i] += bz * bf.uz[i];
+            }
           } else {
-            const double bx( opt.beamDir.value()[0] );
-            const double by( opt.beamDir.value()[1] );
-            const double bz( opt.beamDir.value()[2] );
+            //We must take the individual initial value of neutrons (so
+            //presumably we are using extended baskets).
+            nc_assert( neutrons0 != nullptr );
             for ( std::size_t i = 0; i < n; ++i )
-              mu.data[i] = bx * bf.ux[i];
+              mu.data[i] = neutrons0->ux[i] * bf.ux[i];
             for ( std::size_t i = 0; i < n; ++i )
-              mu.data[i] += by * bf.uy[i];
+              mu.data[i] += neutrons0->uy[i] * bf.uy[i];
             for ( std::size_t i = 0; i < n; ++i )
-              mu.data[i] += bz * bf.uz[i];
+              mu.data[i] += neutrons0->uz[i] * bf.uz[i];
           }
 
 #ifndef NDEBUG
@@ -340,12 +402,9 @@ namespace NCRYSTAL_NAMESPACE {
 
           //////////
           //Tally q
-          if ( opt.flags.has(TFlags::q) ) {
-            nc_assert( opt.beamEnergy.has_value() );
-            //FIXME: We should use extended baskets if tallying for q and the
-            //enginecfg did not get a beamenergy value.
-            tallyRecord_q( data, opt.beamEnergy.value(), mu, b, dethistid );
-          }
+          if ( opt.flags.has(TFlags::q) )
+            tallyRecord_q( data, opt.neutronInitialInfo.fixedEnergy,
+                           mu, b, dethistid, neutrons0 );
 
           ////////////////////////////////////////////////
           //Tally theta (using mu array to hold theta values)
@@ -462,7 +521,8 @@ void NCMMCT::tallyRecord( TallyStdHists_Data& data,
                           const TallyStdHists_Options& opt,
                           const NeutronBasket& neutrons,
                           const BasketValBufInt& nscat,
-                          const BasketValBufInt& nscat_inelas )
+                          const BasketValBufInt& nscat_inelas,
+                          const NeutronBasketFields* neutrons0 )
 {
   using TFlags = TallyFlags::Flags;
   const std::size_t n = neutrons.size();
@@ -480,7 +540,7 @@ void NCMMCT::tallyRecord( TallyStdHists_Data& data,
   //Fill cos(mu), theta, q tallies:
   constexpr auto flag_miscmu = (TFlags::mu|TFlags::theta|TFlags::q );
   if ( opt.flags.hasAny(flag_miscmu) )
-    tallyRecord_mu_theta_q( data, opt, neutrons, histid );
+    tallyRecord_mu_theta_q( data, opt, neutrons, histid, neutrons0 );
 
   constexpr auto flag_nonmiscmu = ( TFlags::ALLHISTS & (~flag_miscmu) );
   if ( !opt.flags.hasAny(flag_nonmiscmu) )
@@ -539,9 +599,10 @@ void NCMMCT::TallyStdHists::merge(TallyBase&& o_base)
   m_data.merge( o.m_data );
 };
 
-NCMMCT::TallyStdHists::TallyStdHists( const EngineOpts& eo, const Source& src)
+NCMMCT::TallyStdHists::TallyStdHists( const EngineOpts& eo,
+                                      const SourceMetaData& srcmd )
   : TallyStdHists( private_constructor_t{},
-                   Options::create(eo,src) )
+                   Options::create(eo,srcmd) )
 {
 }
 
@@ -550,12 +611,21 @@ void NCMMCT::TallyStdHists::registerResultsUB( const UniversalBasket& b)
   nc_assert( b.neutrons );
   nc_assert( b.nscat );
   nc_assert( b.nscat_inelas );
-  tallyRecord( m_data, m_opt, *b.neutrons, *b.nscat, *b.nscat_inelas );
+  nc_assert( !( m_opt.neutronInitialInfo.needsExtendedBaskets
+                && b.neutrons_initial==nullptr) );
+
+  tallyRecord( m_data, m_opt,
+               *b.neutrons, *b.nscat, *b.nscat_inelas, b.neutrons_initial );
 }
 
 NCMMCT::TallyStdHists::TallyStdHists( private_constructor_t, Options opt )
   : m_opt(opt), m_data(Data::create(opt))
 {
+}
+
+bool NCMMCT::TallyStdHists::needsExtendedBaskets() const
+{
+  return m_opt.neutronInitialInfo.needsExtendedBaskets;
 }
 
 NC::shared_obj<NCMMC::TallyBase> NCMMCT::TallyStdHists::cloneSetup() const

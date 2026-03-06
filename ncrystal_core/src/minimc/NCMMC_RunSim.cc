@@ -41,15 +41,15 @@ NCMMC::runSim_StdEngine( GeometryPtr geom,
 
   auto engine = createStdSimEngine( geom, std::move(matdef), eopts );
   auto tallymgr = makeSO<TallyMgr>( tally->cloneSetup() );
+
+  //Figure out which baskets are needed by tally and callbacks:
   BasketType bt = BasketType::Basic;
-  //fixme:  basket type could also depend on eopts! I.e. if
-  //        tally needs initial values (i.e. it does for q).
   if ( callback.has_value() )
     bt = callback.value().basketType;
-  auto bmgrs = createBasketManagement( geom,
-                                       src,
-                                       bt,
-                                       eopts.nthreads );
+  if ( tally->needsExtendedBaskets() )
+    bt = BasketType::Extended;
+
+  auto bmgrs = createBasketManagement( geom, src, bt, eopts.nthreads );
   SimMgr mgr( eopts, engine, std::move(bmgrs), tallymgr, callback );
   auto launchSimStats = mgr.launchSimulations( eopts.nthreads,
                                                eopts.seed );

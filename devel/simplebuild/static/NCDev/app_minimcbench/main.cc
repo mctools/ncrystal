@@ -67,19 +67,16 @@ int the_main_fct( int argc, char ** argv ) {
   auto src = NCMMC::createSource(src_cfgstr);
   auto eopts = NCMMC::parseEngineOpts( enginecfg );
   auto srcmd = src->metaData();
-  auto tally = NC::makeSO<NCMMC::TallyStdHists>( eopts, *src );
+  auto tally = NC::makeSO<NCMMC::TallyStdHists>( eopts, src->metaData() );
 
   nc_assert_always( nthreads.get() > 0 );
 
   std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
 
-  nc_assert_always(srcmd.totalSize.has_value());
-  auto nsrcparticles = srcmd.totalSize.value();
-
   auto resmd = NCMMC::runSim_StdEngine( geom, src, tally, matdef, eopts );
 
-  nc_assert_always( resmd.provided.count == nsrcparticles );
-  nc_assert_always( resmd.provided.weight == nsrcparticles );
+  nc_assert_always( resmd.provided.weight == resmd.provided.count );
+  const auto nsrcparticles = resmd.provided.count;
   nc_assert_always( resmd.miss.count == 0 );
   nc_assert_always( resmd.miss.weight == 0.0 );
   nc_assert_always( resmd.tallied.count > resmd.provided.count );//splitting
@@ -90,7 +87,7 @@ int the_main_fct( int argc, char ** argv ) {
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
   const double dt = (std::chrono::duration_cast<std::chrono::microseconds>(t1-t0).count()) * 1e-6;
   std::cout << "    Number of threads used:  "<<nthreads<<std::endl;
-  std::cout << "Number of source particles:  "<<nsrcparticles<<std::endl;
+  std::cout << "Number of source particles:  "<<resmd.provided.count<<std::endl;
   nc_assert_always( NC::floateq( resmd.tallied.weight,
                                  hist_mu.stats().getIntegral() ) );
   const double count_tallied = resmd.tallied.count;

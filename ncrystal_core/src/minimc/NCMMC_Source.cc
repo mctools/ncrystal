@@ -43,15 +43,6 @@ namespace NCRYSTAL_NAMESPACE {
             m_norig( n )
         {
         }
-        void apply(SourceMetaData& md) const
-        {
-          if ( m_norig == 0 ) {
-            md.isInfinite = true;
-          } else {
-            md.isInfinite = false;
-            md.totalSize = m_norig;
-          }
-        }
         std::size_t nOrig() const { return m_norig; }
         std::size_t nUsed() const
         {
@@ -132,6 +123,41 @@ namespace NCRYSTAL_NAMESPACE {
           buf[i] *= conv_factor;
       }
 
+      void setMetaData_EnergyInfo( const EParsed& ecfg, SourceMetaData& md )
+      {
+        md.energyDescription = ecfg.description;
+        if ( ecfg.fixed_ekin.has_value() ) {
+          md.fixedEnergy = ecfg.fixed_ekin;
+          md.meanEnergy = ecfg.fixed_ekin;
+          return;
+        }
+        //Ok, so energy is not fixed but we can set the mean energy (or
+        //wavelength if the wl=... keyword was used).
+        md.fixedEnergy = NullOpt;
+        md.meanEnergy = NullOpt;
+        if ( ecfg.maxwell.has_value() ) {
+          //mean energy is (3/2)kT, most probable is (1/2)kT. Although a value
+          //of kT might feel natural, we use the mean energy for consistency
+          //(also for consistency with the documentation):
+          md.meanEnergy = ecfg.maxwell.value().kT()*1.5;
+          return;
+        }
+        auto& fr = ecfg.flexrange.value();
+        nc_assert( fr.fr.mode == FlexRangeValue::Mode::UniformRange
+                   || fr.fr.mode == FlexRangeValue::Mode::LogNormal );
+        //Take the middle of UniformRange or mean of LogNormal, in either
+        //wavelength or energy depending on the mode:
+        nc_assert( fr.fr.mode == FlexRangeValue::Mode::LogNormal
+                   || fr.fr.mode == FlexRangeValue::Mode::UniformRange );
+        const double meanval = ( fr.fr.mode == FlexRangeValue::Mode::LogNormal
+                                 ? fr.fr.value
+                                 : 0.5*( fr.fr.value
+                                         + fr.fr.secondary_value.value() ) );
+        if ( fr.mode == EParsed::Mode::Energy )
+          md.meanEnergy = NeutronEnergy( meanval );
+        else
+          md.meanEnergy = NeutronWavelength( meanval );
+      }
 
       void setEnergy_UniformRange( const EParsed& ecfg,
                                    const StatCount::FillCounts& counts,
@@ -168,9 +194,9 @@ namespace NCRYSTAL_NAMESPACE {
         static int validate = []()
         {
           BasketValBufDbl vbuf;
-          vbuf[0] = 0.0;
-          vbuf[1] = std::numeric_limits<double>::infinity();
-          vbuf[2] = 1.8;
+          vbuf.data[0] = 0.0;
+          vbuf.data[1] = std::numeric_limits<double>::infinity();
+          vbuf.data[2] = 1.8;
           StatCount::FillCounts vcounts;
           vcounts.i0 = 0;
           vcounts.N = 3;
@@ -251,8 +277,6 @@ namespace NCRYSTAL_NAMESPACE {
             os << ",\"ekin\":null";
           }
         }
-        os <<",\"energy_description\":";
-        streamJSON(os,ep.description);
       }
 
       void sourceJSONHelper_direction( std::ostream& os, NeutronDirection dir )
@@ -287,22 +311,29 @@ namespace NCRYSTAL_NAMESPACE {
         streamJSON(os,w);
       }
 
+      void sourceJSONHelper_md( std::ostream& os, const SourceMetaData& md )
+      {
+        //NB: skipping md.concurrent for now
+        streamJSONDictEntry( os, "fixed_dir",md.fixedDirection,
+                             JSONDictPos::FIRST );
+        streamJSONDictEntry( os, "fixed_energy",md.fixedEnergy );
+        streamJSONDictEntry( os, "mean_dir",md.meanDirection );
+        streamJSONDictEntry( os, "mean_energy",md.meanEnergy );
+        streamJSONDictEntry( os, "energy_description",md.energyDescription,
+                             JSONDictPos::LAST );
+      }
+
       template <class TSource>
-      void sourceJSONHelper(std::ostream& os, const TSource& src)
+      void sourceJSONHelper(std::ostream& os, const TSource& src )
       {
         std::ostringstream cfgstr;
         src.toString(cfgstr);
         streamJSONDictEntry( os, "cfgstr", cfgstr.str(), JSONDictPos::FIRST );
         os << ",\"decoded\":{";
         src.toJSONDecodedCfgItems(os);
-        streamJSONDictEntry( os, "nominal_beam_dir",
-                             src.nominalBeamDirection() );
-        streamJSONDictEntry( os, "nominal_beam_energy",
-                             src.nominalBeamEnergy() );
-        //Already in "energy_description":
-        // streamJSONDictEntry( os, "beam_energy_str",
-        //                      src.beamEnergyStr() );
-        os << "}}";
+        os << "},\"metadata\":";
+        sourceJSONHelper_md(os,src.metaData());
+        os << '}';
       }
 
       void sourceCfgStrHelper_direction( std::ostream& os,
@@ -355,6 +386,7 @@ namespace NCRYSTAL_NAMESPACE {
         double m_w = 1.0;
         EParsed m_einfo;
         double m_minusr = 0.0;
+        SourceMetaData m_md;
      public:
 
         //Note: If radius is set to a positive value, we move particles
@@ -376,21 +408,10 @@ namespace NCRYSTAL_NAMESPACE {
         {
           nc_assert_always(m_w>0.0&&std::isfinite(m_w));
           nc_assert_always(std::isfinite(radius)&&ncabs(radius)<1e99);
-        }
-
-        Optional<std::string> beamEnergyStr() const override
-        {
-          return m_einfo.description;
-        }
-
-        Optional<NeutronDirection> nominalBeamDirection() const override
-        {
-          return NullOpt;//no such thing!
-        }
-
-        Optional<NeutronEnergy> nominalBeamEnergy() const override
-        {
-          return m_einfo.nominal_beamenergy();
+          m_md.concurrent = true;
+          m_md.meanDirection = NullOpt;//not well defined
+          m_md.fixedDirection = NullOpt;//not well defined
+          setMetaData_EnergyInfo( m_einfo, m_md );
         }
 
         void toJSONDecodedCfgItems(std::ostream& os) const
@@ -422,23 +443,9 @@ namespace NCRYSTAL_NAMESPACE {
           return s;
         }
 
-        SourceMetaData metaData() const override
+        const SourceMetaData& metaData() const override
         {
-          SourceMetaData md;
-          {
-            //Fixme: should this just be the toCfgStr/toJSON now??
-            std::ostringstream ss;
-            ss << "SourceIsotropic("<<m_einfo.description
-               <<", pos=["
-               << m_x<<", "<< m_y<<", "<< m_z<<"]";
-            if ( m_minusr )
-              ss << ", r="<<(m_minusr?-m_minusr:0.0);
-            ss << ")";
-            md.description = ss.str();
-          }
-          md.concurrent = true;
-          m_stat.apply( md );
-          return md;
+          return m_md;
         }
 
         bool particlesMightBeOutside( const Geometry& geom ) const override
@@ -492,6 +499,7 @@ namespace NCRYSTAL_NAMESPACE {
         NeutronDirection m_dir;
         double m_w = 1.0;
         EParsed m_einfo;
+        SourceMetaData m_md;
       public:
 
         SourceConstant( std::size_t n,
@@ -507,21 +515,10 @@ namespace NCRYSTAL_NAMESPACE {
             m_einfo(std::move(ekin_parsed))
         {
           nc_assert_always(m_w>0.0&&std::isfinite(m_w));
-        }
-
-        Optional<std::string> beamEnergyStr() const override
-        {
-          return m_einfo.description;
-        }
-
-        Optional<NeutronDirection> nominalBeamDirection() const override
-        {
-          return m_dir;
-        }
-
-        Optional<NeutronEnergy> nominalBeamEnergy() const override
-        {
-          return m_einfo.nominal_beamenergy();
+          m_md.concurrent = true;
+          m_md.fixedDirection = m_dir;
+          m_md.meanDirection = m_dir;
+          setMetaData_EnergyInfo( m_einfo, m_md );
         }
 
         void toJSONDecodedCfgItems(std::ostream& os) const
@@ -551,19 +548,9 @@ namespace NCRYSTAL_NAMESPACE {
           return s;
         }
 
-        SourceMetaData metaData() const override
+        const SourceMetaData& metaData() const override
         {
-          SourceMetaData md;
-          {
-            std::ostringstream ss;
-            ss << "SourceConstant("<<m_einfo.description
-               <<", pos=["<< m_x<<", "
-               << m_y<<", "<< m_z<<"], dir="<<m_dir<<")";
-            md.description = ss.str();
-          }
-          md.concurrent = true;
-          m_stat.apply( md );
-          return md;
+          return m_md;
         }
 
         bool particlesMightBeOutside( const Geometry& geom ) const override
@@ -612,6 +599,7 @@ namespace NCRYSTAL_NAMESPACE {
         double m_w = 1.0;
         Length m_radius;//for metadata
         EParsed m_einfo;
+        SourceMetaData m_md;
       public:
 
         SourceUniformCircularBeam( std::size_t n,
@@ -651,26 +639,15 @@ namespace NCRYSTAL_NAMESPACE {
             m_a *= m_radius.get();
             m_b *= m_radius.get();
           }
+          m_md.concurrent = true;
+          m_md.fixedDirection = m_dir;
+          m_md.meanDirection = m_dir;
+          setMetaData_EnergyInfo( m_einfo, m_md );
           NCRYSTAL_DEBUGMMCMSG("SourceUniformCircularBeam(center="
                                <<m_center<<", dir="<<m_dir
                                <<", energy="<<m_einfo.description
                                <<", r="<<m_radius
                                <<", a="<<m_a<<", b="<<m_b);
-        }
-
-        Optional<std::string> beamEnergyStr() const override
-        {
-          return m_einfo.description;
-        }
-
-        Optional<NeutronDirection> nominalBeamDirection() const override
-        {
-          return m_dir;
-        }
-
-        Optional<NeutronEnergy> nominalBeamEnergy() const override
-        {
-          return m_einfo.nominal_beamenergy();
         }
 
         void toJSONDecodedCfgItems(std::ostream& os) const
@@ -711,22 +688,9 @@ namespace NCRYSTAL_NAMESPACE {
           return s;
         }
 
-        SourceMetaData metaData() const override
+        const SourceMetaData& metaData() const override
         {
-
-          SourceMetaData md;
-          {
-            std::ostringstream ss;
-            ss << "SourceUniformCircularBeam("<<m_einfo.description
-               <<", r="<<m_radius
-               <<", pos=["<< Length{m_center.x()}
-              <<", "<< Length{m_center.y()}
-              <<", "<< Length{m_center.z()}<<"], dir="<<m_dir<<")";
-            md.description = ss.str();
-          }
-          md.concurrent = true;
-          m_stat.apply( md );
-          return md;
+          return m_md;
         }
 
         bool particlesMightBeOutside( const Geometry& geom ) const override
@@ -856,13 +820,5 @@ namespace NCRYSTAL_NAMESPACE {
 
 NCMMC::SourcePtr NCMMC::createSource( const StrView& raw_srcstr )
 {
-  auto src = createSourceImpl( raw_srcstr );
-  {
-    //Sanity checks:
-    auto md = src->metaData();
-    if ( md.totalSize.has_value() && md.isInfinite )
-      NCRYSTAL_THROW(LogicError,"Inconsistent source metadata:"
-                     "infinite sources can not have a totalSize");
-  }
-  return src;
+  return createSourceImpl( raw_srcstr );
 }

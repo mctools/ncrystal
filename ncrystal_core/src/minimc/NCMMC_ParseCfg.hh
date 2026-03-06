@@ -309,18 +309,6 @@ namespace NCRYSTAL_NAMESPACE {
         //general:
         PairDD cachevals = PairDD{0.0,0.0};
         std::string description;
-        Optional<NeutronEnergy> nominal_beamenergy() const
-        {
-          if ( maxwell.has_value() )
-            return NullOpt;
-          nc_assert_always( flexrange.has_value() );
-          auto& fr = flexrange.value();
-          if ( fr.fr.mode == FlexRangeValue::Mode::UniformRange )
-            return NullOpt;
-          if ( fr.mode == Mode::Energy )
-            return NeutronEnergy{ fr.fr.value };
-          return NeutronWavelength{ fr.fr.value }.energy();
-        }
       };
 
       inline EParsed getValue_Energy( const Tokens& tokens,

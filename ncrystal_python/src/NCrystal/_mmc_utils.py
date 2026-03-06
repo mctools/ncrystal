@@ -499,69 +499,18 @@ class MMCResults:
     def tally_names( self ):
         return sorted(self.__data['output']['tally'].keys())
 
-    #FIXME: Too many properties here?? Also, we need to unit test all fields
-    #('tallied' data are for sure not tested).
+    @property
+    def setup( self ):
+        return self.__data['input']
 
     @property
-    def src_miss_counts( self ):
-        return self.__data['output']['metadata']['miss']['count']
-
-    @property
-    def src_miss_totalweight( self ):
-        return self.__data['output']['metadata']['miss']['weight']
-
-    @property
-    def src_provided_counts( self ):
-        return self.__data['output']['metadata']['provided']['count']
-
-    @property
-    def src_provided_totalweight( self ):
-        return self.__data['output']['metadata']['provided']['weight']
-
-    @property
-    def src_tallied_counts( self ):
-        return self.__data['output']['metadata']['tallied']['count']
-
-    @property
-    def src_tallied_totalweight( self ):
-        return self.__data['output']['metadata']['tallied']['weight']
-
-    @property
-    def setup_material_cfgstr( self ):
-        return self.__data['input']['material']['cfgstr']
-
-    @property
-    def setup_material_cfgstr_decoded( self ):
-        return self.__data['input']['material']['decoded']
-
-    @property
-    def setup_source_cfgstr( self ):
-        return self.__data['input']['source']['cfgstr']
-
-    @property
-    def setup_source_cfgstr_decoded( self ):
-        return self.__data['input']['source']['decoded']
-
-    @property
-    def setup_geometry_cfgstr( self ):
-        return self.__data['input']['geometry']['cfgstr']
-
-    @property
-    def setup_geometry_cfgstr_decoded( self ):
-        return self.__data['input']['geometry']['decoded']
-
-    @property
-    def setup_engine_cfgstr( self ):
-        return self.__data['input']['engine']['cfgstr']
-
-    @property
-    def setup_engine_cfgstr_decoded( self ):#fixme engine_cfgstr -> enginecfg, etc.
-        return self.__data['input']['engine']['decoded']
+    def output_metadata( self ):
+        return self.__data['output']['metadata']
 
     def short_title( self, latex = False ):
-        n = self.src_provided_counts#fixme: weights?
-        s = self.setup_source_cfgstr_decoded['energy_description']
-        g = self.setup_geometry_cfgstr_decoded['short_description']
+        n = self.output_metadata['provided']['count']#fixme: weights?
+        s = self.setup['source']['metadata']['energy_description']
+        g = self.setup['geometry']['decoded']['short_description']
         if latex:
             from ._common import _latex_format
             n = '$%s$'%_latex_format(n)
@@ -569,9 +518,9 @@ class MMCResults:
 
     def long_title( self, latex = False ):
         #NB: latex parameter currently does nothing (fixme?)
-        s = self.setup_source_cfgstr
-        g = self.setup_geometry_cfgstr
-        e = self.setup_engine_cfgstr
+        s = self.setup['source']['cfgstr']
+        g = self.setup['geometry']['cfgstr']
+        e = self.setup['engine']['cfgstr']
         r = f'"{s}" on "{g}"'
         return f'{r} ("{e}")' if e else r
 
@@ -579,10 +528,10 @@ class MMCResults:
         o = []
         o.append('%sNCrystal MiniMC results:'%prefix)
         o.append('  inputs cfg:')
-        o.append('    material : "%s"'%self.setup_material_cfgstr)
-        o.append('    engine   : "%s"'%self.setup_engine_cfgstr)
-        o.append('    source   : "%s"'%self.setup_source_cfgstr)
-        o.append('    geometry : "%s"'%self.setup_geometry_cfgstr)
+        o.append('    material : "%s"'%self.setup['material']['cfgstr'])
+        o.append('    engine   : "%s"'%self.setup['engine']['cfgstr'])
+        o.append('    source   : "%s"'%self.setup['source']['cfgstr'])
+        o.append('    geometry : "%s"'%self.setup['geometry']['cfgstr'])
         o.append('  output:')
         outmd = self.__data['output']['metadata']
         def fmti( x ):

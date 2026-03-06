@@ -27,7 +27,7 @@ def main():
     def test( key, srccfg_energypart, hist_elow, hist_emax ):
         m( cfgstr = 'void.ncmat',
            srccfg = f'constant;z=-0.001;{srccfg_energypart};n=1e6',
-           geomcfg = f'slab;dz=0.001',
+           geomcfg = 'slab;dz=0.001',
            key=f'<auto>_{key}',
            tally='e',
            tallybins=f'e:100:{hist_elow}:{hist_emax}',

@@ -31,12 +31,25 @@ namespace NCRYSTAL_NAMESPACE {
     class Geometry;
 
     struct SourceMetaData {
-      //A source can be infinite or finite, and a finite source may or may not
-      //know the total number of neutrons it can provide.
-      std::string description;
-      bool isInfinite = true;
-      Optional<std::size_t> totalSize;//for finite sources of known size
-      bool concurrent = false;//If it is safe to use in multithreaded context.
+
+      //Some sources are safe to use concurrently:
+      bool concurrent = false;
+
+      //Set if the source provides a well defined "nominal" (mean) energy or
+      //direction of emitted neutrons. Note that if user specified a wavelength,
+      //rather than energy, it will be the mean wavelength rather than mean
+      //energy that is represented in the meanEnergy variable:
+      Optional<NeutronDirection> meanDirection;
+      Optional<NeutronEnergy> meanEnergy;
+
+      //Set if the source provides the same fixed energy or direction of all
+      //emitted neutrons:
+      Optional<NeutronDirection> fixedDirection;
+      Optional<NeutronEnergy> fixedEnergy;
+
+      //Neutron energies formatted in a string (e.g. "1Aa", "25meV", "2eV",
+      //"(0.1-1)eV", etc.) suitable for e.g. plot labels):
+      std::string energyDescription;
     };
 
     class Source : NoCopyMove {
@@ -49,9 +62,8 @@ namespace NCRYSTAL_NAMESPACE {
       //the source has run out (which should never happen for Infinite sources).
       virtual void fillBasket( RNG&, NeutronBasket& ) = 0;
 
-      //Provide source metaData. This function will only be called a few times,
-      //and is not performance critical.
-      virtual SourceMetaData metaData() const = 0;
+      //Provide source metaData:
+      virtual const SourceMetaData& metaData() const = 0;
 
       //Query if generated particles might be outside the provided geometry (and
       //therefore not need an initial propagation step to the volume):
@@ -59,21 +71,6 @@ namespace NCRYSTAL_NAMESPACE {
 
       //Query total weight of all particles already provided by source:
       virtual ParticleCountSum particlesProvided() const = 0;
-
-      //Most sources provide a nominal "beam direction", with respect to which
-      //scattering angles can be defined in tallies. An example of a source
-      //which does not, would be an isotropic source of neutrons.
-      virtual Optional<NeutronDirection> nominalBeamDirection() const = 0;
-
-      //Nominal "beam energy", needed to provide Ei in some tallies (deltaE, q,
-      //..). An example of a source which does not, would be a source of
-      //neutrons read from an external file, or if generating energies over a
-      //range.
-      virtual Optional<NeutronEnergy> nominalBeamEnergy() const = 0;
-
-      //Neutron energies formatted in a string (e.g. "1Aa", "25meV", "2eV",
-      //"(0.1-1)eV", etc.) suitable for e.g. plot labels):
-      virtual Optional<std::string> beamEnergyStr() const = 0;
 
       //Serialisation of source configuration, as original source cfg-string, or
       //as a JSON object with more direct access to individual values. The JSON

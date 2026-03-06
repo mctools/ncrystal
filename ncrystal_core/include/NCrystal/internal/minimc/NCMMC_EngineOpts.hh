@@ -104,7 +104,10 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     struct EngineOpts {
-      //FIXME: Some docs here (or in nctool output / wiki).
+
+      //FIXME: Some docs here (or in nctool output / wiki). Might also be useful
+      //if enginecfg=help triggered the full help.
+
       std::uint64_t seed = 0;//Simulation seed. Note that results are only
                              //reproducible in case of single-threaded
                              //simulations, since it is not guaranteed which
@@ -120,7 +123,7 @@ namespace NCRYSTAL_NAMESPACE {
       //Limit on number of scatterings. If set, it will contain a value in the
       //range 0..32000. This is the highest number of scatterings that will be
       //modelled for a particle. After that number is reached, further
-      //scattering cross sections fpr that particle will artifically become
+      //scattering cross sections for that particle will artificially become
       //0. As an example, setting nscatlimit=1 will effectively disable multiple
       //scattering effects:
       Optional<unsigned> nScatLimit;
@@ -128,14 +131,12 @@ namespace NCRYSTAL_NAMESPACE {
       TallyFlags tallyFlags;
       TallyBinningOverrides tallyBinnings;
 
-      //base of exit angle plots (if not set it will be the source beam
-      //direction or [0,0,1] if that is also unavailable):
-      Optional<NeutronDirection> tallyBeamDir;
-
-      //Nominal beam direction for tallies needing initial energy. If
-      //unavailable, those tallies will be booked but not be filled (and a
-      //warning emitted):
-      Optional<NeutronEnergy> tallyBeamEnergy;
+      //Some tallies require a reference value representing the initial state of
+      //the neutron in the equations. This value can either be a mean value from
+      //the source ("Source") or the actual original value of each neutron
+      //("Truth").
+      enum class TallyReference { Source, Truth, Default = Truth };
+      TallyReference tallyRef = TallyReference::Default;
     };
 
     //Parse to/from a string representation (can also be used to normalise a
@@ -177,7 +178,7 @@ namespace NCRYSTAL_NAMESPACE {
     inline bool TallyFlags::hasAny( value_type v ) const
     {
       nc_assert( (v & Flags::ALL)==v && v );
-      return v & m_value;
+      return ( v & m_value ) != 0;
     }
 
     inline bool TallyFlags::has( value_type v ) const

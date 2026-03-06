@@ -119,7 +119,7 @@ def _minimc_raw( cfgstr, *,
     assert isinstance(geomcfg, str), "geomcfg parameter must be a string"
     assert isinstance(srccfg, str), "srccfg parameter must be a string"
     assert isinstance(enginecfg, str), "enginecfg parameter must be a string"
-    if not callback_options is None:
+    if callback_options is not None:
         assert isinstance(callback_options, str), ("callback_options parameter"
                                                    " must be a string")
 

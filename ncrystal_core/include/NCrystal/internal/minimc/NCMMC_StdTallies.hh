@@ -30,7 +30,7 @@
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
-    class Source;
+    struct SourceMetaData;
 
     namespace Tallies {
 
@@ -52,6 +52,22 @@ namespace NCRYSTAL_NAMESPACE {
         DetailedHistsID data[basket_N];
       };
 
+      struct TallyNeutronInitialInfo {
+        //Info related to quantities needing knowledge of incoming parameters of
+        //neutron. Depends on which tallies are enabled and whether or not
+        //source provides particles with well defined fixed or mean values.
+        Optional<NeutronDirection> fixedDir;
+        Optional<NeutronEnergy> fixedEnergy;
+        bool needsExtendedBaskets = false;
+        static TallyNeutronInitialInfo create( const EngineOpts&,
+                                               const SourceMetaData& );
+        bool operator==( const TallyNeutronInitialInfo& o ) const {
+          return ( fixedDir == o.fixedDir
+                   && fixedEnergy == o.fixedEnergy
+                   && needsExtendedBaskets == o.needsExtendedBaskets );
+        }
+      };
+
       struct HistGroup final : public MoveOnly {
         //Each quantity tallied is kept in a group of a main histogram (for all
         //neutrons), and (if enabled) also 5 histograms for contribution
@@ -68,17 +84,15 @@ namespace NCRYSTAL_NAMESPACE {
 
       struct TallyStdHists_Options {
         TallyFlags flags;
-        Optional<NeutronDirection> beamDir;
-        Optional<NeutronEnergy> beamEnergy;
+        TallyNeutronInitialInfo neutronInitialInfo;
         TallyBinningOverrides tallyBinnings;
         bool operator==( const TallyStdHists_Options& o ) const {
           return ( flags.getValue() == o.flags.getValue()
-                   && beamDir == o.beamDir
-                   && beamEnergy == o.beamEnergy
+                   && neutronInitialInfo == o.neutronInitialInfo
                    && tallyBinnings == o.tallyBinnings );
         }
         static TallyStdHists_Options create( const EngineOpts& eo,
-                                             const Source& src);
+                                             const SourceMetaData& src);
       };
 
       struct TallyStdHists_Data {
@@ -105,7 +119,8 @@ namespace NCRYSTAL_NAMESPACE {
                         const TallyStdHists_Options&,
                         const NeutronBasket&,
                         const BasketValBufInt&,
-                        const BasketValBufInt& );
+                        const BasketValBufInt&,
+                        const NeutronBasketFields* );
 
       class TallyStdHists final : public TallyBase {
       public:
@@ -124,7 +139,8 @@ namespace NCRYSTAL_NAMESPACE {
 
         //Initialise from engine and source options (could in principle also
         //depend on geometry options):
-        TallyStdHists( const EngineOpts&, const Source&);
+        TallyStdHists( const EngineOpts&, const SourceMetaData&);
+        bool needsExtendedBaskets() const override;
         void registerResultsUB( const UniversalBasket&) override;
         shared_obj<TallyBase> cloneSetup() const override;
         void merge(TallyBase&&) override;

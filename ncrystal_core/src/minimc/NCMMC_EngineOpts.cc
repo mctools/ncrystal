@@ -24,8 +24,7 @@
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
 
-//Fixme beamdir (and possibly other parameters) is not unit tested.
-//fixme: let beamenergy accept wavelenghts, via "0.025eV" or "1.8Aa"?
+//Fixme tallyref (and possibly other parameters) is not unit tested.
 //fixme: shorter "short descriptions"?
 
 namespace NCRYSTAL_NAMESPACE {
@@ -53,7 +52,8 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       //Default values. NOTE: These should be kept synchronized with default
-      //values encoded on the structs in NCMMC_EngineOpts.hh!:
+      //values encoded on the structs in NCMMC_EngineOpts.hh! The order of the
+      //variables is not important:
       static constexpr auto enginecfg_defvals_str
       = "ignoremiss=0"
         ";nthreads=auto"
@@ -61,19 +61,19 @@ namespace NCRYSTAL_NAMESPACE {
         ";seed=0"
         ";nscatlimit=none"
         ";roulette=0.1,0.01,2"
-        ";beamenergy=auto"
-        ";beamdir=auto"
+        ";tallyref=truth"
         ";tally=theta"
         ";tallybins="
         ";tallybreakdown=1"
         ;
 
       static constexpr auto enginecfg_nscatlimmax = 32000;
+      //All the variable names should be listed here (not required to be in any
+      //particular order):
       static constexpr auto enginecfg_varnames_str
       = "seed;roulette"
         ";ignoremiss;nthreads;absorption;nscatlimit"
-        ";beamdir;beamenergy"
-        ";tally;tallybins;tallybreakdown";
+        ";tally;tallybins;tallybreakdown;tallyref";
     }
   }
 }
@@ -84,7 +84,8 @@ void NCMMC::engineOptsDocsToJSON( std::ostream& os )
 
   //Most parameters are documented through static entries in the following
   //array, but a few special keywords like <SHORT> (short_descr), <TALLYLIST>,
-  //etc. are expanded dynamically further down.
+  //etc. are expanded dynamically further down. The order of entries in the docs
+  //array is not important.
 
   const char* docs[][4] = {
     {
@@ -107,21 +108,18 @@ void NCMMC::engineOptsDocsToJSON( std::ostream& os )
       " not expected to be reproducible unless also using nthreads=1."
     },
     {
-      "beamenergy", "auto#0.025#2.0#1e-6",
-      "Incident energy in eV to use as reference in tallies.",
-      "<SHORT> This value is taken from the source settings by default, and"
-      " affepts tallies like \"q\" which needs both initial and final energy"
-      " of the neutron. If specified, it must be a value in eV."
-    },
-    {
-      "beamdir", "auto#0,0.5,1",
-      "Incident direction to use as reference in tallies.",
-      "<SHORT> It affects tallies like \"theta\" or \"q\" which needs the"
-      " initial direction of the neutron. If specified, it must contain"
-      " three comma-separated values constituting a vector of finite"
-      " length. Alternatively, it can be just the value \"auto\", which"
-      " indicates that the nominal beam direction is taken from the"
-      " source (if available)."
+      "tallyref", "truth#src",
+      "Definition of incoming quantities in tallies.",
+      "<SHORT> This affects the calculation of tally quantities"
+      " like \"q\", \"theta\", or \"mu\" which needs parameters from"
+      " the incoming neutron state.  The default value of \"truth\""
+      " implies that the actual original quantity of each individual"
+      " neutron as it came from the source is used. A value of"
+      " \"src\" implies that the reference value will be taken as"
+      " the mean value provided by the source. In the special case"
+      " of energy specified as a wavelength (via the \"wl\" source"
+      " parameter), the mean wavelength rather than energy will be"
+      " used where that makes a difference."
     },
     {
       "absorption", "0#1",
@@ -301,55 +299,23 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_eoptsstr )
                  EngineOpts::IgnoreMiss::NO, "" );
   static_assert( EngineOpts::IncludeAbsorption::Default ==
                  EngineOpts::IncludeAbsorption::YES, "" );
+  using TR = EngineOpts::TallyReference;
+  static_assert( TR::Default == TR::Truth, "");
   nc_assert( res.nthreads.indicatesAutoDetect() );
 
   //Apply defaults and error in case of unknown parameters:
   PMC::applyDefaults( tokens, defaults );
   PMC::checkNoUnknown(tokens,enginecfg_varnames_str,"engine");
-
   {
-    auto sv_be = PMC::getValue_str( tokens, "beamenergy" );
-    if ( sv_be != "auto" ) {
-      double be = PMC::getValue_dbl( tokens, "beamenergy" );
-      if ( !(be>0.0) || !std::isfinite(be) )
-        NCRYSTAL_THROW(BadInput,
-                       "Provided beamenergy must be positive and finite");
-      res.tallyBeamEnergy = NeutronEnergy{ be };
+    auto sv_tr = PMC::getValue_str( tokens, "tallyref" );
+    if ( sv_tr == "truth" ) {
+      res.tallyRef = TR::Truth;
+    } else if ( sv_tr == "src" ) {
+      res.tallyRef = TR::Source;
+    } else {
+      NCRYSTAL_THROW(BadInput,"tallyref must be \"truth\" or \"src\"");
     }
   }
-
-  auto sv_bd = PMC::getValue_str( tokens, "beamdir" );
-  if ( sv_bd != "auto" ) {
-    auto parts = sv_bd.splitTrimmed<3>(',');
-    Optional<NC::Vector> bd;
-    if ( parts.size() == 3 ) {
-      bd.emplace();
-      for ( auto i : ncrange(3) ) {
-        auto val = parts.at(i).toDbl();
-        if ( !val.has_value() || ncisnanorinf(val.value()) ) {
-          bd.reset();
-          break;
-        }
-        bd.value()[i] = val.value();
-      }
-    }
-    if ( !bd.has_value() )
-      NCRYSTAL_THROW2(BadInput,
-                      "Invalid beamdir option: \""<<sv_bd
-                      <<"\" Please provide valid values in the form"
-                      " \"ux,uy,uz\".");
-    auto bdm2 = bd.value().mag2();
-    if ( bdm2 < 1e-99 )
-      NCRYSTAL_THROW(BadInput,"Provided beamdir vector is too"
-                     " close to a null vector.");
-    if ( bdm2 > 1e99 )
-      NCRYSTAL_THROW(BadInput,"Provided beamdir vector has too "
-                     "large components.");
-    //Normalise and set:
-    bd.value() *= 1.0/std::sqrt(bdm2);
-    res.tallyBeamDir = bd.value().as<NeutronDirection>();
-  }
-
   {
     auto sv_roulette = PMC::getValue_str( tokens, "roulette" );
     auto parts = sv_roulette.splitTrimmed<3>(',');
@@ -519,13 +485,12 @@ std::string NCMMC::engineOptsToString( const EngineOpts& eopts )
     delim()<<"absorption="
            << ( eopts.includeAbsorption == EO::IncludeAbsorption::YES ? '1' : '0' );
 
-  if ( eopts.tallyBeamEnergy.has_value() )
-    delim()<<"beamenergy="<<fmt(eopts.tallyBeamEnergy.value().dbl());
-
-  if ( eopts.tallyBeamDir.has_value() )
-    delim()<<"beamdir="<<fmt(eopts.tallyBeamDir.value()[0])
-           <<','<<fmt(eopts.tallyBeamDir.value()[1])
-           <<','<<fmt(eopts.tallyBeamDir.value()[2]);
+  using TR = EngineOpts::TallyReference;
+  static_assert( TR::Default == TR::Truth, "");
+  if ( eopts.tallyRef != TR::Truth ) {
+    nc_assert( eopts.tallyRef == TR::Source );
+    delim()<<"tallyref=src";
+  }
 
   if ( eopts.seed != 0 )
     delim()<<"seed="<<eopts.seed;
@@ -604,20 +569,12 @@ void NCMMC::engineOptsToJSON(std::ostream& os, const EngineOpts& eopts)
   streamJSONDictEntry( os, "absorption",
                        bool( eopts.includeAbsorption
                              == EO::IncludeAbsorption::YES ) );
-  if ( eopts.tallyBeamDir.has_value() ) {
-    VectD vtbd = { eopts.tallyBeamDir.value()[0],
-                   eopts.tallyBeamDir.value()[1],
-                   eopts.tallyBeamDir.value()[2] };
-    streamJSONDictEntry( os, "beamdir", vtbd );
-  } else {
-    streamJSONDictEntry( os, "beamdir", json_null_t{} );
-  }
-  if ( eopts.tallyBeamEnergy.has_value() ) {
-    streamJSONDictEntry( os, "beamenergy",
-                         eopts.tallyBeamEnergy.value().dbl() );
-  } else {
-    streamJSONDictEntry( os, "beamenergy", json_null_t{} );
-  }
+
+  using TR = EngineOpts::TallyReference;
+  nc_assert( eopts.tallyRef == TR::Source || eopts.tallyRef == TR::Truth );
+  streamJSONDictEntry( os, "tallyref",
+                       ( eopts.tallyRef == TR::Truth ? "truth" : "src" ) );
+
   if ( eopts.nScatLimit.has_value() ) {
     streamJSONDictEntry( os, "nscatlimit", eopts.nScatLimit.value() );
   } else {

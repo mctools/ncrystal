@@ -39,6 +39,10 @@ namespace NCRYSTAL_NAMESPACE {
       virtual shared_obj<TallyBase> cloneSetup() const = 0;
       virtual void merge(TallyBase&&) = 0;
 
+      //The tally should declare if they need Extended baskets (often Basic
+      //should be enough):
+      virtual bool needsExtendedBaskets() const = 0;
+
       //Ultimately, a tally provides is data as JSON (this is usually done
       //post-merge, so only happens once per simulation):
       virtual void tallyItemToJSON( std::ostream&, StrView itemName ) const = 0;
