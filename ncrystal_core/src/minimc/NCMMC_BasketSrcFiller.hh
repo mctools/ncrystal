@@ -132,15 +132,14 @@ namespace NCRYSTAL_NAMESPACE {
             missStat.weight += b.get_neutrons().fields.w[i];
             ++(missStat.count);
             if (bmiss)
-              bmiss->appendEntryFromOther( b, i );
+              bmiss->append1( b, i );
             if ( i_first_hole == basket_N )
               i_first_hole = i;
           } else {
             //Keep this. In case of holes, we also have to move it.
             std::size_t inew = i;
             if ( i_first_hole < i ) {
-              b.copyEntryFromOther( b, i, (inew=i_first_hole++) );
-              //b.copyEntry( (inew=i_first_hole++), i );
+              b.copy1( b, i, (inew=i_first_hole++) );
               dist_results.data[inew] = dist;
             }
           }

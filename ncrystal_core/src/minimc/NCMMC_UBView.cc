@@ -49,8 +49,6 @@ namespace NCRYSTAL_NAMESPACE {
         BasketValBufDbl buf1;
 
         //Infrastructure:
-        constexpr static BasketType basket_type_val = BasketType::Basic;
-
         constexpr bool full() const noexcept { return neutrons.full(); }
         constexpr bool empty() const noexcept { return neutrons.empty(); }
         constexpr std::size_t size() const noexcept { return neutrons.size(); }
@@ -83,51 +81,53 @@ namespace NCRYSTAL_NAMESPACE {
           dst.buf1 = &buf1;
         }
 
-        //fixme: rename to assignEntry, and note that o=self is ok.
-        void copyEntryFromOther( const Basket_Basic& o,
-                                 std::size_t i_o,
-                                 std::size_t i ) ncnoexceptndebug
+        void copy1( const Basket_Basic& o,
+                    std::size_t i_o, std::size_t i ) ncnoexceptndebug
         {
           //NB: Does NOT update neutrons.nused!
-          BasketUtils::basket_copyEntryFromOther( neutrons, o.neutrons,
-                                                  i_o, i );
+          nc_assert(i_o < o.size());
+          //can't check i<this->size(), since size might not have been updated
+          //yet by caller.
+          BasketUtils::basketfields_set( neutrons.fields,
+                                         o.neutrons.fields, i_o, i );
           nscat.data[i] = o.nscat[i_o];
           nscat_inelas.data[i] = o.nscat_inelas[i_o];
           buf1.data[i] = o.buf1[i_o];
         }
 
-        void appendEntriesFromOther( const Basket_Basic& o,
-                                     std::size_t i_o,
-                                     std::size_t n ) ncnoexceptndebug
+        void appendN( const Basket_Basic& o,
+                      std::size_t i_o, std::size_t n ) ncnoexceptndebug
         {
-          nc_assert(n>0&&"Basket_Basic::appendEntriesFromOther");
+          nc_assert( n>0 );
           nc_assert( this != &o );
           nc_assert( n>=1 );
           nc_assert( this->size() + n <= basket_N );
           nc_assert( i_o + n <= o.size() );
           const std::size_t i = this->size();
 
-          //extra fields:
-          detail::memcpydata<int>( nscat.data + i,o.nscat.data + i_o,n );
-          detail::memcpydata<int>( nscat_inelas.data + i,
-                                   o.nscat_inelas.data + i_o, n );
-          detail::memcpydata<double>( buf1.data + i,
-                                      o.buf1.data + i_o, n );
-          //Note, next call also updates this->neutrons.nused value:
-
-          BasketUtils::basket_appendEntriesFromOther( neutrons, o.neutrons,
-                                                      i_o, n );
+          //copy all data:
+          BasketUtils::memcpydata<int>( nscat.data + i,o.nscat.data + i_o,n );
+          BasketUtils::memcpydata<int>( nscat_inelas.data + i,
+                                        o.nscat_inelas.data + i_o, n );
+          BasketUtils::memcpydata<double>( buf1.data + i,
+                                           o.buf1.data + i_o, n );
+          nc_assert( neutrons.nused + n <= basket_N );
+          nc_assert( i_o + n <= o.neutrons.nused );
+          BasketUtils::basketfields_setrange( neutrons.fields,
+                                              o.neutrons.fields,
+                                              i_o, neutrons.nused, n );
           nc_assert( neutrons.fields.x[i] == o.neutrons.fields.x[i_o] );
           nc_assert( neutrons.fields.y[i] == o.neutrons.fields.y[i_o] );
+          //finally update size:
+          neutrons.nused += n;
         }
 
-        //fixme: rename as append1? also ok if o=self
-        std::size_t appendEntryFromOther( const Basket_Basic& o,
-                                          std::size_t i_o ) ncnoexceptndebug
+        std::size_t append1( const Basket_Basic& o,
+                             std::size_t i_o ) ncnoexceptndebug
         {
           nc_assert(!neutrons.full());
           std::size_t i = neutrons.nused++;
-          copyEntryFromOther( o, i_o, i );
+          copy1( o, i_o, i );
           return i;
         }
       };
@@ -141,8 +141,6 @@ namespace NCRYSTAL_NAMESPACE {
         NeutronBasketFields neutrons_initial;
 
         //Infrastructure:
-        constexpr static BasketType basket_type_val = BasketType::Extended;//fixme: use?
-
         constexpr bool full() const noexcept { return basic.neutrons.full(); }
         constexpr bool empty() const noexcept { return basic.neutrons.empty(); }
         constexpr std::size_t size() const noexcept { return basic.neutrons.size(); }
@@ -179,24 +177,22 @@ namespace NCRYSTAL_NAMESPACE {
           dst.neutrons_initial = &neutrons_initial;
         }
 
-        //fixme: the following is actually ok to use with "other" being self!
-        //       rename as "assignEntry" ? Or just "copyEntry"? We should also change the confusing order of arguments, to have "dst_idx" come before "src_idx".
-        void copyEntryFromOther( const Basket_Extended& o, std::size_t i_o, std::size_t i ) ncnoexceptndebug
+        void copy1( const Basket_Extended& o,
+                    std::size_t i_o, std::size_t i ) ncnoexceptndebug
         {
           //NB: Does NOT update neutrons.nused!
-          basic.copyEntryFromOther( o.basic, i_o, i );
+          basic.copy1( o.basic, i_o, i );
           BasketUtils::basketfields_set( neutrons_initial,
                                          o.neutrons_initial, i_o, i );
         }
 
-        void appendEntriesFromOther( const Basket_Extended& o,
-                                     std::size_t i_o,
-                                     std::size_t n ) ncnoexceptndebug
+        void appendN( const Basket_Extended& o,
+                      std::size_t i_o, std::size_t n ) ncnoexceptndebug
         {
           const std::size_t this_size = basic.neutrons.nused;
           nc_assert( n > 0 );
           nc_assert( this_size + n <= basket_N );
-          basic.appendEntriesFromOther( o.basic, i_o, n );
+          basic.appendN( o.basic, i_o, n );
           BasketUtils::basketfields_setrange( neutrons_initial,
                                               o.neutrons_initial,
                                               i_o, this_size, n );
@@ -204,12 +200,12 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert( basic.neutrons.fields.x[this_size] == o.basic.neutrons.fields.x[i_o] );
         }
 
-        std::size_t appendEntryFromOther( const Basket_Extended& o,
-                                          std::size_t i_o ) ncnoexceptndebug
+        std::size_t append1( const Basket_Extended& o,
+                             std::size_t i_o ) ncnoexceptndebug
         {
           nc_assert(!full());
           std::size_t i = basic.neutrons.nused;
-          copyEntryFromOther( o, i_o, i );
+          copy1( o, i_o, i );
           ++basic.neutrons.nused;
           return i;
         }
@@ -217,10 +213,8 @@ namespace NCRYSTAL_NAMESPACE {
       };
 
       static_assert( std::is_standard_layout<Basket_Basic>::value, "" );
-      static_assert( std::is_trivially_copyable<Basket_Basic>::value, "" );
-      static_assert( std::is_trivially_destructible<Basket_Basic>::value, "" );
       static_assert( std::is_standard_layout<Basket_Extended>::value, "" );
-      static_assert( std::is_trivially_copyable<Basket_Extended>::value, "" );
+      static_assert( std::is_trivially_destructible<Basket_Basic>::value, "" );
       static_assert( std::is_trivially_destructible<Basket_Extended>::value, "" );
 
       inline void *& ub_internal( UniversalBasket& b )
@@ -258,8 +252,6 @@ namespace NCRYSTAL_NAMESPACE {
         static void assign_basket_parameters( UniversalBasket& dst,
                                               const basket_t& src_c ) noexcept
         {
-          //fixme: next lines should depend on the templated basket, and
-          //res.neutrons_initial should also be set in case of an extended basket.
           auto& src = *const_cast<basket_t*>(&src_c);
           src.assignToUB( dst );
         }
@@ -300,8 +292,7 @@ namespace NCRYSTAL_NAMESPACE {
                                     const UniversalBasket& src,
                                     std::size_t idx_src )
         {
-          return real_basket(dst).appendEntryFromOther( real_basket(src),
-                                                        idx_src );
+          return real_basket(dst).append1( real_basket(src), idx_src );
         }
 
         static basket_holder_t moveToBasketHolder( UniversalBasket&& b )
@@ -384,7 +375,6 @@ namespace NCRYSTAL_NAMESPACE {
           heapmempool_t m_localMemPool;//A small thread-local memory pool.
         };
 
-        //fixme almost same name!
         class InBskProv final : public InputBasketProvider {
           basket_src_filler_t m_srcfiller;
           ThreadCount m_nthreads;

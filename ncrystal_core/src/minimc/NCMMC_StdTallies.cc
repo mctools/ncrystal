@@ -21,7 +21,7 @@
 #include "NCrystal/internal/minimc/NCMMC_StdTallies.hh"
 #include "NCrystal/internal/minimc/NCMMC_Source.hh"
 #include "NCrystal/internal/minimc/NCMMC_Utils.hh"
-#include "NCMMC_BasketUtils.hh"//for memcpyarray (fixme?)
+#include "NCMMC_BasketUtils.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
 
 namespace NC = NCrystal;
@@ -383,7 +383,7 @@ namespace NCRYSTAL_NAMESPACE {
             if ( bz==1 ) {
               //using (0,0,1) as reference is such a normal case that it makes
               //sense to take advantage of the fact that mu=uz in this case:
-              detail::memcpydata( mu.data, bf.uz.data, n );
+              BasketUtils::memcpydata( mu.data, bf.uz.data, n );
             } else {
               for ( std::size_t i = 0; i < n; ++i )
                 mu.data[i] = bx * bf.ux[i];
@@ -628,7 +628,7 @@ void NCMMCT::TallyStdHists::merge(TallyBase&& o_base)
   const this_class_t& o = *optr;
   nc_assert_always( m_opt == o.m_opt );
   m_data.merge( o.m_data );
-};
+}
 
 NCMMCT::TallyStdHists::TallyStdHists( const EngineOpts& eo,
                                       const SourceMetaData& srcmd )

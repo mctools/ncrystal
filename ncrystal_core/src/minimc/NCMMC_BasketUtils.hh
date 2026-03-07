@@ -21,12 +21,13 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <cstring>
 #include "NCrystal/internal/minimc/NCMMC_Defs.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
-    //fixme: consider namespace names
-    namespace detail {
+    namespace BasketUtils {
+
       //type-safe memcopy:
       template<class TData>
       inline void memcpydata( TData* ncrestrict dst,
@@ -40,12 +41,6 @@ namespace NCRYSTAL_NAMESPACE {
         nc_assert( ( dst >= src+n ) || ( src >= dst+n ) );//no overlap
         std::memcpy( (void*)dst, (void*)src, n*sizeof(TData));
       }
-    }
-
-
-    namespace BasketUtils {
-
-      //fixme make internal!
 
       inline void basketfields_set( NeutronBasketFields& dst,
                                     const NeutronBasketFields& src,
@@ -72,14 +67,14 @@ namespace NCRYSTAL_NAMESPACE {
         nc_assert( n>=1 );
         nc_assert( i + n <= basket_N );
         nc_assert( i_o + n <= basket_N );
-        detail::memcpydata<double>( dst.x.data + i, src.x.data + i_o, n);
-        detail::memcpydata<double>( dst.y.data + i, src.y.data + i_o, n);
-        detail::memcpydata<double>( dst.z.data + i, src.z.data + i_o, n);
-        detail::memcpydata<double>( dst.ux.data + i, src.ux.data + i_o, n);
-        detail::memcpydata<double>( dst.uy.data + i, src.uy.data + i_o, n);
-        detail::memcpydata<double>( dst.uz.data + i, src.uz.data + i_o, n);
-        detail::memcpydata<double>( dst.w.data + i, src.w.data + i_o, n);
-        detail::memcpydata<double>( dst.ekin.data + i, src.ekin.data + i_o, n);
+        memcpydata<double>( dst.x.data + i, src.x.data + i_o, n);
+        memcpydata<double>( dst.y.data + i, src.y.data + i_o, n);
+        memcpydata<double>( dst.z.data + i, src.z.data + i_o, n);
+        memcpydata<double>( dst.ux.data + i, src.ux.data + i_o, n);
+        memcpydata<double>( dst.uy.data + i, src.uy.data + i_o, n);
+        memcpydata<double>( dst.uz.data + i, src.uz.data + i_o, n);
+        memcpydata<double>( dst.w.data + i, src.w.data + i_o, n);
+        memcpydata<double>( dst.ekin.data + i, src.ekin.data + i_o, n);
       }
 
       inline void
@@ -106,29 +101,6 @@ namespace NCRYSTAL_NAMESPACE {
       inline void basket_validateIfDbg( const NeutronBasket& b )
       {
         basketfields_validateIfDbg(b.fields,b.nused);
-      }
-
-      inline void basket_copyEntryFromOther( NeutronBasket& dst,
-                                             const NeutronBasket& src,
-                                             std::size_t i_src,
-                                             std::size_t i_dst ) ncnoexceptndebug
-      {
-        nc_assert(i_src < src.size());
-        //can't check i<dst.size(), since size might not have been updated yet
-        //by caller.
-        basketfields_set( dst.fields, src.fields,i_src,i_dst);
-      }
-
-      inline void
-      basket_appendEntriesFromOther( NeutronBasket& dst,
-                                     const NeutronBasket& src,
-                                     std::size_t i_src,
-                                     std::size_t n ) ncnoexceptndebug
-      {
-        nc_assert( dst.nused + n <= basket_N );
-        nc_assert( i_src + n <= src.size() );
-        basketfields_setrange( dst.fields, src.fields, i_src, dst.nused, n );
-        dst.nused += n;
       }
 
       inline NeutronEnergy&

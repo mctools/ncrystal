@@ -308,7 +308,7 @@ namespace NCRYSTAL_NAMESPACE {
             NCRYSTAL_DEBUGMMCMSG("Split-off "<<n_move<<" neutrons from first remaining basket");
             nc_assert_always( src_basket.size() > n_move );//won't become empty
             nc_assert_always( tgt_basket.size()+n_move <= basket_N );
-            tgt_basket.appendEntriesFromOther( src_basket, src_basket.size()-n_move, n_move );
+            tgt_basket.appendN( src_basket, src_basket.size()-n_move, n_move );
             src_basket.get_neutrons().nused -= n_move;
             nc_assert_always(src_basket.size()>0);
           }
@@ -340,7 +340,7 @@ namespace NCRYSTAL_NAMESPACE {
                                                         it->basket().size());
           nc_assert(ntransfer>0);//otherwise list was build wrongly.
           const std::size_t o_new_size = it->basket().size() - ntransfer;
-          bh.basket().appendEntriesFromOther(  it->basket(), o_new_size, ntransfer );
+          bh.basket().appendN(  it->basket(), o_new_size, ntransfer );
           it->basket().get_neutrons().nused = o_new_size;//"pop off" copied entries
         }
         //Ready to return bh, but first properly deal with other baskets in

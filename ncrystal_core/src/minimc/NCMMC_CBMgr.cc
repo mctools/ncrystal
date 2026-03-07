@@ -81,7 +81,8 @@ namespace NCRYSTAL_NAMESPACE {
           auto aa = [&dst,&offset,this_size,b_size]( const BasketValBufDbl& ov )
           {
             double * arrB = dst[offset++];
-            detail::memcpydata<double>( arrB + this_size, ov.data, b_size );
+            BasketUtils::memcpydata<double>( arrB + this_size,
+                                             ov.data, b_size );
           };
           aa(b.x);
           aa(b.y);
@@ -198,9 +199,9 @@ namespace NCRYSTAL_NAMESPACE {
           const std::size_t nfields = dst.nFields();
           nc_assert_always( nfields == o.nFields() );
           for ( auto ifield : ncrange(nfields) )
-            detail::memcpydata<double>( dst_data[ifield] + dst.size(),
-                                        o_data[ifield] + new_osize,
-                                        ntransfer );
+            BasketUtils::memcpydata<double>( dst_data[ifield] + dst.size(),
+                                             o_data[ifield] + new_osize,
+                                             ntransfer );
           DataArea::Mutable::size(o) = new_osize;
           DataArea::Mutable::size(dst) += ntransfer;
           nc_assert_always(dst.size()<=dst.capacity());
