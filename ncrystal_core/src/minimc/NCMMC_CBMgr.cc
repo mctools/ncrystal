@@ -94,7 +94,7 @@ namespace NCRYSTAL_NAMESPACE {
           aa(b.w);
         }
 
-        void data_init( DataArea& da, const UniversalBasket& b )
+        void data_init( DataArea& da, const Basket& b )
         {
           auto& da_basketType = DataArea::Mutable::basketType(da);
           auto& da_datacache = DataArea::Mutable::datacache(da);
@@ -127,7 +127,7 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert_always( nfields == da.nFields() );
         }
 
-        void data_append( DataArea& da, const UniversalBasket& b )
+        void data_append( DataArea& da, const Basket& b )
         {
           nc_assert(b.valid()&&b.neutrons);
           const std::size_t this_size = da.size();
@@ -221,7 +221,7 @@ unsigned NCMMC::CB::DataArea::nFields() const
   return 18;
 }
 
-void NCMMC::CB::CBMgr::registerData( const UniversalBasket& b )
+void NCMMC::CB::CBMgr::registerData( const Basket& b )
 {
 #ifndef NCRYSTAL_DISABLE_THREADS
   auto datauptr = threadAcquireCache();

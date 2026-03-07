@@ -138,7 +138,7 @@ namespace NCRYSTAL_NAMESPACE {
         //depend on geometry options):
         TallyStdHists( const EngineOpts&, const SourceMetaData&);
         bool needsExtendedBaskets() const override;
-        void registerResults( const UniversalBasket&) override;
+        void registerResults( const Basket&) override;
         shared_obj<Tally> cloneSetup() const override;
         void merge(Tally&&) override;
         VectS tallyItemNames() const override;

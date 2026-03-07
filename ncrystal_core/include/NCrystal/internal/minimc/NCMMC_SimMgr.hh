@@ -76,7 +76,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     private:
       EngineOpts m_engineOpts;
-      shared_obj<UniversalBasketMgr> m_bmgr;
+      shared_obj<BasketMgr> m_bmgr;
       shared_obj<InputBasketProvider> m_bprovider;
       shared_obj<SimEngine> m_engine;
       shared_obj<TallyMgr> m_tallymgr;
@@ -93,13 +93,13 @@ namespace NCRYSTAL_NAMESPACE {
       static ParticleCountSum
       doWork( RNG& rng,
               SimEngine& engine,
-              UniversalBasketMgr& basketManager,
+              BasketMgr& basketManager,
               InputBasketProvider& basketProvider,
               const TallyFct& result_fct,
               CommonThreadWaitingInfo& common,
               bool do_ignoreMiss )
       {
-        UniversalBasket basket;
+        Basket basket;
         TallyFct result_fct_srcmiss;
         if ( !do_ignoreMiss )
           result_fct_srcmiss = result_fct;
@@ -237,12 +237,12 @@ namespace NCRYSTAL_NAMESPACE {
             auto theengine_so = engine_copy->clone();
             SimEngine& theengine = *theengine_so.get();
             TallyPtr tally_so = tallymgr_copy->getIndependentTallyPtr();
-            UniversalBasketMgr& bmgr = *bmgr_copy.get();
+            BasketMgr& bmgr = *bmgr_copy.get();
             InputBasketProvider& bprovider = *bprovider_copy.get();
             auto tallyptr = tally_so.get();
 
             TallyFct result_fct = [tallyptr,cbmgrptr,&thread_ntalliedStats]
-              (const UniversalBasket& b)
+              (const Basket& b)
               {
                 {
                   nc_assert( b.valid()&& b.neutrons != nullptr );
@@ -313,7 +313,7 @@ namespace NCRYSTAL_NAMESPACE {
 
         TallyFct result_fct = [tallyptr,
                                &ntalliedStats,
-                               cbmgrptr](const UniversalBasket& b)
+                               cbmgrptr](const Basket& b)
         {
           {
             nc_assert( b.valid()&& b.neutrons != nullptr );

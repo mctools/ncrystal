@@ -30,11 +30,11 @@ namespace NCRYSTAL_NAMESPACE {
 
     class detail::UBImpl {
     public:
-      static void*& access_internal( UniversalBasket& b ) noexcept
+      static void*& access_internal( Basket& b ) noexcept
       {
         return b.internal;
       }
-      static const void* access_internalc( const UniversalBasket& b ) noexcept
+      static const void* access_internalc( const Basket& b ) noexcept
       {
         return b.internal;
       }
@@ -73,7 +73,7 @@ namespace NCRYSTAL_NAMESPACE {
           BasketUtils::basket_validateIfDbg(neutrons);
         }
 
-        void assignToUB( UniversalBasket& dst ) noexcept
+        void assignToUB( Basket& dst ) noexcept
         {
           dst.neutrons = &neutrons;
           dst.nscat = &nscat;
@@ -171,7 +171,7 @@ namespace NCRYSTAL_NAMESPACE {
                                                    basic.size() );
         }
 
-        void assignToUB( UniversalBasket& dst ) noexcept
+        void assignToUB( Basket& dst ) noexcept
         {
           basic.assignToUB( dst );
           dst.neutrons_initial = &neutrons_initial;
@@ -217,7 +217,7 @@ namespace NCRYSTAL_NAMESPACE {
       static_assert( std::is_trivially_destructible<Basket_Basic>::value, "" );
       static_assert( std::is_trivially_destructible<Basket_Extended>::value, "" );
 
-      inline void *& ub_internal( UniversalBasket& b )
+      inline void *& ub_internal( Basket& b )
       {
         return detail::UBImpl::access_internal(b);
       }
@@ -233,7 +233,7 @@ namespace NCRYSTAL_NAMESPACE {
         using heapmem_t = typename basket_holder_t::heapmem_t;
         using heapmempool_t = HeapMemPool<heapmem_t,local_basket_max_poolsize>;
 
-        static basket_t& real_basket( UniversalBasket& b )
+        static basket_t& real_basket( Basket& b )
         {
           auto rbptr = reinterpret_cast<basket_t*>
             ( detail::UBImpl::access_internal(b) );
@@ -241,7 +241,7 @@ namespace NCRYSTAL_NAMESPACE {
           return *rbptr;
         }
 
-        static const basket_t& real_basket( const UniversalBasket& b )
+        static const basket_t& real_basket( const Basket& b )
         {
           auto rbptr = reinterpret_cast<const basket_t*>
             ( detail::UBImpl::access_internalc(b) );
@@ -249,16 +249,16 @@ namespace NCRYSTAL_NAMESPACE {
           return *rbptr;
         }
 
-        static void assign_basket_parameters( UniversalBasket& dst,
+        static void assign_basket_parameters( Basket& dst,
                                               const basket_t& src_c ) noexcept
         {
           auto& src = *const_cast<basket_t*>(&src_c);
           src.assignToUB( dst );
         }
 
-        static UniversalBasket toUniversalBasket( basket_holder_t&& bh ) {
+        static Basket toUserBasket( basket_holder_t&& bh ) {
           //NB: Map invalid basket to invalid basket.
-          UniversalBasket res;
+          Basket res;
           nc_assert( !res.valid() );
           if ( bh.valid() ) {
             assign_basket_parameters( res, bh.basket() );
@@ -269,10 +269,10 @@ namespace NCRYSTAL_NAMESPACE {
         }
 
         class ViewBasketAsUB final {
-          //Non-owning way to view a basket_t as a UniversalBasket. The main point
-          //is to reset the internal pointer of the UniversalBasket object in the
+          //Non-owning way to view a basket_t as a Basket. The main point
+          //is to reset the internal pointer of the Basket object in the
           //destructor, before it is itself destructed.
-          UniversalBasket m_ub;
+          Basket m_ub;
         public:
           ViewBasketAsUB( const basket_t& b ) noexcept
           {
@@ -284,21 +284,20 @@ namespace NCRYSTAL_NAMESPACE {
           {
             detail::UBImpl::access_internal(m_ub) = nullptr;
           }
-          const UniversalBasket& view() noexcept { return m_ub; }
+          const Basket& view() noexcept { return m_ub; }
         };
 
 
-        static std::size_t append1( UniversalBasket& dst,
-                                    const UniversalBasket& src,
+        static std::size_t append1( Basket& dst, const Basket& src,
                                     std::size_t idx_src )
         {
           return real_basket(dst).append1( real_basket(src), idx_src );
         }
 
-        static basket_holder_t moveToBasketHolder( UniversalBasket&& b )
+        static basket_holder_t moveToBasketHolder( Basket&& b )
         {
           nc_assert_always(ub_internal(b)!=nullptr);
-          UniversalBasket tmp;
+          Basket tmp;
           tmp.swap(b);
           heapmem_t mem;
           mem.set_raw(ub_internal(tmp));
@@ -308,7 +307,7 @@ namespace NCRYSTAL_NAMESPACE {
           return bh;
         }
 
-        class UBMgr final : public UniversalBasketMgr {
+        class UBMgr final : public BasketMgr {
         public:
           //NOTE: basketqueuemgr_t is MT safe, but UBMgr is NOT, needing one
           //cloned instance per thread.
@@ -320,9 +319,9 @@ namespace NCRYSTAL_NAMESPACE {
           {
           }
 
-          UniversalBasket allocateBasket() override
+          Basket allocateBasket() override
           {
-            UniversalBasket res;
+            Basket res;
             //Get the heap memory:
             heapmem_t mem;
             if ( !m_localMemPool.empty() )
@@ -340,7 +339,7 @@ namespace NCRYSTAL_NAMESPACE {
             return res;
           }
 
-          void deallocateBasket( UniversalBasket&& b ) override
+          void deallocateBasket( Basket&& b ) override
           {
             nc_assert( b.valid() );
             auto mem = moveToBasketHolder( std::move(b) ).stealMemory();
@@ -353,7 +352,7 @@ namespace NCRYSTAL_NAMESPACE {
               m_localMemPool.deallocate( std::move(mem) );
           }
 
-          void addPendingBasket( UniversalBasket&& b ) override
+          void addPendingBasket( Basket&& b ) override
           {
             nc_assert( b.valid() );
             if ( b.empty() )
@@ -362,7 +361,7 @@ namespace NCRYSTAL_NAMESPACE {
               m_mgr->addPendingBasket( moveToBasketHolder( std::move(b) ) );
           }
 
-          shared_obj<UniversalBasketMgr> cloneMgrForThread() override
+          shared_obj<BasketMgr> cloneMgrForThread() override
           {
             return makeSO<UBMgr>( m_mgr );
           }
@@ -409,7 +408,7 @@ namespace NCRYSTAL_NAMESPACE {
             m_srcfiller.haltSource();
           }
 
-          UniversalBasket getInputBasket( RNG& rng,
+          Basket getInputBasket( RNG& rng,
                                           const TallyFct& tallyfct,
                                           ParticleCountSum& missCount ) override
           {
@@ -422,7 +421,7 @@ namespace NCRYSTAL_NAMESPACE {
             }
             auto bh = m_srcfiller.getPendingBasket( m_nthreads, rng,
                                                     resultfct, missCount );
-            return toUniversalBasket( std::move(bh) );
+            return toUserBasket( std::move(bh) );
           }
         };
       };
@@ -431,8 +430,7 @@ namespace NCRYSTAL_NAMESPACE {
 }
 
 std::size_t
-NCMMC::UniversalBasket::append1( const UniversalBasket& other,
-                                 std::size_t idx_other )
+NCMMC::Basket::append1( const Basket& other, std::size_t idx_other )
 {
   nc_assert(valid()&&other.valid());
   nc_assert(basketType() == other.basketType());
@@ -446,7 +444,7 @@ NCMMC::UniversalBasket::append1( const UniversalBasket& other,
   }
 }
 
-void NCMMC::UniversalBasket::dealloc_warn() noexcept
+void NCMMC::Basket::dealloc_warn() noexcept
 {
   //Called from destructor in the rare case the basket was not returned
   //explicitly to a memory pool before it went out of scope. This could happen
@@ -461,11 +459,11 @@ void NCMMC::UniversalBasket::dealloc_warn() noexcept
 
   try {
     {
-      NCRYSTAL_WARN("MiniMC UniversalBasket went out of scope without"
+      NCRYSTAL_WARN("MiniMC Basket went out of scope without"
                     " being handed to the manager.");
       nc_assert_always(!internal);
       auto bt = this->basketType();
-      UniversalBasket tmp;
+      Basket tmp;
       tmp.swap(*this);
       if ( bt == BasketType::Basic ) {
         UBHImpl<Basket_Basic>::moveToBasketHolder(std::move(tmp));
@@ -479,7 +477,7 @@ void NCMMC::UniversalBasket::dealloc_warn() noexcept
     //try something without exceptions:
     const char * msg = e.what();
     std::printf("NCrystal ERROR:: unexpected exception during"
-                " UniversalBasket emergency cleanup: %s\n",
+                " Basket emergency cleanup: %s\n",
                 (msg?msg:"<unknown>"));
   }
 }

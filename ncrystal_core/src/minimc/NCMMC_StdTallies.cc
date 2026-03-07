@@ -610,7 +610,7 @@ NCMMCT::TallyStdHists::TallyStdHists( const EngineOpts& eo,
 {
 }
 
-void NCMMCT::TallyStdHists::registerResults( const UniversalBasket& b)
+void NCMMCT::TallyStdHists::registerResults( const Basket& b)
 {
   nc_assert( b.neutrons );
   nc_assert( b.nscat );

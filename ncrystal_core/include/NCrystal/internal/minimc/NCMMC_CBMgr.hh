@@ -116,7 +116,7 @@ namespace NCRYSTAL_NAMESPACE {
         ~CBMgr();
 
         //Function called by the worker threads:
-        void registerData( const UniversalBasket& );
+        void registerData( const Basket& );
 
         //Function called after all worker threads have finished, but before
         //CBMgr is destructed:

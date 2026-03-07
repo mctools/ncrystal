@@ -64,9 +64,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       //Advance the simulation one step. This does not need to be multi-thread
       //safe.
-      virtual void step( UniversalBasket,
-                         RNG&,
-                         UniversalBasketMgr&,
+      virtual void step( Basket, RNG&, BasketMgr&,
                          const TallyFct& tallyfct ) = 0;
     };
 

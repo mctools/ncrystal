@@ -51,7 +51,7 @@ namespace NCRYSTAL_NAMESPACE {
       //Results from simulations are delivered to the tally in the form of
       //baskets of neutrons. These are usually neutrons exiting (or having
       //missed) the geometry.
-      virtual void registerResults( const UniversalBasket& ) = 0;
+      virtual void registerResults( const Basket& ) = 0;
     };
     using TallyPtr = shared_obj<Tally>;
 

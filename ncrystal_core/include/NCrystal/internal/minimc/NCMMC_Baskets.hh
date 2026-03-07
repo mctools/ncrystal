@@ -27,15 +27,12 @@
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
-    //Non-templated abstraction layer for the
-    //MemPool/Basket/BasketHolder/BasketQueueMgr infrastructure. This allows
-    //simulation engines to be non-templated and decoupled from the actual
-    //basket internals. This abstraction layer should be cheap since we are
-    //dealing with many neutrons at once in each call.
+    //Abstract interface to Baskets and related queue and memory pool managers.
+    //The interface is intended to have a low overhead despite the abstraction.
 
     namespace detail { class UBImpl; }
 
-    class UniversalBasket final : MoveOnly {
+    class Basket final : MoveOnly {
       //Abstraction of a neutron basket, allowing for multiple implementations
       //of the memory layout etc. behind the scenes, without coupling the basket
       //and client implementations.
@@ -43,11 +40,11 @@ namespace NCRYSTAL_NAMESPACE {
       friend class detail::UBImpl;
       void dealloc_warn() noexcept;
     public:
-      UniversalBasket() = default;
-      ~UniversalBasket();
-      UniversalBasket( UniversalBasket&& ) noexcept;
-      UniversalBasket& operator=( UniversalBasket&& ) noexcept;
-      void swap( UniversalBasket& ) noexcept;
+      Basket() = default;
+      ~Basket();
+      Basket( Basket&& ) noexcept;
+      Basket& operator=( Basket&& ) noexcept;
+      void swap( Basket& ) noexcept;
       BasketType basketType() const noexcept;
       std::size_t size() const ncnoexceptndebug;
       std::size_t empty() const ncnoexceptndebug { return size()==0; }
@@ -65,22 +62,22 @@ namespace NCRYSTAL_NAMESPACE {
 
       //Append single neutron from other compatible basket. Returns idx in this
       //basket of the appended neutron.
-      std::size_t append1( const UniversalBasket& o, std::size_t idx_o );
+      std::size_t append1( const Basket& o, std::size_t idx_o );
     };
 
-    class UniversalBasketMgr : NoCopyMove {
+    class BasketMgr : NoCopyMove {
     public:
       //Universal abstraction of various basket management operations.
-      virtual ~UniversalBasketMgr() = default;
+      virtual ~BasketMgr() = default;
 
-      virtual UniversalBasket allocateBasket() = 0;
-      virtual void deallocateBasket( UniversalBasket&& b ) = 0;
-      virtual void addPendingBasket( UniversalBasket&& b ) = 0;
+      virtual Basket allocateBasket() = 0;
+      virtual void deallocateBasket( Basket&& b ) = 0;
+      virtual void addPendingBasket( Basket&& b ) = 0;
 
-      //Each MT worker should have its own UniversalBasketMgr, since some memory
+      //Each MT worker should have its own BasketMgr, since some memory
       //pools are kept thread-local for efficiency. Before workers are spawned,
       //additional instances should therefore be created with this:
-      virtual shared_obj<UniversalBasketMgr> cloneMgrForThread() = 0;
+      virtual shared_obj<BasketMgr> cloneMgrForThread() = 0;
     };
 
     class InputBasketProvider : NoCopyMove {
@@ -94,8 +91,8 @@ namespace NCRYSTAL_NAMESPACE {
       //Get the input baskets. Any source neutrons missing the geometry will be
       //added to the counts in the missCount object, and provided to the
       //TallyFct (if one is provided).
-      virtual UniversalBasket getInputBasket( RNG&, const TallyFct&,
-                                              ParticleCountSum& missCount ) = 0;
+      virtual Basket getInputBasket( RNG&, const TallyFct&,
+                                     ParticleCountSum& missCount ) = 0;
 
       //In case simulation needs to be halted prematurely for whatever reason, a
       //call to haltSource will cause no more neutrons to be taken from the
@@ -105,11 +102,11 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     //The two closely related managers are always created together by this
-    //factory function. Note that the UniversalBasketMgr should be subsequently
+    //factory function. Note that the BasketMgr should be subsequently
     //cloned so each worker thread has its own instance, while the same
     //InputBasketProvider is used by all threads. The implementation details can
     //also depend on the thread count of the simulation:
-    using BasketManagementPair = std::pair< shared_obj<UniversalBasketMgr>,
+    using BasketManagementPair = std::pair< shared_obj<BasketMgr>,
                                             shared_obj<InputBasketProvider> >;
     BasketManagementPair createBasketManagement( GeometryPtr,
                                                  SourcePtr,
@@ -127,23 +124,23 @@ namespace NCRYSTAL_NAMESPACE {
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
-    inline UniversalBasket::~UniversalBasket() {
+    inline Basket::~Basket() {
       if ( internal )
         dealloc_warn();
     }
 
-    inline UniversalBasket::UniversalBasket( UniversalBasket&& o ) noexcept
+    inline Basket::Basket( Basket&& o ) noexcept
     {
       swap(o);
     }
 
-    inline UniversalBasket& UniversalBasket::operator=( UniversalBasket&& o ) noexcept
+    inline Basket& Basket::operator=( Basket&& o ) noexcept
     {
       swap(o);//self-assignment is ok, just swapping ptrs with themselves.
       return *this;
     }
 
-    inline void UniversalBasket::swap( UniversalBasket& o ) noexcept
+    inline void Basket::swap( Basket& o ) noexcept
     {
       std::swap(internal,o.internal);
       std::swap(neutrons,o.neutrons);
@@ -153,7 +150,7 @@ namespace NCRYSTAL_NAMESPACE {
       std::swap(buf1,o.buf1);
     }
 
-    inline BasketType UniversalBasket::basketType() const noexcept
+    inline BasketType Basket::basketType() const noexcept
     {
       return ( internal ? ( neutrons_initial==nullptr
                             ? BasketType::Basic
@@ -161,7 +158,7 @@ namespace NCRYSTAL_NAMESPACE {
                : BasketType::Invalid );
     }
 
-    inline std::size_t UniversalBasket::size() const ncnoexceptndebug
+    inline std::size_t Basket::size() const ncnoexceptndebug
     {
       nc_assert(valid());
       return neutrons->size();

@@ -42,8 +42,8 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     //Function signature for acceptance of tally results:
-    class UniversalBasket;
-    using TallyFct = std::function<void(const UniversalBasket&)>;
+    class Basket;
+    using TallyFct = std::function<void(const Basket&)>;
 
     struct ParticleCountSum {
       //Number and total weight of particles.

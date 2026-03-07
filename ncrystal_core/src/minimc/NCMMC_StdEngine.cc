@@ -48,7 +48,7 @@ namespace NCRYSTAL_NAMESPACE {
         BasketValBufDbl m_buf_ptransm;
         BasketValBufDbl m_buf_disttoscat;
 
-        static void checkBasketFields( const UniversalBasket& b )
+        static void checkBasketFields( const Basket& b )
         {
           if ( ! ( b.buf1 && b.nscat && b.nscat_inelas ) )
             NCRYSTAL_THROW(LogicError,"StdSimEngine requires a basket with"
@@ -81,9 +81,7 @@ namespace NCRYSTAL_NAMESPACE {
                             <= (std::numeric_limits<int>::max()-1) );
         }
 
-        void step( UniversalBasket inbasket,
-                   RNG& rng,
-                   UniversalBasketMgr& mgr,
+        void step( Basket inbasket, RNG& rng, BasketMgr& mgr,
                    const TallyFct& tallyfct ) override
         {
           //In this engine, each step produce 1 basket for tallying and 1
@@ -94,7 +92,7 @@ namespace NCRYSTAL_NAMESPACE {
           //
           //Additionally, and for the same reason, we provide a single buffer
           //basket to be reused between these calls.
-          UniversalBasket buf;
+          Basket buf;
           do {
             inbasket = processBasket( std::move(inbasket), buf,
                                       rng, mgr, tallyfct );
@@ -109,16 +107,16 @@ namespace NCRYSTAL_NAMESPACE {
         }
 
       private:
-        UniversalBasket processBasket( UniversalBasket inbasket,
-                                       UniversalBasket& basket_buffer,
-                                       RNG& rng,
-                                       UniversalBasketMgr& mgr,
-                                       const TallyFct& tallyfct )
+        Basket processBasket( Basket inbasket,
+                              Basket& basket_buffer,
+                              RNG& rng,
+                              BasketMgr& mgr,
+                              const TallyFct& tallyfct )
         {
           NCRYSTAL_DEBUGMMCMSG("StdSimEngine::processBasket inbasket.size()="
                                <<inbasket.size());
 
-          UniversalBasket result_basket;
+          Basket result_basket;
           nc_assert(!result_basket.valid());
 
           checkBasketFields( inbasket );
@@ -181,7 +179,7 @@ namespace NCRYSTAL_NAMESPACE {
           //nscatlimit times will get a phony scattering cross section value of
           //0:
 
-          auto buf_scatxsval = [](const UniversalBasket&b)
+          auto buf_scatxsval = [](const Basket&b)
             -> BasketValBufDbl::data_t&
           {
             nc_assert(b.buf1!=nullptr);
@@ -253,7 +251,7 @@ namespace NCRYSTAL_NAMESPACE {
             //We also skip any particle with weight=0 or vanishing scattering
             //cross section.
 
-            UniversalBasket outb = std::move(basket_buffer);
+            Basket outb = std::move(basket_buffer);
             if ( outb.valid() )
               outb.neutrons->nused = 0;
             else
@@ -282,10 +280,12 @@ namespace NCRYSTAL_NAMESPACE {
               //to the tally already via ptransm).
               //Implement russian-roulette:
               double roulette_weight_factor = 1.0;
-              double roulette = ( ( inb.nscat->data[i] >= m_opt.roulette.nscat_threshold
-                                    && inb.neutrons->fields.w[i] < m_opt.roulette.weight_threshold )
-                                  ? m_opt.roulette.survival_probability
-                                  : 1.0 );
+              double roulette
+                = ( ( inb.nscat->data[i] >= m_opt.roulette.nscat_threshold
+                      && inb.neutrons->fields.w[i]
+                      < m_opt.roulette.weight_threshold )
+                    ? m_opt.roulette.survival_probability
+                    : 1.0 );
               if ( roulette < 1.0 ) {
                 if ( rng.generate() > roulette ) {
                   continue;//killed!
@@ -332,15 +332,17 @@ namespace NCRYSTAL_NAMESPACE {
 
               //Scatter:
               nc_assert( has_scat );
-              auto outcome = m_mat.scatter->sampleScatter( m_sct_cacheptr,
-                                                           rng,
-                                                           BasketUtils::ekin_obj(*outb.neutrons,j),
-                                                           BasketUtils::dir_obj(*outb.neutrons,j));
+              auto outcome = m_mat.scatter
+                ->sampleScatter( m_sct_cacheptr,
+                                 rng,
+                                 BasketUtils::ekin_obj(*outb.neutrons,j),
+                                 BasketUtils::dir_obj(*outb.neutrons,j));
               nc_assert( ncabs(outcome.direction.as<Vector>().mag()-1) < 1e-9 );
               outb_fields.ux.data[j] = outcome.direction[0];
               outb_fields.uy.data[j] = outcome.direction[1];
               outb_fields.uz.data[j] = outcome.direction[2];
-              const bool was_elastic = (outb_fields.ekin[j] == outcome.ekin.dbl());
+              const bool was_elastic
+                = (outb_fields.ekin[j] == outcome.ekin.dbl());
               outb_fields.ekin.data[j] = outcome.ekin.dbl();
               ++( outb.nscat->data[j] );
               if ( !was_elastic ) {
