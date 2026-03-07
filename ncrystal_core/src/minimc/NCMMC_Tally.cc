@@ -35,8 +35,8 @@ NCMMC::TallyPtr NCMMC::TallyMgr::getIndependentTallyPtr() const
 void NCMMC::TallyMgr::addResult( TallyPtr res_SO )
 {
   NCRYSTAL_DEBUGMMCMSG("TallyMgr::addResult");
-  std::shared_ptr<TallyBase> res = std::move(res_SO);
-  std::shared_ptr<TallyBase> to_merge;
+  std::shared_ptr<Tally> res = std::move(res_SO);
+  std::shared_ptr<Tally> to_merge;
   {
     NCRYSTAL_LOCK_GUARD(m_final_mutex);//hold it only briefly!
     if ( m_final == nullptr ) {

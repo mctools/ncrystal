@@ -30,14 +30,14 @@ namespace NCRYSTAL_NAMESPACE {
 
     //All tallies must implement the following interface.
 
-    class TallyBase : NoCopyMove {//fixme rename as Tally.
+    class Tally : NoCopyMove {
     public:
-      virtual ~TallyBase() = default;
+      virtual ~Tally() = default;
 
       //To support multi-threading, tallies can be cloned from a template object
       //(without any data from simulations), and later merged:
-      virtual shared_obj<TallyBase> cloneSetup() const = 0;
-      virtual void merge(TallyBase&&) = 0;
+      virtual shared_obj<Tally> cloneSetup() const = 0;
+      virtual void merge(Tally&&) = 0;
 
       //The tally should declare if they need Extended baskets (often Basic
       //should be enough):
@@ -51,9 +51,9 @@ namespace NCRYSTAL_NAMESPACE {
       //Results from simulations are delivered to the tally in the form of
       //baskets of neutrons. These are usually neutrons exiting (or having
       //missed) the geometry.
-      virtual void registerResultsUB( const UniversalBasket& ) = 0;//fixme: rename without UB
+      virtual void registerResults( const UniversalBasket& ) = 0;
     };
-    using TallyPtr = shared_obj<TallyBase>;
+    using TallyPtr = shared_obj<Tally>;
 
     class TallyMgr final : NoCopyMove {
     public:
@@ -65,7 +65,7 @@ namespace NCRYSTAL_NAMESPACE {
       TallyPtr getFinalResult();
     private:
       TallyPtr m_template;
-      std::shared_ptr<TallyBase> m_final;
+      std::shared_ptr<Tally> m_final;
       std::mutex m_final_mutex;
     };
 

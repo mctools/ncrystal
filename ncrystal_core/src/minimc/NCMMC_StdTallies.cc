@@ -459,33 +459,6 @@ void NCMMCT::HistGroup::bookDetailedHists()
   detailed.emplace_back(binning,"MULTISCAT_OTHER");
 }
 
-const NCMMCT::tally_hist_t&
-NCMMCT::TallyStdHists_Data::accessHistogram( StrView histname,
-                                             Optional<DetailedHistsID>
-                                             detailid ) const
-{
-  //fixme: unit test
-  const tally_hist_t * histptr = nullptr;
-  for ( auto& h : this->hists ) {
-    if ( histname != h.main.title() )
-      continue;
-    if ( !detailid.has_value() ) {
-      histptr = &h.main;
-    } else {
-      auto histidx = static_cast<std::size_t>( detailid.value() );
-      if ( h.detailed.empty() || !(histidx < h.detailed.size()) )
-        NCRYSTAL_THROW( BadInput,
-                        "Detailed breakdown histograms not available" );
-      histptr = & vectAt(h.detailed,histidx);
-    }
-    break;
-  }
-  if ( !histptr )
-    NCRYSTAL_THROW2( BadInput,
-                     "Tally histogram not available: \""<<histname<<"\".");
-  return *histptr;
-}
-
 void NCMMCT::TallyStdHists_Data::merge(const TallyStdHists_Data& o)
 {
   const auto n = hists.size();
@@ -621,7 +594,7 @@ void NCMMCT::tallyRecord( TallyStdHists_Data& data,
   }
 }
 
-void NCMMCT::TallyStdHists::merge(TallyBase&& o_base)
+void NCMMCT::TallyStdHists::merge(Tally&& o_base)
 {
   auto optr = dynamic_cast<this_class_t*>(&o_base);
   nc_assert_always(optr!=nullptr);
@@ -637,7 +610,7 @@ NCMMCT::TallyStdHists::TallyStdHists( const EngineOpts& eo,
 {
 }
 
-void NCMMCT::TallyStdHists::registerResultsUB( const UniversalBasket& b)
+void NCMMCT::TallyStdHists::registerResults( const UniversalBasket& b)
 {
   nc_assert( b.neutrons );
   nc_assert( b.nscat );
@@ -659,18 +632,10 @@ bool NCMMCT::TallyStdHists::needsExtendedBaskets() const
   return m_opt.neutronInitialInfo.needsExtendedBaskets;
 }
 
-NC::shared_obj<NCMMC::TallyBase> NCMMCT::TallyStdHists::cloneSetup() const
+NC::shared_obj<NCMMC::Tally> NCMMCT::TallyStdHists::cloneSetup() const
 {
   //NB: Cloning without histogram contents!
   return makeSO<this_class_t>( private_constructor_t{}, m_opt );
-}
-
-const NCMMCT::tally_hist_t&
-NCMMCT::TallyStdHists::accessHistogram( StrView histname,
-                                        Optional<DetailedHistsID>
-                                        detailid ) const
-{
-  return m_data.accessHistogram(histname,detailid);
 }
 
 NC::VectS NCMMCT::TallyStdHists::tallyItemNames() const

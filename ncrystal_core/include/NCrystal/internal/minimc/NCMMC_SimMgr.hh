@@ -256,7 +256,7 @@ namespace NCRYSTAL_NAMESPACE {
                   thread_ntalliedStats.weight += w;
                 }
 
-                tallyptr->registerResultsUB(b);//fixme remove UB post migration
+                tallyptr->registerResults(b);
                 if ( cbmgrptr )
                   cbmgrptr->registerData(b);
               };

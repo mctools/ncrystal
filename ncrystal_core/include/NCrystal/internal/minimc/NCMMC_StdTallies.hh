@@ -107,9 +107,6 @@ namespace NCRYSTAL_NAMESPACE {
         std::size_t histidx_q = std::numeric_limits<std::size_t>::max();
         std::size_t histidx_de = std::numeric_limits<std::size_t>::max();
         static TallyStdHists_Data create( const TallyStdHists_Options& );
-        const tally_hist_t& accessHistogram( StrView histname,
-                                                  Optional<DetailedHistsID>
-                                                  detailid = NullOpt ) const;
         VectS titles() const;
         void histToJSONFindByTitle( std::ostream&, StrView title ) const;
         void merge(const TallyStdHists_Data&);
@@ -122,7 +119,7 @@ namespace NCRYSTAL_NAMESPACE {
                         const BasketValBufInt&,
                         const NeutronBasketFields* );
 
-      class TallyStdHists final : public TallyBase {
+      class TallyStdHists final : public Tally {
       public:
         using Options = TallyStdHists_Options;
         using Data = TallyStdHists_Data;
@@ -141,12 +138,9 @@ namespace NCRYSTAL_NAMESPACE {
         //depend on geometry options):
         TallyStdHists( const EngineOpts&, const SourceMetaData&);
         bool needsExtendedBaskets() const override;
-        void registerResultsUB( const UniversalBasket&) override;
-        shared_obj<TallyBase> cloneSetup() const override;
-        void merge(TallyBase&&) override;
-        const tally_hist_t& accessHistogram( StrView histname,
-                                             Optional<DetailedHistsID>
-                                             detailid = NullOpt ) const;
+        void registerResults( const UniversalBasket&) override;
+        shared_obj<Tally> cloneSetup() const override;
+        void merge(Tally&&) override;
         VectS tallyItemNames() const override;
         void tallyItemToJSON( std::ostream&, StrView itemName ) const override;
 

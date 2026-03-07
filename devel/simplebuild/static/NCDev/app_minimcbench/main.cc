@@ -82,14 +82,10 @@ int the_main_fct( int argc, char ** argv ) {
   nc_assert_always( resmd.tallied.count > resmd.provided.count );//splitting
   nc_assert_always( resmd.tallied.weight < resmd.provided.weight );//attenuation
 
-  const auto& hist_mu = tally->accessHistogram( "mu" );
-
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
   const double dt = (std::chrono::duration_cast<std::chrono::microseconds>(t1-t0).count()) * 1e-6;
   std::cout << "    Number of threads used:  "<<nthreads<<std::endl;
   std::cout << "Number of source particles:  "<<resmd.provided.count<<std::endl;
-  nc_assert_always( NC::floateq( resmd.tallied.weight,
-                                 hist_mu.stats().getIntegral() ) );
   const double count_tallied = resmd.tallied.count;
   std::cout << "Number of tallied particles: "<<count_tallied<<std::endl;
   std::cout << "ntally/nsrc factor:          "<<count_tallied/double(nsrcparticles)<<std::endl;
