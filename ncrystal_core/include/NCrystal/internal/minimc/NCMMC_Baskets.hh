@@ -28,7 +28,7 @@ namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
     //Non-templated abstraction layer for the
-    //MemPool/Basket/BasketHolder/BasketMgr infrastructure. This allows
+    //MemPool/Basket/BasketHolder/BasketQueueMgr infrastructure. This allows
     //simulation engines to be non-templated and decoupled from the actual
     //basket internals. This abstraction layer should be cheap since we are
     //dealing with many neutrons at once in each call.

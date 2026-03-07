@@ -227,8 +227,8 @@ namespace NCRYSTAL_NAMESPACE {
         //typedef templated internal data structures:
         using basket_t = TBasket;
         using basket_src_filler_t = BasketSrcFiller<basket_t>;
-        using basketmgr_t = BasketMgr<basket_t>;
-        using basket_holder_t = typename basketmgr_t::basket_holder_t;
+        using basketqueuemgr_t = BasketQueueMgr<basket_t>;
+        using basket_holder_t = typename basketqueuemgr_t::basket_holder_t;
         static constexpr int local_basket_max_poolsize = 4;
         using heapmem_t = typename basket_holder_t::heapmem_t;
         using heapmempool_t = HeapMemPool<heapmem_t,local_basket_max_poolsize>;
@@ -310,12 +310,12 @@ namespace NCRYSTAL_NAMESPACE {
 
         class UBMgr final : public UniversalBasketMgr {
         public:
-          //NOTE: basketmgr_t is MT safe, but UBMgr is NOT, needing one cloned
-          //instance per thread.
-          UBMgr( std::shared_ptr<basketmgr_t> bmgr = nullptr )
+          //NOTE: basketqueuemgr_t is MT safe, but UBMgr is NOT, needing one
+          //cloned instance per thread.
+          UBMgr( std::shared_ptr<basketqueuemgr_t> bmgr = nullptr )
             : m_mgr( [&bmgr]()
             { return ( bmgr==nullptr
-                       ? std::make_shared<basketmgr_t>()
+                       ? std::make_shared<basketqueuemgr_t>()
                        : std::move(bmgr) ); }() )
           {
           }
@@ -367,10 +367,10 @@ namespace NCRYSTAL_NAMESPACE {
             return makeSO<UBMgr>( m_mgr );
           }
 
-          shared_obj<basketmgr_t> realManager() { return m_mgr; }
+          shared_obj<basketqueuemgr_t> realManager() { return m_mgr; }
 
         private:
-          shared_obj<basketmgr_t> m_mgr;//the actual manager implementation, one
+          shared_obj<basketqueuemgr_t> m_mgr;//the actual manager implementation, one
                                         //for all threads.
           heapmempool_t m_localMemPool;//A small thread-local memory pool.
         };
@@ -394,7 +394,7 @@ namespace NCRYSTAL_NAMESPACE {
         public:
           InBskProv( GeometryPtr geom,
                      SourcePtr src,
-                     shared_obj<basketmgr_t> bmgr,
+                     shared_obj<basketqueuemgr_t> bmgr,
                      ThreadCount nthreads )
             : m_srcfiller( std::move(geom),
                            std::move(src),

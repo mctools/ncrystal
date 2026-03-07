@@ -24,13 +24,13 @@
 #include "NCrystal/internal/minimc/NCMMC_Geom.hh"
 #include "NCrystal/internal/minimc/NCMMC_Source.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
-#include "NCMMC_BasketMgr.hh"
+#include "NCMMC_BasketQueueMgr.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
-    //A helper class, extending the BasketMgr with the ability to also "top up"
-    //pending baskets with new baskets from a source, and to handle the
+    //A helper class, extending the BasketQueueMgr with the ability to also "top
+    //up" pending baskets with new baskets from a source, and to handle the
     //propagation of src particles to the modelled geometry. It can also be used
     //to signal the end of simulations (i.e. "please do not provide any more
     //fresh source particles"), even with a handy "button". It will be MT-safe
@@ -50,15 +50,15 @@ namespace NCRYSTAL_NAMESPACE {
     public:
       using basket_t = TBasket;
       using basket_holder_t = BasketHolder<TBasket>;
-      using basketmgr_t = BasketMgr<TBasket>;
+      using basketqueuemgr_t = BasketQueueMgr<TBasket>;
 
       BasketSrcFiller( GeometryPtr geom,
                        SourcePtr src,
-                       shared_obj<basketmgr_t> bm,
+                       shared_obj<basketqueuemgr_t> bm,
                        ThreadedUsage tu = ThreadedUsage::Multi )
         : m_geom(std::move(geom)),
           m_src(std::move(src)),
-          m_basketmgr(std::move(bm)),
+          m_basketqueuemgr(std::move(bm)),
           m_srcParticlesMightBeOutside(m_src->particlesMightBeOutside(m_geom))
       {
         m_srcHalted.store(false);
@@ -116,7 +116,7 @@ namespace NCRYSTAL_NAMESPACE {
         Optional<basket_holder_t> bh_results;
         basket_t * bmiss = nullptr;
         if ( !ignore_miss ) {
-          bh_results.set( m_basketmgr->allocateBasket() );
+          bh_results.set( m_basketqueuemgr->allocateBasket() );
           bmiss = &bh_results.value().basket();
         }
 
@@ -167,7 +167,7 @@ namespace NCRYSTAL_NAMESPACE {
               bmiss->markAsMissedTarget(i);
             resultFct( *bmiss );
           }
-          m_basketmgr->deallocateBasket( std::move(bh_results.value()) );
+          m_basketqueuemgr->deallocateBasket( std::move(bh_results.value()) );
         }
       }
 
@@ -183,7 +183,7 @@ namespace NCRYSTAL_NAMESPACE {
         //Pass nthreads to basketmgr call in the next line, to avoid merging
         //baskets if there are anyway less pending baskets than the number of
         //threads:
-        auto bh = m_basketmgr->getPendingBasketOrAllocateEmpty( nthreads );
+        auto bh = m_basketqueuemgr->getPendingBasketOrAllocateEmpty( nthreads );
         bh.basket().validateIfDbg();
 
         nc_assert(bh.valid());
@@ -232,7 +232,7 @@ namespace NCRYSTAL_NAMESPACE {
           if ( bh.basket().empty() ) {
             //Original basket was empty, and they *all* missed!
             //Try again, unless src ran out:
-            m_basketmgr->deallocateBasket(std::move(bh));
+            m_basketqueuemgr->deallocateBasket(std::move(bh));
             if ( !src_has_more )
               return basket_holder_t{ no_init };
             if ( nretry==0 )
@@ -249,7 +249,7 @@ namespace NCRYSTAL_NAMESPACE {
 
         if ( bh.basket().empty() ) {
           //Apparently we are done.
-          m_basketmgr->deallocateBasket(std::move(bh));
+          m_basketqueuemgr->deallocateBasket(std::move(bh));
           return basket_holder_t{ no_init };
         } else {
           return bh;
@@ -258,7 +258,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       GeometryPtr m_geom;
       SourcePtr m_src;
-      shared_obj<basketmgr_t> m_basketmgr;
+      shared_obj<basketqueuemgr_t> m_basketqueuemgr;
       Optional<std::mutex> m_srcmutex;
       std::atomic<bool> m_srcHalted;
       bool m_srcParticlesMightBeOutside;

@@ -1,5 +1,5 @@
-#ifndef NCrystal_MMC_BasketMgr_hh
-#define NCrystal_MMC_BasketMgr_hh
+#ifndef NCrystal_MMC_BasketQueueMgr_hh
+#define NCrystal_MMC_BasketQueueMgr_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -211,7 +211,7 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     template<class TBasket>
-    class BasketMgr : NoCopyMove {
+    class BasketQueueMgr : NoCopyMove {
     public:
       using basket_t = TBasket;
       using basket_holder_t = BasketHolder<TBasket>;
