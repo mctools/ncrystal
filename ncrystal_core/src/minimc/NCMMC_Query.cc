@@ -24,7 +24,7 @@
 #include "NCrystal/internal/minimc/NCMMC_Geom.hh"
 #include "NCrystal/internal/minimc/NCMMC_Source.hh"
 #include "NCrystal/internal/minimc/NCMMC_StdTallies.hh"
-#include "NCrystal/internal/minimc/NCMMC_StdEngine.hh"
+#include "NCrystal/internal/minimc/NCMMC_SimEngine.hh"
 #include "NCrystal/internal/minimc/NCMMC_EngineOpts.hh"
 #include "NCrystal/internal/utils/NCStrView.hh"
 #include "NCrystal/factories/NCFactImpl.hh"

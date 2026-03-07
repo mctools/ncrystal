@@ -19,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/minimc/NCMMC_RunSim.hh"
-#include "NCrystal/internal/minimc/NCMMC_StdEngine.hh"
+#include "NCrystal/internal/minimc/NCMMC_SimEngine.hh"
 #include "NCrystal/internal/minimc/NCMMC_SimMgr.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/factories/NCFactImpl.hh"

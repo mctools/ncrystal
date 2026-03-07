@@ -18,15 +18,13 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCMiniMC/NCMMC_StdEngine.hh"
-
 #include "NCMiniMC/NCMMC_Query.hh"
 #include "NCMiniMC/NCMMC_Utils.hh"
 #include "NCMiniMC/NCMMC_RunSim.hh"
 #include "NCMiniMC/NCMMC_Geom.hh"
 #include "NCMiniMC/NCMMC_Source.hh"
 #include "NCMiniMC/NCMMC_StdTallies.hh"
-#include "NCMiniMC/NCMMC_StdEngine.hh"
+#include "NCMiniMC/NCMMC_SimEngine.hh"
 #include "NCMiniMC/NCMMC_EngineOpts.hh"
 #include "NCThreads/NCFactThreads.hh"
 #include "NCUtils/NCString.hh"
