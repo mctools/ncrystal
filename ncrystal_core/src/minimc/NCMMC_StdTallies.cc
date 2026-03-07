@@ -276,9 +276,12 @@ namespace NCRYSTAL_NAMESPACE {
             tmp.data[i] *= f2l;
           //Fill:
           auto& h = vectAt(data.hists,data.histidx_l);
+          // cppcheck-suppress uninitvar symbolName=tmp
           hgfill_main( h, tmp, nf.w, n );
-          if ( dethistid )
+          if ( dethistid ) {
+            // cppcheck-suppress uninitvar symbolName=tmp
             hgfill_detail( h, *dethistid, tmp, nf.w, n );
+          }
         }
 
         void tallyRecord_de( TallyStdHists_Data& data,
