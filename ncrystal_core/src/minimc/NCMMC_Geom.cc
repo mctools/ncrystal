@@ -67,12 +67,10 @@ namespace NCRYSTAL_NAMESPACE {
         }
 
         void distToVolumeEntry( const NeutronBasket& nb,
-                                Span<double> tgt,
+                                BasketValBufDbl& tgt,
                                 std::size_t offset ) const override
         {
-          //fixme: maybe just handle the offset logic here and then pass on
-          //final x,y,z,ux,uy,uz,n
-          nc_assert( tgt.size() >= nb.nused);
+          nc_assert( nb.nused <= basket_N );
           nc_assert( offset < nb.nused);
           BasketUtils::basket_validateIfDbg(nb);
           m_vol.distToVolumeEntry(nb,tgt,offset);
@@ -85,7 +83,7 @@ namespace NCRYSTAL_NAMESPACE {
         }
 
         void distToVolumeExit( const NeutronBasket& nb,
-                               Span<double> tgt ) const override
+                               BasketValBufDbl& tgt ) const override
         {
           BasketUtils::basket_validateIfDbg(nb);
           m_vol.distToVolumeExit(nb,tgt);
@@ -150,6 +148,3 @@ NCMMC::GeometryPtr NCMMC::createGeometry( const StrView& raw_geomstr )
 //FIXME: idea for geom checks: random rays inbound, ensure that if propagating
 //the particle forward the distToVolumeEntry value, the next distToVolumeEntry
 //should be 0 and distToVolumeExit should be >0 (in non-degenerate cases).
-
-//FIXME: It seems our headers are included as -isystem???? I.e. not triggering
-//the warnings they should!!!!

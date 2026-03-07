@@ -50,7 +50,7 @@ namespace NCRYSTAL_NAMESPACE {
 
 void NC::MiniMC::detail::propagateDistance( NeutronBasket& nb,
                                             std::size_t basket_offset,
-                                            const double* distances ) ncnoexceptndebug
+                                            const BasketValBufDbl& distances ) ncnoexceptndebug
 {
   nc_assert( basket_offset <= nb.size());
   auto& f = nb.fields;
@@ -60,6 +60,6 @@ void NC::MiniMC::detail::propagateDistance( NeutronBasket& nb,
                          f.ux.data + basket_offset,
                          f.uy.data + basket_offset,
                          f.uz.data + basket_offset,
-                         distances + basket_offset,
+                         distances.data + basket_offset,
                          nb.size() - basket_offset );
 }

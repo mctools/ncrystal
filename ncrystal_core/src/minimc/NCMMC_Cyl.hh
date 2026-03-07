@@ -95,15 +95,14 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       void distToVolumeExit( const NeutronBasket& nb,
-                             Span<double> tgt ) const
+                             BasketValBufDbl& tgt ) const
       {
         BasketUtils::basket_validateIfDbg(nb);
         const std::size_t n = nb.nused;
-        nc_assert( tgt.size() >= n);
         auto& f = nb.fields;
         distToVolumeExitUnboundedImpl( f.x.data, f.y.data, f.z.data,
                                        f.ux.data, f.uy.data, f.uz.data,
-                                       tgt.data(), n );
+                                       tgt.data, n );
         if ( !m_dy )
           return;
         //check and apply slab limits as well:
@@ -114,11 +113,10 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       void distToVolumeEntry( const NeutronBasket& nb,
-                              Span<double> tgt,
+                              BasketValBufDbl& tgt,
                               std::size_t offset ) const
       {
         BasketUtils::basket_validateIfDbg(nb);
-        nc_assert( tgt.size() >= nb.nused);
         nc_assert( offset < nb.nused);
         auto& f = nb.fields;
         if ( !m_dy ) {
@@ -128,7 +126,7 @@ namespace NCRYSTAL_NAMESPACE {
                                           f.ux.data + offset,
                                           f.uy.data + offset,
                                           f.uz.data + offset,
-                                          tgt.data() + offset, nb.nused-offset );
+                                          tgt.data + offset, nb.nused-offset );
         } else {
           distToVolumeEntryBoundedImpl( f.x.data + offset,
                                         f.y.data + offset,
@@ -136,7 +134,7 @@ namespace NCRYSTAL_NAMESPACE {
                                         f.ux.data + offset,
                                         f.uy.data + offset,
                                         f.uz.data + offset,
-                                        tgt.data() + offset, nb.nused-offset );
+                                        tgt.data + offset, nb.nused-offset );
         }
       }
 

@@ -86,10 +86,9 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       void distToVolumeEntry( const NeutronBasket& nb,
-                              Span<double> tgt,
+                              BasketValBufDbl& tgt,
                               size_t offset ) const
       {
-        nc_assert( tgt.size() >= nb.nused);
         nc_assert( offset < nb.nused);
         auto& f = nb.fields;
         distToVolumeEntryImpl( f.x.data + offset,
@@ -98,18 +97,17 @@ namespace NCRYSTAL_NAMESPACE {
                                f.ux.data + offset,
                                f.uy.data + offset,
                                f.uz.data + offset,
-                               tgt.data() + offset,
+                               tgt.data + offset,
                                nb.nused - offset );
       }
 
       void distToVolumeExit( const NeutronBasket& nb,
-                             Span<double> tgt ) const
+                             BasketValBufDbl& tgt ) const
       {
-        nc_assert( tgt.size() >= nb.nused);
         auto& f = nb.fields;
         distToVolumeExitImpl( f.x.data, f.y.data, f.z.data,
                               f.ux.data, f.uy.data, f.uz.data,
-                              tgt.data(), nb.nused );
+                              tgt.data, nb.nused );
       }
 
     private:

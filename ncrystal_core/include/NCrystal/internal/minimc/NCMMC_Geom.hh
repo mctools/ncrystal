@@ -22,7 +22,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/minimc/NCMMC_Defs.hh"
-#include "NCrystal/internal/utils/NCSpan.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
 #include "NCrystal/internal/utils/NCStrView.hh"
 
@@ -44,9 +43,9 @@ namespace NCRYSTAL_NAMESPACE {
       //about to leave the volume.
       //
       //If offset>0, the first offset entries in both the basket and the
-      //destination buffer are ignored. Fixme: do we need to use span here?
+      //destination buffer are ignored.
       virtual void distToVolumeEntry( const NeutronBasket&,
-                                      Span<double>,
+                                      BasketValBufDbl&,
                                       size_t offset ) const = 0;
 
       //Finds the distance out of a volume. This is usually the most performance
@@ -59,7 +58,8 @@ namespace NCRYSTAL_NAMESPACE {
       //FIXME: Double check the above is exactly valid also for a sphere, then
       //our scenario for pencil beam into a sphere does not have to move src_z
       //to (1-1e-14) times sphere_radius.
-      virtual void distToVolumeExit( const NeutronBasket&, Span<double> ) const = 0;
+      virtual void distToVolumeExit( const NeutronBasket&,
+                                     BasketValBufDbl& ) const = 0;
 
       //Check if a particular point is inside (scalar method meant to be used by
       //source-geometry checks, not neutron baskets):

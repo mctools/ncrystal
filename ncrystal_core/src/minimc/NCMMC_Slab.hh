@@ -67,24 +67,23 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       void distToVolumeEntry( const NeutronBasket& nb,
-                              Span<double> tgt,
+                              BasketValBufDbl& tgt,
                               std::size_t offset ) const
       {
-        nc_assert( tgt.size() >= nb.nused);
         nc_assert( offset < nb.nused);
         auto& f = nb.fields;
         Utils::distToSlabEntry( f.z.data + offset,
                                 f.uz.data + offset,
-                                tgt.data() + offset, nb.nused - offset,
+                                tgt.data + offset,
+                                nb.nused - offset,
                                 m_dz );
       }
 
       void distToVolumeExit( const NeutronBasket& nb,
-                             Span<double> tgt ) const
+                             BasketValBufDbl& tgt ) const
       {
-        nc_assert( tgt.size() >= nb.nused);
         auto& f = nb.fields;
-        Utils::distToSlabExit( f.z.data, f.uz.data, tgt.data(),
+        Utils::distToSlabExit( f.z.data, f.uz.data, tgt.data,
                                nb.nused, m_dz );
       }
     };

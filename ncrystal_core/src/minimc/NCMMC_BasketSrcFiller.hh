@@ -42,7 +42,7 @@ namespace NCRYSTAL_NAMESPACE {
       //propagator fct which supports offset:
       void propagateDistance( NeutronBasket& nb,
                               std::size_t basket_offset,
-                              const double * distances ) ncnoexceptndebug;
+                              const BasketValBufDbl& ) ncnoexceptndebug;
     }
 
     template<class TBasket>
@@ -109,7 +109,7 @@ namespace NCRYSTAL_NAMESPACE {
 
         //First do the geometry distance calculations:
         nc_assert(m_srcParticlesMightBeOutside);
-        double dist_results[basket_N];
+        BasketValBufDbl dist_results;
         m_geom->distToVolumeEntry( b.get_neutrons(), dist_results, offset );
 
         //Next, reserve a basket for results (those that missed):

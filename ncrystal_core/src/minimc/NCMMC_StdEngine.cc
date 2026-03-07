@@ -139,7 +139,7 @@ namespace NCRYSTAL_NAMESPACE {
 
           //Get distances out for all the particles (note, if geom_is_unbounded,
           //this might include infinities):
-          m_geom->distToVolumeExit( *inbasket.neutrons, m_buf_disttoexit.data );//fixme: migrate fully to buffers
+          m_geom->distToVolumeExit( *inbasket.neutrons, m_buf_disttoexit );
 
           //Get absorption cross sections:
           const double * values_abs_xs_or_nullptr = nullptr;
