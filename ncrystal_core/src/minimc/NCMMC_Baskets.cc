@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/minimc/NCMMC_UBView.hh"
+#include "NCrystal/internal/minimc/NCMMC_Baskets.hh"
 #include "NCMMC_BasketSrcFiller.hh"
 #include "NCMMC_BasketUtils.hh"
 

@@ -1,5 +1,5 @@
-#ifndef NCrystal_MMC_UBView_hh
-#define NCrystal_MMC_UBView_hh
+#ifndef NCrystal_MMC_Baskets_hh
+#define NCrystal_MMC_Baskets_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
