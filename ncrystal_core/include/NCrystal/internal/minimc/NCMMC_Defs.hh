@@ -37,8 +37,8 @@ namespace NCRYSTAL_NAMESPACE {
     //callbacks:
     enum class BasketType : unsigned {
       Invalid = 0,
-      Basic = 1,//Neutron parameters + nscat/inelas
-      Extended = 2//Basic + initial neutron + (fixme?) neutron id
+      Basic = 1,//Neutron parameters + nscat
+      Extended = 2//Basic + initial neutron
     };
 
     //Function signature for acceptance of tally results:

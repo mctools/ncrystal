@@ -696,7 +696,8 @@ namespace NCRYSTAL_NAMESPACE {
         bool particlesMightBeOutside( const Geometry& geom ) const override
         {
           if ( m_radius.get() > 0.0 ) {
-            //FIXME: Improve this?
+            //TODO: Could improve this if geometries were able to return an
+            //      inner bounding box/sphere.
             return true;
           } else {
             //special case r=0:

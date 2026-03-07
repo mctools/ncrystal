@@ -172,7 +172,7 @@ namespace NCRYSTAL_NAMESPACE {
                                          const double * ncrestrict uy,
                                          const double * ncrestrict uz,
                                          double * ncrestrict tgt,
-                                         std::size_t n ) const ncnoexceptndebug//fixme: check all noexcept decorators
+                                         std::size_t n ) const ncnoexceptndebug
       {
         validateInputIfDbg( x, y, z, ux, uy, uz, n );
 
@@ -216,7 +216,7 @@ namespace NCRYSTAL_NAMESPACE {
           if ( ncabs(y[i])==m_dy ) {
             //edge
             if ( y[i]*uy[i] > 0.0 ) {
-              //leaving edge => miss (fixme: this check likely not needed?
+              //leaving edge => miss (nb: this check likely not needed?
               tgt[i] = tmax[i] = -1.;
               continue;
             }
@@ -258,7 +258,7 @@ namespace NCRYSTAL_NAMESPACE {
                                            const double * ncrestrict uy,
                                            const double * ncrestrict uz,
                                            double * ncrestrict tgt,
-                                           std::size_t n ) const ncnoexceptndebug//fixme: check all noexcept decorators
+                                           std::size_t n ) const ncnoexceptndebug
       {
         validateInputIfDbg( x, y, z, ux, uy, uz, n );
 

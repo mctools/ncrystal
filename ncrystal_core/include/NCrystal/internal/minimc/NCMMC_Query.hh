@@ -32,8 +32,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     namespace Query {
 
-      //Generic JSON query for the MiniMC subsystem (format to be described
-      //elsewhere, FIXME):
+      //Generic JSON query for the MiniMC subsystem:
       using Query = SmallVector<StrView,8>;
       void JSONQuery( std::ostream&, const Query& );
 

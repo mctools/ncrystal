@@ -89,7 +89,7 @@ void NCMMC::Query::JSONQuery_flexmmcrun( std::ostream& os,
   constexpr auto sv_tallylist = StrView::make("tallylist");
   constexpr auto sv_cfgdoc = StrView::make("cfgdoc");
 
-  if ( cb.has_value() && key!=sv_run )
+  if ( cb.has_value() && key != sv_run )
     NCRYSTAL_THROW(BadInput,"MiniMC flexmmcrun only works when combined"
                    "with an ['mmc','run',...] JSON query");
 
@@ -129,7 +129,6 @@ void NCMMC::Query::JSONQuery_flexmmcrun( std::ostream& os,
                                        sv_tallylist,
                                        sv_cfgdoc } );
   } else if ( key == sv_tallylist ) {
-    //fixme: should come after docs
     if ( nargs != 0 )
       invalid("no arguments should come after: [\"mmc\",\"tallylist\"]");
     using TF = TallyFlags;
@@ -154,7 +153,7 @@ void NCMMC::Query::JSONQuery_flexmmcrun( std::ostream& os,
     }
   } else if ( key == sv_cfgdoc ) {
     const char * usage
-      = "correct usage: [\"mmc\",\"doc\",\"src|geom|engine\"]";
+      = "correct usage: [\"mmc\",\"cfgdoc\",\"src|geom|engine\"]";
     if ( nargs != 1 )
       invalid(usage);
     if ( arg(0) == "src" ) {

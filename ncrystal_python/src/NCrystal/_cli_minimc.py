@@ -195,8 +195,8 @@ FIXME: We need to document the available tallies, available via the enginecfg
 """
 
     #fixme: can run with just a single (cfgstr) argument, which then defaults to
-    #a quick arg of something. I guess the default is a 0.1deg divergent beam
-    #illuminating entire sphere uniformly?
+    #a cfgstr + an empty scenario string. We also need to be able the have
+    #scenario + extra_enginecfg.
 
     parser = create_ArgumentParser(prog = progname,
                                    description=descr,
@@ -474,8 +474,7 @@ def main( progname, arglist ):
             data = data.encode('utf8')
             if args.outputfile.name.endswith('.gz'):
                 import gzip
-                data = gzip.compress( data, mtime=0 )#fixme: test if we need
-                                                     #lower compresslevel.
+                data = gzip.compress( data, mtime=0 )
             else:
                 if args.outputfile.is_file():
                     if args.force:

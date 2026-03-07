@@ -106,9 +106,6 @@ namespace NCRYSTAL_NAMESPACE {
 
     struct EngineOpts {
 
-      //FIXME: Some docs here (or in nctool output / wiki). Might also be useful
-      //if enginecfg=help triggered the full help.
-
       std::uint64_t seed = 0;//Simulation seed. Note that results are only
                              //reproducible in case of single-threaded
                              //simulations, since it is not guaranteed which

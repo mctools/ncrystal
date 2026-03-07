@@ -591,32 +591,6 @@ def copy_and_deobjectify_data( data ):
         return copy.deepcopy( d )
     return o( data )
 
-#def energy_with_unit( ekin = None, wl = None):
-#    """Tries to format an energy value like for instance "1.8Aa", "25meV", or
-#    "0.1eV". Returns the shortest formatted result.
-#    """
-#    #FIXME: unused???
-#    assert wl is not None or ekin is not None
-#    candidates = []
-#    def fmt(x):
-#        s = '%.14g'%x
-#        return s if float(s)==x else '%.19g'%x
-#    if wl is not None:
-#        candidates.append( '%sAa'%fmt(wl) )
-#    if ekin is None:
-#        return candidates[0]
-#    eu = {'eV':1.0,
-#          'keV':1e3,
-#          'MeV':1e6,
-#          'GeV':1e9,
-#          'meV':0.001,
-#          'neV':1e-9}
-#
-#    for k, v in energy_units.items():
-#        candidates.append( '%s%s'%(fmt(v*ekin),k) )
-#    candidates.sort( key=lambda k: k.size() )
-#    return candidates[0]
-
 def json_query_cpplayer( query, unpack=True ):
     """Sends query (list of string arguments) to the C++ layer and get a JSON
     response. Unless unpack is False, this JSON string will be decoded and the
@@ -634,7 +608,6 @@ def json_query_cpplayer( query, unpack=True ):
         return json.loads(res)
     return res
 
-#fixme: make _fmt.py module?
 def _frexp10(x):
     import math
     exp = int(math.floor(math.log10(abs(x))))

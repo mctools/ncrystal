@@ -44,9 +44,8 @@ namespace NCMMC = NCrystal::MiniMC;
 
 namespace {
 
-  //FIXME: 5* is just to be sure, we should try without:
-  constexpr double one_plus_eps = 1.0 + 5*std::numeric_limits<double>::epsilon();
-  constexpr double one_minus_eps = 1.0 - 5*std::numeric_limits<double>::epsilon();
+  constexpr double one_plus_eps = 1.0 + 3.0*std::numeric_limits<double>::epsilon();
+  constexpr double one_minus_eps = 1.0 - 3.0*std::numeric_limits<double>::epsilon();
   static_assert(one_plus_eps>1.0,"");
   static_assert(one_minus_eps<1.0,"");
 

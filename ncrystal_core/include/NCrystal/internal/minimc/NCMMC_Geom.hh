@@ -82,9 +82,6 @@ namespace NCRYSTAL_NAMESPACE {
 
       virtual void toJSON(std::ostream&) const = 0;
       virtual void toString(std::ostream&) const = 0;
-
-      //fixme: Would it be useful to have a method returning a bounding sphere?
-      //And perhaps also an inscribed sphere?
     };
 
     using GeometryPtr = shared_obj<const Geometry>;

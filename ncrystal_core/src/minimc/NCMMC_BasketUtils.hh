@@ -45,7 +45,7 @@ namespace NCRYSTAL_NAMESPACE {
       inline void basketfields_set( NeutronBasketFields& dst,
                                     const NeutronBasketFields& src,
                                     std::size_t i_o,
-                                    std::size_t i )//fixme switch arg order
+                                    std::size_t i )
       {
         dst.x.data[i] = src.x[i_o];
         dst.y.data[i] = src.y[i_o];
@@ -97,7 +97,6 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
       }
 
-      //fixme: shorter fct names in this file
       inline void basket_validateIfDbg( const NeutronBasket& b )
       {
         basketfields_validateIfDbg(b.fields,b.nused);

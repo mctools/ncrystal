@@ -1,5 +1,5 @@
-#ifndef NCrystal_MMC_StdEngine_hh
-#define NCrystal_MMC_StdEngine_hh
+#ifndef NCrystal_MMC_SimEngine_hh
+#define NCrystal_MMC_SimEngine_hh
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -45,7 +45,6 @@ namespace NCRYSTAL_NAMESPACE {
 
     class SimEngine : NoCopyMove {
     public:
-      //Fixme: this interface should go somewhere else.
       // A simulation engine is an engine which is able to move the simulation
       // forward one step at a time, processing a pending basket of neutrons and
       // either discard neutrons, pass them on for additional simulation steps,

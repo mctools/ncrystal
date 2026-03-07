@@ -111,7 +111,7 @@ namespace NCRYSTAL_NAMESPACE {
 
           //Based on this, figure out number of fields and setup memory:
           nc_assert_always(da.size() == 0);
-          nc_assert_always( da_basketType == BasketType::Invalid);//fixme _always
+          nc_assert_always( da_basketType == BasketType::Invalid);//fixme _always (entire file)
           nc_assert_always( nfields > 0 && nfields <= DataArea::nfieldsmax );
           nc_assert_always( da.capacity() > 0
                             && da.capacity() <= CBMgrInput::cachelen_max );
@@ -132,7 +132,7 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert(b.valid()&&b.neutrons);
           const std::size_t this_size = da.size();
           const std::size_t o_size = b.size();
-          nc_assert_always( o_size <= basket_N );//fixme _always
+          nc_assert_always( o_size <= basket_N );
           nc_assert_always( this_size + o_size <= da.capacity() );
 
           const auto& da_basketType = DataArea::Mutable::basketType(da);

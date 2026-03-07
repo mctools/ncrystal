@@ -207,15 +207,6 @@ namespace NCRYSTAL_NAMESPACE {
             bh.basket().init_extra( i );
 
           bh.basket().validateIfDbg();
-#ifndef NDEBUG
-          //Check that source provide normalised directions (fixme: to validateIfDbg??):
-          {
-            auto& bnf = bh.basket().get_neutrons().fields;
-            for( std::size_t i = size_orig; i < bh.basket().size(); ++i)
-              nc_assert( ncabs( ncsquare(bnf.ux[i]) + ncsquare(bnf.uy[i])
-                                + ncsquare(bnf.uz[i]) - 1.0 ) < 1e-13 );
-          }
-#endif
           const bool src_ran_out = !bh.basket().full();
           if ( src_ran_out ) {
             m_srcHalted.store( true );

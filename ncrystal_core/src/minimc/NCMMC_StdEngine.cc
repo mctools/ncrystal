@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/minimc/NCMMC_StdEngine.hh"
+#include "NCrystal/internal/minimc/NCMMC_SimEngine.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/internal/extd_utils/NCABIUtils.hh"
 #include "NCrystal/internal/minimc/NCMMC_Utils.hh"

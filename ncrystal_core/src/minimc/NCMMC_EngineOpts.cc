@@ -26,6 +26,8 @@ namespace NCMMC = NCrystal::MiniMC;
 
 //Fixme tallyref (and possibly other parameters) is not unit tested.
 //fixme: shorter "short descriptions"?
+//FIXME: Some docs here (or in nctool output / wiki). Might also be useful
+//if enginecfg=help triggered the full help.
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
@@ -285,7 +287,7 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_eoptsstr )
   if ( !engine_name.has_value() )
     engine_name = "std";//Default to "std" engine
 
-  //For now we only have the one engine (fixme: add an "analogue" engine?)
+  //For now we only have the one engine (todo: add an "analogue" engine?)
   if (engine_name != "std" )
     NCRYSTAL_THROW2(BadInput,"Invalid MiniMC engine \""<<engine_name<<"\"");
 

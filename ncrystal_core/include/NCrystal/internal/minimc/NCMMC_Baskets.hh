@@ -50,14 +50,14 @@ namespace NCRYSTAL_NAMESPACE {
       std::size_t empty() const ncnoexceptndebug { return size()==0; }
       bool valid() const noexcept { return neutrons != nullptr; }
 
-      //This one is always set for any valid view:
+      //This one is always available:
       NeutronBasket * neutrons = nullptr;
-
-      //These might be absent (fixme: guarantee all basic fields?):
       BasketValBufInt* nscat = nullptr;
       BasketValBufInt* nscat_inelas = nullptr;
-      BasketValBufDbl* buf1 = nullptr;//generic buffer available to engine (if
-                                      //available, values are zero initialised).
+      BasketValBufDbl* buf1 = nullptr;//generic buffer available to engine
+                                      //(values are zero initialised).
+
+      //This is only available for Extended baskets:
       const NeutronBasketFields * neutrons_initial = nullptr;
 
       //Append single neutron from other compatible basket. Returns idx in this
