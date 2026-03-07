@@ -152,7 +152,7 @@ namespace NCRYSTAL_NAMESPACE {
                                                      m_buf_xs_abs.data );
             } else {
               for ( auto i : ncrange( inbasket.size() ) ) {
-                m_buf_xs_abs[i]
+                m_buf_xs_abs.data[i]
                   = m_mat.absorption->crossSection( m_abs_cacheptr,
                                                     BasketUtils::ekin_obj(*inbasket.neutrons,i),
                                                     BasketUtils::dir_obj(*inbasket.neutrons,i) ).dbl();
@@ -181,10 +181,11 @@ namespace NCRYSTAL_NAMESPACE {
           //nscatlimit times will get a phony scattering cross section value of
           //0:
 
-          auto buf_scatxsval = [](const UniversalBasket&b) -> BasketValBufDbl&
+          auto buf_scatxsval = [](const UniversalBasket&b)
+            -> BasketValBufDbl::data_t&
           {
             nc_assert(b.buf1!=nullptr);
-            return *b.buf1;
+            return b.buf1->data;
           };
 
           if ( nscatlimit == 0 ) {
@@ -225,7 +226,7 @@ namespace NCRYSTAL_NAMESPACE {
           MiniMC::Utils::calcProbTransm( m_mat.numDens,
                                          inbasket.size(),
                                          geom_is_unbounded,
-                                         buf_scatxsval(inbasket).data,
+                                         buf_scatxsval(inbasket),
                                          m_buf_disttoexit.data,
                                          m_buf_ptransm.data );
 
@@ -239,7 +240,7 @@ namespace NCRYSTAL_NAMESPACE {
           MiniMC::Utils::sampleRandDists(rng,
                                          m_mat.numDens,
                                          m_buf_disttoexit.data,
-                                         buf_scatxsval(inbasket).data,
+                                         buf_scatxsval(inbasket),
                                          inbasket.size(),
                                          m_buf_disttoscat.data );
 
@@ -320,14 +321,14 @@ namespace NCRYSTAL_NAMESPACE {
               nc_assert( outb.size() < basket_N );
               std::size_t j = outb.append1( inbasket, i );
               auto& outb_fields = outb.neutrons->fields;
-              outb_fields.w[j] *= roulette_weight_factor;
+              outb_fields.w.data[j] *= roulette_weight_factor;
 
               //Move to scattering point and attenuate: (fixme: can disttoscat
               //be inf if xs=0??)
-              outb_fields.x[j] += m_buf_disttoscat[i] * outb_fields.ux[j];
-              outb_fields.y[j] += m_buf_disttoscat[i] * outb_fields.uy[j];
-              outb_fields.z[j] += m_buf_disttoscat[i] * outb_fields.uz[j];
-              outb_fields.w[j] *= weight_reduction_factor;
+              outb_fields.x.data[j] += m_buf_disttoscat[i] * outb_fields.ux[j];
+              outb_fields.y.data[j] += m_buf_disttoscat[i] * outb_fields.uy[j];
+              outb_fields.z.data[j] += m_buf_disttoscat[i] * outb_fields.uz[j];
+              outb_fields.w.data[j] *= weight_reduction_factor;
 
               //Scatter:
               nc_assert( has_scat );
@@ -336,11 +337,11 @@ namespace NCRYSTAL_NAMESPACE {
                                                            BasketUtils::ekin_obj(*outb.neutrons,j),
                                                            BasketUtils::dir_obj(*outb.neutrons,j));
               nc_assert( ncabs(outcome.direction.as<Vector>().mag()-1) < 1e-9 );
-              outb_fields.ux[j] = outcome.direction[0];
-              outb_fields.uy[j] = outcome.direction[1];
-              outb_fields.uz[j] = outcome.direction[2];
+              outb_fields.ux.data[j] = outcome.direction[0];
+              outb_fields.uy.data[j] = outcome.direction[1];
+              outb_fields.uz.data[j] = outcome.direction[2];
               const bool was_elastic = (outb_fields.ekin[j] == outcome.ekin.dbl());
-              outb_fields.ekin[j] = outcome.ekin.dbl();
+              outb_fields.ekin.data[j] = outcome.ekin.dbl();
               ++( outb.nscat->data[j] );
               if ( !was_elastic ) {
                 ++( outb.nscat_inelas->data[j] );
@@ -353,7 +354,7 @@ namespace NCRYSTAL_NAMESPACE {
               //factor is (1-ptransm)=1. Nothing made it to the tally, we kept
               //all for the scattering. In case scattering XS was also 0, that
               //particle was simply lost
-              outb_fields.w[j] *= ( 1.0 - m_buf_ptransm[i] );
+              outb_fields.w.data[j] *= ( 1.0 - m_buf_ptransm[i] );
             }
 
             result_basket = std::move(outb);
@@ -373,7 +374,7 @@ namespace NCRYSTAL_NAMESPACE {
             //(i.e. scatter-process attenuation, the above propagateAndAttenuate
             //only took care of the absorption-process attenuation:
             for ( auto i : ncrange(outb.size()) )
-              outb.neutrons->fields.w[i] *= m_buf_ptransm[i];
+              outb.neutrons->fields.w.data[i] *= m_buf_ptransm[i];
 
             tallyfct( outb );
             //store the buffer for future use:

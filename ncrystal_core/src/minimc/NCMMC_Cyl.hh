@@ -109,7 +109,7 @@ namespace NCRYSTAL_NAMESPACE {
         double tslab[basket_N];
         Utils::distToSlabExit( f.y.data, f.uy.data, tslab, n, m_dy );
         for ( std::size_t i = 0; i < n; ++i )
-          tgt[i] = ncmin(tgt[i],tslab[i]);
+          tgt.data[i] = ncmin(tgt[i],tslab[i]);
       }
 
       void distToVolumeEntry( const NeutronBasket& nb,

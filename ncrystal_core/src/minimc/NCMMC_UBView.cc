@@ -55,19 +55,19 @@ namespace NCRYSTAL_NAMESPACE {
         constexpr bool empty() const noexcept { return neutrons.empty(); }
         constexpr std::size_t size() const noexcept { return neutrons.size(); }
 
-        void markAsMissedTarget( std::size_t i ) noexcept { nscat[i] = -1; }
+        void markAsMissedTarget( std::size_t i ) noexcept { nscat.data[i] = -1; }
 
         NeutronBasket& get_neutrons() { return neutrons; }
         const NeutronBasket& get_neutrons() const { return neutrons; }
 
         void init_extra( std::size_t i ) ncnoexceptndebug
         {
-          nscat[i] = 0;
-          nscat_inelas[i] = 0;
+          nscat.data[i] = 0;
+          nscat_inelas.data[i] = 0;
           //Although the engine is responsible for any contents in buf1, we
           //initialise it anyway to ensure no uninitialised memory is ever
           //copied around or assigned. We initialise it to 0.0
-          buf1[i] = 0.0;
+          buf1.data[i] = 0.0;
         }
 
         void validateIfDbg() const ncnoexceptndebug
@@ -91,9 +91,9 @@ namespace NCRYSTAL_NAMESPACE {
           //NB: Does NOT update neutrons.nused!
           BasketUtils::basket_copyEntryFromOther( neutrons, o.neutrons,
                                                   i_o, i );
-          nscat[i] = o.nscat[i_o];
-          nscat_inelas[i] = o.nscat_inelas[i_o];
-          buf1[i] = o.buf1[i_o];
+          nscat.data[i] = o.nscat[i_o];
+          nscat_inelas.data[i] = o.nscat_inelas[i_o];
+          buf1.data[i] = o.buf1[i_o];
         }
 
         void appendEntriesFromOther( const Basket_Basic& o,

@@ -200,7 +200,7 @@ namespace NCRYSTAL_NAMESPACE {
                           const BasketValBufDbl& w, std::size_t n)
         {
           for ( std::size_t i = 0; i < n; ++i)
-            hg.main.fill( static_cast<double>(x[i]), w[i] );
+            hg.main.fill( static_cast<double>(x.data[i]), w.data[i] );
         }
 
         template<class TBasketValBuf>
@@ -212,14 +212,14 @@ namespace NCRYSTAL_NAMESPACE {
         {
           for ( std::size_t i = 0; i < n; ++i)
             vectAt(hg.detailed,static_cast<std::size_t>(hid.data[i]))
-              .fill(static_cast<double>(x[i]),w[i]);
+              .fill(static_cast<double>(x.data[i]),w.data[i]);
         }
 
         template<class TBasketValBuf>
         void hgfill_main( HistGroup& hg, const TBasketValBuf& x, std::size_t n)
         {
           for ( std::size_t i = 0; i < n; ++i)
-            hg.main.fill( static_cast<double>(x[i]) );
+            hg.main.fill( static_cast<double>(x.data[i]) );
         }
 
         template<class TBasketValBuf>
@@ -230,7 +230,7 @@ namespace NCRYSTAL_NAMESPACE {
         {
           for ( std::size_t i = 0; i < n; ++i)
             vectAt(hg.detailed,static_cast<std::size_t>(hid.data[i]))
-              .fill(static_cast<double>(x[i]));
+              .fill(static_cast<double>(x.data[i]));
         }
 
         void init_dethistidvect( DetailedHistsIDVect& v,
@@ -265,15 +265,15 @@ namespace NCRYSTAL_NAMESPACE {
           const std::size_t n = neutrons.size();
           auto& nf = neutrons.fields;
           for ( std::size_t i = 0; i < n; ++i )
-            tmp[i]
+            tmp.data[i]
               = 1.0 / ncmax( std::numeric_limits<double>::denorm_min(),
                              nf.ekin[i] );
           for ( std::size_t i = 0; i < n; ++i )
-            tmp[i] = std::sqrt( tmp[i] );
+            tmp.data[i] = std::sqrt( tmp[i] );
           //Convert 1/sqrt(eV) to wavelength in Aa:
           constexpr double f2l = constexpr_ekin2wl(1.0);
           for ( std::size_t i = 0; i < n; ++i )
-            tmp[i] *= f2l;
+            tmp.data[i] *= f2l;
           //Fill:
           auto& h = vectAt(data.hists,data.histidx_l);
           hgfill_main( h, tmp, nf.w, n );
@@ -549,7 +549,9 @@ void NCMMCT::tallyRecord( TallyStdHists_Data& data,
 {
   using TFlags = TallyFlags::Flags;
   const std::size_t n = neutrons.size();
-
+  nc_assert( n <= basket_N );
+  if ( n == 0 )
+    return;
   //////////////////////////////////
   //Find DetailedHistID if required:
   DetailedHistsIDVect histid_buf;

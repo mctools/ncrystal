@@ -52,14 +52,14 @@ namespace NCRYSTAL_NAMESPACE {
                                     std::size_t i_o,
                                     std::size_t i )//fixme switch arg order
       {
-        dst.x[i] = src.x[i_o];
-        dst.y[i] = src.y[i_o];
-        dst.z[i] = src.z[i_o];
-        dst.ux[i] = src.ux[i_o];
-        dst.uy[i] = src.uy[i_o];
-        dst.uz[i] = src.uz[i_o];
-        dst.w[i] = src.w[i_o];
-        dst.ekin[i] = src.ekin[i_o];
+        dst.x.data[i] = src.x[i_o];
+        dst.y.data[i] = src.y[i_o];
+        dst.z.data[i] = src.z[i_o];
+        dst.ux.data[i] = src.ux[i_o];
+        dst.uy.data[i] = src.uy[i_o];
+        dst.uz.data[i] = src.uz[i_o];
+        dst.w.data[i] = src.w[i_o];
+        dst.ekin.data[i] = src.ekin[i_o];
       }
 
       inline void basketfields_setrange( NeutronBasketFields& dst,

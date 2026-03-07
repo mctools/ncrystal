@@ -56,15 +56,15 @@ namespace {
   {
     b.nused = 1;
     auto& bf = b.fields;
-    bf.x[0] = pos.x();
-    bf.y[0] = pos.y();
-    bf.z[0] = pos.z();
+    bf.x.data[0] = pos.x();
+    bf.y.data[0] = pos.y();
+    bf.z.data[0] = pos.z();
     auto u = dir.unit();
-    bf.ux[0] = u.x();
-    bf.uy[0] = u.y();
-    bf.uz[0] = u.z();
-    bf.w[0] = 1.0;
-    bf.ekin[0] = 0.025;
+    bf.ux.data[0] = u.x();
+    bf.uy.data[0] = u.y();
+    bf.uz.data[0] = u.z();
+    bf.w.data[0] = 1.0;
+    bf.ekin.data[0] = 0.025;
   }
 
   double distToVolEntry( const NCMMC::Geometry& geom,
@@ -1371,14 +1371,14 @@ void testSphereCases2()
     auto& bf = b.fields;
     for( std::size_t i = 0; i < n; ++i ) {
       ++b.nused;
-      bf.x[i] = x[i];
-      bf.y[i] = y[i];
-      bf.z[i] = z[i];
-      bf.ux[i] = ux[i];
-      bf.uy[i] = uy[i];
-      bf.uz[i] = uz[i];
-      bf.w[i] = 1.0;
-      bf.ekin[i] = 0.025;
+      bf.x.data[i] = x[i];
+      bf.y.data[i] = y[i];
+      bf.z.data[i] = z[i];
+      bf.ux.data[i] = ux[i];
+      bf.uy.data[i] = uy[i];
+      bf.uz.data[i] = uz[i];
+      bf.w.data[i] = 1.0;
+      bf.ekin.data[i] = 0.025;
     }
     NCMMC::BasketValBufDbl buf;
     auto geom = NCMMC::createGeometry( "sphere;r=10.0" );
@@ -1406,14 +1406,14 @@ void testSphereCases2()
     auto& bf = b.fields;
     for( std::size_t i = 0; i < n; ++i ) {
       ++b.nused;
-      bf.x[i] = x[i];
-      bf.y[i] = y[i];
-      bf.z[i] = z[i];
-      bf.ux[i] = ux[i];
-      bf.uy[i] = uy[i];
-      bf.uz[i] = uz[i];
-      bf.w[i] = 1.0;
-      bf.ekin[i] = 0.025;
+      bf.x.data[i] = x[i];
+      bf.y.data[i] = y[i];
+      bf.z.data[i] = z[i];
+      bf.ux.data[i] = ux[i];
+      bf.uy.data[i] = uy[i];
+      bf.uz.data[i] = uz[i];
+      bf.w.data[i] = 1.0;
+      bf.ekin.data[i] = 0.025;
     }
     NCMMC::BasketValBufDbl buf;
     auto geom = NCMMC::createGeometry( "sphere;r=10.0" );

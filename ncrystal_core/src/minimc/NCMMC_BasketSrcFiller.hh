@@ -141,7 +141,7 @@ namespace NCRYSTAL_NAMESPACE {
             if ( i_first_hole < i ) {
               b.copyEntryFromOther( b, i, (inew=i_first_hole++) );
               //b.copyEntry( (inew=i_first_hole++), i );
-              dist_results[inew] = dist;
+              dist_results.data[inew] = dist;
             }
           }
         }

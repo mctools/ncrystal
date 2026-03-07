@@ -87,15 +87,15 @@ namespace NCRYSTAL_NAMESPACE {
 
         nc_assert( counts.N > counts.i0 );
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf_ekin[i] = randNorm( rng );
+          buf_ekin.data[i] = randNorm( rng );
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf_ekin[i] *= buf_ekin[i];
+          buf_ekin.data[i] *= buf_ekin[i];
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf_ekin[i] += ncsquare( randNorm( rng ) );
+          buf_ekin.data[i] += ncsquare( randNorm( rng ) );
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf_ekin[i] += ncsquare( randNorm( rng ) );
+          buf_ekin.data[i] += ncsquare( randNorm( rng ) );
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf_ekin[i] *= halfkT;
+          buf_ekin.data[i] *= halfkT;
       }
 
       void convertBufWl2E( const StatCount::FillCounts& counts,
@@ -108,19 +108,19 @@ namespace NCRYSTAL_NAMESPACE {
 
         //square:
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf[i] *= buf[i];
+          buf.data[i] *= buf[i];
 
         //Safe reciprocal which does not trigger zero division FPE and correctly
         //maps 0 -> inf:
         constexpr double tiny = std::numeric_limits<double>::denorm_min();
         nc_assert( ncisinf(1.0/tiny) );
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf[i] = 1.0/ncmax(tiny,buf[i]);
+          buf.data[i] = 1.0/ncmax(tiny,buf[i]);
 
         //Final factor:
         constexpr double conv_factor = wlsq2ekin(1.0);
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf[i] *= conv_factor;
+          buf.data[i] *= conv_factor;
       }
 
       void setMetaData_EnergyInfo( const EParsed& ecfg, SourceMetaData& md )
@@ -179,13 +179,13 @@ namespace NCRYSTAL_NAMESPACE {
         nc_assert( nvals <= basket_N );
         NewABI::generateMany( rng, nvals, buf_ekin.data + counts.i0 );
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf_ekin[i] *= delta_genval;
+          buf_ekin.data[i] *= delta_genval;
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf_ekin[i] += genval1;
+          buf_ekin.data[i] += genval1;
 
         //clamp upper edge as added safety:
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf_ekin[i] = ncmin( genval2, buf_ekin[i] );
+          buf_ekin.data[i] = ncmin( genval2, buf_ekin[i] );
 
         if ( fr.mode == EParsed::Mode::Wavelength )
           convertBufWl2E( counts, buf_ekin );
@@ -221,13 +221,13 @@ namespace NCRYSTAL_NAMESPACE {
         const double& sigma_n = ecfg.cachevals.second;
         nc_assert( counts.N > counts.i0 );
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf_ekin[i] = randNorm( rng );
+          buf_ekin.data[i] = randNorm( rng );
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf_ekin[i] *= sigma_n;
+          buf_ekin.data[i] *= sigma_n;
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf_ekin[i] += mu_n;
+          buf_ekin.data[i] += mu_n;
         for ( std::size_t i = counts.i0; i < counts.N; ++i )
-          buf_ekin[i] = std::exp(buf_ekin[i]);
+          buf_ekin.data[i] = std::exp(buf_ekin[i]);
         if ( fr.mode == EParsed::Mode::Wavelength )
           convertBufWl2E( counts, buf_ekin );
       }
@@ -465,27 +465,27 @@ namespace NCRYSTAL_NAMESPACE {
           auto& f = nb.fields;
           for ( std::size_t i = counts.i0; i < counts.N; ++i ) {
             auto v = randIsotropicDirection( rng );
-            f.ux[i] = v.x();
-            f.uy[i] = v.y();
-            f.uz[i] = v.z();
+            f.ux.data[i] = v.x();
+            f.uy.data[i] = v.y();
+            f.uz.data[i] = v.z();
           }
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.x[i] = m_x.dbl();
+            f.x.data[i] = m_x.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.y[i] = m_y.dbl();
+            f.y.data[i] = m_y.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.z[i] = m_z.dbl();
+            f.z.data[i] = m_z.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.w[i] = m_w;
+            f.w.data[i] = m_w;
           setEnergy( m_einfo, counts, rng, f.ekin );
           if ( m_minusr ) {
             //Move particles u*(-r):
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
-              f.x[i] += f.ux[i] * m_minusr;
+              f.x.data[i] += f.ux[i] * m_minusr;
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
-              f.y[i] += f.uy[i] * m_minusr;
+              f.y.data[i] += f.uy[i] * m_minusr;
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
-              f.z[i] += f.uz[i] * m_minusr;
+              f.z.data[i] += f.uz[i] * m_minusr;
           }
         }
       };
@@ -570,19 +570,19 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert( counts.N > counts.i0 );
           auto& f = nb.fields;
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.ux[i] = m_dir[0];
+            f.ux.data[i] = m_dir[0];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.uy[i] = m_dir[1];
+            f.uy.data[i] = m_dir[1];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.uz[i] = m_dir[2];
+            f.uz.data[i] = m_dir[2];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.x[i] = m_x.dbl();
+            f.x.data[i] = m_x.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.y[i] = m_y.dbl();
+            f.y.data[i] = m_y.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.z[i] = m_z.dbl();
+            f.z.data[i] = m_z.dbl();
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.w[i] = m_w;
+            f.w.data[i] = m_w;
           setEnergy( m_einfo, counts, rng, f.ekin );
         }
       };
@@ -719,28 +719,28 @@ namespace NCRYSTAL_NAMESPACE {
             for ( std::size_t i = counts.i0; i < counts.N; ++i ) {
               std::tie(a,b) = randPointInUnitCircle(rng);
               auto p = m_center + m_a * a + m_b * b;
-              f.x[i] = p[0];
-              f.y[i] = p[1];
-              f.z[i] = p[2];
+              f.x.data[i] = p[0];
+              f.y.data[i] = p[1];
+              f.z.data[i] = p[2];
             }
           } else {
             //special case r=0:
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
-              f.x[i] = m_center[0];
+              f.x.data[i] = m_center[0];
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
-              f.y[i] = m_center[1];
+              f.y.data[i] = m_center[1];
             for ( std::size_t i = counts.i0; i < counts.N; ++i )
-              f.z[i] = m_center[2];
+              f.z.data[i] = m_center[2];
           }
           //Direction, weight, and energy are all constant:
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.ux[i] = m_dir[0];
+            f.ux.data[i] = m_dir[0];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.uy[i] = m_dir[1];
+            f.uy.data[i] = m_dir[1];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.uz[i] = m_dir[2];
+            f.uz.data[i] = m_dir[2];
           for ( std::size_t i = counts.i0; i < counts.N; ++i )
-            f.w[i] = m_w;
+            f.w.data[i] = m_w;
           setEnergy( m_einfo, counts, rng, f.ekin );
         }
       };

@@ -117,22 +117,22 @@ void NCMMCU::propagate( NeutronBasket& b,
     std::copy( &bf.ux[0], &bf.ux[0]+b.size(), &tmp[0] );
     safe_mult_strongzero( tmp, dists, b.size() );
     for ( auto i : ncrange( b.size() ) )
-      bf.x[i] += tmp[i];
+      bf.x.data[i] += tmp[i];
     std::copy( &bf.uy[0], &bf.uy[0]+b.size(), &tmp[0] );
     safe_mult_strongzero( tmp, dists, b.size() );
     for ( auto i : ncrange( b.size() ) )
-      bf.y[i] += tmp[i];
+      bf.y.data[i] += tmp[i];
     std::copy( &bf.uz[0], &bf.uz[0]+b.size(), &tmp[0] );
     safe_mult_strongzero( tmp, dists, b.size() );
     for ( auto i : ncrange( b.size() ) )
-      bf.z[i] += tmp[i];
+      bf.z.data[i] += tmp[i];
   } else {
     for ( auto i : ncrange( b.size() ) )
-      bf.x[i] += dists[i] * bf.ux[i];
+      bf.x.data[i] += dists[i] * bf.ux[i];
     for ( auto i : ncrange( b.size() ) )
-      bf.y[i] += dists[i] * bf.uy[i];
+      bf.y.data[i] += dists[i] * bf.uy[i];
     for ( auto i : ncrange( b.size() ) )
-      bf.z[i] += dists[i] * bf.uz[i];
+      bf.z.data[i] += dists[i] * bf.uz[i];
   }
 }
 
@@ -160,7 +160,7 @@ void NCMMCU::propagateAndAttenuate( NeutronBasket& b,
     for ( auto i : ncrange( b.size() ) )
       tmp[i] = std::exp( tmp[i] );
     for ( auto i : ncrange( b.size() ) ) {
-      b.fields.w[i] *= tmp[i];
+      b.fields.w.data[i] *= tmp[i];
     }
     //fixme: for the special case of macroxs=0 and dist=inf we need to set w=0.
   }
@@ -170,7 +170,7 @@ void NCMMCU::propagateAndAttenuate( NeutronBasket& b,
     //always "lost" to the tallies by setting w=0. This is needed for when cross
     //sections are 0 but distances are infinite.
     for ( auto i : ncrange( b.size() ) )
-      b.fields.w[i] *= (1.0-static_cast<double>(std::isinf(dists[i])));
+      b.fields.w.data[i] *= (1.0-static_cast<double>(std::isinf(dists[i])));
   }
 }
 

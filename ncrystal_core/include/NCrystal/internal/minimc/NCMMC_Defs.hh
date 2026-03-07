@@ -52,15 +52,17 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     struct BasketValBufDbl final {
-      double data[basket_N];
+      using data_t = double[basket_N];
+      data_t data;
       constexpr const double& operator[]( std::size_t ) const ncnoexceptndebug;
-      ncconstexpr17 double& operator[]( std::size_t ) ncnoexceptndebug;
+      //NB: No mutable operator[] since it causes cppcheck false positives
     };
 
     struct BasketValBufInt final {
-      int data[basket_N];
+      using data_t = int[basket_N];
+      data_t data;
       constexpr const int& operator[]( std::size_t ) const ncnoexceptndebug;
-      ncconstexpr17 int& operator[]( std::size_t ) ncnoexceptndebug;
+      //NB: No mutable operator[] since it causes cppcheck false positives
     };
 
     //For efficiency, handle larger number of neutrons at once, with each field
@@ -108,20 +110,8 @@ namespace NCRYSTAL_NAMESPACE {
       return nc_assert_rv(i<basket_N), data[i];
     }
 
-    inline ncconstexpr17 double&
-    BasketValBufDbl::operator[]( std::size_t i ) ncnoexceptndebug
-    {
-      return nc_assert_rv(i<basket_N), data[i];
-    }
-
     inline constexpr const int&
     BasketValBufInt::operator[]( std::size_t i ) const ncnoexceptndebug
-    {
-      return nc_assert_rv(i<basket_N), data[i];
-    }
-
-    inline ncconstexpr17 int&
-    BasketValBufInt::operator[]( std::size_t i ) ncnoexceptndebug
     {
       return nc_assert_rv(i<basket_N), data[i];
     }
