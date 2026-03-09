@@ -283,7 +283,7 @@ jobs:
       # compilation.
 
       - name: cibuildwheel
-        uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e
+        uses: pypa/cibuildwheel@ee02a1537ce3071a004a6b08c41e72f0fdc42d9a
         env:
           CIBW_ARCHS_WINDOWS: "auto ARM64"
         with:
@@ -291,7 +291,7 @@ jobs:
           output-dir: wheelhouse
 
       - name: cibuildwheel manylinux2014
-        uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e
+        uses: pypa/cibuildwheel@ee02a1537ce3071a004a6b08c41e72f0fdc42d9a
         if: runner.os == 'Linux'
         env:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
