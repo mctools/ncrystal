@@ -234,14 +234,22 @@ namespace NCRYSTAL_NAMESPACE {
       inline FlexRangeValue parse_flexrange( StrView val_str, StrView key,
                                              const char * energy_helpstr )
       {
-        auto bad = [&key,energy_helpstr]()
+        auto bad = [key,val_str,energy_helpstr]()
         {
           NCRYSTAL_THROW2(BadInput,
-                          "Invalid value for parameter \""<<key<<"\". "
+                          "Invalid value \""<<val_str
+                          <<"\" for parameter \""<<key<<"\". "
                           <<energy_helpstr);
         };
+        constexpr char splitchar = static_cast<char>(0x07);//BEL
+        if ( val_str.contains(splitchar) )
+          bad();//extra explit check that we can use the splitchar for other
+                //purposes below (but the BEL char is already forbidden in
+                //cfg-strings).
+
         FlexRangeValue res;
         SmallVector<StrView,2> parts;
+        std::string tmpbuf;
         if ( val_str.contains("+-") ) {
           res.mode = FlexRangeValue::Mode::LogNormal;
           auto i = val_str.find_first_of("+-");
@@ -249,8 +257,19 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert( val_str.substr(i).startswith("+-") );
           parts.emplace_back( val_str.substr(i+2) );
         } else if ( val_str.contains('-') ) {
-          res.mode = FlexRangeValue::Mode::UniformRange;
-          parts = val_str.splitTrimmed<2>('-');
+          //fixme: unit test this
+          //"<val1>-<val2>" but making sure that a value like "1e-5" does not
+          //trigger this, and that we can even write things like "1e-5-1e-4".
+          tmpbuf = lowerCase( val_str.to_string() );
+          strreplace( tmpbuf, "-", "M" );//no M was in tmpbuf after lowerCase
+          strreplace( tmpbuf, "eM", "e-" );
+          //We have now replaced any '-' with 'M', except where it came after
+          //the character 'e':
+          StrView val_str_M = tmpbuf;
+          if ( val_str_M.contains('M') ) {
+            res.mode = FlexRangeValue::Mode::UniformRange;
+            parts = val_str_M.splitTrimmed<2>('M');
+          }
         }
         auto getPosVal = [&bad](StrView vstr)
         {
