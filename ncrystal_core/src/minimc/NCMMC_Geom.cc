@@ -148,3 +148,60 @@ NCMMC::GeometryPtr NCMMC::createGeometry( const StrView& raw_geomstr )
 //FIXME: idea for geom checks: random rays inbound, ensure that if propagating
 //the particle forward the distToVolumeEntry value, the next distToVolumeEntry
 //should be 0 and distToVolumeExit should be >0 (in non-degenerate cases).
+
+void NCMMC::geometryOptsDocsToJSON( std::ostream& os )
+{
+  os << "{\"intro_text\":";
+  streamJSON(os, "Four MiniMC simulation geometries are currently available,"
+             " all representing a single convex volume centered around"
+             " the origin and axis aligned where appropriate.");
+  os << ",\"geom_list\":[";
+  using VV3 = SmallVector<std::array<StrView,3>,9>;
+  unsigned sort_key = 0;
+  auto addGeom = [&os,&sort_key]( StrView name,
+                                  const VV3& params,
+                                  StrView descr )
+  {
+    os << "{\"name\":";
+    streamJSON(os,name);
+    os<< ",\"descr\":";
+    streamJSON(os,descr);
+    os<< ",\"params\":";
+    streamJSON(os,params);
+    os<< ",\"sort_key\":";
+    streamJSON(os,sort_key++);
+    os<<'}';
+  };
+  {
+    VV3 v;
+    v.push_back({"r","0.01","sphere radius [m]."});
+    addGeom("sphere",v,
+            "A spherical volume centered at (0,0,0).");
+  }
+  os << ',';
+  {
+    VV3 v;
+    v.push_back({"dx","0.01","half-width [m]."});
+    v.push_back({"dy","0.01","half-height [m]."});
+    v.push_back({"dz","0.01","half-depth [m]."});
+    addGeom("box",v,
+            "An axis-aligned box with corners at (+-dx,+-dy,+-dz).");
+  }
+  os << ',';
+  {
+    VV3 v;
+    v.push_back({"dz","0.01","half-depth [m]."});
+    addGeom("slab",v,
+            "An unbounded slab bound by planes through (0,0,+-dz) and normals (0,0,1). This is essentially a box with dx=dy=infinity.");
+  }
+  os << ',';
+  {
+    VV3 v;
+    v.push_back({"r","0.01","cylinder radius radius [m]."});
+    v.push_back({"dy","0","Half-length of cylinder (0 means infinitely long) [m]."});
+    addGeom("cyl",v,
+            "A cylinder around the y-axis. If dy!=0 the cylinder has finite length, with ends at y=+-dy.");
+  }
+  os << "]}";
+
+}

@@ -159,9 +159,9 @@ void NCMMC::Query::JSONQuery_flexmmcrun( std::ostream& os,
     if ( nargs != 1 )
       invalid(usage);
     if ( arg(0) == "src" ) {
-      os << "{}";//fixme
+      sourceOptsDocsToJSON( os );
     } else if ( arg(0) == "geom" ) {
-      os << "{}";//fixme
+      geometryOptsDocsToJSON( os );
     } else if ( arg(0) == "engine" ) {
       engineOptsDocsToJSON( os );
     } else {

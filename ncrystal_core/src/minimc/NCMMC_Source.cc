@@ -402,8 +402,9 @@ namespace NCRYSTAL_NAMESPACE {
           os << ";y="<<fmt(x.dbl());
         if ( z.dbl() )
           os << ";z="<<fmt(x.dbl());
-        if ( w != 1.0 )
-          os << ";w="<<fmt(w);
+        nc_assert_always(w==1.0);
+        // if ( w != 1.0 )
+        //   os << ";w="<<fmt(w);
       }
 
       class SourceIsotropic final : public Source {
@@ -789,7 +790,7 @@ namespace NCRYSTAL_NAMESPACE {
                                             StrView("1.8") );//default 1.8Aa
 
         //Other common defaults:
-        const char * common_defaults = "n=1e6;w=1.0";
+        const char * common_defaults = "n=1e6";//;w=1.0";
 
         if ( src_name == "constant" ) {
           PMC::applyDefaults( tokens, common_defaults );
@@ -798,7 +799,7 @@ namespace NCRYSTAL_NAMESPACE {
           return makeSO<SourceConstant>
             ( PMC::getValue_sizet(tokens,"n"),
               std::move(energy),
-              PMC::getValue_weight( tokens, "w" ),
+              1.0,//PMC::getValue_weight( tokens, "w" ),
               Length{ PMC::getValue_dbl(tokens,"x") },
               Length{ PMC::getValue_dbl(tokens,"y") },
               Length{ PMC::getValue_dbl(tokens,"z") },
@@ -813,7 +814,7 @@ namespace NCRYSTAL_NAMESPACE {
           return makeSO<SourceUniformCircularBeam>
             ( PMC::getValue_sizet(tokens,"n"),
               std::move(energy),
-              PMC::getValue_weight( tokens, "w" ),
+              1.0,//PMC::getValue_weight( tokens, "w" ),
               Length{ PMC::getValue_dbl(tokens,"r") },
               Length{ PMC::getValue_dbl(tokens,"x") },
               Length{ PMC::getValue_dbl(tokens,"y") },
@@ -824,19 +825,16 @@ namespace NCRYSTAL_NAMESPACE {
               );
         } else if ( src_name == "isotropic" ) {
           PMC::applyDefaults( tokens, common_defaults );
-          PMC::applyDefaults( tokens, "x=0;y=0;z=0;n=1e6" );
+          PMC::applyDefaults( tokens, "x=0;y=0;z=0;r=0;n=1e6" );
           PMC::checkNoUnknown(tokens,"ekin;wl;n;w;;x;y;z;r","source");
-          const double r = ( PMC::hasValue( tokens, "r" )
-                             ? PMC::getValue_dbl( tokens, "r" )
-                             : 0.0 );
           return makeSO<SourceIsotropic>
             ( PMC::getValue_sizet(tokens,"n"),
               std::move(energy),
-              PMC::getValue_weight( tokens, "w" ),
+              1.0,//PMC::getValue_weight( tokens, "w" ),
               Length{ PMC::getValue_dbl(tokens,"x") },
               Length{ PMC::getValue_dbl(tokens,"y") },
               Length{ PMC::getValue_dbl(tokens,"z") },
-              r
+              PMC::getValue_dbl(tokens,"r")
               );
         } else {
           NCRYSTAL_THROW2(BadInput,"Unknown source type requested: \""<<src_name<<"\"");
@@ -846,8 +844,144 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-
 NCMMC::SourcePtr NCMMC::createSource( const StrView& raw_srcstr )
 {
   return createSourceImpl( raw_srcstr );
+}
+
+void NCMMC::sourceOptsDocsToJSON( std::ostream& os )
+{
+  os << "{\"intro_text\":";
+  streamJSON(os, "Three MiniMC neutron source types are currently available,"
+             " differing only in the way they generate the initial position"
+             " and direction of the neutrons. Other parameters are common"
+             " to all sources, including those related to neutron energies"
+             " or how many neutrons to generate.");
+  os << ",\"src_list\":[";
+  using VV3 = SmallVector<std::array<StrView,3>,9>;
+  unsigned sort_key = 0;
+  auto addSrc = [&os,&sort_key]( StrView name,
+                                 const VV3& specific_params,
+                                 StrView descr )
+  {
+    os << "{\"name\":";
+    streamJSON(os,name);
+    os<< ",\"descr\":";
+    streamJSON(os,descr);
+    os<< ",\"specific_params\":";
+    streamJSON(os,specific_params);
+    os<< ",\"sort_key\":";
+    streamJSON(os,sort_key++);
+    os<<'}';
+  };
+  {
+    VV3 v;
+    v.push_back({"x","0","x coordinate of position [m]."});
+    v.push_back({"y","0","y coordinate of position [m]."});
+    v.push_back({"z","0","z coordinate of position [m]."});
+    v.push_back({"ux","0","x coordinate of direction."});
+    v.push_back({"uy","0","y coordinate of direction."});
+    v.push_back({"uz","1","z coordinate of direction."});
+    addSrc("constant",v,
+           "A source which always provide the same position and"
+           " direction of the initial neutron.");
+  }
+  os << ',';
+  {
+    VV3 v;
+    v.push_back({"x","0","x coordinate of disk center [m]."});
+    v.push_back({"y","0","y coordinate of disk center [m]."});
+    v.push_back({"z","0","z coordinate of disk center [m]."});
+    v.push_back({"ux","0","x coordinate of direction."});
+    v.push_back({"uy","0","y coordinate of direction."});
+    v.push_back({"uz","1","z coordinate of direction."});
+    addSrc("circular",v,
+           "A source which allows modelling of a beam of uniform"
+           " circular cross section. Specifically, all neutrons are"
+           " generated with a fixed direction, and with a position"
+           " sampled uniformly within a disk of radius r. The"
+           " center of the disk is configurable, while its normal"
+           " is always parallel to the direction of the neutrons.");
+  }
+  os << ',';
+  {
+    VV3 v;
+    v.push_back({"x","0","x coordinate of position [m]."});
+    v.push_back({"y","0","y coordinate of position [m]."});
+    v.push_back({"z","0","z coordinate of position [m]."});
+    v.push_back({"r","0",
+          "Signed radius of sphere. Neutrons are"
+          " always first placed on the point (x,y,z)"
+          " and assigned an isotropically sampled"
+          " direction. If r!=0, the position"
+          " is then translated a distance of -r"
+          " along that direction."});
+    addSrc("isotropic",v,
+           "A source which emits neutrons isotropically from a"
+           " particular point or spherical surface.");
+  }
+  os << "],\"commonpars_descr\":";
+  streamJSON(os,
+             //All except ekin/wl:
+             "For all sources, the parameter \"n\" (default 1e6) is used"
+             " to specify the number of neutrons to generate.");
+             // " For completeness, the parameter \"w\" (default 1.0) sets the"
+             // " initial weight of each neutron, but should in general not be"
+             // " modified."
+  os << ",\"commonpars_energy_descr\":";
+  streamJSON(os,
+             "Parameters \"ekin\" and \"wl\" are also common to all sources,"
+             " and allow for a flexible specification of the generated"
+             " neutron energies, as shown by these examples:");
+  os << ",\"commonpars_energy_examples\":";
+  {
+    SmallVector<std::pair<StrView,StrView>,9> v;
+    v.emplace_back("ekin=0.025",
+                   "All neutrons are generated with an energy of 0.025eV.");
+    v.emplace_back("ekin=0.025-0.05",
+                   "Neutron energies are sampled uniformly in the"
+                   " interval [0.025eV,0.050eV].");
+    v.emplace_back("ekin=0.025+-0.001",
+                   "Neutron energies are sampled from a log-normal"
+                   " distribution with mean 0.025eV and RMS 0.001eV.");
+    v.emplace_back("ekin=thermal:77",
+                   "Neutron energies are sampled from a thermal"
+                   " (Maxwell) distribution at 77K.");
+    v.emplace_back("wl=1.8",
+                   "All neutrons are generated with a wavelength of 1.8Aa.");
+    v.emplace_back("wl=1.8-5",
+                   "Neutron wavelengths are sampled uniformly in"
+                   " the interval [1.8Aa,5Aa].");
+    v.emplace_back("wl=1.8+-0.01",
+                   "Neutron wavelengths are sampled from a log-normal"
+                   " distribution with mean 1.8Aa and RMS 0.01Aa.");
+    streamJSON(os,v);
+  }
+  os << ",\"commonpars_list\":[\"ekin\",\"wl\",\"n\"]";
+
+
+  os << ",\"examples\":";
+  {
+    SmallVector<std::pair<StrView,StrView>,9> v;
+    v.emplace_back("constant;wl=1.8;z=-0.1",
+                   "1e6 neutrons are generated with a wavelength of 1.8Aa"
+                   " as (x,y,z)=(0m,0m,-0.1m) with direction (0,0,1).");
+    v.emplace_back("constant;ekin=0.001-0.1;x=2;z=-0.1;ux=0;uy=1;uz=1",
+                   "1e6 neutrons are generated at (x,y,z)=(2m,0m,-0.1m) with"
+                   " direction (0,1,1) and wavelengths are sampled"
+                   " uniformly in the interval [0.001eV,0.1eV].");
+    v.emplace_back("circular;wl=1.8;z=-0.1,r=0.1;n=1e8",
+                   "1e8 neutrons are generated with a wavelength of 1.8Aa"
+                   " with direction (0,0,1) and with a position sampled"
+                   " uniformly on the disk with center (0m,0m,-0.1m) "
+                   "and normal (0,0,1).");
+    v.emplace_back("isotropic;ekin=0.025+-0.001;n=10000",
+                   "10000 neutrons are generated at the point (0m,0m,0m) with an"
+                   " isotropically sampled direction and an energy sampled"
+                   " from a log-normal distribution with mean 0.025eV and"
+                   " variance (0.001eV)^2.");
+    streamJSON(os,v);
+  }
+
+  os << '}';
 }

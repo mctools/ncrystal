@@ -96,6 +96,10 @@ namespace NCRYSTAL_NAMESPACE {
     //a source description string into an actual source object.
     SourcePtr createSource( const StrView& );
 
+    //Documentation of all options as JSON dictionary:
+    void sourceOptsDocsToJSON( std::ostream& );
+
+
   }
 }
 

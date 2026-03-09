@@ -90,6 +90,9 @@ namespace NCRYSTAL_NAMESPACE {
     //a geometry description string into an actual geometry object.
     GeometryPtr createGeometry( const StrView& );
 
+    //Documentation of all options as JSON dictionary:
+    void geometryOptsDocsToJSON( std::ostream& );
+
   }
 }
 
