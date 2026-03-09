@@ -39,10 +39,13 @@ namespace NCRYSTAL_NAMESPACE {
       ProcImpl::OptionalProcPtr absorption;
       NumberDensity numDens;
       Optional<MatCfg> matcfg;
+      Optional<Temperature> matTemp;//material temperature (optional, for tally
+                                    //histogram ranges)
 
       MatDef( ProcImpl::OptionalProcPtr scatter,
               ProcImpl::OptionalProcPtr absorption,
-              NumberDensity nd );
+              NumberDensity nd,
+              Optional<Temperature> matTemp );
 
       //Initialise from cfg (note, call FactoryThreadPool::enable(..) first if
       //you wish to utilise multithreading to speed up this part):

@@ -65,7 +65,9 @@ int the_main_fct( int argc, char ** argv ) {
   auto src = NCMMC::createSource(src_cfgstr);
   auto eopts = NCMMC::parseEngineOpts( enginecfg );
   auto srcmd = src->metaData();
-  auto tally = NC::makeSO<NCMMC::TallyStdHists>( eopts, src->metaData() );
+  auto tally = NC::makeSO<NCMMC::TallyStdHists>( eopts,
+                                                 src->metaData(),
+                                                 matdef.matTemp );
 
   nc_assert_always( nthreads.get() > 0 );
 

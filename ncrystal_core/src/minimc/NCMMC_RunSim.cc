@@ -71,9 +71,13 @@ namespace NCRYSTAL_NAMESPACE {
         auto info = FactImpl::createInfo(cfg);
         auto sct = FactImpl::createScatter(cfg);
         auto absn = FactImpl::createAbsorption(cfg);
+        Optional<Temperature> matTemp;
+        if ( info->hasTemperature() )
+          matTemp = info->getTemperature();
         return MatDef( std::move( sct ),
                        std::move( absn ),
-                       info->getNumberDensity() );
+                       info->getNumberDensity(),
+                       matTemp );
       }
       void pcsToJSON(std::ostream& os, const ParticleCountSum p)
       {
@@ -87,10 +91,12 @@ namespace NCRYSTAL_NAMESPACE {
 
 NCMMC::MatDef::MatDef( ProcImpl::OptionalProcPtr scatter_,
                        ProcImpl::OptionalProcPtr absorption_,
-                       NumberDensity nd )
+                       NumberDensity nd,
+                       Optional<Temperature> matTemp_ )
   : scatter( std::move( scatter_ ) ),
     absorption( std::move( absorption_ ) ),
-    numDens( nd )
+    numDens( nd ),
+    matTemp( matTemp_ )
 {
 }
 

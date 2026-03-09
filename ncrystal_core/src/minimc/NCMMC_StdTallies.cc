@@ -108,14 +108,84 @@ NCMMCT::TallyNeutronInitialInfo::create( const EngineOpts& eopts,
   return res;
 }
 
+namespace NCRYSTAL_NAMESPACE {
+  namespace MiniMC {
+    namespace Tallies {
+      namespace {
+        constexpr auto auto_nbins_std = 200;
+        constexpr auto auto_nbins_angular = 180;
+      }
+    }
+  }
+}
+
 NCMMCT::TallyStdHists_Options
 NCMMCT::TallyStdHists_Options::create( const EngineOpts& eo,
-                                       const SourceMetaData& srcmd )
+                                       const SourceMetaData& srcmd,
+                                       Optional<Temperature> matTemp )
 {
   TallyStdHists_Options opt;
   opt.neutronInitialInfo = TallyNeutronInitialInfo::create( eo, srcmd );
   opt.flags = eo.tallyFlags;
   opt.tallyBinnings = eo.tallyBinnings;
+  //All that remains is to figure out a good binning for the energy-dependent
+  //histograms if any should need it.
+
+  using TF = TallyFlags::Flags;
+  constexpr TF::value_type anyEHist = TF::q | TF::e | TF::l | TF::de;
+  const auto bo_flags = opt.tallyBinnings.flagsAffected().getValue();
+  const auto ehists_without_overrides = anyEHist & ~bo_flags;
+  const auto needs_auto_binning = ( ehists_without_overrides
+                                    & opt.flags.getValue() );
+  if ( needs_auto_binning ) {
+    const unsigned nbins = auto_nbins_std;
+    const double kT = matTemp.value_or( Temperature{293.15} ).kT();
+    const double kTlow = 0.073*kT;
+    const double kThigh = 13.688*kT;
+
+    double beam_elow, beam_ehigh;
+    if ( !srcmd.approxERange.has_value() ) {
+      beam_elow = kTlow;
+      beam_ehigh = kThigh;
+    } else {
+      beam_elow = srcmd.approxERange.value().first.get();
+      beam_ehigh = srcmd.approxERange.value().second.get();
+    }
+    nc_assert_always( beam_elow <= beam_ehigh );
+    nc_assert_always( beam_elow >= 0.0 );
+    nc_assert_always( std::isfinite(beam_ehigh) );
+    using B = Hists::Binning;
+    //NOTE: The below auto-binnings were not rigorously derived or validated,
+    //      and could most likely be improved!
+    if ( needs_auto_binning & TF::e ) {
+      const double a = ncmin(beam_elow,kTlow);
+      const double b = ncmax(beam_ehigh,kThigh);
+      const double eps = 0.2*(b-a);
+      opt.tallyBinnings.add( TF::e, B( nbins, ncmax(0,a-eps), b+eps ) );
+    }
+    if ( needs_auto_binning & TF::l ) {
+      double elow = ncmin(beam_elow,0.5*kTlow);
+      const double ehigh = ncmax( 0.0, ncmax(beam_ehigh,2*kThigh) );
+      const double de = ncmax(1e-6,ehigh-elow);
+      if ( !(elow>0.0) )
+        elow = de*0.001;
+      const double l_low = ekin2wl(ehigh)*0.5;
+      const double l_high = ekin2wl(elow)*2;
+      const double d_l = l_high - l_low;
+      opt.tallyBinnings.add( TF::l,
+                             B(nbins,ncmax(0.0,l_low-0.25*d_l),l_high+0.25*d_l));
+    }
+    if ( needs_auto_binning & TF::de ) {
+      const double a = ncmin(0,beam_elow-2*kThigh);
+      const double b = ncmax(0,beam_ehigh-0.5*kTlow);
+      opt.tallyBinnings.add( TF::de, B(nbins,a-0.25*(b-a), b+0.25*(b-a)) );
+    }
+    if ( needs_auto_binning & TF::q ) {
+      constexpr double fact_ekin2ksq = ekin2ksq(1.0);
+      B b( nbins, 0.0,2.1*std::sqrt((beam_ehigh + kThigh)*fact_ekin2ksq) );
+      opt.tallyBinnings.add( TF::q, b );
+    }
+  }
   return opt;
 }
 
@@ -147,8 +217,9 @@ NCMMCT::TallyStdHists_Data::create( const TallyStdHists_Options& opt )
                                                        b_auto ),
                              TallyFlags::singleFlagToString(f) );
   };
-  constexpr auto nbins_std = 200;
-  constexpr auto nbins_angular = 180;
+
+  constexpr auto nbins_std = auto_nbins_std;
+  constexpr auto nbins_angular = auto_nbins_angular;
   if ( opt.flags.has(TFlags::theta) )
     addhist( TFlags::theta, data.histidx_theta, nbins_angular,
              0.0, 180.0, false );
@@ -170,8 +241,7 @@ NCMMCT::TallyStdHists_Data::create( const TallyStdHists_Options& opt )
     addhist( TFlags::w, data.histidx_w, nbins_std,
              0.0, 1.0, false );
 
-  //fixme: better max of e/l/de/q tallys? emax = 3*max(beamE,kT)? Also, we
-  //       should make sure we have unit tests for all tallies.
+  //fixme: make sure we have unit tests for all tallies.
   if ( opt.flags.has(TFlags::e) )
     addhist( TFlags::e, data.histidx_e, nbins_std, 0.0, 1.0, false );
   if ( opt.flags.has(TFlags::l) )
@@ -607,9 +677,10 @@ void NCMMCT::TallyStdHists::merge(Tally&& o_base)
 }
 
 NCMMCT::TallyStdHists::TallyStdHists( const EngineOpts& eo,
-                                      const SourceMetaData& srcmd )
+                                      const SourceMetaData& srcmd,
+                                      Optional<Temperature> matTemp )
   : TallyStdHists( private_constructor_t{},
-                   Options::create(eo,srcmd) )
+                   Options::create(eo,srcmd,matTemp) )
 {
 }
 

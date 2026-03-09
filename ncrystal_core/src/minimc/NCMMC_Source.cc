@@ -127,19 +127,26 @@ namespace NCRYSTAL_NAMESPACE {
       {
         md.energyDescription = ecfg.description;
         if ( ecfg.fixed_ekin.has_value() ) {
-          md.fixedEnergy = ecfg.fixed_ekin;
-          md.meanEnergy = ecfg.fixed_ekin;
+          NeutronEnergy E = ecfg.fixed_ekin.value();
+          md.fixedEnergy = E;
+          md.meanEnergy = E;
+          md.approxERange.emplace( E, E );
           return;
         }
         //Ok, so energy is not fixed but we can set the mean energy (or
         //wavelength if the wl=... keyword was used).
         md.fixedEnergy = NullOpt;
         md.meanEnergy = NullOpt;
+        md.approxERange = NullOpt;
         if ( ecfg.maxwell.has_value() ) {
           //mean energy is (3/2)kT, most probable is (1/2)kT. Although a value
           //of kT might feel natural, we use the mean energy for consistency
           //(also for consistency with the documentation):
-          md.meanEnergy = ecfg.maxwell.value().kT()*1.5;
+          const double kT = ecfg.maxwell.value().kT();
+          md.meanEnergy = kT*1.5;
+          //FIXME: Verify that the values correspond to a 0.997300203936740
+          //confidence interval (i.e. +-3sigma std dev).
+          md.approxERange.emplace( 0.073*kT, 13.688*kT );
           return;
         }
         auto& fr = ecfg.flexrange.value();
@@ -157,6 +164,27 @@ namespace NCRYSTAL_NAMESPACE {
           md.meanEnergy = NeutronEnergy( meanval );
         else
           md.meanEnergy = NeutronWavelength( meanval );
+        double a,b;
+        if ( fr.fr.mode == FlexRangeValue::Mode::UniformRange ) {
+          //The range is trivial in case of UniformRange:
+          a = fr.fr.value;
+          b = fr.fr.secondary_value.value();
+        } else {
+          //For log-normal we take the +-3 sigma confidence interval of the
+          //underlying gaussian:
+          const double mu_n = ecfg.cachevals.first;
+          const double sigma_n = ecfg.cachevals.second;
+          // const double mu    = fr.fr.value;
+          // const double sigma = fr.fr.secondary_value.value();
+          a = std::exp( mu_n - 3*sigma_n );
+          b = std::exp( mu_n + 3*sigma_n );
+        }
+        if ( fr.mode == EParsed::Mode::Wavelength )
+          md.approxERange.emplace( NeutronWavelength(a),
+                                   NeutronWavelength(b) );
+        else
+          md.approxERange.emplace( NeutronEnergy(a),
+                                   NeutronEnergy(b) );
       }
 
       void setEnergy_UniformRange( const EParsed& ecfg,

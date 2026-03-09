@@ -91,7 +91,8 @@ namespace NCRYSTAL_NAMESPACE {
                    && tallyBinnings == o.tallyBinnings );
         }
         static TallyStdHists_Options create( const EngineOpts& eo,
-                                             const SourceMetaData& src);
+                                             const SourceMetaData& src,
+                                             Optional<Temperature> matTemp );
       };
 
       struct TallyStdHists_Data {
@@ -136,7 +137,9 @@ namespace NCRYSTAL_NAMESPACE {
 
         //Initialise from engine and source options (could in principle also
         //depend on geometry options):
-        TallyStdHists( const EngineOpts&, const SourceMetaData&);
+        TallyStdHists( const EngineOpts&,
+                       const SourceMetaData&,
+                       Optional<Temperature> materialTemperature );
         bool needsExtendedBaskets() const override;
         void registerResults( const Basket&) override;
         shared_obj<Tally> cloneSetup() const override;

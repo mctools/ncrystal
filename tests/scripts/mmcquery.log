@@ -226,10 +226,10 @@ Caught expected NCBadInput('Invalid src cfg: ""')
               'mean_energy': 0.006462997725}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=1eV']
-Caught expected NCBadInput('Invalid value for parameter "ekin". Examples for how to set: "ekin=0.025" (fixed in eV), "wl=1.8" (fixed in Aa), "ekin=0.025-0.05" (uniform range in eV), "wl=1.8-5" (uniform range in Aa), "ekin=0.025+-0.001" (log-normal of given mean and rms in eV), "wl=1.8+-0.01" (log-normal of given mean and rms in Aa), "ekin=thermal:77" (thermal Maxwell of given temperature in K).')
+Caught expected NCBadInput('Invalid value "1eV" for parameter "ekin". Examples for how to set: "ekin=0.025" (fixed in eV), "wl=1.8" (fixed in Aa), "ekin=0.025-0.05" (uniform range in eV), "wl=1.8-5" (uniform range in Aa), "ekin=0.025+-0.001" (log-normal of given mean and rms in eV), "wl=1.8+-0.01" (log-normal of given mean and rms in Aa), "ekin=thermal:77" (thermal Maxwell of given temperature in K).')
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=1Aa']
-Caught expected NCBadInput('Invalid value for parameter "wl". Examples for how to set: "ekin=0.025" (fixed in eV), "wl=1.8" (fixed in Aa), "ekin=0.025-0.05" (uniform range in eV), "wl=1.8-5" (uniform range in Aa), "ekin=0.025+-0.001" (log-normal of given mean and rms in eV), "wl=1.8+-0.01" (log-normal of given mean and rms in Aa), "ekin=thermal:77" (thermal Maxwell of given temperature in K).')
+Caught expected NCBadInput('Invalid value "1Aa" for parameter "wl". Examples for how to set: "ekin=0.025" (fixed in eV), "wl=1.8" (fixed in Aa), "ekin=0.025-0.05" (uniform range in eV), "wl=1.8-5" (uniform range in Aa), "ekin=0.025+-0.001" (log-normal of given mean and rms in eV), "wl=1.8+-0.01" (log-normal of given mean and rms in Aa), "ekin=thermal:77" (thermal Maxwell of given temperature in K).')
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=help']
 Caught expected NCBadInput('Examples for how to set: "ekin=0.025" (fixed in eV), "wl=1.8" (fixed in Aa), "ekin=0.025-0.05" (uniform range in eV), "wl=1.8-5" (uniform range in Aa), "ekin=0.025+-0.001" (log-normal of given mean and rms in eV), "wl=1.8+-0.01" (log-normal of given mean and rms in Aa), "ekin=thermal:77" (thermal Maxwell of given temperature in K).')

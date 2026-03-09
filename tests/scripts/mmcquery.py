@@ -128,10 +128,10 @@ def main():
     """
     energy_helpstr=' '.join(energy_helpstr.split())
     with ensure_error(NCBadInput,
-                      f'Invalid value for parameter "ekin". {energy_helpstr}'):
+                      f'Invalid value "1eV" for parameter "ekin". {energy_helpstr}'):
         test('mmc','inspectcfg','src','constant; z=-10;ekin=1eV')
     with ensure_error(NCBadInput,
-                      f'Invalid value for parameter "wl". {energy_helpstr}'):
+                      f'Invalid value "1Aa" for parameter "wl". {energy_helpstr}'):
         test('mmc','inspectcfg','src','constant; z=-10;wl=1Aa')
     with ensure_error(NCBadInput,energy_helpstr):
         test('mmc','inspectcfg','src','constant; z=-10;wl=help')

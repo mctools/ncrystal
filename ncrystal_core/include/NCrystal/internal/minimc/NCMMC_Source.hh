@@ -50,6 +50,13 @@ namespace NCRYSTAL_NAMESPACE {
       //Neutron energies formatted in a string (e.g. "1Aa", "25meV", "2eV",
       //"(0.1-1)eV", etc.) suitable for e.g. plot labels):
       std::string energyDescription;
+
+      //Approximate range of energies, needed for tally ranges. Some Sources
+      //will have infinite range (e.g. thermal spectrum sources), but should
+      //then try to capture "most" generated neutrons. Currently this is not
+      //defined rigourously, but is roughly "3 sigma".
+      using ERange = std::pair<NeutronEnergy,NeutronEnergy>;
+      Optional<ERange> approxERange;
     };
 
     class Source : NoCopyMove {
