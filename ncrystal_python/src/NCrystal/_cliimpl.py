@@ -216,6 +216,10 @@ def cli_entry_point(func):
         import os
         progname = os.path.basename(argv[0])
         arglist = argv[1:]
+        warn_escape = False
+        while '--show-exceptions' in arglist:
+            arglist.remove('--show-exceptions')
+            warn_escape=True
         def block_warnings(msg_str, cat_str):
             if cat_str == 'NCrystalUserWarning':
                 print('WARNING: %s'%msg_str)
@@ -225,12 +229,16 @@ def cli_entry_point(func):
             try:
                 func( progname, arglist )
             except NCException as e:
+                if warn_escape:
+                    raise e
                 n=e.__class__.__name__
                 if n.startswith('NC'):
                     n = n[2:]
                 raise SystemExit('%s ERROR: %s'%(n,
                                                  str(e) or '<unknown>')) from e
             except Exception as e:
+                if warn_escape:
+                    raise e
                 raise SystemExit('ERROR: %s'%(str(e) or '<unknown>')) from e
     return mainfct
 
