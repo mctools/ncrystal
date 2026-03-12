@@ -82,6 +82,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
         progname='ncrystal_minimc'#fixme if needed for unit test?
 
     from . import minimc as ncmmc
+    from ._mmc_doc import doc_modes
     from argparse import RawTextHelpFormatter
     import textwrap
     import shlex
@@ -161,16 +162,21 @@ Run with --full-help for full list of options and more detailed instructions.
                 i += 1
         descr=f"""
 
-Run a simulation with NCrystal's builtin MiniMC framework, in order to to
-investigate bla...
+Run a simulation with NCrystal's builtin MiniMC framework, in order to
+investigate effects of geometry and multiple scattering with a particular
+NCrystal material and neutron source.
 
-    results are collected in ...
+When using this command-line interface, neutron quantities are always tallied in
+histograms as the neutrons exit the geometry. By default these results are
+simply shown as interactive plots, but options below allow for more advanced
+usage such as printing or persistification into files.
 
-{descr_examples}
+For more info in general, visit: https://github.com/mctools/ncrystal/wiki/minimc
 
-Available energy units: Aa, meV, eV, mfp (mfp is "mean-free-path")
-Available length units: mm, cm, m
-Available angular units: mm, cm, m
+For more information about
+
+
+fixme: use _scenariocfg_examples
 
 In case of a material cfg-string defining an anisotropic material (e.g. single
 crystal), it is important to note that default beam travels along (0,0,1).
@@ -266,9 +272,34 @@ FIXME: We need to document the available tallies, available via the enginecfg
         ag.add_argument('--force','-f',action='store_true',
                         help=hwrap("""Use with --output to allow overwriting an
                         existing output file."""))
+
+        assert set(doc_modes)==set(['engine','src','geom']),"update --doc text"
+        ag.add_argument('--doc',choices=doc_modes,
+                        help=hwrap("""Show documentation for the configuration
+                        strings available for geometry, source, or
+                        engine. Alternatively, the same documentation is
+                        generated if any of the cfg-strings are equal to the
+                        string "help"."""))
+
     if return_parser:
         return parser
     args=parser.parse_args(arglist)
+
+    if args.enginecfg=='help':
+        args.enginecfg = None
+        args.doc = 'engine'
+    if args.srccfg=='help':
+        args.srccfg = None
+        args.doc = 'src'
+    if args.geomcfg=='help':
+        args.geomcfg = None
+        args.doc = 'geom'
+
+    is_mode_doc = args.doc is not None
+    if is_mode_doc:
+        #Just short circuit everything below
+        return args
+
 
     def check_infile( f ):
         if not f:
@@ -299,8 +330,9 @@ FIXME: We need to document the available tallies, available via the enginecfg
     args.inputfile = check_infile( args.inputfile )
     args.reffile = check_infile( args.reffile )
     if args.outputfile=='stdout':
-        if args.dump or args.decode:
-            parser.error('--output=stdout is incompatible with --decode/--dump')
+        for a in ['dump','decode','doc']:
+            if getattr(args,a,None) is not None:
+                parser.error(f'--output=stdout is incompatible with --{a}')
     else:
         args.outputfile = check_outfile( args.outputfile )
 
@@ -310,6 +342,7 @@ FIXME: We need to document the available tallies, available via the enginecfg
     is_mode_stdcfg = bool(n_geomsrcengine>0)
     is_mode_scenario = args.SCENARIO is not None
     is_mode_input = args.inputfile is not None
+    is_mode_doc = args.doc is not None
 
     if is_mode_input:
         if is_mode_scenario:
@@ -320,16 +353,16 @@ FIXME: We need to document the available tallies, available via the enginecfg
         if args.CFGSTR:
             parser.error('Do not specify CFGSTR when using --input')
 
-    is_mode_doc = False#fixme!!! args.doc is not None
     n_modes = sum([is_mode_stdcfg,is_mode_scenario,is_mode_input,is_mode_doc])
     if n_modes==0 and args.CFGSTR is not None:
-        #a lone CFGSTR => scenarion mode:
+        #a lone CFGSTR => scenario mode:
         args.SCENARIO=''
         n_modes, is_mode_scenario = 1, True
     if n_modes!=1:
         parser.error(('%s arguments. Use -h, --help or --full-help for'
                       ' information about proper'
                       ' usage.')%( 'Inconsistent' if n_modes>1 else 'Missing'))
+
     if ( is_mode_stdcfg or is_mode_scenario ) and args.CFGSTR is None:
         parser.error('Missing CFGSTR argument')
     if is_mode_input and args.CFGSTR is not None:
@@ -367,6 +400,7 @@ FIXME: We need to document the available tallies, available via the enginecfg
         h = set(tallylists['ALLHISTS'])
         a = set(tallylists['ALL'])
         #fixme: flags should have a description
+        #FIXME: Don't print the the parsing function!
         print("Available tally quantities:")
         for e in sorted(h):
             print(f'  {e}')
@@ -397,6 +431,12 @@ def main( progname, arglist ):
     args = _parseArgs( progname, arglist )
 
     from . import minimc as ncmmc
+    from ._common import print
+
+    if args.doc is not None:
+        ncmmc.gen_doc(args.doc,'print')
+        return
+
     if args.SCENARIO is not None:
         _ = ncmmc.minimc_decode_scenario(args.CFGSTR,args.SCENARIO)
         args.geomcfg = _['geomcfg']
@@ -411,9 +451,6 @@ def main( progname, arglist ):
     res = None
     if args.inputfile:
         res = ncmmc.MMCResults( args.inputfile.read_bytes() )
-
-    #Transfer tallies to enginecfg!
-
 
     if args.decode:
         import shlex
@@ -487,3 +524,7 @@ def main( progname, arglist ):
             args.outputfile.write_bytes(data)
             print("Wrote: %s"%args.outputfile.name)
 
+# FIXME: Don't repeat this here, it should be in ref docs for scenario cfg only:
+# Available energy units: Aa, meV, eV, mfp (mfp is "mean-free-path")
+# Available length units: mm, cm, m
+# Available angular units: mm, cm, m

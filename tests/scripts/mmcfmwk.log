@@ -130,3 +130,266 @@ CALLING ResultOf[plt.gca(..)].set_xlim(-1e-05,180.0)
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
 ['MULTISCAT_OTHER', 'MULTISCAT_PUREELAS', 'NOSCAT', 'SINGLESCAT_ELAS', 'SINGLESCAT_INELAS']
+MiniMC engine cfg-strings
+=========================
+
+Engine options control aspects of the simulation which are not directly tied to
+source or geometry. Most importantly, this includes control of which quantities
+to tally and with what binning to do so. Most users are not really expected to
+change anything else than this, but other parameters affects aspects like how
+many threads to use for the simulation, or how to account for multiple
+scatterings and absorption. For more details refer to the specific parameters
+below.
+
+Parameter reference
+-------------------
+
+  absorption (default "1") : Whether to include absorption effects. If set to 1
+                             (the default) they will be included implicitly
+                             through attenuation of neutrons weights. If set to
+                             0, the absorption cross section will be
+                             artificially set to 0barn.
+                             Example values: "0", "1"
+
+  ignoremiss (default "0") : Whether to exclude neutrons missing the geometry
+                             from tallies. Set to 1 to exclude them and 0 to
+                             include them.
+                             Example values: "0", "1"
+
+  nscatlimit (default "none") : Maximum number of scatterings to allow for each
+                                neutron. If set to none (the default), no limit
+                                will by explicitly applied. If set to any other
+                                non-negative integral value, the scattering
+                                cross section of a neutron will essentially
+                                become 0 just after a neutron has undergone that
+                                many scatterings. A typical usage might be to
+                                set this value to 1, in order to exclude
+                                multiple scattering effects.
+                                Example values: "none", "0", "1", "2", "10",
+                                                "999"
+
+  nthreads (default "auto") : Number of threads to use for simulation. Either
+                              accepts an integer value >=0 or the special
+                              keyword "auto".
+                              Example values: "auto", "1", "2", "20"
+
+  roulette (default "0.1,0.01,2") : Roulette parameters for the neutron
+                                    termination strategy. At each simulation
+                                    step inside the geometry, neutrons are split
+                                    into a transmitted (and tallied) part as
+                                    well as a part undergoing a forced
+                                    collision. Weights are handled
+                                    appropriately, decreasing in magnitude after
+                                    each step. To maximise utility of simulation
+                                    time, a roulette choice is made for neutrons
+                                    having undergone at least N scatterings and
+                                    whose weights are below a threshold value W.
+                                    The choice allow the neutron to survive with
+                                    a probability of P, and if it survives its
+                                    weight will be increased by a factor of 1/P.
+                                    This allows the simulation to avoid using
+                                    most time on insignificant neutrons, while
+                                    still providing the correct tally
+                                    distributions in the limit of large
+                                    statistics. The roulette parameter thus
+                                    needs three comma-separated values, encoded
+                                    as "P,W,N".
+                                    Example values: "0.5,1e-4,5"
+
+  seed (default "0") : Seed value for the random number stream used for the
+                       simulation. Accepts any 64 non-negative integral value
+                       that fits into a 64bit unsigned integer. Note that even
+                       with the same seed, results are not expected to be
+                       reproducible unless also using nthreads=1.
+                       Example values: "1000", "123456789"
+
+  tally (default "theta") : Comma separated list of quantities to tally. The
+                            quantities available for tally are: de (energy
+                            loss), e (energy), l (wavelength), mu (cosine
+                            scattering angle), nscat (number of scatterings),
+                            nscat_uw (unweighted number of scatterings), q
+                            (scattering vector), theta (scattering angle), w
+                            (weight).
+                            Example values: "q", "mu,q,e,l", "q"
+
+  tallybins (default "") : Modify binning of tally histograms. This is supplied
+                           as a comma separated list of
+                           "<tallyname>,<nbins>,<lower edge>,<upper edge>". If a
+                           tally is enabled via the tally keyword, it will use
+                           the binning specified in this list, if any. If a
+                           binning is not specified, an automatic choice is made
+                           for the binning. Special entries "+" or "-" can be
+                           used to generally increase or decrease binning in
+                           such cases.
+                           Example values: "", "q:1000:0.0:20.0",
+                                           "q:1000:0.0:20.0,l:200:3.0:5.0", "+",
+                                           "-", "q:1000:0.0,+"
+
+  tallybreakdown (default "1") : If set to 1 (the default), tallies will also
+                                 include per-component breakdowns, allowing to
+                                 distinguish contributions depending on number
+                                 of scatterings (0, 1, 2+) and whether the
+                                 scatterings were elastic or not.
+                                 Example values: "0", "1"
+
+  tallyref (default "truth") : Definition of incoming quantities in tallies.
+                               This affects the calculation of tally quantities
+                               like "q", "theta", or "mu" which needs parameters
+                               from the incoming neutron state.  The default
+                               value of "truth" implies that the actual original
+                               quantity of each individual neutron as it came
+                               from the source is used. A value of "src" implies
+                               that the reference value will be taken as the
+                               mean value provided by the source. In the special
+                               case of energy specified as a wavelength (via the
+                               "wl" source parameter), the mean wavelength
+                               rather than energy will be used where that makes
+                               a difference.
+                               Example values: "truth", "src"
+MiniMC source cfg-strings
+=========================
+
+Three MiniMC neutron source types are currently available, differing only in the
+way they generate the initial position and direction of the neutrons. Other
+parameters are common to all sources, including those related to neutron
+energies or how many neutrons to generate.
+
+Quick usage examples
+--------------------
+
+  "constant;wl=1.8;z=-0.1":
+      1e6 neutrons are generated with a wavelength of 1.8Aa as
+      (x,y,z)=(0m,0m,-0.1m) with direction (0,0,1).
+
+  "constant;ekin=0.001-0.1;x=2;z=-0.1;ux=0;uy=1;uz=1":
+      1e6 neutrons are generated at (x,y,z)=(2m,0m,-0.1m) with direction (0,1,1)
+      and wavelengths are sampled uniformly in the interval [0.001eV,0.1eV].
+
+  "circular;wl=1.8;z=-0.1,r=0.1;n=1e8":
+      1e8 neutrons are generated with a wavelength of 1.8Aa with direction
+      (0,0,1) and with a position sampled uniformly on the disk with center
+      (0m,0m,-0.1m) and normal (0,0,1).
+
+  "isotropic;ekin=0.025+-0.001;n=10000":
+      10000 neutrons are generated at the point (0m,0m,0m) with an isotropically
+      sampled direction and an energy sampled from a log-normal distribution
+      with mean 0.025eV and variance (0.001eV)^2.
+
+Parameters common to all sources
+--------------------------------
+
+For all sources, the parameter "n" (default 1e6) is used to specify the number
+of neutrons to generate.
+
+Parameters "ekin" and "wl" are also common to all sources, and allow for a
+flexible specification of the generated neutron energies, as shown by these
+examples:
+
+  "ekin=0.025":
+      All neutrons are generated with an energy of 0.025eV.
+
+  "ekin=0.025-0.05":
+      Neutron energies are sampled uniformly in the interval [0.025eV,0.050eV].
+
+  "ekin=0.025+-0.001":
+      Neutron energies are sampled from a log-normal distribution with mean
+      0.025eV and RMS 0.001eV.
+
+  "ekin=thermal:77":
+      Neutron energies are sampled from a thermal (Maxwell) distribution at 77K.
+
+  "wl=1.8":
+      All neutrons are generated with a wavelength of 1.8Aa.
+
+  "wl=1.8-5":
+      Neutron wavelengths are sampled uniformly in the interval [1.8Aa,5Aa].
+
+  "wl=1.8+-0.01":
+      Neutron wavelengths are sampled from a log-normal distribution with mean
+      1.8Aa and RMS 0.01Aa.
+
+Specific sources available
+--------------------------
+
+The available sources are:
+
+   "constant": A source which always provide the same position and direction of
+               the initial neutron.
+
+               Parameters:
+
+                 ekin, wl, and n : Explained above.
+                 x (default "0") : x coordinate of position [m].
+                 y (default "0") : y coordinate of position [m].
+                 z (default "0") : z coordinate of position [m].
+                 ux (default "0") : x coordinate of direction.
+                 uy (default "0") : y coordinate of direction.
+                 uz (default "1") : z coordinate of direction.
+
+   "circular": A source which allows modelling of a beam of uniform circular
+               cross section. Specifically, all neutrons are generated with a
+               fixed direction, and with a position sampled uniformly within a
+               disk of radius r. The center of the disk is configurable, while
+               its normal is always parallel to the direction of the neutrons.
+
+               Parameters:
+
+                 ekin, wl, and n : Explained above.
+                 x (default "0") : x coordinate of disk center [m].
+                 y (default "0") : y coordinate of disk center [m].
+                 z (default "0") : z coordinate of disk center [m].
+                 ux (default "0") : x coordinate of direction.
+                 uy (default "0") : y coordinate of direction.
+                 uz (default "1") : z coordinate of direction.
+
+  "isotropic": A source which emits neutrons isotropically from a particular
+               point or spherical surface.
+
+               Parameters:
+
+                 ekin, wl, and n : Explained above.
+                 x (default "0") : x coordinate of position [m].
+                 y (default "0") : y coordinate of position [m].
+                 z (default "0") : z coordinate of position [m].
+                 r (default "0") : Signed radius of sphere. Neutrons are always
+                                   first placed on the point (x,y,z) and
+                                   assigned an isotropically sampled direction.
+                                   If r!=0, the position is then translated a
+                                   distance of -r along that direction.
+MiniMC geometry cfg-strings
+===========================
+
+Four MiniMC simulation geometries are currently available, all representing a
+single convex volume centered around the origin and axis aligned where
+appropriate.
+
+Specific geometries available
+-----------------------------
+
+The available geometries are:
+
+  "sphere": A spherical volume centered at (0,0,0).
+
+            Parameters:
+              r (default "0.01") : sphere radius [m].
+
+     "box": An axis-aligned box with corners at (+-dx,+-dy,+-dz).
+
+            Parameters:
+              dx (default "0.01") : half-width [m].
+              dy (default "0.01") : half-height [m].
+              dz (default "0.01") : half-depth [m].
+
+    "slab": An unbounded slab bound by planes through (0,0,+-dz) and normals
+            (0,0,1). This is essentially a box with dx=dy=infinity.
+
+            Parameters:
+              dz (default "0.01") : half-depth [m].
+
+     "cyl": A cylinder around the y-axis. If dy!=0 the cylinder has finite
+            length, with ends at y=+-dy.
+
+            Parameters:
+              r (default "0.01") : cylinder radius radius [m].
+              dy (default "0") : Half-length of cylinder (0 means infinitely
+                                 long) [m].

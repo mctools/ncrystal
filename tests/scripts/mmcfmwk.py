@@ -196,6 +196,10 @@ def main(do_plot, do_update):
     assert resA.tally('theta').histogram_sum() is resA.tally('theta').hist_total
     print( sorted(resA.tally('theta').hist_breakdown.keys()) )
 
+    ncmmc.gen_doc( 'engine' )
+    ncmmc.gen_doc( 'src' )
+    ncmmc.gen_doc( 'geom' )
+
 if __name__ == '__main__':
     import sys
     main(do_plot = '--plot' in sys.argv[1:],

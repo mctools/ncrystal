@@ -29,6 +29,7 @@ __all__ = [
     'minimc_run',
     'minimc_decode_scenario',
     'minimc_run_scenario',
+    'gen_doc',
     'available_tallies',
     'MMCResults',
     'MMCTallyView',
@@ -103,10 +104,32 @@ def minimc_run_scenario( cfgstr, scenario, *,
         callback_options = callback_options,
     )
 
+
+def gen_doc( subject, mode = None ):
+    """Produce reference documentation concerning MiniMC. The single required
+    argument specifies the desired documentation subject, and must be one of
+    "geom", "src", or "engine".
+
+    By default the documentation is simply printed, but the optional mode
+    keyword can be used to modify this:
+
+    mode='print': (default) print the information'
+    mode='lines': return information as list of strings, each representing a
+                  single line.
+    mode='txt': return information as single string.
+    mode='dict': return information unformatted and in a dictionary.
+
+    """
+    from ._mmc_doc import gen_doc_impl
+
+    gen_doc_impl( subject = subject,
+                  mode='print' if mode is None else mode )
+
 def _minimc_raw( cfgstr, *,
                  geomcfg, srccfg, enginecfg,
                  unpack=False,
                  callback = None, callback_options = None ):
+
     """Raw invocation of the MiniMC engine via a low level query, accepting 4
     configuration strings and returning a JSON string with the results.
 

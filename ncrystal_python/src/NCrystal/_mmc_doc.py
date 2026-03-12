@@ -68,13 +68,72 @@ class DocHelper:
             s += '\n'
         return s
 
+    def add_param_list_entry( self, name, descr, *,
+                              descr_short = None,
+                              defval = None,
+                              exvals = None,
+                              line_prefix='' ):
+        if descr_short is not None and self.is_wiki:
+            self.add_line('<details>')
+            self.add_line(f'<summary>{name} : {descr_short}</summary>')
+            self.add_empty()#required for markdown to work in html tags
+            magiceol = '  '#required!
+            defval_shown = ( '"%s"'%defval
+                             if defval is not None
+                             else '(no default value)' )
+            self.add_line(f'> **Default value:** {defval_shown}{magiceol}')
+            self.add_line(f'> **Description:** {descr}{magiceol}')
+            if exvals is not None:
+                exvals_shown = '"%s"'%('", "'.join(exvals))
+                self.add_line(f'> **Example values:** {exvals_shown}{magiceol}')
+
+            self.add_empty()#required for markdown to work in html tags
+            self.add_line('</details>')
+            return
+
+        a = f'{line_prefix}{name}'
+        if defval is not None:
+            a += f' (default "{defval}")'
+        a += ' :'
+        if self.is_wiki:
+            self.add_line(a+' '+descr)
+        else:
+            self.add_wrap(a+' ',descr)
+        if exvals is not None:
+            self.add_wrap( ' '*(len(a)+1)+'Example values: ',
+                           '"%s"'%('", "'.join(exvals)))
+
 def check_keys(d,*keys):
     assert set(d.keys())==set(keys)
 
-def gendoc_geom( **kwargs ):
-    """Generate documentation page for MiniMC geometries."""
-    from NCrystalDev._common import json_query_cpplayer
-    data = json_query_cpplayer(['mmc','cfgdoc','geom'])
+def gendoc_engine( data, **kwargs ):
+    doc = DocHelper('MiniMC engine cfg-strings', **kwargs)
+    check_keys( data,'intro_text','cfgparams' ) #fixme: 'examples'!!!
+    doc.add_wrap(data['intro_text'])
+    d_params = data['cfgparams']
+    pnames = sorted(data['cfgparams'].keys())
+    doc.add_title('Parameter reference')
+    for pn in pnames:
+        pd = d_params[pn]
+        #print(pd)
+        assert pd['name']==pn and len(pd)==5
+        #doc.add_line(pn)
+        defval = pd['default_value']# '0'
+        exvals = pd['example_values']# ['0', '1']
+        descr_s = pd['descr_short']
+        assert len(descr_s)<80#fixme shorter?
+        descr_l = pd['descr_long']
+        doc.add_param_list_entry( pn, descr_l,
+                                  defval=defval,
+                                  descr_short = descr_s,
+                                  exvals = exvals,
+                                  line_prefix = '  ' )
+        doc.add_empty()
+
+
+    return doc
+
+def gendoc_geom( data, **kwargs ):
     doc = DocHelper('MiniMC geometry cfg-strings', **kwargs)
     check_keys( data,'intro_text','geom_list' ) #fixme: 'examples'!!!
     doc.add_wrap(data['intro_text'])
@@ -103,18 +162,13 @@ def gendoc_geom( **kwargs ):
             titlesp += ' '
         for pname, pdefval, pdescr in geom['params']:
             assert pdefval is not None
-            a,b = f'{titlesp} {pname} (default {pdefval}) : ', pdescr
-            if doc.is_wiki:
-                doc.add_line(a+b)
-            else:
-                doc.add_wrap(a,b)
+            doc.add_param_list_entry( pname, pdescr,
+                                      defval=pdefval,
+                                      line_prefix = f'{titlesp} ' )
     return doc
 
 
-def gendoc_src( **kwargs ):
-    """Generate documentation page for MiniMC sources."""
-    from NCrystalDev._common import json_query_cpplayer
-    data = json_query_cpplayer(['mmc','cfgdoc','src'])
+def gendoc_src( data, **kwargs ):
     doc = DocHelper('MiniMC source cfg-strings', **kwargs)
     check_keys( data,
                 'intro_text',
@@ -180,19 +234,55 @@ def gendoc_src( **kwargs ):
         doc.add_line(f'{titlesp} {lcommon} : Explained above.')
         for pname, pdefval, pdescr in src['specific_params']:
             assert pdefval is not None
-            a,b = f'{titlesp} {pname} (default {pdefval}) : ', pdescr
-            if doc.is_wiki:
-                doc.add_line(a+b)
-            else:
-                doc.add_wrap(a,b )
+            doc.add_param_list_entry( pname, pdescr,
+                                      defval=pdefval,
+                                      line_prefix = f'{titlesp} ' )
     return doc
+
+doc_modes = ['geom','src','engine']
+def gen_doc_impl( subject, mode ):
+    #Notice: Keep docstring of minimc.gen_doc function synchronised with the
+    #        implementation here!!!
+    from NCrystalDev._common import json_query_cpplayer
+
+    is_wiki = False
+    if isinstance(mode,str) and mode.startswith('wiki::'):
+        #hidden option
+        is_wiki = True
+        mode=mode[6:]
+
+    if subject not in doc_modes:
+        from .exceptions import NCBadInput
+        raise NCBadInput(f'Unknown subject "{subject}" (must be one of'
+                         ' "geom", "src", or "engine")')
+    if mode not in ('print','lines','txt','dict'):
+        from .exceptions import NCBadInput
+        raise NCBadInput(f'Invalid mode "{mode}" (must be one of'
+                         ' "print", "lines", "txt" or "dict")')
+    data = json_query_cpplayer(['mmc','cfgdoc',subject])
+    if mode == 'dict':
+        return data
+    fctmap = dict( geom = gendoc_geom,
+                   src = gendoc_src,
+                   engine = gendoc_engine )
+    fct = fctmap.get(subject)
+    assert fct is not None
+    s = fct( data=data, is_wiki=is_wiki )
+    if mode=='print':
+        from ._common import print
+        print( str(s), end='' )
+    elif mode=='txt':
+        return str(s)
+    else:
+        assert mode=='lines'
+        return s.lines()
 
 if __name__=='__main__':
     import sys
-    if 'geom' in sys.argv[1:]:
-        fct = gendoc_geom
-    elif 'src' in sys.argv[1:]:
-        fct = gendoc_src
-    else:
-        assert False
-    print(str(fct(is_wiki = 'wiki' in sys.argv[1:])),end='')
+    assert len(sys.argv) in (2,3)
+    mode = sys.argv[2] if len(sys.argv)==3 else 'print'
+    r=gen_doc_impl( subject=sys.argv[1],
+                    mode = mode )
+    if mode == 'dict':
+        import pprint
+        pprint.pp(r)
