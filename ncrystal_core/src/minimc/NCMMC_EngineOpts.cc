@@ -80,7 +80,7 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-void NCMMC::engineOptsDocsToJSON( std::ostream& os )
+void NCMMC::engineOptsDocsToJSON_OptionList( std::ostream& os )
 {
   //NOTE: Keep synchronised with parseEngineOpts and other functions.
 
@@ -127,8 +127,8 @@ void NCMMC::engineOptsDocsToJSON( std::ostream& os )
       "absorption", "0#1",
       "Whether to include absorption effects.",
       "<SHORT> If set to 1 (the default) they will be included implicitly"
-      " through attenuation of neutrons weights. If set to 0 it will be as"
-      " if the absorption cross section was always 0 barn."
+      " through attenuation of neutrons weights. If set to 0, the absorption"
+      " cross section will be artificially set to 0barn."
     },
     {
       "nscatlimit", "none#0#1#2#10#999",
@@ -735,5 +735,23 @@ void NCMMC::TallyBinningOverrides::toJSON( std::ostream& os ) const
       os<<']';
     }
   }
+  os << '}';
+}
+
+
+void NCMMC::engineOptsDocsToJSON( std::ostream& os )
+{
+  os << "{\"intro_text\":";
+  streamJSON(os,
+             "Engine options control aspects of the simulation which are"
+             " not directly tied to source or geometry. Most importantly,"
+             " this includes control of which quantities to tally and with"
+             " what binning to do so. Most users are not really expected to"
+             " change anything else than this, but other parameters affects"
+             " aspects like how many threads to use for the simulation, or"
+             " how to account for multiple scatterings and absorption. For"
+             " more details refer to the specific parameters below.");
+  os << ",\"cfgparams\":";
+  engineOptsDocsToJSON_OptionList(os);
   os << '}';
 }

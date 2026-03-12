@@ -150,7 +150,10 @@ namespace NCRYSTAL_NAMESPACE {
     //including those at default values.
     void engineOptsToJSON( std::ostream&, const EngineOpts& );
 
-    //Documentation of all options as JSON dictionary:
+    //Documentation of all options as JSON dictionary. Just a dictionary with
+    //info about each option...:
+    void engineOptsDocsToJSON_OptionList( std::ostream& );
+    //... or with full information for doc pages, including text and examples:
     void engineOptsDocsToJSON( std::ostream& );
 
   }
