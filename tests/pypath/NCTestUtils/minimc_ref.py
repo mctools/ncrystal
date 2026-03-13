@@ -61,6 +61,25 @@ def minimc_unittest_stdsphere( *,
                      geomcfg = f'sphere;r={sphere_radius}',
                      **kwargs )
 
+def minimc_unittest_scenariostr( cfgstr, scenariostr, override_n = None,
+                                 **kwargs ):
+    d = ncminimc.minimc_decode_scenario( cfgstr, scenariostr )
+    for k,v in sorted(d.items()):
+        assert isinstance(k,str)
+        assert isinstance(v,str)
+        print(f'  decoded {k}="{v}"')
+    assert d['enginecfg']==''
+    if override_n is not None:
+        ns = str(override_n)
+        assert float(ns)==int(float(ns))
+        ns = f';n={ns}'
+        print(f'  override_n set => Appending "{ns}" to src_cfg')
+        d['srccfg'] += ns
+    return minimc_unittest( cfgstr = d['cfgstr'],
+                            srccfg = d['srccfg'],
+                            geomcfg = d['geomcfg'],
+                            **kwargs )
+
 def _parse_sysargv():
     import sys
     args = sys.argv[1:]
@@ -71,6 +90,9 @@ def _parse_sysargv():
 
 def main_minimc_unittest_stdsphere( *a, **kw ):
     minimc_unittest_stdsphere( *a, **kw, **_parse_sysargv() )
+
+def main_minimc_unittest_scenariostr( *a, **kw ):
+    minimc_unittest_scenariostr( *a, **kw, **_parse_sysargv() )
 
 def main_minimc_unittest( *a, **kw ):
     minimc_unittest( *a, **kw, **_parse_sysargv() )
@@ -100,7 +122,8 @@ def minimc_unittest( *,
                      do_updateref = False,
                      tally='theta',
                      tallybins=None,
-                     extra_enginecfg=''
+                     extra_enginecfg='',
+                     quiet = False
                     ):
     """Run MiniMC with chosen configuration and compare result with reference
     histogram. Will keep reference histogram in <testsdata>mmcrefs/key.json (if
@@ -160,7 +183,9 @@ def minimc_unittest( *,
                          f'\n\n  {reffile}\n\n')
     h_ref = Hist1D(reffile.read_text())
     pval = h.check_compat( h_ref, return_pval = True )
-    print(f"Pvalue for comp. with ref (higher is more compatible): {pval:g}")
+    if do_plot or not quiet:
+        print( "Pvalue for comp. with ref"
+               f" (higher is more compatible): {pval:g}" )
     if do_plot:
         h_ref.plot(do_show=False,error_bands=1.0,
                    alpha=0.3,color='blue',label='ref')

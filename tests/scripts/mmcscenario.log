@@ -351,6 +351,26 @@ Caught expected NCBadInput('Invalid MiniMC scenario string: "1000 1Aa on 1m". Ex
     -> enginecfg = ""
 
 >>> Testing
+  scenario = "12345 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "3.74084Aa neutron on 10.6187cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.0530935"
+    -> srccfg    = "circular;z=-0.0530935;r=0.0530935;wl=3.74084;n=12345"
+    -> enginecfg = ""
+
+>>> Testing
+  scenario = "1234.50e1 times"
+  cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
+
+    -> short_title   = "3.74084Aa neutron on 10.6187cm diameter sphere"
+    -> cfgstr   = "stdlib:: Al_sg225.ncmat;temp=20C"
+    -> geomcfg   = "sphere;r=0.0530935"
+    -> srccfg    = "circular;z=-0.0530935;r=0.0530935;wl=3.74084;n=12345"
+    -> enginecfg = ""
+
+>>> Testing
   scenario = "1Aa on 1m 1234000 times"
   cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
@@ -574,3 +594,43 @@ Caught expected NCBadInput('Invalid count specification "-100". Count must be a 
     -> geomcfg   = "sphere;r=0.0005"
     -> srccfg    = "circular;z=-0.0005;r=0.0005;wl=3;n=1e5"
     -> enginecfg = ""
+
+Testing scenario: "Al_sg225.ncmat" + ""
+  decoded cfgstr="Al_sg225.ncmat"
+  decoded enginecfg=""
+  decoded geomcfg="sphere;r=0.0530935"
+  decoded short_title="3.74084Aa neutron on 10.6187cm diameter sphere"
+  decoded srccfg="circular;z=-0.0530935;r=0.0530935;wl=3.74084;n=1e6"
+  override_n set => Appending ";n=2e5" to src_cfg
+
+Testing scenario: "Al_sg225.ncmat;temp=300K" + "2Aa pencil on 2mm sphere"
+  decoded cfgstr="Al_sg225.ncmat;temp=300"
+  decoded enginecfg=""
+  decoded geomcfg="sphere;r=0.001"
+  decoded short_title="2Aa neutron on 2mm diameter sphere"
+  decoded srccfg="constant;z=-0.00099999999999999;wl=2;n=1e6"
+  override_n set => Appending ";n=2e5" to src_cfg
+
+Testing scenario: "Be_sg194.ncmat;temp=80K" + "10meV on 2mm sphere"
+  decoded cfgstr="Be_sg194.ncmat;temp=80"
+  decoded enginecfg=""
+  decoded geomcfg="sphere;r=0.001"
+  decoded short_title="10meV neutron on 2mm diameter sphere"
+  decoded srccfg="circular;z=-0.001;r=0.001;ekin=0.01;n=1e6"
+  override_n set => Appending ";n=2e5" to src_cfg
+
+Testing scenario: "gasmix::air/0.9relhumidity" + "1.8Aa on 10cm slab"
+  decoded cfgstr="gasmix::air/0.9relhumidity"
+  decoded enginecfg=""
+  decoded geomcfg="slab;dz=0.05"
+  decoded short_title="1.8Aa neutron on 100mm thick slab"
+  decoded srccfg="constant;z=-0.05;wl=1.8;n=1e6"
+  override_n set => Appending ";n=2e5" to src_cfg
+
+Testing scenario: "C_sg194_pyrolytic_graphite.ncmat" + "0.99BT on 2mfp 1e5 times"
+  decoded cfgstr="C_sg194_pyrolytic_graphite.ncmat;lcaxis=0,0,1"
+  decoded enginecfg=""
+  decoded geomcfg="sphere;r=0.01175025"
+  decoded short_title="6.64389Aa neutron on 23.5005mm diameter sphere"
+  decoded srccfg="circular;z=-0.01175025;r=0.01175025;wl=6.64389;n=1e5"
+  override_n set => Appending ";n=2e5" to src_cfg

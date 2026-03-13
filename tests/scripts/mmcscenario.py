@@ -22,11 +22,14 @@
 
 # NEEDS: numpy
 
+import numpy # noqa F401 (before fpe)
+import sys
+if not '--plot' in sys.argv[1:]:
+    import NCTestUtils.enable_fpe # noqa F401
+
 import NCrystalDev.minimc as ncmmc
 from NCrystalDev.core import NCBadInput
 from NCTestUtils.common import ensure_error
-import numpy # noqa F401 (before fpe)
-import NCTestUtils.enable_fpe # noqa F401
 
 def testbad(cfgstr,scenario, expecterr):
     test(cfgstr,scenario, expecterr)
@@ -148,6 +151,8 @@ def main():
             'Invalid MiniMC scenario string: "1000 1Aa on 1m". '
             'Expected keyword "on" but got "1Aa".')
     test(c,'1Aa on 1m 123400 times')
+    test(c,'12345 times')
+    test(c,'1234.50e1 times')
     test(c,'1Aa on 1m 1234000 times')
     test(c,'1Aa on 1m 12340000 times')
     test(c,'1Aa on 1m 1 times')
@@ -188,6 +193,21 @@ def main():
             ' positive integral value (and at most 1e18).')
 
     test(c_sc,'3Aa on 1mm')
+
+    from NCrystalDev._cli_minimc import _scenariocfg_examples
+    from NCTestUtils.minimc_ref import main_minimc_unittest_scenariostr as m
+    for descr, matcfg, scenariostr, key in _scenariocfg_examples:
+        assert isinstance(descr,str)
+        descr = ' '.join(descr.split())
+        assert 50 < len(descr) < 300
+        print()
+        print('Testing scenario: "%s" + "%s"'%(matcfg,scenariostr))
+        m( cfgstr = matcfg,
+           scenariostr = scenariostr,
+           extra_enginecfg = 'nthreads=2',
+           key = f'<auto>_{key}',
+           override_n='5e4' if ';dir1=' in matcfg else '2e5',
+           quiet = True )
 
 if __name__ == '__main__':
     main()

@@ -199,8 +199,8 @@ void NCMMCU::sampleRandDists( RNG& rng, NumberDensity nd,
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
     namespace {
-      std::string detail_format_count( StrView sv_count )
-      {
+
+      std::uint64_t detail_parse_count( StrView sv_count ) {
         nc_assert_always( sv_count.has_value() );
         auto count_dbl = sv_count.toDbl();
         std::uint64_t count_i = 0;
@@ -220,6 +220,11 @@ namespace NCRYSTAL_NAMESPACE {
           NCRYSTAL_THROW2(BadInput,"Invalid count specification \""
                           <<sv_count<<"\". Count must be a positive"
                           " integral value (and at most 1e18).");
+        return count_i;
+      }
+
+      std::string detail_format_count( std::uint64_t count_i )
+      {
         return fmtUInt64AsNiceDbl( static_cast<std::uint64_t>(count_i) );
       }
 
@@ -245,11 +250,12 @@ namespace NCRYSTAL_NAMESPACE {
 }
 
 NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
-                                                const char* scenario )
+                                                StrView sv_input )
 {
   ScenarioDecoded res;
 
-  StrView sv_input((scenario?scenario:""));
+  if ( !sv_input.has_value() )
+    sv_input = "";
   auto badchar_strrep = findForbiddenChar( sv_input,
                                            Cfg::forbidden_chars_value_strreps,
                                            ExtraForbidOpt::RequireSimpleASCII );
@@ -261,22 +267,43 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   auto parts = sv_input.split_any<
     8,StrView::SplitKeepEmpty::No,StrView::SplitTrimParts::Yes>(" \t\n\r:_");
 
+  auto it = parts.begin();
+  auto itE = parts.end();
+
+  //Parse COUNT:
+  std::uint64_t count = 0;
+  if ( it!=itE && *std::prev(itE) == "times" ) {
+    --itE;
+    if ( it == itE )
+      NCRYSTAL_THROW2(BadInput,"Invalid MiniMC scenario string: \"" << sv_input
+                      <<"\". Expected integral value like \"10000\" or"
+                      " \"1e6\" in front of keyword \"times\".");
+    count = detail_parse_count( *std::prev(itE) );
+    --itE;
+  }
+
   OptionalInfoPtr info;
   ProcImpl::OptionalProcPtr scatter;
 
-  if ( parts.empty() ) {
+  if ( it == itE ) {
+    //empty string (apart possibly from "N times")
     info = FactImpl::createInfo( matcfg );
     const bool has_BT = detail_extract_braggThreshold(*info).has_value();
     const bool has_T = info->hasTemperature();
-    const char * default_scenario = ( has_BT
-                                      ? "0.8BT"
-                                      : ( has_T ? "1kT" : "1.8Aa" ) );
+    StrView default_scenario( has_BT
+                              ? "0.8BT"
+                              : ( has_T ? "1kT" : "1.8Aa" ) );
+    std::string tmpbuf;
+    if ( count > 0 ) {
+      std::ostringstream ss;
+      ss << default_scenario;
+      ss <<' '<<detail_format_count( count )<<" times";
+      tmpbuf = ss.str();
+      default_scenario = tmpbuf;
+    }
     res = decodeScenario( matcfg, default_scenario );
     return res;
   }
-
-  auto it = parts.begin();
-  auto itE = parts.end();
 
   //Parse ENERGY and pencil:
   StrView sv_energy = *(it++);
@@ -286,25 +313,15 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
     ++it;
   }
 
-  //Parse COUNT:
-  Optional<StrView> sv_count;
-  if ( it!=itE && *std::prev(itE) == "times" ) {
-    --itE;
-    if ( it == itE )
-      NCRYSTAL_THROW2(BadInput,"Invalid MiniMC scenario string: \"" << sv_input
-                      <<"\". Expected integral value like \"10000\" or"
-                      " \"1e6\" in front of keyword \"times\".");
-    sv_count = *std::prev(itE);
-    --itE;
-  }
   std::string count_formatted;
-  if ( sv_count.has_value()) {
-    count_formatted = detail_format_count( sv_count.value() );
-  } else {
+  if ( count == 0 ) {
     if ( scatter == nullptr )
       scatter = FactImpl::createScatter( matcfg );
     count_formatted = ( scatter->isOriented() ? "1e5" : "1e6" );
+  } else {
+    count_formatted = detail_format_count( count );
   }
+  count = 0;//stop using this variable
 
   bool is_sphere(true);
   StrView sv_thickness = "1mfp";

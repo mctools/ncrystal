@@ -31,8 +31,7 @@ def climod_metadata():
                "NCrystal's own Monte Carlo simulation framework.")
     )
 
-#Fixme unit test examples in mmcscenario.py test!
-#Examples, in form of (description, cfgstr, scenariocfg):
+#Examples, in form of (description, cfgstr, scenariocfg, key_for_test):
 
 _scenariocfg_examples = [
     (
@@ -41,39 +40,37 @@ _scenariocfg_examples = [
         chosen to be hopefully interesting for the material, based on Bragg
         threshold and temperature.""",
         "Al_sg225.ncmat",
-        ""
+        "",
+        'empty1'
     ),
     (
         """Pencil beam of 2Aa neutrons impinging centrally on a diameter=2mm
         sphere of 300K aluminium.""",
         "Al_sg225.ncmat;temp=300K",
-        "2Aa pencil on 2mm sphere"
+        "2Aa pencil on 2mm sphere",
+        'wlpnclonsph'
     ),
     (
         """A zero-divergence beam of 10meV neutrons uniformly illuminating a
         diameter=2mm sphere of 80K beryllium.""",
         "Be_sg194.ncmat;temp=80K",
-        "10meV on 2mm sphere"
+        "10meV on 2mm sphere",
+        'eonsph'
     ),
     (
         """1.8Aa neutrons impinging at right incidence on an infinite slab of
         thickness 10cm filled with humid air.""",
         "gasmix::air/0.9relhumidity",
-        "1.8Aa on 10cm slab"
+        "1.8Aa on 10cm slab",
+        'wlonslab'
     ),
     (
-        """Neutrons at a wavelength which is 99% of the Bragg threshold of PG,
-        uniformly illuminating a PG filled sphere whose diameter is 2 times the
-        mean free path length between scatterings.""",
+        """100000 neutrons at a wavelength which is 99% of the Bragg threshold
+        of PG, uniformly illuminating a PG filled sphere whose diameter is 2
+        times the mean free path length between scatterings.""",
         "C_sg194_pyrolytic_graphite.ncmat",
-        "0.99BT on 2mfp"
-    ),
-    (
-        """Neutrons at a wavelength which is 80% of the Bragg threshold of copper,
-        uniformly illuminating a warm copper sphere whose diameter is 1 times the
-        mean free path length between scatterings.""",
-        "Cu_sg225.ncmat;temp=400K",
-        ""
+        "0.99BT on 2mfp 1e5 times",
+        'btonmfp'
     ),
 ]
 
@@ -113,7 +110,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
     def hwrap(t):
         return textwrap.fill(' '.join(t.split()),width=helpw)
     descr_examples = ''
-    for i,(descr, cfgstr, scenario) in enumerate(_scenariocfg_examples):
+    for i,(descr, cfgstr, scenario,key) in enumerate(_scenariocfg_examples):
         assert descr.endswith('.')
         sstr = ' %s'%quote( scenario ) if scenario else ''
         cmd = '%s %s%s'%( progname, quote( cfgstr ), sstr )
