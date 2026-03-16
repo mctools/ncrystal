@@ -1,0 +1,502 @@
+============= CLI >><< ====================
+Caught expected ArgumentError('Missing arguments. Use -h, --help or --full-help for information about proper usage.')
+============= CLI >>--hel<< ====================
+usage: ncrystal_minimc [-h] [--full-help] [--tally TALLIES] [--plot]
+                       [CFGSTR] [SCENARIO]
+
+Run a simulation with NCrystal's builtin MiniMC framework, in order to
+investigate neutron scattering in various geometries, including effects of
+multiple scattering.
+
+Quick examples of how to use:
+
+  1. $> ncrystal_minimc Al_sg225.ncmat
+  2. $> ncrystal_minimc "Al_sg225.ncmat;temp=300K" "2Aa pencil on 2mm sphere"
+  3. $> ncrystal_minimc "Be_sg194.ncmat;temp=80K" "10meV on 2mm sphere"
+  4. $> ncrystal_minimc gasmix::air/0.9relhumidity "1.8Aa on 10cm slab"
+  5. $> ncrystal_minimc C_sg194_pyrolytic_graphite.ncmat "0.99BT on 2mfp 1e5 times"
+
+Run with --full-help for full list of options and more detailed instructions.
+
+positional arguments:
+  CFGSTR               NCrystal cfg-string defining sample material.
+  SCENARIO             String defining the simulation geometry and neutron source
+                       in terms of a simple scenario. For more detailed control,
+                       use the --geomcfg and --srccfg flags instead.
+
+options:
+  -h, --help           show this help message and exit
+  --full-help          Provide more complete usage instructions.
+  --tally, -t TALLIES  Comma separated list of tally quantities (select from: de,
+                       e, l, mu, nscat, nscat_uw, q, theta, w). Use --tally=help
+                       for more information, and the --enginecfg option for more
+                       detailed control of e.g. histogram binnings.
+  --plot, -p           Launch interactive matplotlib plots of results (default if
+                       no other action specified).
+
+===========================================
+============= CLI >>--full<< ====================
+usage: ncrystal_minimc [-h] [--full-help] [--tally TALLIES] [--plot]
+                       [--geomcfg STR] [--srccfg STR] [--enginecfg STR]
+                       [--dump] [--output OUTPUTFILE] [--force]
+                       [--input INPUTFILE] [--ref REFFILE]
+                       [--doc {geom,src,engine,scenario}] [--decode]
+                       [CFGSTR] [SCENARIO]
+
+Run a simulation with NCrystal's builtin MiniMC framework, in order to
+investigate effects of geometry and multiple scattering with a particular
+NCrystal material and neutron source.
+
+When using this command-line interface, neutron quantities are always tallied in
+histograms as the neutrons exit the geometry. By default these results are
+simply shown as interactive plots, but options below allow for more advanced
+usage such as printing or persistification into files.
+
+For more info in general about the MiniMC or the various configuration strings,
+visit: https://github.com/mctools/ncrystal/wiki/minimc
+
+Alternatively, access documentation via the --doc option, or simply input the
+string "help" into any option taking a string. For instance, both --doc=src and
+--srccfg=help will result in the detailed documentation for source configuration
+being shown.
+
+Here are a few examples of usage based on an approach with SCENARIO strings:
+
+1. Pencil beam of neutrons impinging centrally on a diameter=1mfp (mean
+   free path between scatterings) sphere of aluminium. Beam energy is
+   chosen to be hopefully interesting for the material, based on Bragg
+   threshold and temperature:
+  $> ncrystal_minimc Al_sg225.ncmat
+
+2. Pencil beam of 2Aa neutrons impinging centrally on a diameter=2mm
+   sphere of 300K aluminium:
+  $> ncrystal_minimc "Al_sg225.ncmat;temp=300K" "2Aa pencil on 2mm sphere"
+
+3. A zero-divergence beam of 10meV neutrons uniformly illuminating a
+   diameter=2mm sphere of 80K beryllium:
+  $> ncrystal_minimc "Be_sg194.ncmat;temp=80K" "10meV on 2mm sphere"
+
+4. 1.8Aa neutrons impinging at right incidence on an infinite slab of
+   thickness 10cm filled with humid air:
+  $> ncrystal_minimc gasmix::air/0.9relhumidity "1.8Aa on 10cm slab"
+
+5. 100000 neutrons at a wavelength which is 99% of the Bragg threshold
+   of PG, uniformly illuminating a PG filled sphere whose diameter is 2
+   times the mean free path length between scatterings:
+  $> ncrystal_minimc C_sg194_pyrolytic_graphite.ncmat "0.99BT on 2mfp 1e5 times"
+
+The --input and --output options allow persistification of results to JSON
+format.
+
+positional arguments:
+  CFGSTR                NCrystal cfg-string defining sample material.
+  SCENARIO              String defining the simulation geometry and neutron source
+                        in terms of a simple scenario. For more detailed control,
+                        use the --geomcfg and --srccfg flags instead.
+
+options:
+  -h, --help            show this help message and exit
+  --full-help           Provide more complete usage instructions.
+  --tally, -t TALLIES   Comma separated list of tally quantities (select from: de,
+                        e, l, mu, nscat, nscat_uw, q, theta, w). Use --tally=help
+                        for more information, and the --enginecfg option for more
+                        detailed control of e.g. histogram binnings.
+  --plot, -p            Launch interactive matplotlib plots of results (default if
+                        no other action specified).
+
+advanced options:
+  --geomcfg, -g STR     String defining simulation geometry (use --geomcfg=help
+                        for more info).
+  --srccfg, -s STR      String defining options for the neutron source (use
+                        --srccfg=help for more info).
+  --enginecfg, -e STR   String defining options for the simulation engine (use
+                        --enginecfg=help for more info).
+  --dump, -d            Provide summary of results to stdout.
+  --output, -o OUTPUTFILE
+                        Name of file in which to store results. Must end with
+                        .json.gz or .json. As a special case it can be "stdout" if
+                        no other output is requested.
+  --force, -f           Use with --output to allow overwriting an existing output
+                        file.
+  --input, -i INPUTFILE
+                        Input file name. Used to load previous results (from
+                        --output) instead of running new simulations. In this
+                        case, no SCENARIO, --geomcfg, --srccfg, or --enginecfg
+                        should be specified.
+  --ref, -r REFFILE     Reference file name. Used with --plot to overlay previous
+                        reference results.
+  --doc {geom,src,engine,scenario}
+                        Show documentation for the configuration strings available
+                        for geometry, source, engine, or scenarios. Alternatively,
+                        the same documentation is generated if any of the cfg-
+                        strings are equal to the string "help".
+  --decode              Show the final cfgstr, geomcfg, srccfg, and enginecfg.
+
+===========================================
+============= CLI >>-e help<< ====================
+MiniMC engine cfg-strings
+=========================
+
+Engine options control aspects of the simulation which are not directly tied to
+source or geometry. Most importantly, this includes control of which quantities
+to tally and with what binning to do so. Most users are not really expected to
+change anything else than this, but other parameters affects aspects like how
+many threads to use for the simulation, or how to account for multiple
+scatterings and absorption. For more details refer to the specific parameters
+below.
+
+Parameter reference
+-------------------
+
+  absorption (default "1") : Whether to include absorption effects. If set to 1
+                             (the default) they will be included implicitly
+                             through attenuation of neutrons weights. If set to
+                             0, the absorption cross section will be
+                             artificially set to 0barn.
+                             Example values: "0", "1"
+
+  ignoremiss (default "0") : Whether to exclude neutrons missing the geometry
+                             from tallies. Set to 1 to exclude them and 0 to
+                             include them.
+                             Example values: "0", "1"
+
+  nscatlimit (default "none") : Maximum number of scatterings to allow for each
+                                neutron. If set to none (the default), no limit
+                                will by explicitly applied. If set to any other
+                                non-negative integral value, the scattering
+                                cross section of a neutron will essentially
+                                become 0 just after a neutron has undergone that
+                                many scatterings. A typical usage might be to
+                                set this value to 1, in order to exclude
+                                multiple scattering effects.
+                                Example values: "none", "0", "1", "2", "10",
+                                                "999"
+
+  nthreads (default "auto") : Number of threads to use for simulation. Either
+                              accepts an integer value >=0 or the special
+                              keyword "auto".
+                              Example values: "auto", "1", "2", "20"
+
+  roulette (default "0.1,0.01,2") : Roulette parameters for the neutron
+                                    termination strategy. At each simulation
+                                    step inside the geometry, neutrons are split
+                                    into a transmitted (and tallied) part as
+                                    well as a part undergoing a forced
+                                    collision. Weights are handled
+                                    appropriately, decreasing in magnitude after
+                                    each step. To maximise utility of simulation
+                                    time, a roulette choice is made for neutrons
+                                    having undergone at least N scatterings and
+                                    whose weights are below a threshold value W.
+                                    The choice allow the neutron to survive with
+                                    a probability of P, and if it survives its
+                                    weight will be increased by a factor of 1/P.
+                                    This allows the simulation to avoid using
+                                    most time on insignificant neutrons, while
+                                    still providing the correct tally
+                                    distributions in the limit of large
+                                    statistics. The roulette parameter thus
+                                    needs three comma-separated values, encoded
+                                    as "P,W,N".
+                                    Example values: "0.5,1e-4,5"
+
+  seed (default "0") : Seed value for the random number stream used for the
+                       simulation. Accepts any 64 non-negative integral value
+                       that fits into a 64bit unsigned integer. Note that even
+                       with the same seed, results are not expected to be
+                       reproducible unless also using nthreads=1.
+                       Example values: "1000", "123456789"
+
+  tally (default "theta") : Comma separated list of quantities to tally. The
+                            quantities available for tally are: de (energy
+                            loss), e (energy), l (wavelength), mu (cosine
+                            scattering angle), nscat (number of scatterings),
+                            nscat_uw (unweighted number of scatterings), q
+                            (scattering vector), theta (scattering angle), w
+                            (weight).
+                            Example values: "q", "mu,q,e,l", "q"
+
+  tallybins (default "") : Modify binning of tally histograms. This is supplied
+                           as a comma separated list of
+                           "<tallyname>,<nbins>,<lower edge>,<upper edge>". If a
+                           tally is enabled via the tally keyword, it will use
+                           the binning specified in this list, if any. If a
+                           binning is not specified, an automatic choice is made
+                           for the binning. Special entries "+" or "-" can be
+                           used to generally increase or decrease binning in
+                           such cases.
+                           Example values: "", "q:1000:0.0:20.0",
+                                           "q:1000:0.0:20.0,l:200:3.0:5.0", "+",
+                                           "-", "q:1000:0.0,+"
+
+  tallybreakdown (default "1") : If set to 1 (the default), tallies will also
+                                 include per-component breakdowns, allowing to
+                                 distinguish contributions depending on number
+                                 of scatterings (0, 1, 2+) and whether the
+                                 scatterings were elastic or not.
+                                 Example values: "0", "1"
+
+  tallyref (default "truth") : Definition of incoming quantities in tallies.
+                               This affects the calculation of tally quantities
+                               like "q", "theta", or "mu" which needs parameters
+                               from the incoming neutron state.  The default
+                               value of "truth" implies that the actual original
+                               quantity of each individual neutron as it came
+                               from the source is used. A value of "src" implies
+                               that the reference value will be taken as the
+                               mean value provided by the source. In the special
+                               case of energy specified as a wavelength (via the
+                               "wl" source parameter), the mean wavelength
+                               rather than energy will be used where that makes
+                               a difference.
+                               Example values: "truth", "src"
+===========================================
+============= CLI >>--srccfg=help<< ====================
+MiniMC source cfg-strings
+=========================
+
+Three MiniMC neutron source types are currently available, differing only in the
+way they generate the initial position and direction of the neutrons. Other
+parameters are common to all sources, including those related to neutron
+energies or how many neutrons to generate.
+
+Quick usage examples
+--------------------
+
+  "constant;wl=1.8;z=-0.1":
+      1e6 neutrons are generated with a wavelength of 1.8Aa as
+      (x,y,z)=(0m,0m,-0.1m) with direction (0,0,1).
+
+  "constant;ekin=0.001-0.1;x=2;z=-0.1;ux=0;uy=1;uz=1":
+      1e6 neutrons are generated at (x,y,z)=(2m,0m,-0.1m) with direction (0,1,1)
+      and wavelengths are sampled uniformly in the interval [0.001eV,0.1eV].
+
+  "circular;wl=1.8;z=-0.1,r=0.1;n=1e8":
+      1e8 neutrons are generated with a wavelength of 1.8Aa with direction
+      (0,0,1) and with a position sampled uniformly on the disk with center
+      (0m,0m,-0.1m) and normal (0,0,1).
+
+  "isotropic;ekin=0.025+-0.001;n=10000":
+      10000 neutrons are generated at the point (0m,0m,0m) with an isotropically
+      sampled direction and an energy sampled from a log-normal distribution
+      with mean 0.025eV and variance (0.001eV)^2.
+
+Parameters common to all sources
+--------------------------------
+
+For all sources, the parameter "n" (default 1e6) is used to specify the number
+of neutrons to generate.
+
+Parameters "ekin" and "wl" are also common to all sources, and allow for a
+flexible specification of the generated neutron energies, as shown by these
+examples:
+
+  "ekin=0.025":
+      All neutrons are generated with an energy of 0.025eV.
+
+  "ekin=0.025-0.05":
+      Neutron energies are sampled uniformly in the interval [0.025eV,0.050eV].
+
+  "ekin=0.025+-0.001":
+      Neutron energies are sampled from a log-normal distribution with mean
+      0.025eV and RMS 0.001eV.
+
+  "ekin=thermal:77":
+      Neutron energies are sampled from a thermal (Maxwell) distribution at 77K.
+
+  "wl=1.8":
+      All neutrons are generated with a wavelength of 1.8Aa.
+
+  "wl=1.8-5":
+      Neutron wavelengths are sampled uniformly in the interval [1.8Aa,5Aa].
+
+  "wl=1.8+-0.01":
+      Neutron wavelengths are sampled from a log-normal distribution with mean
+      1.8Aa and RMS 0.01Aa.
+
+Specific sources available
+--------------------------
+
+The available sources are:
+
+   "constant": A source which always provide the same position and direction of
+               the initial neutron.
+
+               Parameters:
+
+                 ekin, wl, and n : Explained above.
+                 x (default "0") : x coordinate of position [m].
+                 y (default "0") : y coordinate of position [m].
+                 z (default "0") : z coordinate of position [m].
+                 ux (default "0") : x coordinate of direction.
+                 uy (default "0") : y coordinate of direction.
+                 uz (default "1") : z coordinate of direction.
+
+   "circular": A source which allows modelling of a beam of uniform circular
+               cross section. Specifically, all neutrons are generated with a
+               fixed direction, and with a position sampled uniformly within a
+               disk of radius r. The center of the disk is configurable, while
+               its normal is always parallel to the direction of the neutrons.
+
+               Parameters:
+
+                 ekin, wl, and n : Explained above.
+                 x (default "0") : x coordinate of disk center [m].
+                 y (default "0") : y coordinate of disk center [m].
+                 z (default "0") : z coordinate of disk center [m].
+                 ux (default "0") : x coordinate of direction.
+                 uy (default "0") : y coordinate of direction.
+                 uz (default "1") : z coordinate of direction.
+
+  "isotropic": A source which emits neutrons isotropically from a particular
+               point or spherical surface.
+
+               Parameters:
+
+                 ekin, wl, and n : Explained above.
+                 x (default "0") : x coordinate of position [m].
+                 y (default "0") : y coordinate of position [m].
+                 z (default "0") : z coordinate of position [m].
+                 r (default "0") : Signed radius of sphere. Neutrons are always
+                                   first placed on the point (x,y,z) and
+                                   assigned an isotropically sampled direction.
+                                   If r!=0, the position is then translated a
+                                   distance of -r along that direction.
+===========================================
+============= CLI >>--geomcfg help<< ====================
+MiniMC geometry cfg-strings
+===========================
+
+Four MiniMC simulation geometries are currently available, all representing a
+single convex volume centered around the origin and axis aligned where
+appropriate.
+
+Specific geometries available
+-----------------------------
+
+The available geometries are:
+
+  "sphere": A spherical volume centered at (0,0,0).
+
+            Parameters:
+              r (default "0.01") : sphere radius [m].
+
+     "box": An axis-aligned box with corners at (+-dx,+-dy,+-dz).
+
+            Parameters:
+              dx (default "0.01") : half-width [m].
+              dy (default "0.01") : half-height [m].
+              dz (default "0.01") : half-depth [m].
+
+    "slab": An unbounded slab bound by planes through (0,0,+-dz) and normals
+            (0,0,1). This is essentially a box with dx=dy=infinity.
+
+            Parameters:
+              dz (default "0.01") : half-depth [m].
+
+     "cyl": A cylinder around the y-axis. If dy!=0 the cylinder has finite
+            length, with ends at y=+-dy.
+
+            Parameters:
+              r (default "0.01") : cylinder radius radius [m].
+              dy (default "0") : Half-length of cylinder (0 means infinitely
+                                 long) [m].
+===========================================
+============= CLI >>solid::GdO3/1gcm3 -d<< ====================
+NCrystal MiniMC results:
+   inputs cfg:
+     material : "solid::GdO3/1gcm3"
+     engine   : ""
+     source   : "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578"
+     geometry : "sphere;r=0.0102578"
+   output:
+     src ray count: 1e+06 particles (weight sum: 1e+06)
+     src rays missing geometry: 0 particles (weight sum: 0)
+     src rays miss fraction: 0% (by count) 0% (by weight)
+     tallied ray count: <HIDDEN> particles (weight sum: <HIDDEN>)
+     tally "theta":
+       Hist1D(nbins=180,xmin=0,xmax=180):
+         title     : theta
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+
+===========================================
+============= CLI >>solid::GdO3/1gcm3 --decode<< ====================
+Simulation setup:
+  material cfgstr: "solid::GdO3/1gcm3"
+          geomcfg: "sphere;r=0.0102578"
+           srccfg: "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578"
+        enginecfg: ""
+Command to reproduce:
+  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578" -e ""
+===========================================
+============= CLI >>solid::GdO3/1gcm3 -g 'sphere;r=0.0102578' -s '  	 circular;  ;r=0.0102578;ekin=0.0252617;  z=-0.0102578 ; n=100.0e4' -e '' --decode<< ====================
+Simulation setup:
+  material cfgstr: "solid::GdO3/1gcm3"
+          geomcfg: "sphere;r=0.0102578"
+           srccfg: "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578"
+        enginecfg: ""
+Command to reproduce:
+  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578" -e ""
+===========================================
+============= CLI >>solid::GdO3/1gcm3 -o bla.json.gz<< ====================
+Wrote: bla.json.gz
+===========================================
+============= CLI >>solid::GdO3/1gcm3 -i bla.json.gz --dump<< ====================
+Caught expected ArgumentError('Do not specify CFGSTR when using --input')
+============= CLI >>-i bla.json.gz --dump<< ====================
+NCrystal MiniMC results:
+   inputs cfg:
+     material : "solid::GdO3/1gcm3"
+     engine   : ""
+     source   : "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578"
+     geometry : "sphere;r=0.0102578"
+   output:
+     src ray count: 1e+06 particles (weight sum: 1e+06)
+     src rays missing geometry: 0 particles (weight sum: 0)
+     src rays miss fraction: 0% (by count) 0% (by weight)
+     tallied ray count: <HIDDEN> particles (weight sum: <HIDDEN>)
+     tally "theta":
+       Hist1D(nbins=180,xmin=0,xmax=180):
+         title     : theta
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+
+===========================================
+============= CLI >>-i bla.json.gz --decode<< ====================
+Simulation setup:
+  material cfgstr: "solid::GdO3/1gcm3"
+          geomcfg: "sphere;r=0.0102578"
+           srccfg: "circular;n=1e6;ekin=0.0252617;r=0.0102578"
+        enginecfg: ""
+Command to reproduce:
+  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;ekin=0.0252617;r=0.0102578" -e ""
+===========================================
+============= CLI >>solid::GdO3/1gcm3 '1kT on 1mfp' --decode<< ====================
+Simulation setup:
+  material cfgstr: "solid::GdO3/1gcm3"
+          geomcfg: "sphere;r=0.0102578"
+           srccfg: "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578"
+        enginecfg: ""
+Command to reproduce:
+  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578" -e ""
+===========================================
+============= CLI >>-e 'tally=q;nthreads=97' --decode solid::GdO3/1gcm3 '1kT on 1mfp'<< ====================
+Simulation setup:
+  material cfgstr: "solid::GdO3/1gcm3"
+          geomcfg: "sphere;r=0.0102578"
+           srccfg: "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578"
+        enginecfg: "nthreads=97;tally=q"
+Command to reproduce:
+  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578" -e "nthreads=97;tally=q"
+===========================================
