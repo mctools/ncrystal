@@ -41,6 +41,8 @@ namespace NCRYSTAL_NAMESPACE {
 }
 void NC::Hists::RunningStats1D::merge( const RunningStats1D& o )
 {
+  nc_assert_always( !ncisnan(m_rms_state) );
+  nc_assert_always( !ncisnan(o.m_rms_state) );
   if (!o.m_sumw) {
     //other has no data
     return;
@@ -63,9 +65,27 @@ void NC::Hists::RunningStats1D::merge( const RunningStats1D& o )
   const double w2(o.m_sumw);//s2
   const double wx1(m_sumwx);//b1
   const double wx2(o.m_sumwx);//b2
-  const double k(w2*wx1-w1*wx2);
-  assert((w1+w2)>0);
-  m_rms_state += o.m_rms_state + k*k/(w1*w2*(w1+w2));
+  nc_assert(w1>0&&w2>0);
+  nc_assert( !ncisnan(m_rms_state) );
+  nc_assert( !ncisnan(o.m_rms_state) );
+  const double sumw12 = w1 + w2;
+  const double prodw12 = w1*w2;
+  nc_assert(sumw12>0.0);
+  const double tmp = w1*w2*sumw12;
+  double delta_state;
+  static_assert( 1e-300 > 0.0, "" );
+  if ( tmp > 1e-280 ) {
+    delta_state = ncsquare(w2*wx1-w1*wx2)/tmp;
+  } else {
+    //Tiny weights, try different formulation:
+    delta_state = prodw12*ncsquare( wx1 / w1 - wx2 / w2 )/(w1+w2);
+  }
+  StableSum sum;
+  sum.add( m_rms_state );
+  sum.add( o.m_rms_state );
+  sum.add( delta_state );
+  m_rms_state = sum.sum();
+  nc_assert_always( !ncisnan(m_rms_state) );
 #endif
   m_sumw += o.m_sumw;
   m_sumwx += o.m_sumwx;
@@ -85,8 +105,10 @@ void NC::Hists::RunningStats1D::registerNValues( double val, double N )
 #else
   const double d1 = m_sumw * val - m_sumwx;
   const double d2 = m_sumw * ( N + m_sumw );
+  nc_assert_always( !ncisnan(m_rms_state) );
   if ( d2 )
     m_rms_state += N * ( d1 * d1  / d2 );
+  nc_assert_always( !ncisnan(m_rms_state) );
 #endif
   m_sumw += N;
   m_sumwx += N * val;
@@ -114,6 +136,7 @@ double NC::Hists::RunningStats1D::calcRMSSq() const
   if (!hasData())
     NCRYSTAL_THROW(CalcError,"RMS not well defined in empty histograms");
   nc_assert( m_sumw > 0.0 );
+  nc_assert_always( !ncisnan(m_rms_state) );
 #ifdef NCRYSTAL_HIST_ROOT_STYLE_RMS
   //Unstable calculation:
   const double rms2 = m_rms_state / m_sumw - (m_sumwx*m_sumwx)/(m_sumw*m_sumw);

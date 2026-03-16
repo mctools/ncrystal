@@ -29,6 +29,7 @@ NCTEST_CTYPE_DICTIONARY
     "uint nctest_hist1d_fill( uint, double );"
     "uint nctest_hist1d_fillw( uint, double, double );"
     "const char * nctest_hist1d_tojson( uint );"
+    "void nctest_hist1d_merge( uint, uint );"
     ;
 }
 
@@ -98,6 +99,25 @@ namespace {
       else
         nc_assert_always(false);
       return os.str();
+    }
+
+    void merge( const GenericHist& o )
+    {
+      if ( m_h_W != nullptr ) {
+        nc_assert_always( o.m_h_W != nullptr );
+        m_h_W->merge( *o.m_h_W );
+      } else if ( m_h_WO != nullptr ) {
+        nc_assert_always( o.m_h_WO != nullptr );
+        m_h_WO->merge( *o.m_h_WO );
+      } else if ( m_h_O != nullptr ) {
+        nc_assert_always( o.m_h_O != nullptr );
+        m_h_O->merge( *o.m_h_O );
+      } else if ( m_h != nullptr ) {
+        nc_assert_always( o.m_h != nullptr );
+        m_h->merge( *o.m_h );
+      } else {
+        nc_assert_always(false);
+      }
     }
 
   private:
@@ -173,6 +193,15 @@ NCTEST_CTYPES unsigned nctest_hist1d_fillw( unsigned id, double x, double w )
     h.fill(x,w);
   } NCCATCH;
   return id;
+}
+
+NCTEST_CTYPES void nctest_hist1d_merge( unsigned id1, unsigned id2 )
+{
+  try {
+    auto& h1 = findHistInDB( id1 );
+    auto& h2 = findHistInDB( id2 );
+    h1.merge(h2);
+  } NCCATCH;
 }
 
 NCTEST_CTYPES const char * nctest_hist1d_tojson( unsigned id )

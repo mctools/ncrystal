@@ -601,7 +601,7 @@ class Hist1D:
         the histogram will only be included in case of 50 or fewer bins. Setting
         contents to True or False can be used to explicitly override this.  If
         highres is True, all floating point numbers will be printed with full
-        precision.
+        precision. Alternatively it can be a fmt string like '%.10g'.
         """
         if contents == 'auto':
             contents = self.nbins <= 50
@@ -617,6 +617,9 @@ class Hist1D:
         def fmt( x ):
             return '%.6g'%x
         if highres:
+            if isinstance(highres,str):
+                def fmt_highres( x ):
+                    return highres % x
             fmt = fmt_highres
 
         pr("%sHist1D(nbins=%i,xmin=%s,xmax=%s):"%( p,

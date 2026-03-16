@@ -41,6 +41,9 @@ class Hist1Dcpp:
         else:
             _lib.nctest_hist1d_fillw( self.__id, float(x), float(w) )
 
+    def merge( self, o ):
+        _lib.nctest_hist1d_merge( self.__id, o.__id )
+
     def toJSON( self ):
         return _lib.nctest_hist1d_tojson( self.__id )
 

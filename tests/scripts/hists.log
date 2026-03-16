@@ -1,7 +1,8 @@
-Library "TestMod_hists" (7 functions):
+Library "TestMod_hists" (8 functions):
   uint nctest_hist1d_book(uint, double, double, int, int)
   uint nctest_hist1d_fill(uint, double)
   uint nctest_hist1d_fillw(uint, double, double)
+  void nctest_hist1d_merge(uint, uint)
   const char * nctest_hist1d_tojson(uint)
   void nctestdetail_clear_lasterror()
   const char * nctestdetail_get_lasterror()
@@ -478,6 +479,72 @@ Hist1D(nbins=6,xmin=-3,xmax=3):
   content[ibin=3] : 0 +- 0
   content[ibin=4] : 1 +- 1
   content[ibin=5] : 1 +- 1
+TinyWMerge begin:
+  -> fill(data1):
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 1.0000000002e-110
+  mean      : 2.89999999922
+  rms       : 5.90931467997e-05
+  minfilled : -2.5
+  maxfilled : 2.9
+  underflow : 0 +- 0
+  overflow  : 0 +- 0
+  content[ibin=0] : 1e-120 +- 1e-120
+  content[ibin=1] : 0 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 1e-120 +- 1e-120
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 1e-110 +- 1e-110
+  -> fill(data2):
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 1e-120
+  mean      : -2.5
+  rms       : 1.00000000106e-60
+  minfilled : -2.5
+  maxfilled : 2.1
+  underflow : 0 +- 0
+  overflow  : 0 +- 0
+  content[ibin=0] : 1e-120 +- 1e-120
+  content[ibin=1] : 1e-240 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 0 +- 0
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 1e-250 +- 0
+  -> fill(data1) + fill(data2):
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 1.0000000003e-110
+  mean      : 2.89999999868
+  rms       : 8.00499843619e-05
+  minfilled : -2.5
+  maxfilled : 2.9
+  underflow : 0 +- 0
+  overflow  : 0 +- 0
+  content[ibin=0] : 2e-120 +- 1.41421356237e-120
+  content[ibin=1] : 1e-240 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 1e-120 +- 1e-120
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 1e-110 +- 1e-110
+::::: fill(data1) + fill(data2) VIA MERGE:
+Hist1D(nbins=6,xmin=-3,xmax=3):
+  title     : <none>
+  integral  : 1.0000000003e-110
+  mean      : 2.89999999868
+  rms       : 8.00499843619e-05
+  minfilled : -2.5
+  maxfilled : 2.9
+  underflow : 0 +- 0
+  overflow  : 0 +- 0
+  content[ibin=0] : 2e-120 +- 1.41421356237e-120
+  content[ibin=1] : 1e-240 +- 0
+  content[ibin=2] : 0 +- 0
+  content[ibin=3] : 1e-120 +- 1e-120
+  content[ibin=4] : 0 +- 0
+  content[ibin=5] : 1e-110 +- 1e-110
+TinyWMerge end.
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

@@ -57,12 +57,25 @@ namespace NCRYSTAL_NAMESPACE {
         const double& operator[](size_type i) const { return this->at(i); }
         double& operator[](size_type i) { return this->at(i); }
         ncconstexpr17 EmptyVect& operator=( const EmptyVect&) { return *this; }
+        ncconstexpr17 EmptyVect& operator=( const std::vector<double>&) { return *this; }
       };
       struct EmptyPairDD { void swap( PairDD& ) {} };
       inline double pair_first( const PairDD& p ) { return p.first; }
       inline double pair_second( const PairDD& p ) { return p.second; }
       inline double pair_first( const EmptyPairDD& ) { return 0.0; }
       inline double pair_second( const EmptyPairDD& ) { return 0.0; }
+
+      inline void mergeV( std::vector<double>& dst,
+                          const std::vector<double>& src )
+      {
+        nc_assert_always(dst.size() == src.size());
+        double * it = dst.data();
+        double * itE = it + dst.size();
+        const double * itO = src.data();
+        while (it!=itE)
+          *(it++) += *(itO++);
+      }
+      inline void mergeV( EmptyVect&, const EmptyVect& ) noexcept {}
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -189,14 +202,7 @@ namespace NCRYSTAL_NAMESPACE {
           NCRYSTAL_THROW(CalcError,"Attempting to merge incompatible 1D"
                          " histogram data");
         //contents:
-        {
-          nc_assert_always(m_content.size() == o.m_content.size());
-          double * it = m_content.data();
-          double * itE = it + m_content.size();
-          const double * itO = o.m_content.data();
-          while (it!=itE)
-            *(it++) += *(itO++);
-        }
+        detail::mergeV(m_content,o.m_content);
 
         //errors:
         if ( opt_allow_weights == AllowWeights::NO
@@ -214,14 +220,7 @@ namespace NCRYSTAL_NAMESPACE {
           m_errors = m_content;
         }
 
-        {
-          nc_assert_always(m_errors.size() == o.m_errors.size());
-          double * it = m_errors.data();
-          double * itE = it + m_errors.size();
-          const double * itO = o.m_errors.data();
-          while (it!=itE)
-            *(it++) += *(itO++);
-        }
+        detail::mergeV(m_errors,o.m_errors);
       }
 
       double getBinContent( size_type ibin) const
@@ -532,10 +531,10 @@ namespace NCRYSTAL_NAMESPACE {
 
       void merge( const Hist1D& o )
       {
-        m_bindata.merge(o.m_bindata);
         if ( m_title != o.m_title )
           NCRYSTAL_THROW(CalcError,"Attempting to merge incompatible 1D"
                          " histograms (titles are different)");
+        m_bindata.merge(o.m_bindata);//fails if not compatible bins
         m_stats.merge(o.m_stats);
       }
 
@@ -622,6 +621,7 @@ namespace NCRYSTAL_NAMESPACE {
       if ( d2 )
         m_rms_state += d1 * d1 / d2;
 #endif
+      nc_assert( !ncisnan(m_rms_state) );
       ++m_sumw;
       m_sumwx += val;
     }
@@ -638,6 +638,7 @@ namespace NCRYSTAL_NAMESPACE {
       const double d2 = m_sumw * ( weight + m_sumw );
       if ( d2 )
         m_rms_state += weight * ( d1 * d1 / d2 );
+      nc_assert( !ncisnan(m_rms_state) );
 #endif
       m_sumw += weight;
       m_sumwx += val * weight;

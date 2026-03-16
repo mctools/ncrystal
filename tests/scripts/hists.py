@@ -348,6 +348,39 @@ def main(do_plot):
             okall = ok and okall
         assert okall
 
+    #test merging when sumw1>0 and sumw2>0 but their product is 0 (due to
+    #underflow):
+    def test_tinywmerge():
+        def create_hist( xvals, weights ):
+            h = Hist1Dcpp( nbins=6, xmin=-3.0,xmax=3.0,
+                           allow_weights = True,
+                           clamp_overflows = False )
+            for x,w in zip(xvals,weights):
+                h.fill( x,w )
+            return h
+        x1 = [ -2.5, 0.5, 2.9 ]
+        w1 = [ 1e-120, 1e-120, 1e-110 ]
+        x2 = [ -2.5, -1.5, 2.1 ]
+        w2 = [ 1e-120, 1e-240, 1e-250 ]
+
+        h1  = create_hist(x1,w1)
+        h2  = create_hist(x2,w2)
+        h12 = create_hist(x1+x2,w1+w2)
+        print("TinyWMerge begin:")
+        print("  -> fill(data1):")
+        h1.toPyHist().dump(highres='%.12g')
+        print("  -> fill(data2):")
+        h2.toPyHist().dump(highres='%.12g')
+        print("  -> fill(data1) + fill(data2):")
+        h12.toPyHist().dump(highres='%.12g')
+
+        h12_merged = create_hist(x1,w1)
+        h12_merged.merge(h2)
+        print("::::: fill(data1) + fill(data2) VIA MERGE:")
+        h12_merged.toPyHist().dump(highres='%.12g')
+        print("TinyWMerge end.")
+    test_tinywmerge()
+
     #test RMS merging:
     l1 = [ 1.0, 3.0, 5.0 ]
     l2 = [ -100.0, 3.0, 5.0, 2.0, 1.2 ]
