@@ -421,10 +421,11 @@ namespace NCRYSTAL_NAMESPACE {
         if ( x.dbl() )
           os << ";x="<<fmt(x.dbl());
         if ( y.dbl() )
-          os << ";y="<<fmt(x.dbl());
+          os << ";y="<<fmt(y.dbl());
         if ( z.dbl() )
-          os << ";z="<<fmt(x.dbl());
-        nc_assert_always(w==1.0);
+          os << ";z="<<fmt(z.dbl());
+        nc_assert_always(w==1.0);//we are not having w as a free parameter
+                                 //presently.
         // if ( w != 1.0 )
         //   os << ";w="<<fmt(w);
       }

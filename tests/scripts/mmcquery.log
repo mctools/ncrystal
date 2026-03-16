@@ -65,7 +65,7 @@ Caught expected NCBadInput('Invalid MiniMC JSON query: ["mmc","inspectcfg","bla"
 Caught expected NCBadInput('Invalid src cfg: ""')
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0']
-{'cfgstr': 'constant;n=1e6;z=0;wl=2',
+{'cfgstr': 'constant;n=1e6;z=-10;wl=2',
  'decoded': {'ekin': None,
              'n': 1000000,
              'name': 'constant',
@@ -84,7 +84,7 @@ Caught expected NCBadInput('Invalid src cfg: ""')
               'mean_energy': 0.020451052401332725}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'isotropic; z=-10;ekin=0.025']
-{'cfgstr': 'isotropic;n=1e6;z=0;ekin=0.025',
+{'cfgstr': 'isotropic;n=1e6;z=-10;ekin=0.025',
  'decoded': {'ekin': {'mode': 'fixed', 'value': 0.025},
              'n': 1000000,
              'name': 'isotropic',
@@ -101,7 +101,7 @@ Caught expected NCBadInput('Invalid src cfg: ""')
               'mean_energy': 0.025}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'circular; r=0.1;z=-1;wl=1.8;ux=1']
-{'cfgstr': 'circular;n=1e6;z=0;wl=1.8;ux=0.70710678118654746;uy=0;uz=0.70710678118654746;r=0.1',
+{'cfgstr': 'circular;n=1e6;z=-1;wl=1.8;ux=0.70710678118654746;uy=0;uz=0.70710678118654746;r=0.1',
  'decoded': {'ekin': None,
              'n': 1000000,
              'name': 'circular',
@@ -121,7 +121,7 @@ Caught expected NCBadInput('Invalid src cfg: ""')
               'mean_energy': 0.025248212841151512}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0-3.0']
-{'cfgstr': 'constant;n=1e6;z=0;wl=2-3',
+{'cfgstr': 'constant;n=1e6;z=-10;wl=2-3',
  'decoded': {'ekin': None,
              'n': 1000000,
              'name': 'constant',
@@ -142,7 +142,7 @@ Caught expected NCBadInput('Invalid src cfg: ""')
               'mean_energy': 0.013088673536852944}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=0.025-1.0']
-{'cfgstr': 'constant;n=1e6;z=0;ekin=0.025-1',
+{'cfgstr': 'constant;n=1e6;z=-10;ekin=0.025-1',
  'decoded': {'ekin': {'mode': 'uniformrange',
                       'range_high': 1.0,
                       'range_low': 0.025},
@@ -163,7 +163,7 @@ Caught expected NCBadInput('Invalid src cfg: ""')
               'mean_energy': 0.5125}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0+-0.1']
-{'cfgstr': 'constant;n=1e6;z=0;wl=2+-0.1',
+{'cfgstr': 'constant;n=1e6;z=-10;wl=2+-0.1',
  'decoded': {'ekin': None,
              'n': 1000000,
              'name': 'constant',
@@ -182,7 +182,7 @@ Caught expected NCBadInput('Invalid src cfg: ""')
               'mean_energy': 0.020451052401332725}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=0.025+-0.001']
-{'cfgstr': 'constant;n=1e6;z=0;ekin=0.025+-0.001',
+{'cfgstr': 'constant;n=1e6;z=-10;ekin=0.025+-0.001',
  'decoded': {'ekin': {'mean': 0.025, 'mode': 'lognormal', 'rms': 0.001},
              'n': 1000000,
              'name': 'constant',
@@ -201,7 +201,7 @@ Caught expected NCBadInput('Invalid src cfg: ""')
               'mean_energy': 0.025}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=thermal:50K']
-{'cfgstr': 'constant;n=1e6;z=0;ekin=thermal:50K',
+{'cfgstr': 'constant;n=1e6;z=-10;ekin=thermal:50K',
  'decoded': {'ekin': {'mode': 'maxwell', 'temperature': 50.0},
              'n': 1000000,
              'name': 'constant',

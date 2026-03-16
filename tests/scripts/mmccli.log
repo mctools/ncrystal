@@ -407,7 +407,7 @@ NCrystal MiniMC results:
    inputs cfg:
      material : "solid::GdO3/1gcm3"
      engine   : ""
-     source   : "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578"
+     source   : "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578"
      geometry : "sphere;r=0.0102578"
    output:
      src ray count: 1e+06 particles (weight sum: 1e+06)
@@ -430,19 +430,19 @@ NCrystal MiniMC results:
 Simulation setup:
   material cfgstr: "solid::GdO3/1gcm3"
           geomcfg: "sphere;r=0.0102578"
-           srccfg: "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578"
+           srccfg: "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578"
         enginecfg: ""
 Command to reproduce:
-  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578" -e ""
+  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578" -e ""
 ===========================================
 ============= CLI >>solid::GdO3/1gcm3 -g 'sphere;r=0.0102578' -s '  	 circular;  ;r=0.0102578;ekin=0.0252617;  z=-0.0102578 ; n=100.0e4' -e '' --decode<< ====================
 Simulation setup:
   material cfgstr: "solid::GdO3/1gcm3"
           geomcfg: "sphere;r=0.0102578"
-           srccfg: "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578"
+           srccfg: "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578"
         enginecfg: ""
 Command to reproduce:
-  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578" -e ""
+  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578" -e ""
 ===========================================
 ============= CLI >>solid::GdO3/1gcm3 -o bla.json.gz<< ====================
 Wrote: bla.json.gz
@@ -454,7 +454,7 @@ NCrystal MiniMC results:
    inputs cfg:
      material : "solid::GdO3/1gcm3"
      engine   : ""
-     source   : "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578"
+     source   : "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578"
      geometry : "sphere;r=0.0102578"
    output:
      src ray count: 1e+06 particles (weight sum: 1e+06)
@@ -477,26 +477,26 @@ NCrystal MiniMC results:
 Simulation setup:
   material cfgstr: "solid::GdO3/1gcm3"
           geomcfg: "sphere;r=0.0102578"
-           srccfg: "circular;n=1e6;ekin=0.0252617;r=0.0102578"
+           srccfg: "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578"
         enginecfg: ""
 Command to reproduce:
-  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;ekin=0.0252617;r=0.0102578" -e ""
+  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578" -e ""
 ===========================================
 ============= CLI >>solid::GdO3/1gcm3 '1kT on 1mfp' --decode<< ====================
 Simulation setup:
   material cfgstr: "solid::GdO3/1gcm3"
           geomcfg: "sphere;r=0.0102578"
-           srccfg: "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578"
+           srccfg: "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578"
         enginecfg: ""
 Command to reproduce:
-  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578" -e ""
+  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578" -e ""
 ===========================================
 ============= CLI >>-e 'tally=q;nthreads=97' --decode solid::GdO3/1gcm3 '1kT on 1mfp'<< ====================
 Simulation setup:
   material cfgstr: "solid::GdO3/1gcm3"
           geomcfg: "sphere;r=0.0102578"
-           srccfg: "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578"
+           srccfg: "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578"
         enginecfg: "nthreads=97;tally=q"
 Command to reproduce:
-  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=0;ekin=0.0252617;r=0.0102578" -e "nthreads=97;tally=q"
+  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578" -e "nthreads=97;tally=q"
 ===========================================
