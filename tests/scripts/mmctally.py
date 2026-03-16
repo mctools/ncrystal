@@ -23,16 +23,38 @@
 # NEEDS: numpy
 
 def main():
+    #Try to test all tallies:
+    from NCrystalDev.core import enableFactoryThreads
+    from NCrystalDev.minimc import tally_info
     from NCTestUtils.minimc_ref import main_minimc_unittest_stdsphere as m
-    res = m( cfgstr='Al_sg225.ncmat',neutron_energy='4.0Aa', key='<auto>_4Aa' )
-    assert res.tally_names == ['theta']
-    assert ( list(res.tally('theta').hist_breakdown.keys())
-             == ['NOSCAT', 'SINGLESCAT_ELAS', 'SINGLESCAT_INELAS',
-                 'MULTISCAT_PUREELAS', 'MULTISCAT_OTHER'] )
-    res = m( cfgstr='Al_sg225.ncmat',neutron_energy='1.0Aa', key='<auto>_0.8Aa',
-             extra_enginecfg = 'tallybreakdown=0'  )
-    assert res.tally_names == ['theta']
-    assert res.tally('theta').hist_breakdown is None
+    from NCrystalDev.constants import wl2ekin
+
+    enableFactoryThreads(3)
+    tallies = ('de', 'e', 'l', 'mu', 'nscat', 'nscat_uw', 'q', 'theta', 'w')
+    assert tallies == tally_info()['tallylists']['ALLHISTS']
+
+    #Test all tallies:
+    for tally in tallies:
+        print(f"Testing tally: {tally}")
+        m( cfgstr='Al_sg225.ncmat;temp=200K',
+           neutron_energy='2.5Aa',
+           key=f'<auto>_{tally}',
+           tally=tally )
+
+    #Test tallyref on the tallies possibly affected:
+
+    #NB: We have no 'divergence' in src direction currently, apart from
+    #    the isotropic source, so just testing effect of energy spread.
+
+    for tally in ('de','mu','theta','q'):
+        kw = dict(cfgstr='Al_sg225.ncmat;temp=200K',
+                  neutron_energy=(wl2ekin(2.5),'wl=2.5+-0.1'),
+                  tally=tally)
+        for tr in ('src','truth'):
+            print(f"Testing tally: {tally} [tallyref={tr}]")
+            m( key=f'<auto>_{tally}_tallyref{tr}',
+               extra_enginecfg=f'tallyref={tr}',
+               **kw)
 
 if __name__ == '__main__':
     main()

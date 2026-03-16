@@ -24,6 +24,7 @@
 import NCrystalDev.minimc as ncminimc
 from NCrystalDev.hist import Hist1D
 from NCrystalDev.core import load as ncload
+from NCrystalDev.constants import wl2ekin
 
 #Specialisation for std case with which we might want to test many (or even all)
 #materials.:
@@ -36,7 +37,20 @@ def minimc_unittest_stdsphere( *,
                                **kwargs #passed to minimc_unittest
                                ):
     mat = ncload( cfgstr )
-    ekin = _parse_energy( neutron_energy )
+    if isinstance(neutron_energy,str) and neutron_energy.endswith('Aa'):
+        ekin = wl2ekin(float(neutron_energy[:-2].strip()))
+        srcenergyparam = 'wl=%s'%(neutron_energy[:-2].strip())
+    elif isinstance(neutron_energy,str) and neutron_energy.endswith('eV'):
+        ekin = float(neutron_energy[:-2].strip())
+        srcenergyparam = 'ekin=%s'%(neutron_energy[:-2].strip())
+    elif not isinstance(neutron_energy,str) and len(neutron_energy)==2:
+        #special case, a tuple: (mean_ekin,srcenergyparam)
+        ekin, srcenergyparam = neutron_energy
+    else:
+        raise RuntimeError('neutron_energy must be a string'
+                           ' ending with "eV" or "Aa", or a tuple:'
+                           ' (typical_ekin,srcenergyparam)')
+
     if sphere_diam_meter is None:
         ( sphere_diam_str,
           sphere_diam ) = _approx_mfp_as_length_string( mat, ekin = ekin )
@@ -54,11 +68,11 @@ def minimc_unittest_stdsphere( *,
         srccfg = f'circular;r={sphere_radius}'
     else:
         srccfg = 'constant'
-    srccfg += f';ekin={ekin};z={srcz};n={n}'
-    minimc_unittest( cfgstr = cfgstr,
-                     srccfg = srccfg,
-                     geomcfg = f'sphere;r={sphere_radius}',
-                     **kwargs )
+    srccfg += f';{srcenergyparam};z={srcz};n={n}'
+    return minimc_unittest( cfgstr = cfgstr,
+                            srccfg = srccfg,
+                            geomcfg = f'sphere;r={sphere_radius}',
+                            **kwargs )
 
 def minimc_unittest_scenariostr( cfgstr, scenariostr, override_n = None,
                                  **kwargs ):
@@ -87,13 +101,13 @@ def _parse_sysargv():
                  do_updateref = '--update' in args )
 
 def main_minimc_unittest_stdsphere( *a, **kw ):
-    minimc_unittest_stdsphere( *a, **kw, **_parse_sysargv() )
+    return minimc_unittest_stdsphere( *a, **kw, **_parse_sysargv() )
 
 def main_minimc_unittest_scenariostr( *a, **kw ):
-    minimc_unittest_scenariostr( *a, **kw, **_parse_sysargv() )
+    return minimc_unittest_scenariostr( *a, **kw, **_parse_sysargv() )
 
 def main_minimc_unittest( *a, **kw ):
-    minimc_unittest( *a, **kw, **_parse_sysargv() )
+    return minimc_unittest( *a, **kw, **_parse_sysargv() )
 
 def _detect_caller_filebasename( drop_ext = True ):
     #Find first file in callstack outside the present one.
@@ -182,7 +196,7 @@ def minimc_unittest( *,
     if do_updateref:
         reffile.write_text(h.to_json())
         print(f"Updated {reffile}")
-        return
+        return res
 
     if not reffile.is_file():
         raise SystemExit('Reffile not found (run with --update to create):'
@@ -201,6 +215,7 @@ def minimc_unittest( *,
         plt.show()
     if pval < 0.001:
         raise SystemExit("ERROR: Possible compatibility issues detected!")
+    return res
 
 def _approx_mfp_as_length_string( mat, **xsect_kwargs ):
     macroxs_scatter = _macroxs_if_isotropic( mat, **xsect_kwargs )

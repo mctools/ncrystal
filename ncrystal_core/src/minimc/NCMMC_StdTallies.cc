@@ -241,7 +241,6 @@ NCMMCT::TallyStdHists_Data::create( const TallyStdHists_Options& opt )
     addhist( TFlags::w, data.histidx_w, nbins_std,
              0.0, 1.0, false );
 
-  //fixme: make sure we have unit tests for all tallies.
   if ( opt.flags.has(TFlags::e) )
     addhist( TFlags::e, data.histidx_e, nbins_std, 0.0, 1.0, false );
   if ( opt.flags.has(TFlags::l) )
