@@ -106,10 +106,13 @@ def main():
     test_cli(['--mc','-h'])
 
     test_cli(['--mc','2Aa','2cm','Al_sg225.ncmat;temp=250K'])
-    #No longer supported: (fixme should be noted in changelog, and new
-    #ncrystal_minimc script should support it):
-    #test_cli(['--mc','constant;wl=2','sphere;r=0.02',
-    #'Al_sg225.ncmat;vdoslux=1;comp=inelas;inelas=0'])
+
+    with ensure_error(RuntimeError,
+                      'Obsolete --mc syntax detected. Please use the new'
+                      ' ncrystal_minimc command for fine-grained access'
+                      ' to MiniMC simulations.'):
+        test_cli(['--mc','constant;wl=2','sphere;r=0.02',
+                  'Al_sg225.ncmat;vdoslux=1;comp=inelas;inelas=0'])
 
     for a in ['coh_elas','bragg','incoh_elas','sans','elastic','inelastic']:
         test_cli(['--cfg','Al_sg225.ncmat;dcutoff=0.5;vdoslux=2',f'--{a}'])

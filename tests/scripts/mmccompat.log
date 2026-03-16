@@ -1,4 +1,4 @@
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The quick_diffraction_pattern(..) function is obsolete. Please migrate your code to use the NCrystal.minimc.run(..) function instead. [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The quick_diffraction_pattern(..) function is obsolete. Please migrate your code to use the NCrystal.minimc.run(..) function instead (more info at https://github.com/mctools/ncrystal/wiki/minimc) [warn#1]
 CALLING plt.figure()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['232.0', '232.0', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (23.2%)')

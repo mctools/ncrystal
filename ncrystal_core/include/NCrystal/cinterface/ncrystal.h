@@ -1249,7 +1249,8 @@ extern "C" {
   /*                                                                         */
   /*     data: The data arrays (number and type implied by cbtype).          */
   /*     cbtype: An integer specifying the type and number of data arrays.   */
-  /*             1 : x, y, z (fixme update)                                  */
+  /*             1 : [x, y, z, ux, uy, uz, ekin, weight, nscat, nscatinelas] */
+  /*             2 : as <1> + initial [x, y, z, ux, uy, uz, ekin, weight]    */
   /*     n : Length of each data array (i.e. number of neutrons).            */
   NCRYSTAL_API char* ncrystal_flexmmcrun( const char * jsonquery,
                                           const char * cb_options,

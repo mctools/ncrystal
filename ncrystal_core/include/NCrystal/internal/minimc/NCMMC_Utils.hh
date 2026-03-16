@@ -98,12 +98,9 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
       }
 
-      //Fixme: Move the following explanation somewhere more appropriate and
-      //maintainable, and refer to it there?
-      //
-      // The decodeScenario function parses a MiniMC quick simulation scenario
-      // string, according to the syntax:
-
+      // Parse MiniMC scenario string.
+      // More info: https://github.com/mctools/ncrystal/wiki/minimc_scenario
+      //            ncrystal minimc --doc=scenario
       struct ScenarioDecoded {
         std::string geomcfg;
         std::string srccfg;

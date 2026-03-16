@@ -22,7 +22,6 @@
 # Utilities for detecting changes in given MiniMC output, and making it easy to
 # inspect differences and update reference histograms in case of changes.
 import NCrystalDev.minimc as ncminimc
-from NCrystalDev.exceptions import NCBadInput
 from NCrystalDev.hist import Hist1D
 from NCrystalDev.core import load as ncload
 
@@ -217,96 +216,25 @@ def _macroxs_if_isotropic( mat, **xsect_kwargs ):
     return ( None if mat.scatter.isOriented()
              else ( mat.info.factor_macroscopic_xs
                     * mat.scatter.xsect( **xsect_kwargs )
-                    / _parse_length('1cm') ) )
+                    / _unit_cm ) )
 
-#fixme: do we need these here??:
-_length_units = {'km':1000.0,
-                 'm':1.0,
-                 'meter':1.0,
-                 'cm':0.01,
-                 'mm':0.001,
-                 'mfp': None,#special
-                 'nm':1e-9,
-                 'aa':1e-10,
-                 'Aa':1e-10,
-                 'AA':1e-10,
-                 'angstrom':1e-10}
-
-_energy_units = {'eV':1.0,
-                 'keV':1e3,
-                 'MeV':1e6,
-                 'GeV':1e9,
-                 'meV':0.001,
-                 'neV':1e-9,
-                 'aa':None,
-                 'Aa':None,
-                 'AA':None,
-                 'angstrom':None}
-
-def _tofloat(s):
-    try:
-        return float(s)
-    except ValueError:
-        return None
-
-def _parse_unit(valstr,unitmap):
-    v = _tofloat(valstr)
-    if v is not None:
-        return v, None, None
-    valstr=valstr.strip()
-    for unit,unitvalue in sorted(unitmap.items(),key=lambda x : (-len(x),x)):
-        if valstr.endswith(unit):
-            v = _tofloat(valstr[:-len(unit)])
-            if v is not None:
-                return v, unit, unitvalue
-    return None,None,None
-
-def _parse_energy( valstr ):
-    v,u,uv = _parse_unit( valstr, _energy_units )
-    if v is not None and u is None and uv is None:
-        raise NCBadInput('Invalid energy specification (missing unit'
-                         f' like Aa or eV): "{valstr}"')
-    if v is None:
-        raise NCBadInput(f'Invalid energy specification: "{valstr}"')
-    if u is not None and u.lower() in ('aa','angstrom'):
-        from NCrystalDev.constants import wl2ekin
-        return wl2ekin(v)
-    v *= uv
-    return v
-
-def _parse_length( valstr, mfp = None ):
-    v,u,uv = _parse_unit( valstr, _length_units )
-    if v is not None and u is None and uv is None:
-        _ex0="mfp" if mfp is not None else "mm"
-        raise NCBadInput('Invalid length specification (missing unit like '
-                         f'{_ex0} or cm): "{valstr}"')
-    if v is None:
-        raise NCBadInput(f'Invalid length specification: "{valstr}"')
-    if u=='mfp':
-        if mfp is None:
-            raise ValueError('Invalid length specification ("mfp" '
-                             f'not supported for this parameter): "{valstr}"')
-        v *= mfp
-    else:
-        v *= uv
-    return v
+_unit_m = 1.0
+_unit_cm = 0.01
+_unit_mm = 0.001
 
 def _encode_length_to_str( length_meters, round2digits = False ):
     assert length_meters>=0.0
     if not length_meters:
         return '0mm'
-    unit_mm = _parse_length('1mm')
-    unit_cm = _parse_length('1cm')
     if round2digits:
         def roundval(x):
             return float('%.2g'%x)
     else:
         def roundval(x):
             return x
-    if length_meters <= unit_cm:
-        return f'{roundval(length_meters/unit_mm):.14g}mm'
-    unit_m = _parse_length('1m')
-    assert unit_m == 1.0
-    if length_meters <= unit_m:
-        return f'{roundval(length_meters/unit_cm):.14g}cm'
-    return f'{roundval(length_meters/unit_m):.14g}m'
+    if length_meters <= _unit_cm:
+        return f'{roundval(length_meters/_unit_mm):.14g}mm'
+    assert _unit_m == 1.0
+    if length_meters <= _unit_m:
+        return f'{roundval(length_meters/_unit_cm):.14g}cm'
+    return f'{roundval(length_meters/_unit_m):.14g}m'

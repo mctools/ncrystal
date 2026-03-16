@@ -42,9 +42,9 @@ def main():
     test('fixe','ekin=0.025', 0.0, 0.04 )
     test('fixwl','wl=1.8', 0.0, 0.04 )
     test('rangee','ekin=0.02-0.03', 0.0, 0.04 )
-    test('rangewl','wl=1.0-5e0', 0.0, 0.1 )
-    test('lognormale','ekin=0.025+-0.0025', 0.0, 0.06 )
-    test('lognormalwl','wl=1.8+-0.18', 0.0, 0.06 )
+    test('rangewl','wl=100.0e-2-5e0', 0.0, 0.1 )
+    test('lognormale','ekin=0.025+-0.025e-1', 0.0, 0.06 )
+    test('lognormalwl','wl=0.18e1+-0.18', 0.0, 0.06 )
 
 
 if __name__ == '__main__':

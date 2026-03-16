@@ -76,34 +76,27 @@ def parseArgs( progname, arglist, *, return_parser = False ):
 
         from ._common import print
         print(f"""
-usage: {progname} --mc SRCCFG GEOMCFG MATCFG
+usage: {progname} --mc ENERGY THICKNESS MATCFG
 
-FIXME update
-Invoke the embedded stepping Monte Carlo to display a 4pi diffraction pattern of
-neutrons going through a simple sample. SRCCFG describes the source of neutrons,
-GEOMCFG the shape of the sample volume, and MATCFG is a normal NCrystal
-cfg-string describing the sample material.
-
-In the simplest case, simply supply a neutron energy value (e.g. "20meV",
-"1.8Aa", ...)  as SRCCFG and a geometry thickness as GEOMCFG (e.g. "1mm",
-"2.5cm", "1mfp", ...). This will result in a pencil beam of neutrons of that
-energy impinging centrally on a sphere with that thickness (diameter). The
-thickness unit "mfp" means mean-free-path between scattering interactions. The
-number of neutrons simulated will be automatically determined, so the simulation
-can finish in less than a second.
-
-For advanced users, it is also possibly to provide more options in both SRCCFG
-and GEOMCFG, but that is currently considered experimental and not documented
-further here.
+Invoke a MiniMC simulation to display a diffraction pattern of neutrons going
+through a simple sample, by specifying the ENERGY of neutrons and the
+THICKNESS of the material defined by MATCFG.
 
 As an example, to get the diffraction patterm of a a 2Aa neutron through a
 sphere of T=250K aluminium with diameter 2cm:
 
-$> {progname} --mc "2Aa" "2cm" "Al_sg225.ncmat;temp=250K"
+    $> {progname} --mc "2Aa" "2cm" "Al_sg225.ncmat;temp=250K"
 
 You can use --logy/--liny to override the y-axis logarithmic setting of the
 plot, and if you supply --pdf, a pdf file will produced instead of an
 interactive plot being launched.
+
+Note that both the dedicated ncrystal_minimc commandline tool, as well as the
+NCrystal Python API, provides many more options for running such
+simulations. Get more information by running "ncrystal_minimc --help" or by
+going to:
+
+    https://github.com/mctools/ncrystal/wiki/minimc
 """)
         return None
 
@@ -151,7 +144,7 @@ examples:
                         help=('Dump derived information rather than displaying'
                               ' plots. Specify multiple times to increase'
                               ' verbosity.'))
-    parser.add_argument('--mc', nargs=2,metavar=('SRCCFG','GEOMCFG'),
+    parser.add_argument('--mc', nargs=2,metavar=('EVAL','TVAL'),
                         help=('Run embedded Monte Carlo app to produce a'
                               ' diffraction pattern of material. Run'
                               ' --mc --help for detailed instructions.'))
@@ -380,6 +373,11 @@ def std_main( progname, arglist ):
         return
 
     if args.mc:
+        _=args.mc[0]+args.mc[1]
+        if ';' in _ or '=' in _:
+            raise SystemExit('Obsolete --mc syntax detected. Please use'
+                             ' the new ncrystal_minimc command for'
+                             ' fine-grained access to MiniMC simulations.')
         plot_mmc( cfgs[0].cfgstr,
                   ( '%s pencil on %s sphere 1e5 times'%(args.mc[0],args.mc[1])
                     if (args.mc[0]+args.mc[1]).strip() else '' ),
@@ -581,10 +579,9 @@ def plot_mmc(cfgstr,scenario_cfg,logy,do_pdf):
         logy=True
     np,plt,pdf = import_npplt(do_pdf)
     res = mmc.run( cfgstr, scenario=scenario_cfg,
-                   enginecfg = 'tally=mu;tallybins=mu:180:0:180' )
-    res.tally('mu').plot( max_nbins=250, logy=logy,
-                          title = res.short_title(latex=True),#fixme this title should be default?
-                          plt = plt, do_show = False )
+                   enginecfg = 'tally=theta;tallybins=theta:180:0:180' )
+    res.tally('theta').plot( max_nbins=250, logy=logy,
+                             plt = plt, do_show = False )
     _end_plot(plt,pdf)
 
 def plot_xsect(cfgs,comp,absorption,pdf,versus_energy,xrange,logy,breakdown_by_phases):

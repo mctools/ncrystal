@@ -37,7 +37,7 @@ namespace NCRYSTAL_NAMESPACE {
     //callbacks:
     enum class BasketType : unsigned {
       Invalid = 0,
-      Basic = 1,//Neutron parameters + nscat
+      Basic = 1,//Neutron parameters + nscat/nscatinelas
       Extended = 2//Basic + initial neutron
     };
 

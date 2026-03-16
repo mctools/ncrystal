@@ -138,15 +138,35 @@ namespace NCRYSTAL_NAMESPACE {
         md.fixedEnergy = NullOpt;
         md.meanEnergy = NullOpt;
         md.approxERange = NullOpt;
+        constexpr double ndev = 3;//for thermal and log-normal, we take the
+                                  //+-3stddev (i.e. the range covering 99.73%,
+                                  //and equal amounts in tails to each side of
+                                  //the interval).
+
         if ( ecfg.maxwell.has_value() ) {
           //mean energy is (3/2)kT, most probable is (1/2)kT. Although a value
           //of kT might feel natural, we use the mean energy for consistency
           //(also for consistency with the documentation):
           const double kT = ecfg.maxwell.value().kT();
           md.meanEnergy = kT*1.5;
-          //FIXME: Verify that the values correspond to a 0.997300203936740
-          //confidence interval (i.e. +-3sigma std dev).
-          md.approxERange.emplace( 0.073*kT, 13.688*kT );
+
+          // A Maxwell energy distribution is actually a chi-squared distribution
+          // for x=2E/kT with 3 degrees of freedom. So we can calculate:
+          // >>> from scipy.stats import chi2
+          // >>> import math
+          // >>> math.erfc(3/math.sqrt(2))
+          // 0.0026997960632601913
+          // >>> chi2.ppf(0.0026997960632601913/2,3)/2
+          // np.float64(0.014854902715992444)
+          // >>> chi2.ppf(1-0.0026997960632601913/2,3)/2
+          // np.float64(7.815281749225022)
+          //
+          // Note: As a cross-check it was validated that ~99.73% of the events
+          //       generated actually falls inside this range, and equal amounts
+          //       above and below.
+          constexpr double ndev_E_min_kT = 0.014854902715992444;
+          constexpr double ndev_E_max_kT = 7.815281749225022;
+          md.approxERange.emplace( ndev_E_min_kT*kT, ndev_E_max_kT*kT );
           return;
         }
         auto& fr = ecfg.flexrange.value();
@@ -171,11 +191,15 @@ namespace NCRYSTAL_NAMESPACE {
           b = fr.fr.secondary_value.value();
         } else {
           //For log-normal we take the +-3 sigma confidence interval of the
-          //underlying gaussian:
+          //underlying gaussian.
+          //
+          // Note: As a cross-check it was validated that ~99.73% of the events
+          //       generated actually falls inside this range, and equal amounts
+          //       above and below.
           const double mu_n = ecfg.cachevals.first;
           const double sigma_n = ecfg.cachevals.second;
-          a = std::exp( mu_n - 3*sigma_n );
-          b = std::exp( mu_n + 3*sigma_n );
+          a = std::exp( mu_n - ndev*sigma_n );
+          b = std::exp( mu_n + ndev*sigma_n );
         }
         if ( fr.mode == EParsed::Mode::Wavelength )
           md.approxERange.emplace( NeutronWavelength(b),

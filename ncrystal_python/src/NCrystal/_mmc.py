@@ -24,12 +24,14 @@
 __all__ = ['quick_diffraction_pattern','runsim_diffraction_pattern']
 
 def runsim_diffraction_pattern( *a, **kwargs ):
-    """Obsolete function. Calling it now will result in an error."""
-    #Fixme: include URL to new documentation page:
+    """Obsolete function. Calling it now will result in an error.
+    More info at: https://github.com/mctools/ncrystal/wiki/minimc
+    """
     from .exceptions import NCException
     raise NCException('The runsim_diffraction_pattern(..) function is'
                       ' obsolete. Please migrate your code to use the'
-                      ' NCrystal.minimc.run(..) function instead')
+                      ' NCrystal.minimc.run(..) function instead (more info'
+                      ' at https://github.com/mctools/ncrystal/wiki/minimc)')
 
 __cache_qdpwarn=[True]
 def quick_diffraction_pattern( cfgstr, *,
@@ -41,7 +43,9 @@ def quick_diffraction_pattern( cfgstr, *,
 
     from .minimc import run as mmcrun
     migratemsg = ('Please migrate your code to use the'
-                  ' NCrystal.minimc.run(..) function instead.')
+                  ' NCrystal.minimc.run(..) function instead'
+                  ' (more info at'
+                  ' https://github.com/mctools/ncrystal/wiki/minimc)')
     warnmsg = ('The quick_diffraction_pattern(..) function is obsolete.'
                f' {migratemsg}')
 
@@ -82,6 +86,8 @@ def quick_diffraction_pattern( cfgstr, *,
         """Backwards compatible results class for the obsolete
         quick_diffraction_pattern() function. The NCrystal.minimc.run(..)
         function should be used instead.
+
+        More info at: https://github.com/mctools/ncrystal/wiki/minimc
         """
         def __init__(self,res):
             self.__res = res

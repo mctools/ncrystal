@@ -257,7 +257,6 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert( val_str.substr(i).startswith("+-") );
           parts.emplace_back( val_str.substr(i+2) );
         } else if ( val_str.contains('-') ) {
-          //fixme: unit test this
           //"<val1>-<val2>" but making sure that a value like "1e-5" does not
           //trigger this, and that we can even write things like "1e-5-1e-4".
           tmpbuf = lowerCase( val_str.to_string() );

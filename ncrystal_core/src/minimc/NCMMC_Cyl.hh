@@ -61,8 +61,6 @@ namespace NCRYSTAL_NAMESPACE {
 
       void toCfgString(std::ostream& os) const
       {
-        //fixme: should we really allow a default value for the radius of
-        //cyl/sphere?
         os << "cyl;r="<<fmt(m_input_radius_m);
         if ( m_dy )
           os << ";dy="<<fmt(m_dy);

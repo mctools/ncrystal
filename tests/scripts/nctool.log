@@ -1,5 +1,5 @@
 ============= CLI >>--help<< ====================
-usage: nctool [-h] [--version] [-d] [--mc SRCCFG GEOMCFG] [--common CFG]
+usage: nctool [-h] [--version] [-d] [--mc EVAL TVAL] [--common CFG]
               [--coh_elas] [--incoh_elas] [--sans] [--elastic] [--inelastic]
               [-a] [--phases] [-x [XRANGE]] [--logy] [--liny] [-e] [-p]
               [--test] [--doc] [--dpi DPI] [--cfg] [--plugins] [-b]
@@ -26,7 +26,7 @@ options:
   --version             show program's version number and exit
   -d, --dump            Dump derived information rather than displaying plots.
                         Specify multiple times to increase verbosity.
-  --mc SRCCFG GEOMCFG   Run embedded Monte Carlo app to produce a diffraction
+  --mc EVAL TVAL        Run embedded Monte Carlo app to produce a diffraction
                         pattern of material. Run --mc --help for detailed
                         instructions.
   --common, -c CFG      Common configuration items that will be applied to all
@@ -647,70 +647,58 @@ Caught expected NCFileNotFound('Could not find data: "missing.ncmat"')
 Caught expected ArgumentError('argument --mc: expected 2 arguments')
 ============= CLI >>--mc -h<< ====================
 
-usage: nctool --mc SRCCFG GEOMCFG MATCFG
+usage: nctool --mc ENERGY THICKNESS MATCFG
 
-FIXME update
-Invoke the embedded stepping Monte Carlo to display a 4pi diffraction pattern of
-neutrons going through a simple sample. SRCCFG describes the source of neutrons,
-GEOMCFG the shape of the sample volume, and MATCFG is a normal NCrystal
-cfg-string describing the sample material.
-
-In the simplest case, simply supply a neutron energy value (e.g. "20meV",
-"1.8Aa", ...)  as SRCCFG and a geometry thickness as GEOMCFG (e.g. "1mm",
-"2.5cm", "1mfp", ...). This will result in a pencil beam of neutrons of that
-energy impinging centrally on a sphere with that thickness (diameter). The
-thickness unit "mfp" means mean-free-path between scattering interactions. The
-number of neutrons simulated will be automatically determined, so the simulation
-can finish in less than a second.
-
-For advanced users, it is also possibly to provide more options in both SRCCFG
-and GEOMCFG, but that is currently considered experimental and not documented
-further here.
+Invoke a MiniMC simulation to display a diffraction pattern of neutrons going
+through a simple sample, by specifying the ENERGY of neutrons and the
+THICKNESS of the material defined by MATCFG.
 
 As an example, to get the diffraction patterm of a a 2Aa neutron through a
 sphere of T=250K aluminium with diameter 2cm:
 
-$> nctool --mc "2Aa" "2cm" "Al_sg225.ncmat;temp=250K"
+    $> nctool --mc "2Aa" "2cm" "Al_sg225.ncmat;temp=250K"
 
 You can use --logy/--liny to override the y-axis logarithmic setting of the
 plot, and if you supply --pdf, a pdf file will produced instead of an
 interactive plot being launched.
+
+Note that both the dedicated ncrystal_minimc commandline tool, as well as the
+NCrystal Python API, provides many more options for running such
+simulations. Get more information by running "ncrystal_minimc --help" or by
+going to:
+
+    https://github.com/mctools/ncrystal/wiki/minimc
 
 ===========================================
 ============= CLI >>--mc -h<< ====================
 
-usage: nctool --mc SRCCFG GEOMCFG MATCFG
+usage: nctool --mc ENERGY THICKNESS MATCFG
 
-FIXME update
-Invoke the embedded stepping Monte Carlo to display a 4pi diffraction pattern of
-neutrons going through a simple sample. SRCCFG describes the source of neutrons,
-GEOMCFG the shape of the sample volume, and MATCFG is a normal NCrystal
-cfg-string describing the sample material.
-
-In the simplest case, simply supply a neutron energy value (e.g. "20meV",
-"1.8Aa", ...)  as SRCCFG and a geometry thickness as GEOMCFG (e.g. "1mm",
-"2.5cm", "1mfp", ...). This will result in a pencil beam of neutrons of that
-energy impinging centrally on a sphere with that thickness (diameter). The
-thickness unit "mfp" means mean-free-path between scattering interactions. The
-number of neutrons simulated will be automatically determined, so the simulation
-can finish in less than a second.
-
-For advanced users, it is also possibly to provide more options in both SRCCFG
-and GEOMCFG, but that is currently considered experimental and not documented
-further here.
+Invoke a MiniMC simulation to display a diffraction pattern of neutrons going
+through a simple sample, by specifying the ENERGY of neutrons and the
+THICKNESS of the material defined by MATCFG.
 
 As an example, to get the diffraction patterm of a a 2Aa neutron through a
 sphere of T=250K aluminium with diameter 2cm:
 
-$> nctool --mc "2Aa" "2cm" "Al_sg225.ncmat;temp=250K"
+    $> nctool --mc "2Aa" "2cm" "Al_sg225.ncmat;temp=250K"
 
 You can use --logy/--liny to override the y-axis logarithmic setting of the
 plot, and if you supply --pdf, a pdf file will produced instead of an
 interactive plot being launched.
 
+Note that both the dedicated ncrystal_minimc commandline tool, as well as the
+NCrystal Python API, provides many more options for running such
+simulations. Get more information by running "ncrystal_minimc --help" or by
+going to:
+
+    https://github.com/mctools/ncrystal/wiki/minimc
+
 ===========================================
 ============= CLI >>--mc 2Aa 2cm 'Al_sg225.ncmat;temp=250K'<< ====================
 ===========================================
+============= CLI >>--mc 'constant;wl=2' 'sphere;r=0.02' 'Al_sg225.ncmat;vdoslux=1;comp=inelas;inelas=0'<< ====================
+Caught expected RuntimeError('Obsolete --mc syntax detected. Please use the new ncrystal_minimc command for fine-grained access to MiniMC simulations.')
 ============= CLI >>--cfg 'Al_sg225.ncmat;dcutoff=0.5;vdoslux=2' --coh_elas<< ====================
 ==> Debugging cfg-string: "Al_sg225.ncmat;dcutoff=0.5;vdoslux=2"
 ==> Adding due to --coh_elas flag specified: "incoh_elas=0;inelas=0;sans=0"
