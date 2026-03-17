@@ -32,7 +32,7 @@ def climod_metadata():
     )
 
 
-def _parseArgs( progname, arglist, return_parser=False ):
+def parseArgs( progname, arglist, return_parser=False ):
     from . import minimc as ncmmc
     from ._mmc_doc import ( doc_subjects,
                             _scenariocfg_examples )
@@ -142,10 +142,6 @@ The --input and --output options allow persistification of results to JSON
 format.
 """
 
-    #fixme: can run with just a single (cfgstr) argument, which then defaults to
-    #a cfgstr + an empty scenario string. We also need to be able to have
-    #scenario + extra_enginecfg.
-
     parser = create_ArgumentParser(prog = progname,
                                    description=descr,
                                    formatter_class=RawTextHelpFormatter)
@@ -166,9 +162,13 @@ format.
 
     bg.add_argument("--tally",'-t',metavar='TALLIES',type=str,default='',
                     help=hwrap(f"""Comma separated list of tally quantities
-                    (select from: {tallyhistavail_str}). Use --tally=help for
-                    more information, and the --enginecfg option for more
-                    detailed control of e.g. histogram binnings."""))
+                    (select from: {tallyhistavail_str}). Using this option is
+                    just a handy alternative to setting the "tally" parameter in
+                    the enginecfg string. The exception is if running with
+                    --input, in which case --tally can be used to select which
+                    tallies from the file to show. Use --tally=help for more
+                    information about tallies, and the --enginecfg option for
+                    more detailed control of e.g. histogram binnings."""))
 
     bg.add_argument("--plot",'-p',action='store_true',
                     help=hwrap("""Launch interactive matplotlib plots of
@@ -199,9 +199,9 @@ format.
                         results (from --output) instead of running new
                         simulations. In this case, no SCENARIO, --geomcfg,
                         --srccfg, or --enginecfg should be specified."""))
-        ag.add_argument("--ref",'-r',type=str,dest='reffile',
-                        help=hwrap("""Reference file name. Used with --plot to
-                        overlay previous reference results."""))#fixme: implement
+        ag.add_argument('--quiet','-q',default=False,action='store_true',
+                        help=wrap('Silence non-error output (automatic if'
+                                  ' --output=stdout).'))
         assert ( set(doc_subjects) == set(['engine','src','geom',
                                            'scenario']) ),"update --doc text"
         ag.add_argument('--doc',choices=doc_subjects,
@@ -260,10 +260,9 @@ format.
         return p.resolve()
 
     args.inputfile = check_infile( args.inputfile )
-    args.reffile = check_infile( args.reffile )
     if args.outputfile=='stdout':
-        for a in ['dump','decode','doc']:
-            if getattr(args,a,None) is not None:
+        for a in ['dump','decode','doc','plot']:
+            if getattr(args,a,False):
                 parser.error(f'--output=stdout is incompatible with --{a}')
     else:
         args.outputfile = check_outfile( args.outputfile )
@@ -276,6 +275,11 @@ format.
     is_mode_input = args.inputfile is not None
     is_mode_doc = args.doc is not None
 
+    if args.decode:
+        if args.dump:
+            parser.error('Incompatible options: --decode and --dump')
+        if args.plot:
+            parser.error('Incompatible options: --decode and --plot')
     if is_mode_input:
         if is_mode_scenario:
             parser.error('Do not specify SCENARIO string when using --input')
@@ -318,9 +322,6 @@ format.
                 parser.error('Option --doc and '
                              f'--{v} can not be used together.')
 
-    if args.reffile and not args.plot:
-        parser.error('Option --ref requires --plot.')
-
     if not any( e for e in (is_mode_doc,args.plot,args.dump,
                             args.decode,args.outputfile) ):
         #Default is to plot if nothing else is requested
@@ -360,12 +361,23 @@ format.
     return args
 
 def create_argparser_for_sphinx( progname ):
-    return _parseArgs(progname,[],return_parser=True)
+    return parseArgs(progname,[],return_parser=True)
+
 
 @cli_entry_point
 def main( progname, arglist ):
-    args = _parseArgs( progname, arglist )
+    args = parseArgs( progname, arglist )
+    do_quiet = ( args.quiet or args.outputfile == 'stdout' )
+    if do_quiet:
+        from ._common import ( modify_ncrystal_print_fct_ctxmgr,
+                               WarningSpy )
+        with modify_ncrystal_print_fct_ctxmgr('block'):
+            with WarningSpy( block = True ):
+                _main_impl(progname,args)
+    else:
+        _main_impl(progname,args)
 
+def _main_impl( progname, args ):
     from . import minimc as ncmmc
     from ._common import print
 
@@ -427,6 +439,18 @@ def main( progname, arglist ):
                          srccfg = args.srccfg,
                          enginecfg = args.enginecfg )
 
+    #If running with an input file we are using --tally to filter what to show.
+    tally_show_filter = None
+    if args.tally and args.inputfile:
+        _missing = set(args.tally)-set(res.tally_names)
+        _select = set(args.tally)-_missing
+        if _missing:
+            from ._common import warn as ncwarn
+            ncwarn('Indicated tallies missing in input:'
+                   ' %s'%(' '.join(sorted(_missing))))
+        def tally_show_filter( tname ):
+            return tname in _select
+
     if args.plot:
         assert res is not None
         tallies=res.tallies
@@ -434,20 +458,21 @@ def main( progname, arglist ):
             from ._common import warn as ncwarn
             ncwarn('No tallies are available to plot.')
         for t in tallies:
-            #fixme filter in case of input!!!
-            t.plot()
-            #FIXME: plots are missing a title! We should also get some output,
-            #like the provided/src stats.
+            if ( tally_show_filter is None ) or tally_show_filter(t.name):
+                print(f"Plotting tally: {t.name}")
+                t.plot()
+            else:
+                print(f"Skipping tally: {t.name}")
 
     if args.dump:
         assert res is not None
-        res.dump()
+        res.dump( tally_filter_fct = tally_show_filter )
 
     if args.outputfile:
         assert res is not None
         data = res.to_json()
         if args.outputfile == 'stdout':
-            #fixme: test no other output!! (or enable quiet!)
+            #Do not use print(..) which is affected by --quiet:
             import sys
             sys.stdout.write(data)
         else:
@@ -466,8 +491,3 @@ def main( progname, arglist ):
             assert args.outputfile.parent.is_dir()
             args.outputfile.write_bytes(data)
             print("Wrote: %s"%args.outputfile.name)
-
-# FIXME: Don't repeat this here, it should be in ref docs for scenario cfg only:
-# Available energy units: Aa, meV, eV, mfp (mfp is "mean-free-path")
-# Available length units: mm, cm, m
-# Available angular units: mm, cm, m

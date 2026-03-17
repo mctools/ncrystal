@@ -561,7 +561,8 @@ class MMCResults:
         r = f'{r} ({n} fills)'
         return f'{r} ("{e}")' if e else r
 
-    def dump( self, do_print = True, prefix = '' ):
+    def dump( self, do_print = True, prefix = '',
+              tally_filter_fct = None ):
         o = []
         o.append('%sNCrystal MiniMC results:'%prefix)
         o.append('  inputs cfg:')
@@ -585,6 +586,8 @@ class MMCResults:
         o.append('    tallied ray count: %s particles (weight sum: %g)'%(
             fmti(outmd['tallied']['count']),outmd['tallied']['weight']))
         for t in self.tallies:
+            if tally_filter_fct and not tally_filter_fct(t.name):
+                continue
             o.append('    tally "%s":'%t.name)
             o += t.hist_total.dump( prefix = '      ',
                                     contents = False,

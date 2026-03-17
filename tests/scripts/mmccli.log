@@ -28,9 +28,14 @@ options:
   -h, --help           show this help message and exit
   --full-help          Provide more complete usage instructions.
   --tally, -t TALLIES  Comma separated list of tally quantities (select from: de,
-                       e, l, mu, nscat, nscat_uw, q, theta, w). Use --tally=help
-                       for more information, and the --enginecfg option for more
-                       detailed control of e.g. histogram binnings.
+                       e, l, mu, nscat, nscat_uw, q, theta, w). Using this option
+                       is just a handy alternative to setting the "tally"
+                       parameter in the enginecfg string. The exception is if
+                       running with --input, in which case --tally can be used to
+                       select which tallies from the file to show. Use
+                       --tally=help for more information about tallies, and the
+                       --enginecfg option for more detailed control of e.g.
+                       histogram binnings.
   --plot, -p           Launch interactive matplotlib plots of results (default if
                        no other action specified).
 
@@ -39,7 +44,7 @@ options:
 usage: ncrystal_minimc [-h] [--full-help] [--tally TALLIES] [--plot]
                        [--geomcfg STR] [--srccfg STR] [--enginecfg STR]
                        [--dump] [--output OUTPUTFILE] [--force]
-                       [--input INPUTFILE] [--ref REFFILE]
+                       [--input INPUTFILE] [--quiet]
                        [--doc {geom,src,engine,scenario}] [--decode]
                        [CFGSTR] [SCENARIO]
 
@@ -98,9 +103,14 @@ options:
   -h, --help            show this help message and exit
   --full-help           Provide more complete usage instructions.
   --tally, -t TALLIES   Comma separated list of tally quantities (select from: de,
-                        e, l, mu, nscat, nscat_uw, q, theta, w). Use --tally=help
-                        for more information, and the --enginecfg option for more
-                        detailed control of e.g. histogram binnings.
+                        e, l, mu, nscat, nscat_uw, q, theta, w). Using this option
+                        is just a handy alternative to setting the "tally"
+                        parameter in the enginecfg string. The exception is if
+                        running with --input, in which case --tally can be used to
+                        select which tallies from the file to show. Use
+                        --tally=help for more information about tallies, and the
+                        --enginecfg option for more detailed control of e.g.
+                        histogram binnings.
   --plot, -p            Launch interactive matplotlib plots of results (default if
                         no other action specified).
 
@@ -123,8 +133,7 @@ advanced options:
                         --output) instead of running new simulations. In this
                         case, no SCENARIO, --geomcfg, --srccfg, or --enginecfg
                         should be specified.
-  --ref, -r REFFILE     Reference file name. Used with --plot to overlay previous
-                        reference results.
+  --quiet, -q           Silence non-error output (automatic if --output=stdout).
   --doc {geom,src,engine,scenario}
                         Show documentation for the configuration strings available
                         for geometry, source, engine, or scenarios. Alternatively,
@@ -426,6 +435,54 @@ NCrystal MiniMC results:
          overflow  : <HIDDEN> +- <HIDDEN>
 
 ===========================================
+============= CLI >>solid::GdO3/1gcm3 '2Aa on 2cm' -d<< ====================
+NCrystal MiniMC results:
+   inputs cfg:
+     material : "solid::GdO3/1gcm3"
+     engine   : ""
+     source   : "circular;n=1e6;z=-0.01;wl=2;r=0.01"
+     geometry : "sphere;r=0.01"
+   output:
+     src ray count: 1e+06 particles (weight sum: 1e+06)
+     src rays missing geometry: 0 particles (weight sum: 0)
+     src rays miss fraction: 0% (by count) 0% (by weight)
+     tallied ray count: <HIDDEN> particles (weight sum: <HIDDEN>)
+     tally "theta":
+       Hist1D(nbins=180,xmin=0,xmax=180):
+         title     : theta
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+
+===========================================
+============= CLI >>solid::GdO3/1gcm3 '2Aa on 2cm' -e ignoremiss=1 -d<< ====================
+NCrystal MiniMC results:
+   inputs cfg:
+     material : "solid::GdO3/1gcm3"
+     engine   : "ignoremiss=1"
+     source   : "circular;n=1e6;z=-0.01;wl=2;r=0.01"
+     geometry : "sphere;r=0.01"
+   output:
+     src ray count: 1e+06 particles (weight sum: 1e+06)
+     src rays missing geometry: 0 particles (weight sum: 0)
+     src rays miss fraction: 0% (by count) 0% (by weight)
+     tallied ray count: <HIDDEN> particles (weight sum: <HIDDEN>)
+     tally "theta":
+       Hist1D(nbins=180,xmin=0,xmax=180):
+         title     : theta
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+
+===========================================
 ============= CLI >>solid::GdO3/1gcm3 --decode<< ====================
 Simulation setup:
   material cfgstr: "solid::GdO3/1gcm3"
@@ -482,6 +539,174 @@ Simulation setup:
 Command to reproduce:
   ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578" -e ""
 ===========================================
+============= CLI >>solid::GdO3/1gcm3 '1e3 times' -o bla_qemu.json.gz -e 'nthreads=1;tallybins=e:50:0:0.5,q:50:0:30' -t q,e,mu<< ====================
+Wrote: bla_qemu.json.gz
+===========================================
+============= CLI >>-i bla_qemu.json.gz --decode<< ====================
+Simulation setup:
+  material cfgstr: "solid::GdO3/1gcm3"
+          geomcfg: "sphere;r=0.0102578"
+           srccfg: "circular;n=1e3;z=-0.0102578;ekin=0.0252617;r=0.0102578"
+        enginecfg: "nthreads=1;tally=e,mu,q;tallybins=e:50:0:0.5,q:50:0:30"
+Command to reproduce:
+  ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e3;z=-0.0102578;ekin=0.0252617;r=0.0102578" -e "nthreads=1;tally=e,mu,q;tallybins=e:50:0:0.5,q:50:0:30"
+===========================================
+============= CLI >>-i bla_qemu.json.gz --decode --quiet<< ====================
+===========================================
+============= CLI >>-i bla_qemu.json.gz --decode --dump<< ====================
+Caught expected ArgumentError('Incompatible options: --decode and --dump')
+============= CLI >>-i bla_qemu.json.gz --decode --plot<< ====================
+Caught expected ArgumentError('Incompatible options: --decode and --plot')
+============= CLI >>-i bla_qemu.json.gz --dump<< ====================
+NCrystal MiniMC results:
+   inputs cfg:
+     material : "solid::GdO3/1gcm3"
+     engine   : "nthreads=1;tally=e,mu,q;tallybins=e:50:0:0.5,q:50:0:30"
+     source   : "circular;n=1e3;z=-0.0102578;ekin=0.0252617;r=0.0102578"
+     geometry : "sphere;r=0.0102578"
+   output:
+     src ray count: 1e+03 particles (weight sum: 1000)
+     src rays missing geometry: 0 particles (weight sum: 0)
+     src rays miss fraction: 0% (by count) 0% (by weight)
+     tallied ray count: <HIDDEN> particles (weight sum: <HIDDEN>)
+     tally "e":
+       Hist1D(nbins=50,xmin=0,xmax=0.5):
+         title     : e
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+     tally "mu":
+       Hist1D(nbins=200,xmin=-1,xmax=1):
+         title     : mu
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+     tally "q":
+       Hist1D(nbins=50,xmin=0,xmax=30):
+         title     : q
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+
+===========================================
+============= CLI >>-i bla_qemu.json.gz --dump --tally=e,mu<< ====================
+NCrystal MiniMC results:
+   inputs cfg:
+     material : "solid::GdO3/1gcm3"
+     engine   : "nthreads=1;tally=e,mu,q;tallybins=e:50:0:0.5,q:50:0:30"
+     source   : "circular;n=1e3;z=-0.0102578;ekin=0.0252617;r=0.0102578"
+     geometry : "sphere;r=0.0102578"
+   output:
+     src ray count: 1e+03 particles (weight sum: 1000)
+     src rays missing geometry: 0 particles (weight sum: 0)
+     src rays miss fraction: 0% (by count) 0% (by weight)
+     tallied ray count: <HIDDEN> particles (weight sum: <HIDDEN>)
+     tally "e":
+       Hist1D(nbins=50,xmin=0,xmax=0.5):
+         title     : e
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+     tally "mu":
+       Hist1D(nbins=200,xmin=-1,xmax=1):
+         title     : mu
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+
+===========================================
+============= CLI >>-i bla_qemu.json.gz --dump --tally=e,l<< ====================
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): Indicated tallies missing in input: l [warn#1]
+NCrystal MiniMC results:
+   inputs cfg:
+     material : "solid::GdO3/1gcm3"
+     engine   : "nthreads=1;tally=e,mu,q;tallybins=e:50:0:0.5,q:50:0:30"
+     source   : "circular;n=1e3;z=-0.0102578;ekin=0.0252617;r=0.0102578"
+     geometry : "sphere;r=0.0102578"
+   output:
+     src ray count: 1e+03 particles (weight sum: 1000)
+     src rays missing geometry: 0 particles (weight sum: 0)
+     src rays miss fraction: 0% (by count) 0% (by weight)
+     tallied ray count: <HIDDEN> particles (weight sum: <HIDDEN>)
+     tally "e":
+       Hist1D(nbins=50,xmin=0,xmax=0.5):
+         title     : e
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+
+===========================================
+============= CLI >>-i bla_qemu.json.gz -o stdout<< ====================
+===========================================
+NCrystal MiniMC results:
+   inputs cfg:
+     material : "solid::GdO3/1gcm3"
+     engine   : "nthreads=1;tally=e,mu,q;tallybins=e:50:0:0.5,q:50:0:30"
+     source   : "circular;n=1e3;z=-0.0102578;ekin=0.0252617;r=0.0102578"
+     geometry : "sphere;r=0.0102578"
+   output:
+     src ray count: 1e+03 particles (weight sum: 1000)
+     src rays missing geometry: 0 particles (weight sum: 0)
+     src rays miss fraction: 0% (by count) 0% (by weight)
+     tallied ray count: <HIDDEN> particles (weight sum: <HIDDEN>)
+     tally "e":
+       Hist1D(nbins=50,xmin=0,xmax=0.5):
+         title     : e
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+     tally "mu":
+       Hist1D(nbins=200,xmin=-1,xmax=1):
+         title     : mu
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+     tally "q":
+       Hist1D(nbins=50,xmin=0,xmax=30):
+         title     : q
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+
+============= CLI >>-i bla_qemu.json.gz -o bla_qemu_2.json.gz<< ====================
+Wrote: bla_qemu_2.json.gz
+===========================================
 ============= CLI >>solid::GdO3/1gcm3 '1kT on 1mfp' --decode<< ====================
 Simulation setup:
   material cfgstr: "solid::GdO3/1gcm3"
@@ -499,4 +724,6 @@ Simulation setup:
         enginecfg: "nthreads=97;tally=q"
 Command to reproduce:
   ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578" -e "nthreads=97;tally=q"
+===========================================
+============= CLI >>solid::GdO3/1gcm3 '1kT on 1mfp' --decode --quiet<< ====================
 ===========================================

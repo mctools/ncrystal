@@ -22,13 +22,18 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev.cli as nc_cli
+import NCTestUtils.reprint_escaped_warnings # noqa F401
 import NCrystalDev._common as nc_common
 from NCTestUtils.common import ensure_error
 from argparse import ArgumentError
 import shlex
 import re
+import pathlib
+import sys
+import io
+import json
 
-_re_find_values = re.compile(r'\d+(\.\d+)?([eE][+-]?\d+)?')
+_re_find_values = re.compile(r'(-)?\d+(\.\d+)?([eE][+-]?\d+)?')
 
 class FilterHistDumps:
     def __p( self, *args, **kwargs ):
@@ -53,15 +58,32 @@ class FilterHistDumps:
     def __exit__( self, *a, **kw ):
         nc_common.set_ncrystal_print_fct( self.__op )
 
-def test( *args ):
+class FilterCatchStdout:
+    def __enter__(self):
+        self.__buf = io.StringIO()
+        self.__orig = sys.stdout
+        sys.stdout = self.__buf
+        return self
+    def __exit__(self, *a, **kw):
+        sys.stdout = self.__orig
+    def getvalue(self):
+        return self.__buf.getvalue()
+
+def test( *args, test_catch_stdout = False ):
     print(f"============= CLI >>{shlex.join(args)}"
           "<< ====================")
-    if '-d' in args or '--dump' in args:
+    retval = None
+    if test_catch_stdout:
+        with FilterCatchStdout() as buf:
+            nc_cli.run('minimc',*args)
+        retval = buf.getvalue()
+    elif '-d' in args or '--dump' in args:
         with FilterHistDumps():
             nc_cli.run('minimc',*args)
     else:
         nc_cli.run('minimc',*args)
     print("===========================================")
+    return retval
 
 def main():
     with ensure_error(ArgumentError,
@@ -75,6 +97,8 @@ def main():
     test('--srccfg=help')
     test('--geomcfg','help')
     test('solid::GdO3/1gcm3','-d')
+    test('solid::GdO3/1gcm3','2Aa on 2cm','-d')
+    test('solid::GdO3/1gcm3','2Aa on 2cm','-e','ignoremiss=1','-d')
     test('solid::GdO3/1gcm3','--decode')
     test('solid::GdO3/1gcm3','-g',"sphere;r=0.0102578",
          '-s',
@@ -89,14 +113,37 @@ def main():
     test('-i','bla.json.gz','--dump')
     test('-i','bla.json.gz','--decode')
 
+    test('solid::GdO3/1gcm3','1e3 times','-o','bla_qemu.json.gz',
+         '-e','nthreads=1;tallybins=e:50:0:0.5,q:50:0:30','-t','q,e,mu')
+    test('-i','bla_qemu.json.gz','--decode',)
+    test('-i','bla_qemu.json.gz','--decode','--quiet')
+    with ensure_error(ArgumentError,
+                      'Incompatible options: --decode and --dump'):
+        test('-i','bla_qemu.json.gz','--decode','--dump')
+    with ensure_error(ArgumentError,
+                      'Incompatible options: --decode and --plot'):
+        test('-i','bla_qemu.json.gz','--decode','--plot')
+    test('-i','bla_qemu.json.gz','--dump')
+    test('-i','bla_qemu.json.gz','--dump','--tally=e,mu')
+    test('-i','bla_qemu.json.gz','--dump','--tally=e,l')
+    buf = test('-i','bla_qemu.json.gz','-o','stdout',test_catch_stdout=True)
+    json.loads(buf)#<-- check for valid json
+    from NCrystalDev.minimc import MMCResults
+    res = MMCResults(buf)
+    with FilterHistDumps():
+        res.dump()
+    test('-i','bla_qemu.json.gz','-o','bla_qemu_2.json.gz')
+
+    assert ( pathlib.Path('bla_qemu.json.gz').read_bytes()
+             == pathlib.Path('bla_qemu_2.json.gz').read_bytes() )
+
     test('solid::GdO3/1gcm3','1kT on 1mfp','--decode')
     test( '-e','tally=q;nthreads=97',
           '--decode',
           'solid::GdO3/1gcm3',
           '1kT on 1mfp',
          )
-    #fixme: make it possible to test two files for compatibility
-
+    test('solid::GdO3/1gcm3','1kT on 1mfp','--decode','--quiet')
 
 if __name__ == '__main__':
     main()
