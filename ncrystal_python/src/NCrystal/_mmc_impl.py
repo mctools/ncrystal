@@ -25,8 +25,8 @@ _cache_tally_info = [None]
 def tally_info():
     if _cache_tally_info[0] is not None:
         return _cache_tally_info[0]
-    from ._common import json_query_cpplayer as query
-    _cache_tally_info[0] =  query(['mmc','cfgdoc','tally'], readonly = True)
+    from .misc import evaluate_query as evalquery
+    _cache_tally_info[0] =  evalquery(['mmc','cfgdoc','tally'], readonly = True)
     return _cache_tally_info[0]
 
 def run( *, resclass, unpack,
@@ -74,8 +74,8 @@ def run( *, resclass, unpack,
         if callback_options is not None:
             raise NCBadInput('Inconsistent parameters. Do not supply'
                              ' callback_options without a callback function.')
-        from ._common import json_query_cpplayer
-        res = json_query_cpplayer( query, unpack = False )
+        from .misc import evaluate_query
+        res = evaluate_query( query, unpack = False )
 
     if unpack == 'json':
         return res

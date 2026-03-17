@@ -591,29 +591,6 @@ def copy_and_deobjectify_data( data ):
         return copy.deepcopy( d )
     return o( data )
 
-def json_query_cpplayer( query, unpack=True, readonly = False ):
-    """Sends query (list of string arguments) to the C++ layer and get a JSON
-    response. Unless unpack is False, this JSON string will be decoded and the
-    resulting object returned.
-
-    If both unpack and readonly are True, the resulting data structure is passed
-    through create_read_only_view(..) to effectively make the result immutable.
-
-    """
-    if not all( isinstance(a,str) for a in query ):
-        from .exceptions import NCBadInput
-        raise NCBadInput('Invalid query (not all entries are strings):'
-                         ' %s'%repr(query))
-    from ._chooks import _get_raw_cfcts
-    _rawfct = _get_raw_cfcts()
-    res = _rawfct['jsonquery']( query )
-    if unpack:
-        import json
-        res = json.loads(res)
-        if readonly:
-            res = create_read_only_view(res)
-    return res
-
 def _frexp10(x):
     import math
     exp = int(math.floor(math.log10(abs(x))))

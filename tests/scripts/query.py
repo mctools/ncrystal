@@ -28,7 +28,7 @@ from NCTestUtils.common import ensure_error
 from argparse import ArgumentError
 import shlex
 import pathlib
-from NCrystalDev._common import json_query_cpplayer as ncquery
+from NCrystalDev.misc import evaluate_query as ncquery
 
 def safefmt(s):
     return str(s).encode('unicode_escape').decode('utf-8')

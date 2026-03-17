@@ -373,3 +373,19 @@ def detect_scatcomps( standard_comp_types, matsrc ):
         if not m.scatter.isNull():
             res.append(ct)
     return res
+
+def evalquery( query, unpack, readonly ):
+    if not all( isinstance(a,str) for a in query ):
+        from .exceptions import NCBadInput
+        raise NCBadInput('Invalid query (not all entries are strings):'
+                         ' %s'%repr(query))
+    from ._chooks import _get_raw_cfcts
+    _rawfct = _get_raw_cfcts()
+    res = _rawfct['jsonquery']( query )
+    if unpack:
+        import json
+        res = json.loads(res)
+        if readonly:
+            from ._common import create_read_only_view
+            res = create_read_only_view(res)
+    return res

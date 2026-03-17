@@ -315,3 +315,19 @@ def cfgstr_detect_components( cfgstr ):
         if not createScatter( probecfgstr + extracfg ).isNull():
             res.append( ( normaliseCfg(cfgstr+extracfg), ct.replace('_','') ) )
     return res
+
+def evaluate_query( query, unpack=True, readonly = False ):
+    """
+    Send a query (a list of strings) to the NCrystal C++ layer and get a JSON
+    response. Unless unpack is False, this JSON string will be decoded and the
+    resulting object returned.
+
+    If both unpack and readonly are True, the resulting data structure is passed
+    through create_read_only_view(..) to effectively make the result immutable.
+
+    The actual queries and the data returned is unless otherwise noted
+    considered an implementation detail of NCrystal, and the format is NOT
+    guaranteed to remain stable when new versions of NCrystal are released.
+    """
+    from ._miscimpl import evalquery
+    return evalquery( query, unpack=unpack, readonly=readonly )

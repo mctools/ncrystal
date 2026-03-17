@@ -251,7 +251,7 @@ doc_subjects = ['geom','src','engine','scenario']
 def gen_doc_impl( subject, mode ):
     #Notice: Keep docstring of minimc.gen_doc function synchronised with the
     #        implementation here!!!
-    from NCrystalDev._common import json_query_cpplayer
+    from .misc import evaluate_query
 
     is_wiki = False
     if isinstance(mode,str) and mode.startswith('wiki::'):
@@ -274,7 +274,7 @@ def gen_doc_impl( subject, mode ):
             return {}
         s = gendoc_scenario( is_wiki = is_wiki )
     else:
-        data = json_query_cpplayer(['mmc','cfgdoc',subject])
+        data = evaluate_query(['mmc','cfgdoc',subject])
         if mode == 'dict':
             return data
         fctmap = dict( geom = gendoc_geom,

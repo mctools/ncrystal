@@ -32,9 +32,6 @@ def climod_metadata():
     )
 
 def parseArgs( progname, args, return_parser=False ):
-    #FIXME: json_query_cpplayer should be in the public Python API, if we make
-    #this cmdline tool available.
-
     descr="""Send low level queries for JSON data to the NCrystal C++ library.
 
     Queries consist of a series of strings and by default the returned JSON data
@@ -71,11 +68,11 @@ def create_argparser_for_sphinx( progname ):
 @cli_entry_point
 def main( progname, args ):
     args = parseArgs( progname, args )
-    from ._common import json_query_cpplayer
+    from .misc import evaluate_query
     to_stdout = (not args.output or args.output=='stdout')
     unpack_json = to_stdout and not args.json
-    res = json_query_cpplayer( query = args.query,
-                               unpack = unpack_json )
+    res = evaluate_query( query = args.query,
+                          unpack = unpack_json )
     if to_stdout:
         if unpack_json:
             import pprint

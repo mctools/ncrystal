@@ -517,7 +517,7 @@ class Hist1D:
 
 
     @property
-    def content( self ):
+    def content( self ):#fixme -> contents
         """Return numpy array of bin contents."""
         return self.__y
 

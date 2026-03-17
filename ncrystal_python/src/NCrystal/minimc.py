@@ -93,10 +93,10 @@ def decode_scenario( cfgstr, scenario ):
       NCrystal.minimc.gen_doc("scenario")
 
     """
-    from ._common import json_query_cpplayer
+    from .misc import evaluate_query
     assert isinstance(cfgstr,str), "cfgstr parameter must be a string"
     assert isinstance(scenario,str), "scenario parameter must be a string"
-    return json_query_cpplayer(['mmc','scenario',cfgstr, scenario] )
+    return evaluate_query(['mmc','scenario',cfgstr, scenario] )
 
 def decode_cfgstr( cfgstr, cfgtype ):
     """Decode a MiniMC cfg-string, whose type must be "src", "geom", or
@@ -105,14 +105,14 @@ def decode_cfgstr( cfgstr, cfgtype ):
     The decoded values are returned in a dictionary, along with a normalised
     version of the cfg-string itself.
     """
-    from ._common import json_query_cpplayer
+    from .misc import evaluate_query
     if not isinstance(cfgstr,str):
         from .exceptions import NCBadInput
         raise NCBadInput('cfgstr parameter must be a string')
     if not ( isinstance(cfgtype,str) and cfgtype in ('src','geom','engine') ):
         from .exceptions import NCBadInput
         raise NCBadInput('cfgtype parameter must be "src", "geom", or "engine"')
-    return json_query_cpplayer(['mmc','inspectcfg',cfgtype, cfgstr])
+    return evaluate_query(['mmc','inspectcfg',cfgtype, cfgstr])
 
 def gen_doc( subject, mode = None ):
     """Produce reference documentation concerning MiniMC. The single required

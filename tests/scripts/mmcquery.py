@@ -22,7 +22,7 @@
 
 # NEEDS: numpy
 
-from NCrystalDev._common import json_query_cpplayer as ncquery
+from NCrystalDev.misc import evaluate_query as ncquery
 import numpy # noqa F401 (before fpe)
 import NCTestUtils.enable_fpe # noqa F401
 from NCrystalDev.core import NCBadInput
