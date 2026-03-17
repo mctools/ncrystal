@@ -23,12 +23,24 @@
 # NEEDS: numpy
 
 def main():
+
+    #Test basic aluminium at 4Aa and 0.8Aa, as well as temperature
+    #dependence. Also test the tallybreakdown parameter:
+
+    #4Aa + 700K:
     from NCTestUtils.minimc_ref import main_minimc_unittest_stdsphere as m
-    res = m( cfgstr='Al_sg225.ncmat',neutron_energy='4.0Aa', key='<auto>_4Aa' )
+    m( cfgstr='Al_sg225.ncmat;temp=700K',
+       neutron_energy='4.0Aa', key='<auto>_4Aa700K' )
+
+    #4Aa at default temp:
+    res = m( cfgstr='Al_sg225.ncmat',
+             neutron_energy='4.0Aa', key='<auto>_4Aa' )
     assert res.tally_names == ['theta']
     assert ( list(res.tally('theta').hist_breakdown.keys())
              == ['NOSCAT', 'SINGLESCAT_ELAS', 'SINGLESCAT_INELAS',
                  'MULTISCAT_PUREELAS', 'MULTISCAT_OTHER'] )
+
+    #Same at 0.8Aa +tallybreakdown=0.
     res = m( cfgstr='Al_sg225.ncmat',neutron_energy='1.0Aa', key='<auto>_0.8Aa',
              extra_enginecfg = 'tallybreakdown=0'  )
     assert res.tally_names == ['theta']

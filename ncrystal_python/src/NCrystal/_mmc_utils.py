@@ -359,8 +359,32 @@ class MMCTallyView:
         d=dict(total=self.hist_total)
         hd = self.hist_breakdown
         if hd is not None:
+            assert 'total' not in hd
             d.update(hd)
         return d
+
+    def __eq__(self, o ):
+        if id(self) == id(o):
+            return True
+        if self.name != o.name:
+            return False
+        if not ( self.hist_total == o.hist_total ):
+            return False
+        hd = self.hist_breakdown
+        ohd = o.hist_breakdown
+        if (hd is None) != (ohd is None):
+            return False
+        if hd is None:
+            return True
+        if len(hd) != len(ohd):
+            return False
+        for k,h in hd.items():
+            oh = ohd.get(k)
+            if oh is None:
+                return False
+            if ( h != oh ):
+                return False
+        return True
 
     @property
     def _nhists( self ):
