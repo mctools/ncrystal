@@ -30,6 +30,10 @@ _breakdown_colors = {
     'NOSCAT' : 'green',
 }
 
+#FIXME: Check all doc-strings in entire file, and possibly move
+#       MMCResults/MMCTallyView objects to minimc.y
+
+
 def validate_mmcresults_dict(data):
     #FIXME!!!
     #Check that histograms have been objectified.
@@ -58,18 +62,9 @@ def _determine_rebin_factor( current_nbins,
             return current_nbins//n
     return 1
 
-def _plot_tally( minimcresults_dict,
-                 tallyname,
-                 breakdown = 'auto',
-                 max_nbins = None,
-                 rebin_factor = None,
-                 do_show = True,
-                 do_newfig = 'auto',
-                 do_grid = False,
-                 logy = True,
-                 title = None,
-                 plt = None,
-                 axis = None ):
+def _plot_tally( minimcresults_dict, tallyname,
+                 do_legend, breakdown, max_nbins, rebin_factor,
+                 do_show, do_newfig, do_grid, logy, title, plt, axis ):
 
     from .plot import _import_matplotlib_plt, _plt_final
     from .hist import Hist1D
@@ -111,6 +106,9 @@ def _plot_tally( minimcresults_dict,
     else:
         breakdown = None
     mainhist = ensure_hist(tally_dict['total'])
+
+    if not breakdown:
+        do_legend = False
 
     if breakdown:
         nbins = [h.nbins for h in breakdown.values()]
@@ -177,9 +175,7 @@ def _plot_tally( minimcresults_dict,
 
     label_order = []
 
-    do_legend = False
     if breakdown:
-        do_legend = True
         hists = [ (k,v) for k,v in breakdown.items() if v.integral > 0.0 ]
         assert hists
         #Sort histograms for (possibly) more meaningful plot order:
@@ -227,9 +223,6 @@ def _plot_tally( minimcresults_dict,
             curve = newcurve
 
         axis.errorbar(**mainhist.errorbar_args())
-        #Fixme: hiding transmitted!:
-        #if not logy:
-        #    axis.set_ylim(0.0,ymax_non_NOSCAT[0]*1.3 or None)
         axis.set_xlim(mainhist.xmin,mainhist.xmax)
     else:
         lbl = 'All outgoing %s'%_fractionval_fmt(nonabsfrac)
@@ -254,25 +247,11 @@ def _plot_tally( minimcresults_dict,
     if do_title:
         axis.set_title(title)
 
-    #FIXME?:
-    #suptitle_fs = 'medium'
-    #if len(self.cfgstr)>40:
-    #    suptitle_fs = 'small'
-    #if len(self.cfgstr)>80:
-    #    suptitle_fs = 'x-small'
-    #if len(self.cfgstr)>101:
-    #    suptitle_fs = 'xx-small'
-    #figure = axis.get_figure()
-    #if figure:
-    #    figure.suptitle(self.cfgstr,fontsize=suptitle_fs)
-
     if absfrac > 0.0:
         lbl="Absorbed %s"%_fractionval_fmt(absfrac)
         label_order.append(lbl)
         axis.plot([], [], ' ', label=lbl)
 
-    #legargs = {}#fixme
-    do_legend=True#fixme
     if do_legend:
         #Enforce ordering!
 
@@ -296,14 +275,12 @@ def _plot_tally( minimcresults_dict,
         plt.legend(handles,labels)
 
     return _plt_final(do_grid = do_grid,
-                      do_legend = False,
+                      do_legend = False,#plt.legend was already called above
                       do_show = do_show,
                       logx = False,
                       logy = logy,
                       plt = plt )
 
-
-#FIXME: Missing doc-strings
 
 class MMCTallyView:
 
@@ -347,8 +324,6 @@ class MMCTallyView:
         (component_name,histogram). Returns None if such breakdown histograms
         were not enabled for the tally.
         """
-        #Fixme: Make it possible to "lock" a histogram, making it effectively
-        #read-only (it can always be cloned in case mutations are needed.
         return self.__data.get('breakdown') or None
 
     @property
@@ -420,7 +395,6 @@ class MMCTallyView:
         from ._mmc_impl import tally_info
         return tally_info()['tallyhistinfo'][self.name]['short_descr']
 
-    #Fixme: if we have a plot, we should also have a dump!
     def dump( self, *args, **kwargs):
         #fixme args and docstring
         return self.hist_total.dump(*args,**kwargs)
@@ -432,11 +406,12 @@ class MMCTallyView:
               do_show = True,
               do_newfig = 'auto',
               do_grid = False,
+              do_legend = 'auto',
               logy = True,
               title = None,
               plt = None,
               axis = None ):
-        """Fixme more here.
+        """todo: more here.
 
         If title is None, "auto" or "short", a short title will be auto
         generated. If it is "long", a longer title with full configuration
@@ -463,15 +438,13 @@ class MMCTallyView:
                      do_show = do_show,
                      do_newfig = do_newfig,
                      do_grid = do_grid,
+                     do_legend = do_legend,
                      logy = logy,
                      title = title,
                      plt = plt,
                      axis = axis )
 
 class MMCResults:
-
-    #fixme: docstrings (everywhere in file). And move to other files as
-    #appropriate (should not be hidden if official)
 
     def __init__(self, data):
         _ensure_numpy()

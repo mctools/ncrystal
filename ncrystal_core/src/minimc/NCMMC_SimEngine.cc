@@ -265,9 +265,12 @@ namespace NCRYSTAL_NAMESPACE {
               if ( inb.neutrons->fields.w[i]==0.0 )
                 continue;//no actual flux here, killed!
 
-              if ( std::isinf(m_buf_disttoscat[i] ) )
-                continue;//this comes from no scattering cross section (fixme: assert
-              //that this is so).
+              if ( std::isinf(m_buf_disttoscat[i] ) ) {
+                //this comes from no scattering cross section
+                nc_assert( buf_scatxsval(inbasket)[i] < 1e-20 );
+                continue;
+              }
+
 
               const double macro_scat_xs
                 = Utils::macroXS( m_mat.numDens,

@@ -88,9 +88,9 @@ def main(do_plot):
     print('Total neutrons tallied (count): %i'%tallied_stats['count'])
     print('Total neutrons tallied (sumw): %i'%tallied_stats['weight'])
     print('Total neutrons tallied in E(fwd) hist (sumw) %i'
-          % hist_e_fwd.to_hist1d().content.sum())
+          % hist_e_fwd.to_hist1d().contents.sum())
     print('Total neutrons tallied in E(back) hist (sumw) %i'
-          % hist_e_back.to_hist1d().content.sum())
+          % hist_e_back.to_hist1d().contents.sum())
     #res.dump()
     #res.tally('theta').dump()
 

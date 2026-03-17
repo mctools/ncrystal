@@ -517,7 +517,7 @@ class Hist1D:
 
 
     @property
-    def content( self ):#fixme -> contents
+    def contents( self ):
         """Return numpy array of bin contents."""
         return self.__y
 
@@ -645,7 +645,7 @@ class Hist1D:
                                            fmt(self.overflow_error)))
 
         if contents:
-            c,e = self.content, self.errors
+            c,e = self.contents, self.errors
             for ibin in range(self.nbins):
                 pr("%s  content[ibin=%i] : %s +- %s"%(p,ibin,
                                                       fmt(c[ibin]),
@@ -660,7 +660,7 @@ class Hist1D:
 
     def _hist_curve( self ):
         be = self.binedges
-        y = self.content
+        y = self.contents
         #if error_offset:
         #    y += self.errors * error_offset
         cx = _np.empty(self.__nbins*2)
@@ -682,7 +682,7 @@ class Hist1D:
         along to the returned dictionary.
         """
         d = {'x':self.bincenters,
-             'y':self.content,'xerr':0.5*self.binwidth,
+             'y':self.contents,'xerr':0.5*self.binwidth,
              'yerr':self.errors }
         if style:
             d.update({'fmt':'.',#dont connect with line
@@ -698,7 +698,7 @@ class Hist1D:
         dictionary.
         """
         d = {'x' : self.binedges[:-1],
-             'height': self.content,
+             'height': self.contents,
              'width': self.binwidth,
              'align':'edge'
              }
@@ -734,7 +734,7 @@ class Hist1D:
             def repeat_last( x ):
                 return _np.concatenate( (x, _np.asarray( [x[-1]],
                                                          dtype=x.dtype ) ) )
-            cc = repeat_last(self.content)
+            cc = repeat_last(self.contents)
             ee = repeat_last(self.errors)*error_bands
             fill_between_args = dict( x = self.binedges, step = 'post',
                                       y1 = cc - ee, y2 = cc + ee )
@@ -871,8 +871,8 @@ class Hist1D:
                 raise NCBadInput('chisquare_dist: '
                                  'incompatible histogram integrals.')
 
-        c1,e1 = s.content, s.errors
-        c2,e2 = o.content, o.errors
+        c1,e1 = s.contents, s.errors
+        c2,e2 = o.contents, o.errors
 
         #use mask to avoid zero division warnings in bins with no content in
         #either dataset (fixme: could this let something slip through??):
@@ -947,10 +947,6 @@ class HistFiller1D:
         nbins_or_binning argument must be a tuple of (nbins,xmin,xmax) values,
         otherwise it must be nbins.
         """
-        #fixme: Allow one or both of xmin to have values of "auto", which will
-        #delay booking until at least 100(?) values have been seen. In that
-        #case, accessing any information before booking is done will lead to an
-        #error.
         _ensure_numpy()
         if xmin is None and xmax is None:
             nbins, xmin, xmax = nbins_or_binning

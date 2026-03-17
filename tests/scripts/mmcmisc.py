@@ -43,14 +43,14 @@ def main():
         h1 = res.tally('nscat').hist_total
         h2 = res.tally('nscat_uw').hist_total.clone().set_title(h1.title)
         assert h1 == h2
-        #print( h1.content )
+        #print( h1.contents )
         assert h1.minfilled == ( 0.0 if ignoremiss else -1.0 )
         assert h1.maxfilled == 0.0
         if ignoremiss:
-            assert h1.content[0] == 0.0
+            assert h1.contents[0] == 0.0
         else:
-            assert abs( h1.content[0]/1e6 - 0.75 ) < 0.01
-        assert abs( h1.content[1]/1e6 - 0.25 ) < 0.01
+            assert abs( h1.contents[0]/1e6 - 0.75 ) < 0.01
+        assert abs( h1.contents[1]/1e6 - 0.25 ) < 0.01
 
     #Test absorption:
 
@@ -103,8 +103,8 @@ def main():
 
     assert tallymu_1 == tallymu_3
     assert h1 == h3
-    assert ( h1.content == h3.content ).all()
-    assert ( h1.content != h2.content ).all()
+    assert ( h1.contents == h3.contents ).all()
+    assert ( h1.contents != h2.contents ).all()
     assert not ( h1 == h2 )
     assert not ( tallymu_1 == tallymu_2 )
 
