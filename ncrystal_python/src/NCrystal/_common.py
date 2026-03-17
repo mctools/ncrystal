@@ -591,10 +591,14 @@ def copy_and_deobjectify_data( data ):
         return copy.deepcopy( d )
     return o( data )
 
-def json_query_cpplayer( query, unpack=True ):
+def json_query_cpplayer( query, unpack=True, readonly = False ):
     """Sends query (list of string arguments) to the C++ layer and get a JSON
     response. Unless unpack is False, this JSON string will be decoded and the
     resulting object returned.
+
+    If both unpack and readonly are True, the resulting data structure is passed
+    through create_read_only_view(..) to effectively make the result immutable.
+
     """
     if not all( isinstance(a,str) for a in query ):
         from .exceptions import NCBadInput
@@ -605,7 +609,9 @@ def json_query_cpplayer( query, unpack=True ):
     res = _rawfct['jsonquery']( query )
     if unpack:
         import json
-        return json.loads(res)
+        res = json.loads(res)
+        if readonly:
+            res = create_read_only_view(res)
     return res
 
 def _frexp10(x):
@@ -621,3 +627,16 @@ def _latex_format(x):
     if b==1:
         return e
     return f'{b:g}'+r'\cdot'+e
+
+def create_read_only_view(data):
+    #Create read-only view of data, assuming only dict/list/tuple + basic
+    #immutable types are used.
+    if isinstance(data, dict):
+        from types import MappingProxyType
+        return MappingProxyType(
+            dict( (k,create_read_only_view(v)) for k,v in data.items())
+        )
+    elif isinstance(data, list) or isinstance(data, tuple):
+        return tuple(create_read_only_view(v) for v in data)
+    else:
+        return data

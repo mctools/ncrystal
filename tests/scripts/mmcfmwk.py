@@ -27,8 +27,7 @@ from NCTestUtils.env import ncsetenv
 import NCTestUtils.dirs as dirs
 
 def main(do_plot, do_update):
-    mmc_run = ncmmc.minimc_run
-    mmc_run_scen = ncmmc.minimc_run_scenario
+    mmc_run = ncmmc.run
 
     if not do_plot:
         ncsetenv('FAKEPYPLOT','1')
@@ -51,10 +50,10 @@ def main(do_plot, do_update):
         geomcfg = 'sphere;r=0.1',
         enginecfg='nthreads=1;tally=theta;tallybins=theta:36:0:180'
     )
-    resB = mmc_run_scen( 'Al_sg225.ncmat;comp=inelas',
-                         '2.0Aa on 0.1mfp 1e4 times',
-                         extra_engineopts = (';nthreads=2;tally=theta'
-                                             ';tallybins=theta:36:0:180') )
+    resB = mmc_run( 'Al_sg225.ncmat;comp=inelas',
+                    scenario = '2.0Aa on 0.1mfp 1e4 times',
+                    enginecfg = (';nthreads=2;tally=theta'
+                                 ';tallybins=theta:36:0:180') )
 
     print("Basic serialisation/deserialisation check")
     j = resA.to_json()

@@ -24,7 +24,7 @@
 
 import numpy # noqa F401 (before fpe)
 import sys
-if not '--plot' in sys.argv[1:]:
+if '--plot' not in sys.argv[1:]:
     import NCTestUtils.enable_fpe # noqa F401
 
 import NCrystalDev.minimc as ncmmc
@@ -40,7 +40,7 @@ def test(cfgstr,scenario, expecterr = None):
     print(f'  scenario = "{scenario}"')
     print(f'  cfgstr   = "{cfgstr}"')
     def f():
-        return ncmmc.minimc_decode_scenario( cfgstr, scenario )
+        return ncmmc.decode_scenario( cfgstr, scenario )
 
     if expecterr is not None:
         with ensure_error(NCBadInput,expecterr):
@@ -50,14 +50,10 @@ def test(cfgstr,scenario, expecterr = None):
     assert isinstance(s,dict)
     assert all(isinstance(k,str) for k,v in s.items())
     assert all(isinstance(v,str) for k,v in s.items())
-    assert set(s.keys())==set(['cfgstr','geomcfg','srccfg','enginecfg',
-                               'short_title'])
+    assert set(s.keys())==set(['geomcfg','srccfg'])
     print()
-    print('    -> short_title   = "%s"'%s['short_title'])
-    print('    -> cfgstr   = "%s"'%s['cfgstr'])
     print('    -> geomcfg   = "%s"'%s['geomcfg'])
     print('    -> srccfg    = "%s"'%s['srccfg'])
-    print('    -> enginecfg = "%s"'%s['enginecfg'])
 
 def main():
     c = 'stdlib:: Al_sg225.ncmat   ;temp=20 C'
@@ -194,7 +190,7 @@ def main():
 
     test(c_sc,'3Aa on 1mm')
 
-    from NCrystalDev._cli_minimc import _scenariocfg_examples
+    from NCrystalDev._mmc_doc import _scenariocfg_examples
     from NCTestUtils.minimc_ref import main_minimc_unittest_scenariostr as m
     for descr, matcfg, scenariostr, key in _scenariocfg_examples:
         assert isinstance(descr,str)

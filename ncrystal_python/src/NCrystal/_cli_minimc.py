@@ -31,64 +31,22 @@ def climod_metadata():
                "NCrystal's own Monte Carlo simulation framework.")
     )
 
-#Examples, in form of (description, cfgstr, scenariocfg, key_for_test):
-
-_scenariocfg_examples = [
-    (
-        """Pencil beam of neutrons impinging centrally on a diameter=1mfp (mean
-        free path between scatterings) sphere of aluminium. Beam energy is
-        chosen to be hopefully interesting for the material, based on Bragg
-        threshold and temperature.""",
-        "Al_sg225.ncmat",
-        "",
-        'empty1'
-    ),
-    (
-        """Pencil beam of 2Aa neutrons impinging centrally on a diameter=2mm
-        sphere of 300K aluminium.""",
-        "Al_sg225.ncmat;temp=300K",
-        "2Aa pencil on 2mm sphere",
-        'wlpnclonsph'
-    ),
-    (
-        """A zero-divergence beam of 10meV neutrons uniformly illuminating a
-        diameter=2mm sphere of 80K beryllium.""",
-        "Be_sg194.ncmat;temp=80K",
-        "10meV on 2mm sphere",
-        'eonsph'
-    ),
-    (
-        """1.8Aa neutrons impinging at right incidence on an infinite slab of
-        thickness 10cm filled with humid air.""",
-        "gasmix::air/0.9relhumidity",
-        "1.8Aa on 10cm slab",
-        'wlonslab'
-    ),
-    (
-        """100000 neutrons at a wavelength which is 99% of the Bragg threshold
-        of PG, uniformly illuminating a PG filled sphere whose diameter is 2
-        times the mean free path length between scatterings.""",
-        "C_sg194_pyrolytic_graphite.ncmat",
-        "0.99BT on 2mfp 1e5 times",
-        'btonmfp'
-    ),
-]
 
 def _parseArgs( progname, arglist, return_parser=False ):
-    if progname=='sb_nccmd_minimc':
-        progname='ncrystal_minimc'#fixme if needed for unit test?
-
     from . import minimc as ncmmc
-    from ._mmc_doc import doc_modes
+    from ._mmc_doc import ( doc_subjects,
+                            _scenariocfg_examples )
     from argparse import RawTextHelpFormatter
     import textwrap
     import shlex
     import pathlib
 
-    tallylists = ncmmc.available_tallies()
-
+    tallylists = ncmmc.tally_info()['tallylists']
+    tallyhistavail_str = ', '.join(tallylists['ALLHISTS'])
     #--full-help keyword needs special workarounds:
-    is_fullhelp = any( a.startswith('--f') for a in arglist )
+    is_fullhelp = any( ( a.startswith('--fu')
+                         and '--full-help'.startswith(a) )
+                       for a in arglist )
     if is_fullhelp:
         arglist.append('-h')
 
@@ -130,8 +88,8 @@ def _parseArgs( progname, arglist, return_parser=False ):
         return textwrap.fill(' '.join(x.strip().split()),width=width)
 
     intro="""Run a simulation with NCrystal's builtin MiniMC framework, in order
-    to investigate neutron scattering in various geometries including effects of
-    multiple scattering."""
+    to investigate neutron scattering in various geometries, including effects
+    of multiple scattering."""
 
 
     if not is_fullhelp:
@@ -168,37 +126,24 @@ histograms as the neutrons exit the geometry. By default these results are
 simply shown as interactive plots, but options below allow for more advanced
 usage such as printing or persistification into files.
 
-For more info in general, visit: https://github.com/mctools/ncrystal/wiki/minimc
+For more info in general about the MiniMC or the various configuration strings,
+visit: https://github.com/mctools/ncrystal/wiki/minimc
 
-For more information about
+Alternatively, access documentation via the --doc option, or simply input the
+string "help" into any option taking a string. For instance, both --doc=src and
+--srccfg=help will result in the detailed documentation for source configuration
+being shown.
 
+Here are a few examples of usage based on an approach with SCENARIO strings:
 
-fixme: use _scenariocfg_examples
+{descr_examples}
 
-In case of a material cfg-string defining an anisotropic material (e.g. single
-crystal), it is important to note that default beam travels along (0,0,1).
-
-  2. Circular uniform beam of 2Aa neutrons illuminating entire 2mm sphere:
-  $> {progname} "Al_sg225.ncmat;temp=300K "2Aa on R=2mm sphere"
-  3. Pencil beam of 2Aa neutrons centrally on a 2mm sphere:
-  $> {progname} "Al_sg225.ncmat;temp=300K "2Aa on D=2mm sphere"
-
-  * 25meV neutrons
-
-  $> {progname} "2Aa,2mm,0.2deg"
-
-
-Alternatively save or load results of previous runs (fixme).
-
-FIXME: We need to document the available tallies, available via the enginecfg
-        tally keyword:
-        {tallyflags_hists}
-        {tallyflags_other}
-
+The --input and --output options allow persistification of results to JSON
+format.
 """
 
     #fixme: can run with just a single (cfgstr) argument, which then defaults to
-    #a cfgstr + an empty scenario string. We also need to be able the have
+    #a cfgstr + an empty scenario string. We also need to be able to have
     #scenario + extra_enginecfg.
 
     parser = create_ArgumentParser(prog = progname,
@@ -211,72 +156,62 @@ FIXME: We need to document the available tallies, available via the enginecfg
                         help=hwrap("NCrystal cfg-string defining"
                                   " sample material."))
     bg.add_argument('SCENARIO',type=str,nargs='?',
-                    help=hwrap("String defining the simulation setup. For "
-                               "more detailed control, use the --geomcfg,"
-                               " --srccfg, and --enginecfg flags instead."))
+                    help=hwrap("String defining the simulation geometry and"
+                               " neutron source in terms of a simple scenario."
+                               " For  more detailed control, use the --geomcfg"
+                               " and --srccfg flags instead."))
 
     bg.add_argument('--full-help',action='store_true',
                         help=hwrap("Provide more complete usage instructions."))
 
-    bg.add_argument("--geomcfg",'-g',default=None,type=str,metavar='STR',
-                        help=hwrap("String defining sample geometry."))
-    bg.add_argument("--srccfg",'-s',default=None,type=str,metavar='STR',
-                        help=hwrap("String defining options for the"
-                                   " neutron source"))
-    bg.add_argument("--enginecfg",'-e',default=None,type=str,metavar='STR',
-                        help=hwrap("String defining options for the simulation"
-                                   " engine."))
+    bg.add_argument("--tally",'-t',metavar='TALLIES',type=str,default='',
+                    help=hwrap(f"""Comma separated list of tally quantities
+                    (select from: {tallyhistavail_str}). Use --tally=help for
+                    more information, and the --enginecfg option for more
+                    detailed control of e.g. histogram binnings."""))
+
+    bg.add_argument("--plot",'-p',action='store_true',
+                    help=hwrap("""Launch interactive matplotlib plots of
+                    results (default if no other action specified)."""))
 
     if not is_basic_help:
         ag = parser.add_argument_group('advanced options')
-        ag.add_argument("--decode",action='store_true', help=hwrap("""Show
-                        resulting cfgstr, geomcfg, srccfg, and enginecfg."""))
-
-        ag.add_argument("--tally",'-t',metavar='TALLIES',type=str,default='',
-                        help=hwrap("""Comma separated list of quantities to
-                        tally in the simulations (use --tally==help for a
-                        list). Using this is an alternative to selecting the
-                        tallies via the "tally" parameter in the enginecfg. If
-                        in --input mode and not performing a new simulation, the
-                        list is instead used as a filter for which tallies from
-                        the file to investigate."""))
-
-        ag.add_argument("--plot",'-p',action='store_true',
-                        help=hwrap("""Launch interactive matplotlib plots of
-                        results (default if no other action specified)."""))
-
+        ag.add_argument("--geomcfg",'-g',default=None,type=str,metavar='STR',
+                        help=hwrap("""String defining simulation geometry (use
+                        --geomcfg=help for more info)."""))
+        ag.add_argument("--srccfg",'-s',default=None,type=str,metavar='STR',
+                        help=hwrap("""String defining options for the
+                         neutron source (use --srccfg=help for more info)."""))
+        ag.add_argument("--enginecfg",'-e',default=None,type=str,metavar='STR',
+                        help=hwrap("""String defining options for the simulation
+                        engine (use --enginecfg=help for more info)."""))
         ag.add_argument("--dump",'-d',action='store_true',
                         help=hwrap("""Provide summary of results to stdout."""))
         ag.add_argument("--output",'-o',type=str, dest='outputfile',
-                        help=hwrap("""Output file name. Must end with .json.gz
-                        or .json. As a special case it can be "stdout" if no
-                        other output is requested."""))
-
-        #FIXME: Todo: mode which can merge --merge (N args, last one is the new
-        #file) results. We should also save the seed in each case (actually it
-        #should simply be an enginecfg option!). And finally we should have a
-        #--doc mode.
+                        help=hwrap("""Name of file in which to store results.
+                        Must end with .json.gz or .json. As a special case it
+                        can be "stdout" if no other output is requested."""))
+        ag.add_argument('--force','-f',action='store_true',
+                        help=hwrap("""Use with --output to allow overwriting an
+                        existing output file."""))
         ag.add_argument("--input",'-i',type=str,dest='inputfile',
                         help=hwrap("""Input file name. Used to load previous
                         results (from --output) instead of running new
                         simulations. In this case, no SCENARIO, --geomcfg,
                         --srccfg, or --enginecfg should be specified."""))
-
         ag.add_argument("--ref",'-r',type=str,dest='reffile',
                         help=hwrap("""Reference file name. Used with --plot to
-                        overlay previous reference results."""))
-
-        ag.add_argument('--force','-f',action='store_true',
-                        help=hwrap("""Use with --output to allow overwriting an
-                        existing output file."""))
-
-        assert set(doc_modes)==set(['engine','src','geom']),"update --doc text"
-        ag.add_argument('--doc',choices=doc_modes,
+                        overlay previous reference results."""))#fixme: implement
+        assert ( set(doc_subjects) == set(['engine','src','geom',
+                                           'scenario']) ),"update --doc text"
+        ag.add_argument('--doc',choices=doc_subjects,
                         help=hwrap("""Show documentation for the configuration
-                        strings available for geometry, source, or
-                        engine. Alternatively, the same documentation is
+                        strings available for geometry, source, engine, or
+                        scenarios. Alternatively, the same documentation is
                         generated if any of the cfg-strings are equal to the
                         string "help"."""))
+        ag.add_argument("--decode",action='store_true', help=hwrap("""Show
+                        the final cfgstr, geomcfg, srccfg, and enginecfg."""))
 
     if return_parser:
         return parser
@@ -334,9 +269,9 @@ FIXME: We need to document the available tallies, available via the enginecfg
         args.outputfile = check_outfile( args.outputfile )
 
     n_geomsrc = sum(int(e is not None) for e in (args.geomcfg,args.srccfg))
-    n_geomsrcengine = int(args.enginecfg is not None) + n_geomsrc
+    #n_geomsrcengine = int(args.enginecfg is not None) + n_geomsrc
 
-    is_mode_stdcfg = bool(n_geomsrcengine>0)
+    is_mode_stdcfg = bool(n_geomsrc>0)
     is_mode_scenario = args.SCENARIO is not None
     is_mode_input = args.inputfile is not None
     is_mode_doc = args.doc is not None
@@ -370,11 +305,11 @@ FIXME: We need to document the available tallies, available via the enginecfg
         parser.error('Do not supply any of --srccfg/--geomcfg/--enginecfg if'
                      ' also supplying a SCENARIO string')
 
-    if n_geomsrcengine>0 and n_geomsrc<2:
+    if n_geomsrc == 1:
         parser.error('Options --srccfg and --geomcfg must always be supplied'
                      ' together (--enginecfg is optional and will default to'
                      ' an empty string).')
-    if n_geomsrcengine and args.enginecfg is None:
+    if ( is_mode_stdcfg or is_mode_scenario ) and args.enginecfg is None:
         args.enginecfg = ''
 
     if is_mode_doc:
@@ -396,12 +331,16 @@ FIXME: We need to document the available tallies, available via the enginecfg
     elif args.tally.strip()=='help':
         h = set(tallylists['ALLHISTS'])
         a = set(tallylists['ALL'])
-        #fixme: flags should have a description
-        #FIXME: Don't print the the parsing function!
+        hi = ncmmc.tally_info()['tallyhistinfo']
         print("Available tally quantities:")
+        maxe = max(len(e) for e in h)
         for e in sorted(h):
-            print(f'  {e}')
-        print("Other tally flags:")
+            line = f'  {e.rjust(maxe)} : {hi[e]["short_descr"]}'
+            unit = hi[e]["unit"]
+            if unit:
+                line += f' ({unit})'
+            print(line)
+        print("Other tally flags (affects all histograms if set):")
         for e in sorted(a-h):
             print(f'  {e}')
         raise SystemExit
@@ -435,11 +374,9 @@ def main( progname, arglist ):
         return
 
     if args.SCENARIO is not None:
-        _ = ncmmc.minimc_decode_scenario(args.CFGSTR,args.SCENARIO)
+        _ = ncmmc.decode_scenario(args.CFGSTR,args.SCENARIO)
         args.geomcfg = _['geomcfg']
         args.srccfg = _['srccfg']
-        args.enginecfg = _['enginecfg']
-        args.SCENARIO = None
 
     if args.tally and not args.inputfile:
         args.enginecfg += '%stally=%s'%( ';' if args.enginecfg else '',
@@ -453,9 +390,21 @@ def main( progname, arglist ):
         import shlex
         print("Simulation setup:")
         if args.inputfile:
-            _c,_g,_s,_e = ( args.CFGSTR, args.geomcfg, args.srccfg, args.enginecfg )
+            assert res is not None
+            _c = res.setup['material']['cfgstr']
+            _g = res.setup['geom']['cfgstr']
+            _s = res.setup['src']['cfgstr']
+            _e = res.setup['engine']['cfgstr']
         else:
-            _c,_g,_s,_e = ( args.CFGSTR, args.geomcfg, args.srccfg, args.enginecfg )
+            _c,_g,_s,_e = ( args.CFGSTR,
+                            args.geomcfg, args.srccfg, args.enginecfg )
+        #(re)normalise cfg-strings to be sure to present them as such (and as an
+        #added test of inputfile compatiblity):
+        _g = ncmmc.decode_cfgstr(_g,'geom')['cfgstr']
+        _s = ncmmc.decode_cfgstr(_s,'src')['cfgstr']
+        _e = ncmmc.decode_cfgstr(_e,'engine')['cfgstr']
+        from .cfgstr import normaliseCfg
+        _c = normaliseCfg(_c)
         print('  material cfgstr: "%s"'%_c)
         print('          geomcfg: "%s"'%_g)
         print('           srccfg: "%s"'%_s)
@@ -468,18 +417,15 @@ def main( progname, arglist ):
         assert "'" not in ''.join(_exargs)
         cmdquoted = cmdquoted.replace("'",'"')
         print('  %s'%cmdquoted)
-        del _c, _g, _s, _e,_exargs,cmdquoted
         return
 
     if res is None and any( e is not None
                             for e in (args.plot, args.outputfile, args.dump) ):
         assert args.CFGSTR is not None
-        res = ncmmc.minimc_run( cfgstr = args.CFGSTR,
-                                geomcfg = args.geomcfg,
-                                srccfg = args.srccfg,
-                                enginecfg = args.enginecfg )
-
-
+        res = ncmmc.run( cfgstr = args.CFGSTR,
+                         geomcfg = args.geomcfg,
+                         srccfg = args.srccfg,
+                         enginecfg = args.enginecfg )
 
     if args.plot:
         assert res is not None

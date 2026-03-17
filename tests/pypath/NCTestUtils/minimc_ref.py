@@ -63,19 +63,18 @@ def minimc_unittest_stdsphere( *,
 
 def minimc_unittest_scenariostr( cfgstr, scenariostr, override_n = None,
                                  **kwargs ):
-    d = ncminimc.minimc_decode_scenario( cfgstr, scenariostr )
+    d = ncminimc.decode_scenario( cfgstr, scenariostr )
     for k,v in sorted(d.items()):
         assert isinstance(k,str)
         assert isinstance(v,str)
         print(f'  decoded {k}="{v}"')
-    assert d['enginecfg']==''
     if override_n is not None:
         ns = str(override_n)
         assert float(ns)==int(float(ns))
         ns = f';n={ns}'
         print(f'  override_n set => Appending "{ns}" to src_cfg')
         d['srccfg'] += ns
-    return minimc_unittest( cfgstr = d['cfgstr'],
+    return minimc_unittest( cfgstr = cfgstr,
                             srccfg = d['srccfg'],
                             geomcfg = d['geomcfg'],
                             **kwargs )
@@ -160,13 +159,21 @@ def minimc_unittest( *,
     else:
         tallybins=f';tallybins={tallybins}'
 
-    res = ncminimc.minimc_run( cfgstr=cfgstr,
-                               geomcfg=geomcfg,
-                               srccfg=srccfg,
-                               enginecfg=('nthreads=2'
-                                          f';tally={tally}{tallybins}'
-                                          f';{extra_enginecfg}')
-                              )
+    enginecfg = ( 'nthreads=2'
+                  f';tally={tally}{tallybins}'
+                  f';{extra_enginecfg}' )
+
+    res = ncminimc.run( cfgstr=cfgstr,
+                        geomcfg=geomcfg,
+                        srccfg=srccfg,
+                        enginecfg=enginecfg )
+
+    if len(res.tally_names)>1:
+        tally = tally.split(',')[0].strip()
+        assert tally in res.tally_names
+        print("WARNING: Multiple tallies enabled. Will only actually"
+              f" compare, plot or persistify the '{tally}' tally (since"
+              " it was listed first)")
 
     h = res.tally(tally).hist_total
     if do_plot:

@@ -144,12 +144,12 @@ void NCMMC::resultsToJSON( std::ostream& os,
   }
 
   os << ',';
-  streamJSON( os, "geometry" );
+  streamJSON( os, "geom" );
   os << ':';
   geometry->toJSON(os);
 
   os << ',';
-  streamJSON( os, "source" );
+  streamJSON( os, "src" );
   os << ':';
   source->toJSON(os);
 

@@ -56,10 +56,10 @@ CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec
         7.15211327,  3.60596056,  5.32974927,  3.2818533 ,  2.76460172,
         6.82990405,  6.35862826,  0.86813279]))
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
+CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150.,
        165., 180.]),minor=True)
-CALLING ResultOf[plt.gca(..)].set_xlabel('Exit Angle (degrees)')
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
 CALLING ResultOf[plt.gca(..)].set_title('$10^4$ 1.8Aa neutrons through sphere with radius 100mm')
 CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (17.7%)')
@@ -76,10 +76,10 @@ CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec
         7.15211327,  3.60596056,  5.32974927,  3.2818533 ,  2.76460172,
         6.82990405,  6.35862826,  0.86813279]))
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
+CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150.,
        165., 180.]),minor=True)
-CALLING ResultOf[plt.gca(..)].set_xlabel('Exit Angle (degrees)')
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
 CALLING ResultOf[plt.gca(..)].set_title('$10^4$ 1.8Aa neutrons through sphere with radius 100mm')
 CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (17.7%)')

@@ -47,10 +47,13 @@ namespace NCRYSTAL_NAMESPACE {
             "cosine scattering angle", "disable breakdown histograms",
             "number of scatterings", "unweighted number of scatterings",
             "scattering vector", "scattering angle", "weight" };
+        constexpr static const char* strs_unit[]
+        = { "eV", "eV","", "Aa", "", "", "", "", "", "1/Aa", "degree", "" };
         constexpr static int n = sizeof(vals)/sizeof(*vals);
         static_assert( n == sizeof(strs)/sizeof(*strs), "" );
         static_assert( n == sizeof(vals)/sizeof(*vals), "" );
         static_assert( n == sizeof(strs_descr)/sizeof(*strs_descr), "" );
+        static_assert( n == sizeof(strs_unit)/sizeof(*strs_unit), "" );
       }
 
       //Default values. NOTE: These should be kept synchronized with default
@@ -76,6 +79,20 @@ namespace NCRYSTAL_NAMESPACE {
       = "seed;roulette"
         ";ignoremiss;nthreads;absorption;nscatlimit"
         ";tally;tallybins;tallybreakdown;tallyref";
+
+      TallyHistDescr getTallyHistDescrImpl( int idx )
+      {
+        nc_assert(idx<TallyFlagsStrDB::n);
+        TallyFlags::value_type v = TallyFlagsStrDB::vals[idx];
+        nc_assert( v & TallyFlags::Flags::ALLHISTS );
+
+        TallyHistDescr res;
+        res.flag = TallyFlags( v );
+        res.name = TallyFlagsStrDB::strs[idx];
+        res.shortDescription = TallyFlagsStrDB::strs_descr[idx];
+        res.unit = TallyFlagsStrDB::strs_unit[idx];
+        return res;
+      }
     }
   }
 }
@@ -738,7 +755,6 @@ void NCMMC::TallyBinningOverrides::toJSON( std::ostream& os ) const
   os << '}';
 }
 
-
 void NCMMC::engineOptsDocsToJSON( std::ostream& os )
 {
   os << "{\"intro_text\":";
@@ -753,5 +769,45 @@ void NCMMC::engineOptsDocsToJSON( std::ostream& os )
              " more details refer to the specific parameters below.");
   os << ",\"cfgparams\":";
   engineOptsDocsToJSON_OptionList(os);
+  os << ",\"tallyhistinfo\":";
+  tallyHistDescrToJSON(os);
+  os << '}';
+}
+
+NCMMC::TallyHistDescr NCMMC::getTallyHistDescr( TallyFlags f )
+{
+  auto v = f.getValue();
+  int idx = -1;
+  for ( int i = 0; i < TallyFlagsStrDB::n; ++i ) {
+    if ( v == TallyFlagsStrDB::vals[i] ) {
+      idx = i;
+      break;
+    }
+  }
+  if ( idx == -1 || !( v & TallyFlags::Flags::ALLHISTS ) )
+    NCRYSTAL_THROW2(BadInput,
+                    "getTallyHistDescr accepts only single histogram flags");
+
+  return getTallyHistDescrImpl( idx );
+}
+
+void NCMMC::tallyHistDescrToJSON( std::ostream& os )
+{
+  os<<'{';
+  bool first = true;
+  for ( int i = 0; i < TallyFlagsStrDB::n; ++i ) {
+    if ( !( TallyFlagsStrDB::vals[i] & TallyFlags::Flags::ALLHISTS ) )
+      continue;
+    auto info = getTallyHistDescrImpl( i );
+    if ( first )
+      first = false;
+    else
+      os << ',';
+    streamJSON(os,info.name);
+    os << ':';
+    streamJSONDictEntry( os, "name", info.name, JSONDictPos::FIRST );
+    streamJSONDictEntry( os, "short_descr", info.shortDescription );
+    streamJSONDictEntry( os, "unit", info.unit, JSONDictPos::LAST );
+  }
   os << '}';
 }

@@ -68,6 +68,15 @@ class DocHelper:
             s += '\n'
         return s
 
+    def list_bullet( self ):
+        return '* ' if self.is_wiki else '  * '
+
+    def add_simple_list(self,*entries):
+        self.add_empty()
+        lb = self.list_bullet()
+        for e in entries:
+            self.add_wrap(lb,' '.join(e.split()))
+
     def add_param_list_entry( self, name, descr, *,
                               descr_short = None,
                               defval = None,
@@ -108,16 +117,15 @@ def check_keys(d,*keys):
 
 def gendoc_engine( data, **kwargs ):
     doc = DocHelper('MiniMC engine cfg-strings', **kwargs)
-    check_keys( data,'intro_text','cfgparams' ) #fixme: 'examples'!!!
+    check_keys( data,'intro_text','cfgparams','tallyhistinfo')
+    #fixme: 'examples' as well^^^ (+ use tallyhistinfo?)!!!
     doc.add_wrap(data['intro_text'])
     d_params = data['cfgparams']
     pnames = sorted(data['cfgparams'].keys())
     doc.add_title('Parameter reference')
     for pn in pnames:
         pd = d_params[pn]
-        #print(pd)
         assert pd['name']==pn and len(pd)==5
-        #doc.add_line(pn)
         defval = pd['default_value']# '0'
         exvals = pd['example_values']# ['0', '1']
         descr_s = pd['descr_short']
@@ -239,7 +247,7 @@ def gendoc_src( data, **kwargs ):
                                       line_prefix = f'{titlesp} ' )
     return doc
 
-doc_modes = ['geom','src','engine']
+doc_subjects = ['geom','src','engine','scenario']
 def gen_doc_impl( subject, mode ):
     #Notice: Keep docstring of minimc.gen_doc function synchronised with the
     #        implementation here!!!
@@ -251,7 +259,7 @@ def gen_doc_impl( subject, mode ):
         is_wiki = True
         mode=mode[6:]
 
-    if subject not in doc_modes:
+    if subject not in doc_subjects:
         from .exceptions import NCBadInput
         raise NCBadInput(f'Unknown subject "{subject}" (must be one of'
                          ' "geom", "src", or "engine")')
@@ -259,23 +267,174 @@ def gen_doc_impl( subject, mode ):
         from .exceptions import NCBadInput
         raise NCBadInput(f'Invalid mode "{mode}" (must be one of'
                          ' "print", "lines", "txt" or "dict")')
-    data = json_query_cpplayer(['mmc','cfgdoc',subject])
-    if mode == 'dict':
-        return data
-    fctmap = dict( geom = gendoc_geom,
-                   src = gendoc_src,
-                   engine = gendoc_engine )
-    fct = fctmap.get(subject)
-    assert fct is not None
-    s = fct( data=data, is_wiki=is_wiki )
+
+    if subject == 'scenario':
+        if mode == 'dict':
+            #Not really supported:
+            return {}
+        s = gendoc_scenario( is_wiki = is_wiki )
+    else:
+        data = json_query_cpplayer(['mmc','cfgdoc',subject])
+        if mode == 'dict':
+            return data
+        fctmap = dict( geom = gendoc_geom,
+                       src = gendoc_src,
+                       engine = gendoc_engine )
+        fct = fctmap.get(subject)
+        assert fct is not None
+        s = fct( data=data, is_wiki=is_wiki )
     if mode=='print':
-        from ._common import print
-        print( str(s), end='' )
+        from ._common import print as ncprint
+        ncprint( str(s), end='' )
     elif mode=='txt':
         return str(s)
     else:
         assert mode=='lines'
         return s.lines()
+
+#Examples, in form of (description, cfgstr, scenariocfg, key_for_test):
+_scenariocfg_examples = [
+    (
+        """Pencil beam of neutrons impinging centrally on a diameter=1mfp (mean
+        free path between scatterings) sphere of aluminium. Beam energy is
+        chosen to be hopefully interesting for the material, based on Bragg
+        threshold and temperature.""",
+        "Al_sg225.ncmat",
+        "",
+        'empty1'
+    ),
+    (
+        """Pencil beam of 2Aa neutrons impinging centrally on a diameter=2mm
+        sphere of 300K aluminium.""",
+        "Al_sg225.ncmat;temp=300K",
+        "2Aa pencil on 2mm sphere",
+        'wlpnclonsph'
+    ),
+    (
+        """A zero-divergence beam of 10meV neutrons uniformly illuminating a
+        diameter=2mm sphere of 80K beryllium.""",
+        "Be_sg194.ncmat;temp=80K",
+        "10meV on 2mm sphere",
+        'eonsph'
+    ),
+    (
+        """1.8Aa neutrons impinging at right incidence on an infinite slab of
+        thickness 10cm filled with humid air.""",
+        "gasmix::air/0.9relhumidity",
+        "1.8Aa on 10cm slab",
+        'wlonslab'
+    ),
+    (
+        """100000 neutrons at a wavelength which is 99% of the Bragg threshold
+        of PG, uniformly illuminating a PG filled sphere whose diameter is 2
+        times the mean free path length between scatterings.""",
+        "C_sg194_pyrolytic_graphite.ncmat",
+        "0.99BT on 2mfp 1e5 times",
+        'btonmfp'
+    ),
+]
+
+def gendoc_scenario( **kwargs ):
+    doc = DocHelper('MiniMC scenario cfg-strings', **kwargs)
+    def pg(s):
+        #add paragraph
+        doc.add_empty()
+        doc.add_wrap(' '.join(s.split()))
+    pg("""Under the hood, a MiniMC simulation always needs configuration
+          for four separate components:""")
+    doc.add_simple_list(
+        """A material, defined by a standard NCrystal material cfg-string.""",
+        """A source of neutrons, defined by a source cfg-string.""",
+        """A simulation geometry, defined by a geometry cfg-string.""",
+        """Configuration of the simulation engine itself, defined by an engine
+           cfg-string.""")
+    pg("""Often the full flexibility offered by these four cfg-strings is not
+          needed.  Therefore, as a convenient alternative, one can alternatively
+          set up simpler "simulation scenarios", in which configuration of
+          source and geometry is automatically handled. No matter what, a
+          material cfg-string is always required of course, and an enginecfg can
+          still be provided as desired.""")
+
+    doc.add_title('Examples')
+    pg("""The following examples show how the combination of two strings are
+    enough to setup a MiniMC simulation: one standard NCrystal cfg-string
+    defines the material, and one additional string defining the simulation
+    scenario.""")
+
+    word_srccfg='[[srccfg|minimc_src]]' if doc.is_wiki else 'srccfg'
+    word_geomcfg='[[geomcfg|minimc_geom]]' if doc.is_wiki else 'geomcfg'
+    word_enginecfg= ( '[[enginecfg|minimc_engine]]'
+                      if doc.is_wiki else 'enginecfg' )
+    pg(f"""In each example is also shown the actual underlying {word_geomcfg}
+           and {word_srccfg} which are automatically generated based on the
+           scenario. An {word_enginecfg} can also be provided separately as
+           desired.""")
+
+    bullet = doc.list_bullet()
+    bullet_space = ' '*len(bullet)
+    v='`' if doc.is_wiki else ''
+    doc.add_empty()
+    from .minimc import decode_scenario
+    for descr, matcfg, scenariostr, key in _scenariocfg_examples:
+        #FIXME: Check that all the generated stuff looks reasonable, does not
+        #contain 0.0009999999999999999, etc.
+        dec = decode_scenario( matcfg, scenariostr )
+        assert set(dec.keys())==set(['geomcfg','srccfg'])
+        gc,sc = dec['geomcfg'],dec['srccfg']
+        doc.add_line(bullet      +f'Input:  material={v}"{matcfg}"{v}')
+        doc.add_line(bullet_space+f'        scenario={v}"{scenariostr}"{v}')
+        doc.add_wrap(bullet_space+'What:   ',' '.join(descr.split()))
+        doc.add_line(bullet_space+f'Output: geomcfg={v}"{gc}"{v}')
+        doc.add_line(bullet_space+f'        srccfg={v}"{sc}"{v}')
+
+    doc.add_title('Full syntax')
+    pg("""The decodeScenario function parses a MiniMC quick simulation scenario
+          string, according to the syntax:""")
+    syntax = 'ENERGY [pencil] [on [THICKNESS] [sphere|slab]] [COUNT times]'
+    doc.add_empty()
+    if doc.is_wiki:
+        doc.add_line('```')
+        doc.add_line(syntax)
+        doc.add_line('```')
+    else:
+        doc.add_line('  '+syntax)
+
+    pg("""The meaning of the various parameters (in uppercase above) and
+          keywords (in lowercase above) is explained in the following.""")
+    pg("""If given, COUNT is the initial number of neutrons to input into the
+          simulation. Otherwise, the default value is 1e6 for isotropic
+          materials, and 1e5 for anisotropic materials.""")
+
+    doc.add_simple_list(
+        """ENERGY is the monochromatic beam energy like "1.8Aa", "25meV" or
+           "0.1eV". Special units "BT" means the bragg threshold of the material
+           (or 4.0Aa in case material does not have one), and "kT" means a
+           kinetic energy equal to Boltzmann's constant times the material
+           temperature. Using either special unit will cause the result to be
+           rounded to 6 significant digits.""",
+        """"pencil" is an optional keyword related to the beam profile (see
+            below).""",
+        """THICKNESS is the material thickness like "1mm", "2m", "0.4cm", or
+           "2.5mfp". The unit "mfp" corresponds to the mean-free-path length for
+           a neutron scattering interaction in the material (rounded to 6
+           significant digits). Default THICKNESS is "1mfp".""",
+        """The keywords "sphere" or "slab" can be used to select the sample
+           geometry (default is a sphere).""",
+    )
+    pg("""For a spherical geometry, the beam profile will by default be taken to
+          be a beam with a uniform circular profile, of the same radius as the
+          sphere. However, if the keyword "pencil" is provided, a pencil beam
+          hitting the sphere centrally is used instead.""")
+    pg("""As a special case, an empty scenario string is interpreted in the same
+          way as a scenario string with contents "0.8BT" if the material has a
+          Bragg threshold, otherwise it will be "1kT" if it has a
+          temperature. If it neither has a Bragg threshold or a temperature, a
+          value of "1.8Aa" is used as the ultimate fallback.""")
+    pg("""For flexibility and usage from the cmdline, colons (:) and underscores
+          (_) can be used as whitespace. Additionally, all repeated whitespace
+          (tabs, newlines, etc.) is converted into a single space before
+          parsing, and trailing or leading whitespace is trimmed away.""")
+    return doc
 
 if __name__=='__main__':
     import sys

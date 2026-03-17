@@ -639,7 +639,7 @@ class Hist1D:
             pr("%s  underflow : %s +- %s"%(p,fmt(self.underflow),
                                            fmt(self.underflow_error)))
             pr("%s  overflow  : %s +- %s"%(p,fmt(self.overflow),
-                                          fmt(self.overflow_error)))
+                                           fmt(self.overflow_error)))
 
         if contents:
             c,e = self.content, self.errors
@@ -1059,5 +1059,4 @@ class HistFiller1D:
 
     def to_hist1d(self):
         """Initialise and return a Hist1D object representing this one."""
-        from .hist import Hist1D
         return Hist1D( self.to_dict() )

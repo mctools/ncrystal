@@ -523,33 +523,8 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   //Add count:
   ss_src << ";n=" << count_formatted;
 
-  //Compose a title like "1.8Aa neutron on 2mm diameter sphere":
-  std::ostringstream title;
-  constexpr auto title_fmtstr = "%.6g";
-  if ( wavelength_mode ) {
-    title << fmt( neutron_wavelength.dbl(), title_fmtstr ) << "Aa";
-  } else {
-    const double e = neutron_energy.dbl();
-    if ( e < 0.1 )
-      title << fmt( e * 1e3 ) << "meV";
-    else if ( e >= 100.0 )
-      title << fmt( e * 1e-3 ) << "keV";
-    else
-      title << fmt( e ) << "eV";
-  }
-  title << " neutron on ";
-  fmtBestUnit(title,Length{thickness_meter},title_fmtstr);
-  if ( is_sphere ) {
-    title << " diameter sphere";
-  } else {
-    nc_assert_always( is_slab );
-    title << " thick slab";
-  }
-
   res.srccfg = std::move(ss_src).str();
   res.geomcfg = std::move(ss_geom).str();
-  res.enginecfg = "";
-  res.short_title = std::move(title).str();
   return res;
 }
 

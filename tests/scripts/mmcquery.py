@@ -158,12 +158,6 @@ def main():
     test('mmc','inspectcfg','geom','cyl;r=0.5;dy=12.0')
 
     with ensure_error(NCBadInput,
-                      'Invalid MiniMC JSON query: ["mmc","tallylist","bla"]'
-                      ' (no arguments should come after: ["mmc","tallylist"])'):
-        test('mmc','tallylist','bla')
-    test('mmc','tallylist')
-
-    with ensure_error(NCBadInput,
                       'Invalid parameter for chosen engine: "whatever"'):
         test('mmc','inspectcfg','engine','whatever = 0')
     with ensure_error(NCBadInput,
@@ -182,6 +176,11 @@ def main():
          '\t  std ; nthreads=  auto  \t\n;ignoremiss= 0')
 
     test('mmc','inspectcfg','engine','tally=q,theta;tallybins=+,;tallybreakdown=0')
+
+    test('mmc','cfgdoc','geom')
+    test('mmc','cfgdoc','src')
+    test('mmc','cfgdoc','engine')
+    test('mmc','cfgdoc','tally')
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The quick_diffraction_pattern(..) function is obsolete. Please migrate your code to use the NCrystal.minimc.minimc_run(..) or NCrystal.minimc.minimc_run_scenario(..) functions instead. [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The quick_diffraction_pattern(..) function is obsolete. Please migrate your code to use the NCrystal.minimc.run(..) function instead. [warn#1]
 CALLING plt.figure()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['232.0', '232.0', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (23.2%)')
@@ -39,10 +39,10 @@ CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec
        0.        , 0.        , 0.        , 0.        , 0.        ,
        0.        , 0.        , 0.        , 0.        , 0.        ]))
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
+CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150.,
        165., 180.]),minor=True)
-CALLING ResultOf[plt.gca(..)].set_xlabel('Exit Angle (degrees)')
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
 CALLING ResultOf[plt.gca(..)].set_title('$10^3$ 1.8Aa neutrons through sphere with radius 5mm')
 CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (76.8%)')
@@ -61,10 +61,10 @@ CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec
         0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
         0.        ]))
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
+CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150.,
        165., 180.]),minor=True)
-CALLING ResultOf[plt.gca(..)].set_xlabel('Exit Angle (degrees)')
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
 CALLING ResultOf[plt.gca(..)].set_title('$10^3$ 1eV neutrons through sphere with radius 5mm')
 CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (20.7%)')

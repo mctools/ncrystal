@@ -29,7 +29,7 @@ def runsim_diffraction_pattern( *a, **kwargs ):
     from .exceptions import NCException
     raise NCException('The runsim_diffraction_pattern(..) function is'
                       ' obsolete. Please migrate your code to use the'
-                      ' minimc_run(..) function instead')
+                      ' NCrystal.minimc.run(..) function instead')
 
 __cache_qdpwarn=[True]
 def quick_diffraction_pattern( cfgstr, *,
@@ -39,10 +39,9 @@ def quick_diffraction_pattern( cfgstr, *,
                                nthreads = 'auto',
                                suppress_obsoletion_warning = False ):
 
-    from .minimc import minimc_run_scenario
+    from .minimc import run as mmcrun
     migratemsg = ('Please migrate your code to use the'
-                  ' NCrystal.minimc.minimc_run(..) or'
-                  ' NCrystal.minimc.minimc_run_scenario(..) functions instead.')
+                  ' NCrystal.minimc.run(..) function instead.')
     warnmsg = ('The quick_diffraction_pattern(..) function is obsolete.'
                f' {migratemsg}')
 
@@ -61,9 +60,9 @@ def quick_diffraction_pattern( cfgstr, *,
     def simfct( n, cfgstr ):
         import time
         t0 = time.time()
-        res = minimc_run_scenario( cfgstr,
-                                   scenario_cfg + f' {n} times',
-                                   extra_engineopts = enginecfg )
+        res = mmcrun( cfgstr,
+                      scenario=scenario_cfg + f' {n} times',
+                      enginecfg = enginecfg )
         t1 = time.time()
         return t1-t0, res
 
@@ -81,9 +80,8 @@ def quick_diffraction_pattern( cfgstr, *,
 
     class MiniMCObsoleteResult:
         """Backwards compatible results class for the obsolete
-        quick_diffraction_pattern() function. The NCrystal.minimc.minimc_run(..)
-        or NCrystal.minimc.minimc_run_scenario(..) functions should be used
-        instead.
+        quick_diffraction_pattern() function. The NCrystal.minimc.run(..)
+        function should be used instead.
         """
         def __init__(self,res):
             self.__res = res

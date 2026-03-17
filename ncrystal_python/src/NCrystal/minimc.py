@@ -23,46 +23,74 @@
 
 Access the NCrystal "MiniMC" framework.
 
+See also: https://github.com/mctools/ncrystal/wiki/minimc
+
 """
 
 __all__ = [
-    'minimc_run',
-    'minimc_decode_scenario',
-    'minimc_run_scenario',
+    'run',
+    'decode_scenario',
+    'decode_cfgstr',
     'gen_doc',
-    'available_tallies',
+    'tally_info',
     'MMCResults',
     'MMCTallyView',
 ]
 
-#Wrapper objects for result dictionaries:
+#Wrapper objects for results:
 
 from ._mmc_utils import MMCResults, MMCTallyView
 
 #Various API entry points:
 
-def minimc_run( cfgstr, *, geomcfg, srccfg, enginecfg,
-                callback = None, callback_options = None ):
+def run( cfgstr, *,
+         geomcfg = None, srccfg = None, scenario = None,
+         enginecfg = None,
+         callback = None, callback_options = None,
+         unpack = 'object' ):
     """Run the NCrystal MiniMC with the provided cfg-strings for material,
     geometry, source and engine. Returns result wrapped in an MMCResults object.
 
+    Requires a material cfgstr, and either both of geomcfg and srccfg or a
+    scenario string.
+
+    Optionally, it is possible to specify an enginecfg string if the default
+    settings are not suitable.
+
     Optionally, a callback function can be provided by expert users in order to
     access the full set of all tallied neutrons.
+
+    The unpack parameter concerns the format of the returned result, and it must
+    be either 'dict', 'json', 'dict_jsoncompat', or 'object'. The default option
+    'object' cause the results to be wrapped in an MMCResults class, while the
+    other options cause the data to be returned in a JSON string or a (possibly
+    JSON compatible) dictionary.
+
+    More details at: https://github.com/mctools/ncrystal/wiki/minimc
+
     """
-    res = _minimc_raw( cfgstr = cfgstr, geomcfg = geomcfg,
-                       srccfg = srccfg, enginecfg = enginecfg,
-                       unpack = True, callback = callback,
-                       callback_options = callback_options )
-    return MMCResults(res)
+    from ._mmc_impl import run
+    return run( resclass = MMCResults,
+                cfgstr = cfgstr, geomcfg = geomcfg,
+                srccfg = srccfg, scenario = scenario,
+                enginecfg = enginecfg, callback = callback,
+                callback_options = callback_options,
+                unpack = unpack )
 
-def minimc_decode_scenario( cfgstr, scenario ):
-    """Decodes geomcfg, srccfg, and enginecfg based on the provided material
-    cfgstr and scenario string.
+def decode_scenario( cfgstr, scenario ):
+    """Decodes the provided material cfgstr and scenario string in order to
+    generate a geomcfg and srccfg.
 
-    FIXME point at documentation of scenario cfgs.
+    The decoded values are returned in a dictionary with keys 'geomcfg', and
+    'srccfg'.
 
-    The decoded values are returned in a dictionary, along with a normalised
-    (FIXME check) version of the material cfgstr.
+    For more details about scenario strings, refer to:
+
+      https://github.com/mctools/ncrystal/wiki/minimc_scenario
+
+    Or alternatively invoke the gen_doc function from this module:
+
+      NCrystal.minimc.gen_doc("scenario")
 
     """
     from ._common import json_query_cpplayer
@@ -70,112 +98,49 @@ def minimc_decode_scenario( cfgstr, scenario ):
     assert isinstance(scenario,str), "scenario parameter must be a string"
     return json_query_cpplayer(['mmc','scenario',cfgstr, scenario] )
 
-def minimc_run_scenario( cfgstr, scenario, *,
-                         extra_engineopts = None,
-                         callback = None,
-                         callback_options = None ):
-    """Convenience function which combines minimc_decode_scenario and minimc_run.
+def decode_cfgstr( cfgstr, cfgtype ):
+    """Decode a MiniMC cfg-string, whose type must be "src", "geom", or
+    "engine".
 
-    First the minimc_decode_scenario(..) function is used to obtain geomcfg,
-    srccfg, and enginecfg based on the provided material cfgstr and scenario
-    string.
-
-    Then the minimc_run(..) function is invoked with these parameters, and the
-    result of that function call is returned.
-
-    If extra_engineopts is not None, it must be a string which will be appended
-    to the automatically generated engineopts.
-
-    Any provided callback function or callback_options are simply passed along
-    to the minimc_run call.
-
+    The decoded values are returned in a dictionary, along with a normalised
+    version of the cfg-string itself.
     """
-    dec = minimc_decode_scenario( cfgstr, scenario )
-    ec = dec['enginecfg']
-    if extra_engineopts:
-        ec += ';'
-        ec += extra_engineopts
-    return minimc_run(
-        cfgstr = dec['cfgstr'],
-        geomcfg = dec['geomcfg'],
-        srccfg = dec['srccfg'],
-        enginecfg = ec,
-        callback = callback,
-        callback_options = callback_options,
-    )
-
+    from ._common import json_query_cpplayer
+    if not isinstance(cfgstr,str):
+        from .exceptions import NCBadInput
+        raise NCBadInput('cfgstr parameter must be a string')
+    if not ( isinstance(cfgtype,str) and cfgtype in ('src','geom','engine') ):
+        from .exceptions import NCBadInput
+        raise NCBadInput('cfgtype parameter must be "src", "geom", or "engine"')
+    return json_query_cpplayer(['mmc','inspectcfg',cfgtype, cfgstr])
 
 def gen_doc( subject, mode = None ):
     """Produce reference documentation concerning MiniMC. The single required
     argument specifies the desired documentation subject, and must be one of
-    "geom", "src", or "engine".
+    "geom", "src", "engine", or "scenario".
 
     By default the documentation is simply printed, but the optional mode
     keyword can be used to modify this:
 
-    mode='print': (default) print the information'
-    mode='lines': return information as list of strings, each representing a
-                  single line.
-    mode='txt': return information as single string.
-    mode='dict': return information unformatted and in a dictionary.
+      mode='print' : (default) print the information.
+      mode='lines' : return information as list of strings, each
+                     representing a single line.
+      mode='txt'   : return information as single string.
+      mode='dict'  : return information unformatted and in a
+                     dictionary (might be empty if not supported).
+
+    Note that documentation is also available at:
+
+      https://github.com/mctools/ncrystal/wiki/minimc
 
     """
     from ._mmc_doc import gen_doc_impl
+    return gen_doc_impl( subject = subject,
+                         mode='print' if mode is None else mode )
 
-    gen_doc_impl( subject = subject,
-                  mode='print' if mode is None else mode )
-
-def _minimc_raw( cfgstr, *,
-                 geomcfg, srccfg, enginecfg,
-                 unpack=False,
-                 callback = None, callback_options = None ):
-
-    """Raw invocation of the MiniMC engine via a low level query, accepting 4
-    configuration strings and returning a JSON string with the results.
-
-    Set unpack=True to decode the resulting JSON data and replace any Hist1D
-    data inside it with Hist1D objects. Set unpack='json' to simply decode the
-    JSON data.
-
-    """
-    assert isinstance(cfgstr, str), "cfgstr parameter must be a string"
-    assert isinstance(geomcfg, str), "geomcfg parameter must be a string"
-    assert isinstance(srccfg, str), "srccfg parameter must be a string"
-    assert isinstance(enginecfg, str), "enginecfg parameter must be a string"
-    if callback_options is not None:
-        assert isinstance(callback_options, str), ("callback_options parameter"
-                                                   " must be a string")
-
-    query = ['mmc','run', cfgstr, geomcfg, srccfg, enginecfg]
-    if callback:
-        from ._chooks import _get_raw_cfcts
-        _rawfct = _get_raw_cfcts()
-        res = _rawfct['flexmmcrun']( query, callback, callback_options )
-    else:
-        from ._common import json_query_cpplayer
-        res = json_query_cpplayer( query, unpack = False )
-
-    if unpack:
-        import json
-        res = json.loads(res)
-        if unpack != 'json':
-            from .hist import Hist1D
-            res = Hist1D.objectify_data(res)
-    return res
-
-#fixme: more documentation functions like the following (perhaps name all
-#doc_...?):
-_cache_availtallies=[None]
-def available_tallies():
+def tally_info():
     """Returns dictionary with information about available MiniMC talies that
     can be used in the enginecfg string like enginecfg="tally=mu,de").
     """
-    if _cache_availtallies[0] is None:
-        from ._common import json_query_cpplayer
-        from types import MappingProxyType#to make read-only
-        res = MappingProxyType(
-            dict( (k,tuple(v)) for k,v in
-                  sorted(json_query_cpplayer(['mmc','tallylist']).items()) )
-        )
-        _cache_availtallies[0] = res
-    return _cache_availtallies[0]
+    from ._mmc_impl import tally_info
+    return tally_info()

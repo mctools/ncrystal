@@ -87,6 +87,7 @@ def _plot_tally( minimcresults_dict,
     if tallyname not in avail_tallies:
         raise NCBadInput('Requested tally "%s" not available.'%tallyname)
 
+
     tally_dict = minimcresults_dict['output']['tally'][tallyname]
     assert isinstance(tally_dict,dict)
     assert 'total' in tally_dict
@@ -233,20 +234,22 @@ def _plot_tally( minimcresults_dict,
     else:
         lbl = 'All outgoing %s'%_fractionval_fmt(nonabsfrac)
         label_order.append(lbl)
-        mainhist.plot_hist(plt=plt,do_show = False,
-                           label=lbl)
+        mainhist.plot_hist( plt=plt, do_show = False, label=lbl)
         if do_title and not title and mainhist.title:
             axis.set_title(mainhist.title)
         if not logy:
             axis.set_ylim(0.0)
 
-    if tallyname=='theta':
+    from ._mmc_impl import tally_info
+    t_info = tally_info()['tallyhistinfo'][tallyname]
+    xlbl = t_info['short_descr'].capitalize()
+    if t_info['unit']:
+        xlbl += ' (%s)'%t_info['unit']
+    axis.set_xlabel(xlbl)
+
+    if tallyname=='theta' and mainhist.xmin==0 and mainhist.xmax==180:
         axis.set_xticks(_np_linspace(0.0,180.0,180//30+1))
         axis.set_xticks(_np_linspace(0.0,180.0,180//15+1),minor=True)
-        #FIXME: xlabel needs to be embedded in Tally?
-        axis.set_xlabel('Exit Angle (degrees)')
-    else:
-        axis.set_xlabel(tallyname)
     axis.set_ylabel('Intensity (arbitrary units)')
     if do_title:
         axis.set_title(title)
@@ -292,12 +295,12 @@ def _plot_tally( minimcresults_dict,
         handles, labels = [hl[0] for hl in _], [hl[1] for hl in _]
         plt.legend(handles,labels)
 
-    _plt_final(do_grid = do_grid,
-               do_legend = False,
-               do_show = do_show,
-               logx = False,
-               logy = logy,
-               plt = plt )
+    return _plt_final(do_grid = do_grid,
+                      do_legend = False,
+                      do_show = do_show,
+                      logx = False,
+                      logy = logy,
+                      plt = plt )
 
 
 #FIXME: Missing doc-strings
@@ -384,6 +387,14 @@ class MMCTallyView:
         for o in hl[1:]:
             h.add_contents( o )
         return h
+
+    def unit( self ):
+        from ._mmc_impl import tally_info
+        return tally_info()['tallyhistinfo'][self.name]['unit']
+
+    def short_description( self ):
+        from ._mmc_impl import tally_info
+        return tally_info()['tallyhistinfo'][self.name]['short_descr']
 
     #Fixme: if we have a plot, we should also have a dump!
     def dump( self, *args, **kwargs):
@@ -508,20 +519,22 @@ class MMCResults:
         return self.__data['output']['metadata']
 
     def short_title( self, latex = False ):
-        n = self.output_metadata['provided']['count']#fixme: weights?
-        s = self.setup['source']['metadata']['energy_description']
-        g = self.setup['geometry']['decoded']['short_description']
+        n = self.output_metadata['provided']['count']
+        s = self.setup['src']['metadata']['energy_description']
+        g = self.setup['geom']['decoded']['short_description']
         if latex:
             from ._common import _latex_format
             n = '$%s$'%_latex_format(n)
         return f'{n} {s} neutrons through {g}'
 
     def long_title( self, latex = False ):
-        #NB: latex parameter currently does nothing (fixme?)
-        s = self.setup['source']['cfgstr']
-        g = self.setup['geometry']['cfgstr']
+        #NB: latex parameter currently does nothing
+        s = self.setup['src']['cfgstr']
+        g = self.setup['geom']['cfgstr']
         e = self.setup['engine']['cfgstr']
         r = f'"{s}" on "{g}"'
+        n = self.output_metadata['tallied']['count']
+        r = f'{r} ({n} fills)'
         return f'{r} ("{e}")' if e else r
 
     def dump( self, do_print = True, prefix = '' ):
@@ -530,8 +543,8 @@ class MMCResults:
         o.append('  inputs cfg:')
         o.append('    material : "%s"'%self.setup['material']['cfgstr'])
         o.append('    engine   : "%s"'%self.setup['engine']['cfgstr'])
-        o.append('    source   : "%s"'%self.setup['source']['cfgstr'])
-        o.append('    geometry : "%s"'%self.setup['geometry']['cfgstr'])
+        o.append('    source   : "%s"'%self.setup['src']['cfgstr'])
+        o.append('    geometry : "%s"'%self.setup['geom']['cfgstr'])
         o.append('  output:')
         outmd = self.__data['output']['metadata']
         def fmti( x ):
@@ -551,12 +564,13 @@ class MMCResults:
             o.append('    tally "%s":'%t.name)
             o += t.hist_total.dump( prefix = '      ',
                                     contents = False,
-                                    do_print=False ).splitlines()
+                                    do_print = False ).splitlines()
         #finish up:
         o.append('')
         o = ('\n%s'%prefix).join(o)
         if do_print:
-            print(o)
+            from ._common import print as ncprint
+            ncprint(o)
         return o
 
     def check_compat( self, other, threshold = 0.05, check=False ):

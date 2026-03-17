@@ -19,6 +19,76 @@
 ##                                                                            ##
 ################################################################################
 
+from .exceptions import NCBadInput
+
+_cache_tally_info = [None]
+def tally_info():
+    if _cache_tally_info[0] is not None:
+        return _cache_tally_info[0]
+    from ._common import json_query_cpplayer as query
+    _cache_tally_info[0] =  query(['mmc','cfgdoc','tally'], readonly = True)
+    return _cache_tally_info[0]
+
+def run( *, resclass, unpack,
+         cfgstr, geomcfg, srccfg, scenario, enginecfg,
+         callback, callback_options ):
+    def check( v, sn):
+        if not ( v is None or isinstance(v,str) ):
+            raise NCBadInput(f'The {sn} parameter must be a string.')
+    if cfgstr is None:
+            raise NCBadInput('Missing required parameter: cfgstr.')
+    enginecfg = '' if enginecfg is None else enginecfg
+    check(cfgstr,'cfgstr')
+    check(geomcfg,'geomcfg')
+    check(srccfg,'srccfg')
+    check(scenario,'scenario')
+    check(enginecfg,'engiornecfg')
+    check(callback_options,'callback_options')
+    if unpack not in ('dict', 'json', 'dict_jsoncompat', 'object'):
+        raise NCBadInput('Invalid value of unpack (must be "dict",'
+                         ' "json", "dict_jsoncompat", or "object"):'
+                         f' {repr(unpack)}')
+    query = ['mmc','run', cfgstr]#, geomcfg, srccfg, enginecfg]
+    n_geomsrc = ( ( 1 if geomcfg is not None else 0 )
+                  + ( 1 if srccfg is not None else 0 ) )
+    if n_geomsrc == 0 and scenario is None:
+        raise NCBadInput('Missing required parameters for geometry and source'
+                         '. Please supply either a scenario string,'
+                         ' or both of geomcfg + srccfg strings.')
+    if n_geomsrc > 0 and scenario is not None:
+        raise NCBadInput('Inconsistent parameters. Do not supply geomcfg or'
+                         ' srccfg when also supplying a scenario string.')
+    if n_geomsrc == 2 and scenario is None:
+        query += [ geomcfg, srccfg ]
+    elif n_geomsrc == 0 and scenario is not None:
+        query += [ scenario ]
+    else:
+        #Should have been caught above, but just as a safety we throw also here:
+        raise NCBadInput('Inconsistent parameters.')
+    query += [ enginecfg ]
+    if callback:
+        from ._chooks import _get_raw_cfcts
+        _rawfct = _get_raw_cfcts()
+        res = _rawfct['flexmmcrun']( query, callback, callback_options )
+    else:
+        if callback_options is not None:
+            raise NCBadInput('Inconsistent parameters. Do not supply'
+                             ' callback_options without a callback function.')
+        from ._common import json_query_cpplayer
+        res = json_query_cpplayer( query, unpack = False )
+
+    if unpack == 'json':
+        return res
+    import json
+    res = json.loads(res)
+    if unpack == 'dict_jsoncompat':
+        return res
+    from .hist import Hist1D
+    res = Hist1D.objectify_data(res)
+    if unpack == 'dict':
+        return res
+    return resclass( res )
+
 def results_check_compat_impl( _self, other, threshold, errfct ):
     if _self is other:
         return
@@ -27,8 +97,8 @@ def results_check_compat_impl( _self, other, threshold, errfct ):
         ('engine','cfgstr'),
         ('engine','decoded','seed'),
         ('engine','decoded','nthreads'),
-        ('source','cfgstr'),
-        ('source','decoded','n'),
+        ('src','cfgstr'),
+        ('src','decoded','n'),
     ]
     volatile = set(volatile)
     def cmp(d1,d2,keylist):

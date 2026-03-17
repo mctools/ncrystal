@@ -580,11 +580,8 @@ def plot_mmc(cfgstr,scenario_cfg,logy,do_pdf):
     if logy=='auto':
         logy=True
     np,plt,pdf = import_npplt(do_pdf)
-    res = mmc.minimc_run_scenario( cfgstr, scenario_cfg,
-                                   extra_engineopts = (
-                                       'tally=mu;tallybins=mu:180:0:180'
-                                   )
-                                  )
+    res = mmc.run( cfgstr, scenario=scenario_cfg,
+                   enginecfg = 'tally=mu;tallybins=mu:180:0:180' )
     res.tally('mu').plot( max_nbins=250, logy=logy,
                           title = res.short_title(latex=True),#fixme this title should be default?
                           plt = plt, do_show = False )

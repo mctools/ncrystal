@@ -174,14 +174,12 @@ namespace NCRYSTAL_NAMESPACE {
           //underlying gaussian:
           const double mu_n = ecfg.cachevals.first;
           const double sigma_n = ecfg.cachevals.second;
-          // const double mu    = fr.fr.value;
-          // const double sigma = fr.fr.secondary_value.value();
           a = std::exp( mu_n - 3*sigma_n );
           b = std::exp( mu_n + 3*sigma_n );
         }
         if ( fr.mode == EParsed::Mode::Wavelength )
-          md.approxERange.emplace( NeutronWavelength(a),
-                                   NeutronWavelength(b) );
+          md.approxERange.emplace( NeutronWavelength(b),
+                                   NeutronWavelength(a) );
         else
           md.approxERange.emplace( NeutronEnergy(a),
                                    NeutronEnergy(b) );
@@ -395,7 +393,7 @@ namespace NCRYSTAL_NAMESPACE {
                                          const StatCount& stat)
       {
         os << name;
-        os << ";n="<<stat.nOrig();
+        os << ";n="<<fmtUInt64AsNiceDbl(stat.nOrig());
         if ( x.dbl() )
           os << ";x="<<fmt(x.dbl());
         if ( y.dbl() )

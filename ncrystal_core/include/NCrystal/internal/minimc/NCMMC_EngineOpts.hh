@@ -77,6 +77,18 @@ namespace NCRYSTAL_NAMESPACE {
       value_type m_value = Flags::DEFAULT;
     };
 
+    //Get description of a single tally histogram:
+    struct TallyHistDescr {
+      TallyFlags flag;
+      StrView name;
+      StrView shortDescription;
+      StrView unit;
+    };
+    TallyHistDescr getTallyHistDescr( TallyFlags );
+    //Or for all histograms as JSON:
+    void tallyHistDescrToJSON( std::ostream& );
+
+
     class TallyBinningOverrides final {
       //Keep DB of binnings overridden by user. Any TallyFlags arguments to add
       //or lookup must have a single histogram bit set only!

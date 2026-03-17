@@ -88,7 +88,6 @@ void NCMMC::Query::JSONQuery_flexmmcrun( std::ostream& os,
   constexpr auto sv_run = StrView::make("run");
   constexpr auto sv_scenario = StrView::make("scenario");
   constexpr auto sv_inspectcfg = StrView::make("inspectcfg");
-  constexpr auto sv_tallylist = StrView::make("tallylist");
   constexpr auto sv_cfgdoc = StrView::make("cfgdoc");
 
   if ( cb.has_value() && key != sv_run )
@@ -96,49 +95,33 @@ void NCMMC::Query::JSONQuery_flexmmcrun( std::ostream& os,
                    "with an ['mmc','run',...] JSON query");
 
   if ( key == sv_run ) {
-    if ( nargs != 4 && nargs != 2 )
+    if ( nargs != 4 && nargs != 3 )
       invalid("correct usage: [\"mmc\",\"run\","
               "CFGSTR,GEOMCFG,SRCCFG,ENGINECFG]"
-              " or [\"mmc\",\"run\",CFGSTR,SCENARIOCFG]");
+              " or [\"mmc\",\"run\",CFGSTR,SCENARIOCFG,ENGINECFG]");
     if ( nargs == 4 ) {
       query_mmcrun(os,arg(0),arg(1),arg(2),arg(3),cb);
     } else {
-      //fixme: use this mode for pyapi runscenario? And consistent that we
-      //discard d.short_title? Perhaps we should get rid of scenario short
-      //titles again!!
       auto matcfg = MatCfg(argstr(0));
       auto d = NCrystal::MiniMC::Utils::decodeScenario( matcfg,
                                                         argstr(1).c_str() );
-      query_mmcrun(os,arg(0),d.geomcfg,d.srccfg,d.enginecfg,cb);
+      query_mmcrun(os,arg(0),d.geomcfg,d.srccfg,arg(2),cb);
     }
   } else if ( key == sv_scenario ) {
     if ( nargs != 2 )
       invalid("correct usage: [\"mmc\",\"scenario\",CFGSTR,SCENARIOSTR]");
     auto matcfg = MatCfg(argstr(0));
     auto d = NCrystal::MiniMC::Utils::decodeScenario( matcfg, argstr(1).c_str() );
-    streamJSONDictEntry( os, "cfgstr", matcfg.toStrCfg(), JSONDictPos::FIRST );
-    streamJSONDictEntry( os, "geomcfg", d.geomcfg );
-    streamJSONDictEntry( os, "srccfg", d.srccfg );
-    streamJSONDictEntry( os, "enginecfg", d.enginecfg );
-    streamJSONDictEntry( os, "short_title", d.short_title, JSONDictPos::LAST );
+    streamJSONDictEntry( os, "geomcfg", d.geomcfg, JSONDictPos::FIRST );
+    streamJSONDictEntry( os, "srccfg", d.srccfg, JSONDictPos::LAST );
   } else if ( key == sv_list ) {
     if ( nargs != 0 )
       invalid("no arguments should come after: [\"mmc\",\"list\"]");
     streamJSON( os,
-                std::array<StrView,5>{ sv_run,
+                std::array<StrView,4>{ sv_run,
                                        sv_scenario,
                                        sv_inspectcfg,
-                                       sv_tallylist,
                                        sv_cfgdoc } );
-  } else if ( key == sv_tallylist ) {
-    if ( nargs != 0 )
-      invalid("no arguments should come after: [\"mmc\",\"tallylist\"]");
-    using TF = TallyFlags;
-    streamJSONDictEntry( os, "ALL", TF(TF::Flags::ALL).toStringList(),
-                         JSONDictPos::FIRST );
-    streamJSONDictEntry( os, "DEFAULT", TF(TF::Flags::DEFAULT).toStringList() );
-    streamJSONDictEntry( os, "ALLHISTS", TF(TF::Flags::ALLHISTS).toStringList(),
-                         JSONDictPos::LAST );
   } else if ( key == sv_inspectcfg ) {
     const char * usage
       = "correct usage: [\"mmc\",\"inspectcfg\",\"src|geom|engine\",STRCFG]";
@@ -155,7 +138,7 @@ void NCMMC::Query::JSONQuery_flexmmcrun( std::ostream& os,
     }
   } else if ( key == sv_cfgdoc ) {
     const char * usage
-      = "correct usage: [\"mmc\",\"cfgdoc\",\"src|geom|engine\"]";
+      = "correct usage: [\"mmc\",\"cfgdoc\",\"src|geom|engine|tally\"]";
     if ( nargs != 1 )
       invalid(usage);
     if ( arg(0) == "src" ) {
@@ -164,6 +147,20 @@ void NCMMC::Query::JSONQuery_flexmmcrun( std::ostream& os,
       geometryOptsDocsToJSON( os );
     } else if ( arg(0) == "engine" ) {
       engineOptsDocsToJSON( os );
+    } else if ( arg(0) == "tally" ) {
+      os << "{\"tallyhistinfo\":";
+      tallyHistDescrToJSON(os);
+      os << ",\"tallylists\":";
+      using TF = TallyFlags;
+      streamJSONDictEntry( os, "ALL",
+                           TF(TF::Flags::ALL).toStringList(),
+                           JSONDictPos::FIRST );
+      streamJSONDictEntry( os, "DEFAULT",
+                           TF(TF::Flags::DEFAULT).toStringList() );
+      streamJSONDictEntry( os, "ALLHISTS",
+                           TF(TF::Flags::ALLHISTS).toStringList(),
+                           JSONDictPos::LAST );
+      os << '}';
     } else {
       invalid(usage);
     }

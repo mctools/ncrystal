@@ -424,6 +424,7 @@ def _plt_final(do_grid,
         plt.grid()
     if do_show:
         plt.show()
+    return plt
 
 _fakepyplot_mode_cache = [None]
 def _fakepyplot_mode():
