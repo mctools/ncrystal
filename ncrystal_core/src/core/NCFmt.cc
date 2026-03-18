@@ -44,18 +44,94 @@ namespace NCRYSTAL_NAMESPACE {
       {
       }
     };
+
+    namespace {
+      static constexpr std::size_t denorm_str_maxsize = 64;
+
+      Optional<double> raw_str2dbl_impl( const char * s_data,
+                                         std::size_t s_size,
+                                         bool allow_denorm_check = true );
+
+      Optional<double> raw_str2dbl_trydenorm( const char * s_data,
+                                              std::size_t s_size )
+      {
+        //NB: If std conversion fails and contains "e-3" it might be a denormal
+        //    number (issue seen on some mac/clang CI failure). So we could
+        //    replace the 3 with a 2, convert, and then multiply with 1e-100.
+        //    This might not catch ALL denormal values
+        //    (e.g. 0.000000000000001e-299), but it should hopefully catch those
+        //    we ourselves have produced by our fmt() function, ensuring a
+        //    conversion round-trip.
+        nc_assert( s_size <= denorm_str_maxsize );
+        const char * it = s_data;
+        const char * itE = it + s_size;
+        Optional<double> res;
+        for ( ;it!=itE;++it ) {
+          if ( *it != 'e' )
+            continue;
+          ++it;
+          if ( it == itE || *it!='-'
+               || std::next(it)==itE || *std::next(it)!='3' )
+            return res;
+          char tmpbuf[denorm_str_maxsize];
+          std::memcpy(tmpbuf,s_data,s_size);
+          auto idx = std::distance(s_data,it);
+          nc_assert( tmpbuf[ idx ] == '-' );
+          nc_assert( tmpbuf[ idx+1 ] == '3' );
+          if ( s_size != static_cast<std::size_t>(idx+4) )
+            return res;//has to be exactly two digits after the '3'
+          tmpbuf[ std::distance(s_data,it)+1 ] = '2';
+          std::string foo(tmpbuf,s_size);
+          auto val100 = raw_str2dbl_impl( tmpbuf, s_size, false );
+          if ( val100.has_value() && std::fabs( val100.value() ) < 1e-200 )
+            res = val100.value() * 1e-100;
+          break;
+        }
+        return res;
+      }
+
+#ifndef NDEBUG
+      static int dummy = []()
+      {
+        auto test = []( std::string s, double vref )
+        {
+          auto v = raw_str2dbl_trydenorm( s.data(), s.size() );
+          nc_assert_always( v.has_value() );
+          nc_assert_always( v.value() == vref );
+        };
+        test("4.94066e-324",4.94066e-324);
+        test("5e-320",5e-320);
+        test("1e-308",1e-308);
+        test("5e-324",5e-324);
+        test("1.123456789123456789e-315",1.123456789123456789e-315);
+        test("1e-301",1e-301);
+        return 1;
+      }();
+#endif
+
+      Optional<double> raw_str2dbl_impl( const char * s_data,
+                                         std::size_t s_size,
+                                         bool allow_denorm_check ) {
+        //Using streams so we can specify the locale (TODO in c++17 we can
+        //possibly use std::from_chars instead!). Using custom stream buffers to
+        //reduce need for allocations:
+        Optional<double> result;
+        detail::nc_imemstream ss(s_data,s_size);
+        ss.std::istream::imbue(std::locale::classic());
+        double val;
+        ss >> val;
+        if ( ss.fail() ) {
+          if ( allow_denorm_check && s_size <= denorm_str_maxsize )
+            result = raw_str2dbl_trydenorm( s_data, s_size );
+        } else if ( ss.eof() ) {
+          result = val;
+        }
+        return result;
+      }
+    }
+
     Optional<double> raw_str2dbl( const char * s_data, std::size_t s_size ) {
-      //Using streams so we can specify the locale (TODO in c++17 we can possibly
-      //use std::from_chars instead!). Using custom stream buffers to reduce need
-      //for allocations:
-      detail::nc_imemstream ss(s_data,s_size);
-      ss.std::istream::imbue(std::locale::classic());
-      double val;
-      ss >> val;
-      if ( !ss.fail() && ss.eof() )
-        return val;
-      else
-        return NullOpt;
+      return raw_str2dbl_impl(s_data,s_size);
     }
     Optional<std::int64_t> raw_str2int64( const char * s_data,
                                           std::size_t s_size ) {
@@ -144,8 +220,21 @@ NC::ShortStrDbl NC::dbl2shortstr( double value, const char * fmtstr )
       "%.26g", "%.27g", "%.28g", "%.29g", "%.30g",
     };
 
-    constexpr const char * fmt_full = fmt_patterns[std::numeric_limits<double>::max_digits10-1];
-    constexpr const char * fmt_full_m2 = fmt_patterns[std::numeric_limits<double>::max_digits10-3];
+    unsigned nstrip = 0;
+    double testval = value;
+    while ( std::fabs(testval) < std::numeric_limits<double>::min() ) {
+      ++nstrip;
+      testval *= 10;
+    }
+    if ( nstrip > 0 )
+      --nstrip;
+
+    constexpr int idxfmt_std = std::numeric_limits<double>::max_digits10-1;
+    const int idxfmt = std::max<int>(1,idxfmt_std-nstrip);
+    const int idxfmtm2 = std::max<int>(0,(idxfmt_std-2)-nstrip);
+
+    const char * fmt_full = fmt_patterns[idxfmt];
+    const char * fmt_full_m2 = fmt_patterns[idxfmtm2];
 
     //First try with a bit less than maxdigits10, which can prevent some
     //originally nice looking values being presented in a less nice looking

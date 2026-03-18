@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 #include <iostream>
 namespace NC=NCrystal;
 
@@ -100,4 +101,48 @@ int main() {
     std::cout<<", "<<NC::fmt(val,"%.15g");
   std::cout<<std::endl;
 
+
+  std::cout<<"fmt tests:"<<std::endl;
+  NC::VectD fmtvals = {
+    std::numeric_limits<double>::infinity(),
+    -std::numeric_limits<double>::infinity(),
+    std::numeric_limits<double>::quiet_NaN(),
+    std::numeric_limits<double>::denorm_min(),
+    2*std::numeric_limits<double>::denorm_min(),
+    0.5*std::numeric_limits<double>::denorm_min(),
+    0.0,
+    -0.0,
+    -2*std::numeric_limits<double>::denorm_min(),
+    -0.5*std::numeric_limits<double>::denorm_min(),
+    std::nextafter(std::numeric_limits<double>::min(),9999),
+    std::numeric_limits<double>::min(),
+    std::nextafter(std::numeric_limits<double>::min(),0),
+    -std::nextafter(std::numeric_limits<double>::min(),9999),
+    -std::numeric_limits<double>::min(),
+    -std::nextafter(std::numeric_limits<double>::min(),0),
+    3.63069e-313,
+    3.630691234567891234567e-313,
+    1.234567891234567891232e-320,
+    -3.63069e-313,
+    -3.630691234567891234567e-313,
+    -1.234567891234567891232e-320
+  };
+  for ( auto& e :
+          NC::geomspace( std::numeric_limits<double>::denorm_min() * (1e100*0.1),
+                         std::numeric_limits<double>::min() * (1e100*10),
+                         107 ) ) {//107 is a prime
+    fmtvals.push_back( e*1e-100 );
+  }
+  for ( auto val : fmtvals )
+    std::cout<<"  fmt("<<val<<",\"%.6g\") = >>"
+             <<std::flush<<NC::fmt(val,"%.6g")<<"<<"<<std::endl;
+  for ( auto val : fmtvals ) {
+    std::cout<<"  test fmt("<<val<<")"<<std::endl;
+    std::ostringstream ss;
+    ss<<NC::fmt(val);
+    std::string tmp = ss.str();
+    double backconv = NC::str2dbl(tmp);
+    nc_assert_always( (NC::ncisnan(val)&&NC::ncisnan(backconv))
+                      || val==backconv);
+  }
 }
