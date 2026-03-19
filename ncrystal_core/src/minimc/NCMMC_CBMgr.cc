@@ -106,7 +106,7 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert( bt == BasketType::Basic || bt == BasketType::Extended );
           nc_assert( b.nscat != nullptr );
           nc_assert( b.nscat_inelas != nullptr );
-          nc_assert( (b.nscat_inelas == nullptr) == ( bt == BasketType::Basic) );
+          nc_assert( (b.neutrons_initial == nullptr) == ( bt == BasketType::Basic) );
           const std::size_t nfields = ( bt == BasketType::Basic ? 10 : 18 );
 
           //Based on this, figure out number of fields and setup memory:
@@ -317,21 +317,26 @@ void NCMMC::CB::CBMgr::flush()
 #else
   if ( m_cache!=nullptr && m_cache->size() > 0 ) {
     nc_assert( m_callback != nullptr );
-    m_callback( *m_cache );
+    auto rv = m_callback( *m_cache );
     DataArea::Mutable::size(*m_cache) = 0;
     //m_cache->clear();
+    if ( rv == CallBackFctRV::HALTSRC )
+      m_haltSource();
   }
 #endif
 }
 
-NCMMC::CB::CBMgr::CBMgr( CBMgrInput input )
+NCMMC::CB::CBMgr::CBMgr( CBMgrInput input,
+                         std::function<void()> haltSource )
   : m_nmax( input.cachelen > basket_N ? input.cachelen : basket_N ),
 #ifndef NCRYSTAL_DISABLE_THREADS
     m_nmax_caches( input.ncaches > 1 ? input.ncaches : 1 ),
 #endif
-    m_callback(std::move(input.callbackfct))
+    m_callback(std::move(input.callbackfct)),
+    m_haltSource(std::move(haltSource))
 {
   nc_assert_always(m_callback!=nullptr);
+  nc_assert_always(m_haltSource!=nullptr);
 
   //1e9 is high, memorable, fits in any kind of integer of at least 32 bits.
   if ( input.cachelen > CBMgrInput::cachelen_max )
@@ -403,7 +408,9 @@ void NCMMC::CB::CBMgr::fireCallback( const DataArea& data )
   nc_assert_always(data.size()>0);
   NCRYSTAL_LOCK_GUARD( m_cbmtx );
   nc_assert( m_callback != nullptr );
-  m_callback( data );
+  auto rv = m_callback( data );
+  if ( rv == CallBackFctRV::HALTSRC )
+    m_haltSource();
 }
 
 NCMMC::CB::CBMgrInput NCMMC::CB::decodeCBMgrInput( StrView raw_str )

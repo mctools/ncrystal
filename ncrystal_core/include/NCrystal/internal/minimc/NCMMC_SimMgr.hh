@@ -51,8 +51,19 @@ namespace NCRYSTAL_NAMESPACE {
           m_engine( std::move(engine) ),
           m_tallymgr( std::move(tallymgr) )
       {
-        if ( callback.has_value() )
-          m_cbmgr.emplace( std::move(callback.value()) );
+        if ( callback.has_value() ) {
+          std::weak_ptr<InputBasketProvider> weak_bpv = m_bprovider.getsp();
+          std::function<void()> haltSrc = [weak_bpv]()
+          {
+            //halt the source if ptr is available (obviously no need otherwise)
+            auto bpv = weak_bpv.lock();
+            if ( bpv != nullptr )
+              bpv->haltSource();
+          };
+          m_cbmgr.emplace( std::move(callback.value()),
+                           std::move(haltSrc) );
+
+        }
       }
 
       struct LaunchSimReturnVal {

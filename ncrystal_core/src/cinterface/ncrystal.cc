@@ -2455,13 +2455,15 @@ void ncrystal_runmmcsim_stdengine( unsigned, unsigned, const char *,
 }
 
 #include "NCrystal/internal/minimc/NCMMC_Query.hh"
+#include "NCrystal/internal/minimc/NCMMC_CBMgr.hh"
 
 char* ncrystal_flexmmcrun( const char * jsonquery,
                            const char * cb_options,
-                           void (*cbfct)(const double* const* data,
-                                         unsigned long cbtype,
-                                         unsigned long n) )
+                           unsigned (*cbfct)(const double* const* data,
+                                             unsigned long cbtype,
+                                             unsigned long n) )
 {
+  namespace NCMCB = NC::MiniMC::CB;
   char * result = nullptr;
   try {
     auto query = ncc::jsonQueryDecode(jsonquery);
@@ -2470,10 +2472,11 @@ char* ncrystal_flexmmcrun( const char * jsonquery,
                      " ['mmc','run',...] JSON query");
     }
     auto sv_cboptions = NC::StrView(cb_options?cb_options:"");
-    auto cbinput = NC::MiniMC::CB::decodeCBMgrInput( sv_cboptions );
+    auto cbinput = NCMCB::decodeCBMgrInput( sv_cboptions );
 
     cbinput.callbackfct
-      = [&cbfct]( const NC::MiniMC::CB::DataArea& cbdata )
+      = [&cbfct]( const NCMCB::DataArea& cbdata )
+      -> NCMCB::CallBackFctRV
     {
       //And ensure any exceptions in any worker thread (or outside them) cause
       //no further callbacks to be fired. Including also exceptions/errors
@@ -2481,7 +2484,16 @@ char* ncrystal_flexmmcrun( const char * jsonquery,
       nc_assert( cbdata.size() <= std::numeric_limits<unsigned long>::max() );
       const auto n_neutrons = static_cast<unsigned long>( cbdata.size() );
       //Invoke the user callback:
-      cbfct( cbdata.view_data(), cbdata.basketTypeForCallBack(), n_neutrons );
+      unsigned rv = cbfct( cbdata.view_data(),
+                           cbdata.basketTypeForCallBack(),
+                           n_neutrons );
+      constexpr unsigned rvmax
+        = static_cast<unsigned>(NCMCB::CallBackFctRV::MAXVALID);
+      if ( rv > rvmax )
+        NCRYSTAL_THROW2(CalcError,"Invalid return value from callback"
+                        <<" function (must be between 0 and "
+                        <<rvmax<<"): "<<rv);
+      return static_cast<NCMCB::CallBackFctRV>(rv);
     };
     std::ostringstream os;
     NC::MiniMC::Query::JSONQuery_flexmmcrun( os, query, cbinput );

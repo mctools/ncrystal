@@ -969,6 +969,11 @@ class HistFiller1D:
         """Tuple of (nbins,xmin,xmax)"""
         return ( self.__nbins, self.__xmin, self.__xmax )
 
+    @property
+    def integral( self ):
+        """Calculates total sum of weights filled within [xmin,xmax]."""
+        return self.__sumw.sum()
+
     def clone_empty( self, title = None ):
         """Create a new HistFiller1D object with the same binning. Unless a new
         title is supplied, the title of the resulting object will also be the

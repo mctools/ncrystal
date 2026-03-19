@@ -848,7 +848,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         return decode_query_result(raw_str)
     functions['jsonquery'] = jsonquery
 
-    _FLEXMMCRUNCBTYPE = ctypes.CFUNCTYPE( None, _dblpp, _ulong, _ulong )
+    _FLEXMMCRUNCBTYPE = ctypes.CFUNCTYPE( _uint, _dblpp, _ulong, _ulong )
     _raw_flexmmcrun = _wrap( 'ncrystal_flexmmcrun',_charptr,
                              (_cstr,_cstr,_FLEXMMCRUNCBTYPE ), hide=True )
     def flexmmcrun( query, user_callback, callback_options ):
@@ -857,7 +857,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         cb_errors = []
         def cb_wrapper( data, cbtype, data_len ):
             if cb_errors:
-                return
+                return 1
             cbtype = int(cbtype)
             assert cbtype in (1,2)
 
@@ -878,7 +878,9 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
                 )
 
             try:
-                user_callback( pydata )
+                user_rv = user_callback( pydata )
+                #FIXME: Just let the exception go! After we use
+                #       std::exception_ptr etc.
                 #Fixme: we need to test the experience in case of an error from
                 #the user callback, or the user pressing ctrl-c. However, we
                 #should also the what happens if there is an exception during
@@ -888,6 +890,10 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             except Exception as e:
                 print("User callback threw exception: aborting.")
                 cb_errors.append(e)
+                user_rv = 1
+
+            #None or False -> 0 (STD), True -> 1 (HALTSRC)
+            return 1 if bool(user_rv) else 0
 
         cb_c = _FLEXMMCRUNCBTYPE(cb_wrapper)
         cbopt_c = None
