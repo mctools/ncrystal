@@ -23,20 +23,13 @@
 
 #include "NCrystal/internal/minimc/NCMMC_Geom.hh"
 #include "NCrystal/internal/minimc/NCMMC_Source.hh"
-#include "NCrystal/internal/utils/NCMath.hh"
-#include "NCMMC_BasketQueueMgr.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
-    //A helper class, extending the BasketQueueMgr with the ability to also "top
-    //up" pending baskets with new baskets from a source, and to handle the
-    //propagation of src particles to the modelled geometry. It can also be used
-    //to signal the end of simulations (i.e. "please do not provide any more
-    //fresh source particles"), even with a handy "button". It will be MT-safe
-    //to use, unless told not to be.
-
-    enum class ThreadedUsage { Single, Multi };
+    //A helper class for "topping up" pending baskets with new baskets from a
+    //source, and to handle the propagation of src particles to the modelled
+    //geometry.
 
     namespace detail {
       //propagator fct which supports offset:
@@ -49,51 +42,65 @@ namespace NCRYSTAL_NAMESPACE {
     class BasketSrcFiller final : NoCopyMove {
     public:
       using basket_t = TBasket;
-      using basket_holder_t = BasketHolder<TBasket>;
-      using basketqueuemgr_t = BasketQueueMgr<TBasket>;
 
       BasketSrcFiller( GeometryPtr geom,
-                       SourcePtr src,
-                       shared_obj<basketqueuemgr_t> bm,
-                       ThreadedUsage tu = ThreadedUsage::Multi )
+                       SourcePtr src )
         : m_geom(std::move(geom)),
           m_src(std::move(src)),
-          m_basketqueuemgr(std::move(bm)),
           m_srcParticlesMightBeOutside(m_src->particlesMightBeOutside(m_geom))
       {
-        m_srcHalted.store(false);
-        if ( tu == ThreadedUsage::Multi && !m_src->metaData().concurrent )
-          m_srcmutex.emplace();
       }
 
-      void haltSource()
-      {
-        //For stopping the source prematurely (fixme: not used?!?!?... should we
-        //use it from the python callbacks, to end in case of issues. Or perhaps
-        //we should allow the callbacks to return a special value to indicate
-        //end of simulation?). We could also (for e.g. visualisation) add an
-        //option to get callbacks whenever a pending basket is added back to the
-        //queue, or the source generates new neutrons. However, we should deal
-        //with the fact that the source can top off existing baskets.
-        m_srcHalted.store( true );
-      }
+      //Main function. returns false if source ran out (or has run out earier):
+      bool fillFromSource( basket_t& b,
+                           RNG& rng,
+                           const std::function<void(const basket_t&)>& resultFct,
+                           ParticleCountSum& missCount,
+                           basket_t& extra_basket_buffer,
+                           unsigned nretry = 10 ) {
 
-      //Access a pending basket full of neutrons actually hitting the volume. If
-      //resultFct is available (!=nullptr), any neutrons from the source missing
-      //the geometry completely are simply marked as having missed and served up
-      //as results. If resultFct==nullptr, they are instead simply silently
-      //discarded.
-      basket_holder_t getPendingBasket( ThreadCount nthreads,
-                                        RNG& rng,
-                                        const std::function<void(const basket_t&)>& resultFct,
-                                        ParticleCountSum& missCount)
-      {
-        return this->getPendingBasketImpl(nthreads,rng,10,resultFct,missCount);
+        b.validateIfDbg();
+        const std::size_t size_orig = b.size();
+
+        //Ok, we need to try to fill the basket from the source:
+        bool src_has_more = true;
+        m_src->fillBasket( rng, b.get_neutrons() );
+
+        //Source provided neutron parameters, but we still need to initialise
+        //any other parameters:
+        for( std::size_t i = size_orig; i < b.size(); ++i)
+          b.init_extra( i );
+
+        b.validateIfDbg();
+        if ( !b.full() )
+          src_has_more = false;
+
+        //If source particles might be outside volume, we have to propagate them
+        //to the volume (and record the rest as results already):
+        b.validateIfDbg();
+        if ( m_srcParticlesMightBeOutside ) {
+          propagateToVolume( b, size_orig, resultFct, extra_basket_buffer,
+                             missCount );
+          b.validateIfDbg();
+        }
+
+        if ( src_has_more && b.size() < basket_N_almost_Full ) {
+          //Not quite full, lots of misses. We can try again a few times:
+          if ( nretry > 0 ) {
+            return fillFromSource( b, rng, resultFct, missCount,
+                                   extra_basket_buffer, nretry - 1 );
+          } else {
+            NCRYSTAL_THROW(CalcError,"Source particles consistently "
+                           "seem to miss the geometry.");
+          }
+        }
+        return src_has_more;
       }
 
     private:
       void propagateToVolume( basket_t& b, std::size_t offset,
                               const std::function<void(const basket_t&)>& resultFct,
+                              basket_t& extra_basket_buffer,
                               ParticleCountSum& missCount ) {
         //We must edit the basket, propagating all the neutrons to the volume if
         //they can. Those that can NOT do that, should be marked as having
@@ -112,12 +119,11 @@ namespace NCRYSTAL_NAMESPACE {
         BasketValBufDbl dist_results;
         m_geom->distToVolumeEntry( b.get_neutrons(), dist_results, offset );
 
-        //Next, reserve a basket for results (those that missed):
-        Optional<basket_holder_t> bh_results;
+        //Next, prepare a basket for results (those that missed):
         basket_t * bmiss = nullptr;
         if ( !ignore_miss ) {
-          bh_results.set( m_basketqueuemgr->allocateBasket() );
-          bmiss = &bh_results.value().basket();
+          bmiss = &extra_basket_buffer;
+          bmiss->get_neutrons().nused = 0;
         }
 
         std::size_t i_first_hole = basket_N;
@@ -160,101 +166,16 @@ namespace NCRYSTAL_NAMESPACE {
 
         //And finally, return any neutrons that missed as a result, after
         //marking them as having missed the target.
-        if ( bh_results.has_value() ) {
-          nc_assert( bmiss != nullptr );
-          if ( !bmiss->empty() ) {
-            for ( auto i : ncrange( bmiss->size() ) )
-              bmiss->markAsMissedTarget(i);
-            resultFct( *bmiss );
-          }
-          m_basketqueuemgr->deallocateBasket( std::move(bh_results.value()) );
-        }
-      }
-
-      basket_holder_t
-      getPendingBasketImpl( ThreadCount nthreads,
-                            RNG& rng,
-                            unsigned nretry,
-                            const std::function<void(const basket_t&)>& resultFct,
-                            ParticleCountSum& missCount ) {
-
-        //Get via basket mgr:
-        nc_assert_always(nthreads.get()>=1);
-        //Pass nthreads to basketmgr call in the next line, to avoid merging
-        //baskets if there are anyway less pending baskets than the number of
-        //threads:
-        auto bh = m_basketqueuemgr->getPendingBasketOrAllocateEmpty( nthreads );
-        bh.basket().validateIfDbg();
-
-        nc_assert(bh.valid());
-        const std::size_t size_orig = bh.basket().size();
-        if ( size_orig >= basket_N_almost_Full )
-          return bh;
-
-        //Ok, we need to try to fill the basket from the source (while locking
-        //m_srcmutex if source does not support concurrent access).
-        bool src_has_more = !m_srcHalted.load();
-        if ( src_has_more ) {
-          if ( !m_srcmutex.has_value() ) {
-            m_src->fillBasket( rng, bh.basket().get_neutrons() );
-          } else {
-            NCRYSTAL_LOCK_GUARD(m_srcmutex.value());
-            m_src->fillBasket( rng, bh.basket().get_neutrons() );
-          }
-          //Source provided neutron parameters, but we still need to initialise
-          //any extra cache parameters as well.
-          for( std::size_t i = size_orig; i < bh.basket().size(); ++i)
-            bh.basket().init_extra( i );
-
-          bh.basket().validateIfDbg();
-          const bool src_ran_out = !bh.basket().full();
-          if ( src_ran_out ) {
-            m_srcHalted.store( true );
-            src_has_more = false;
-          }
-        }
-
-        //If source particles might be outside volume, we have to propagate them
-        //to the volume (and record the rest as results already):
-        bh.basket().validateIfDbg();
-        if ( m_srcParticlesMightBeOutside ) {
-          propagateToVolume( bh.basket(), size_orig, resultFct, missCount );
-          bh.basket().validateIfDbg();
-          if ( bh.basket().empty() ) {
-            //Original basket was empty, and they *all* missed!
-            //Try again, unless src ran out:
-            m_basketqueuemgr->deallocateBasket(std::move(bh));
-            if ( !src_has_more )
-              return basket_holder_t{ no_init };
-            if ( nretry==0 )
-              throw std::runtime_error("Source particles consistently "
-                                       "seem to miss the geometry.");
-            return this->getPendingBasketImpl( nthreads, rng, nretry-1,
-                                               resultFct, missCount );
-          }
-        }
-
-        //NB: After the propagation step, we still might have most particles
-        //missing the volume! We could try to "top off" the basket again in that
-        //case? (TODO)
-
-        if ( bh.basket().empty() ) {
-          //Apparently we are done.
-          m_basketqueuemgr->deallocateBasket(std::move(bh));
-          return basket_holder_t{ no_init };
-        } else {
-          return bh;
+        if ( bmiss && !bmiss->empty() ) {
+          for ( auto i : ncrange( bmiss->size() ) )
+            bmiss->markAsMissedTarget(i);
+          resultFct( *bmiss );
         }
       }
 
       GeometryPtr m_geom;
       SourcePtr m_src;
-      shared_obj<basketqueuemgr_t> m_basketqueuemgr;
-      Optional<std::mutex> m_srcmutex;
-      std::atomic<bool> m_srcHalted;
       bool m_srcParticlesMightBeOutside;
-
-
     };
   }
 }

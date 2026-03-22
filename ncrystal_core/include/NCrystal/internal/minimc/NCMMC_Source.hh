@@ -66,7 +66,7 @@ namespace NCRYSTAL_NAMESPACE {
       //should fill more neutrons. Note that the basket passed to this method
       //might not be empty, and the existing entries should be left alone! If
       //the call does not completely fill the basket, it will be assumed that
-      //the source has run out (which should never happen for Infinite sources).
+      //the source has run out:
       virtual void fillBasket( RNG&, NeutronBasket& ) = 0;
 
       //Provide source metaData:

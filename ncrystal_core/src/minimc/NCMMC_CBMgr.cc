@@ -110,13 +110,13 @@ namespace NCRYSTAL_NAMESPACE {
           const std::size_t nfields = ( bt == BasketType::Basic ? 10 : 18 );
 
           //Based on this, figure out number of fields and setup memory:
-          nc_assert_always(da.size() == 0);
-          nc_assert_always( da_basketType == BasketType::Invalid);//fixme _always (entire file)
-          nc_assert_always( nfields > 0 && nfields <= DataArea::nfieldsmax );
-          nc_assert_always( da.capacity() > 0
-                            && da.capacity() <= CBMgrInput::cachelen_max );
+          nc_assert(da.size() == 0);
+          nc_assert( da_basketType == BasketType::Invalid);
+          nc_assert( nfields > 0 && nfields <= DataArea::nfieldsmax );
+          nc_assert( da.capacity() > 0
+                     && da.capacity() <= CBMgrInput::cachelen_max );
           const std::size_t nvalues = nfields * da.capacity();
-          nc_assert_always( da_memholder == nullptr );
+          nc_assert( da_memholder == nullptr );
           da_memholder = ncmake_unique_array<double>( nvalues );
           double * it = da_memholder.get();
           for ( auto i : ncrange( nfields ) ) {
@@ -124,7 +124,7 @@ namespace NCRYSTAL_NAMESPACE {
             it += da.capacity();
           }
           da_basketType = bt;
-          nc_assert_always( nfields == da.nFields() );
+          nc_assert( nfields == da.nFields() );
         }
 
         void data_append( DataArea& da, const Basket& b )
@@ -132,15 +132,15 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert(b.valid()&&b.neutrons);
           const std::size_t this_size = da.size();
           const std::size_t o_size = b.size();
-          nc_assert_always( o_size <= basket_N );
-          nc_assert_always( this_size + o_size <= da.capacity() );
+          nc_assert( o_size <= basket_N );
+          nc_assert( this_size + o_size <= da.capacity() );
 
           const auto& da_basketType = DataArea::Mutable::basketType(da);
 
           if ( da_basketType == BasketType::Invalid )
             data_init( da, b );
-          nc_assert_always( da_basketType == BasketType::Basic
-                            || da_basketType == BasketType::Extended );
+          nc_assert( da_basketType == BasketType::Basic
+                     || da_basketType == BasketType::Extended );
 
           auto& da_datacache = DataArea::Mutable::datacache(da);
           data_append_neutronfields( da_datacache, 0, da.size(),
@@ -149,7 +149,7 @@ namespace NCRYSTAL_NAMESPACE {
           //Convert nscat and nscat_inelas to doubles:
           {
             auto b_nscat = b.nscat;
-            nc_assert_always( b_nscat != nullptr );
+            nc_assert( b_nscat != nullptr );
             double * dst = da_datacache[8] + this_size;
             double * dstE = dst + o_size;
             const int * src = b_nscat->data;
@@ -159,7 +159,7 @@ namespace NCRYSTAL_NAMESPACE {
 
           {
             auto b_nscat_inelas = b.nscat_inelas;
-            nc_assert_always( b_nscat_inelas != nullptr );
+            nc_assert( b_nscat_inelas != nullptr );
             double * dst = da_datacache[9] + this_size;
             double * dstE = dst + o_size;
             const int * src = b_nscat_inelas->data;
@@ -169,7 +169,7 @@ namespace NCRYSTAL_NAMESPACE {
 
           if ( da_basketType == BasketType::Extended ) {
             auto nb_orig = b.neutrons_initial;
-            nc_assert_always( nb_orig != nullptr );
+            nc_assert( nb_orig != nullptr );
             data_append_neutronfields( da_datacache, 10, da.size(),
                                        *nb_orig, b.size() );
           }
@@ -180,32 +180,32 @@ namespace NCRYSTAL_NAMESPACE {
 #ifndef NCRYSTAL_DISABLE_THREADS
         void data_append_other( DataArea& dst, DataArea& o )
         {
-          nc_assert_always( &dst != &o );
+          nc_assert( &dst != &o );
           if ( dst.size() >= dst.capacity() || o.size() == 0 )
             return;//we are full, or the other area is empty.
 
           const std::size_t freecap = dst.capacity() - dst.size();
           const std::size_t ntransfer = ( o.size() <= freecap
                                           ? o.size() : freecap );
-          nc_assert_always( ntransfer >= 1 );
-          nc_assert_always( ntransfer <= o.size() );
-          nc_assert_always( ntransfer <= freecap );
-          nc_assert_always( dst.size()+ntransfer <= dst.capacity() );
+          nc_assert( ntransfer >= 1 );
+          nc_assert( ntransfer <= o.size() );
+          nc_assert( ntransfer <= freecap );
+          nc_assert( dst.size()+ntransfer <= dst.capacity() );
           const std::size_t new_osize = o.size() - ntransfer;
 
           //Carry out the transfer:
           auto dst_data = DataArea::Mutable::datacache(dst);
           auto o_data = o.view_data();
           const std::size_t nfields = dst.nFields();
-          nc_assert_always( nfields == o.nFields() );
+          nc_assert( nfields == o.nFields() );
           for ( auto ifield : ncrange(nfields) )
             BasketUtils::memcpydata<double>( dst_data[ifield] + dst.size(),
                                              o_data[ifield] + new_osize,
                                              ntransfer );
           DataArea::Mutable::size(o) = new_osize;
           DataArea::Mutable::size(dst) += ntransfer;
-          nc_assert_always(dst.size()<=dst.capacity());
-          nc_assert_always(o.size()<=o.capacity());
+          nc_assert(dst.size()<=dst.capacity());
+          nc_assert(o.size()<=o.capacity());
         }
 #endif
       }
@@ -217,7 +217,7 @@ unsigned NCMMC::CB::DataArea::nFields() const
 {
   if ( m_basketType == BasketType::Basic )
     return 10;
-  nc_assert_always( m_basketType == BasketType::Extended );
+  nc_assert( m_basketType == BasketType::Extended );
   return 18;
 }
 
@@ -225,17 +225,17 @@ void NCMMC::CB::CBMgr::registerData( const Basket& b )
 {
 #ifndef NCRYSTAL_DISABLE_THREADS
   auto datauptr = threadAcquireCache();
-  nc_assert_always(datauptr!=nullptr);
+  nc_assert(datauptr!=nullptr);
   data_append( *datauptr, b );
   threadReturnCache( std::move(datauptr) );
 #else
   if ( m_cache == nullptr ) {
     m_cache = ncmake_unique<DataArea>(m_nmax);
-    nc_assert(!(m_cache->size() + b->size() > m_nmax));
-  } else if ( m_cache->size() + b->size() > m_nmax ) {
+    nc_assert(!(m_cache->size() + b.size() > m_nmax));
+  } else if ( m_cache->size() + b.size() > m_nmax ) {
     flush();
   }
-  nc_assert_always(m_cache!=nullptr);
+  nc_assert(m_cache!=nullptr);
   data_append( *m_cache, b );
 #endif
 }
@@ -254,7 +254,7 @@ void NCMMC::CB::CBMgr::flush()
   while( !m_caches.empty() ) {
     cachevector.emplace_back(std::move(m_caches.front()));
     m_caches.pop();
-    nc_assert_always(cachevector.back()!=nullptr);
+    nc_assert(cachevector.back()!=nullptr);
   }
 
   const std::size_t capacity1 = cachevector.front()->capacity();
@@ -276,30 +276,30 @@ void NCMMC::CB::CBMgr::flush()
     std::stable_sort( cachevector.begin(), cachevector.end(),
                       [](const DataAreaPtr& a, const DataAreaPtr&b)
                       {
-                        nc_assert_always(a!=nullptr&&b!=nullptr);
+                        nc_assert(a!=nullptr&&b!=nullptr);
                         return a->size() > b->size();
                       } );
   };
 
   while ( merge_makes_sense() ) {
-    nc_assert_always(cachevector.size()>=2);
+    nc_assert(cachevector.size()>=2);
     sort_cachevector();
     auto itBack = std::prev(cachevector.end());
-    nc_assert_always(itBack->get()!=nullptr);
-    nc_assert_always(std::prev(itBack)->get()!=nullptr);
-    nc_assert_always(std::prev(itBack)>=cachevector.begin());
+    nc_assert(itBack->get()!=nullptr);
+    nc_assert(std::prev(itBack)->get()!=nullptr);
+    nc_assert(std::prev(itBack)>=cachevector.begin());
     DataArea& src_area = *(itBack->get());
     DataArea& tgt_area = *(std::prev(itBack)->get());
-    nc_assert_always(tgt_area.size()<tgt_area.capacity());//should not be able
-                                                          //to happen if
-                                                          //merge_makes_sense()
+    nc_assert(tgt_area.size()<tgt_area.capacity());//should not be able
+                                                   //to happen if
+                                                   //merge_makes_sense()
     if ( src_area.size() > 0 )
       data_append_other(tgt_area, src_area );
     if ( src_area.size() == 0 ) {
       cachevector.pop_back();//fully absorbed, discard
-      nc_assert_always(capacity_total>capacity1);
+      nc_assert(capacity_total>capacity1);
       capacity_total -= capacity1;
-      nc_assert_always(capacity_total>size_total);
+      nc_assert(capacity_total>size_total);
     }
   }
 
@@ -309,7 +309,7 @@ void NCMMC::CB::CBMgr::flush()
   std::reverse( cachevector.begin(), cachevector.end() );
   while( !cachevector.empty() ) {
     DataAreaPtr data = std::move(cachevector.back());
-    nc_assert_always(data!=nullptr);
+    nc_assert(data!=nullptr);
     cachevector.pop_back();
     if ( data != nullptr && data->size() > 0 )
       fireCallback( *data );
@@ -335,8 +335,8 @@ NCMMC::CB::CBMgr::CBMgr( CBMgrInput input,
     m_callback(std::move(input.callbackfct)),
     m_haltSource(std::move(haltSource))
 {
-  nc_assert_always(m_callback!=nullptr);
-  nc_assert_always(m_haltSource!=nullptr);
+  nc_assert(m_callback!=nullptr);
+  nc_assert(m_haltSource!=nullptr);
 
   //1e9 is high, memorable, fits in any kind of integer of at least 32 bits.
   if ( input.cachelen > CBMgrInput::cachelen_max )
@@ -384,18 +384,18 @@ NCMMC::CB::CBMgr::DataAreaPtr NCMMC::CB::CBMgr::threadAcquireCache()
     }
     return res != nullptr;
   });
-  nc_assert_always( res != nullptr );
+  nc_assert( res != nullptr );
   return res;
 }
 
 void NCMMC::CB::CBMgr::threadReturnCache( DataAreaPtr data )
 {
-  nc_assert_always(data!=nullptr);
+  nc_assert(data!=nullptr);
   if ( data->size()+basket_N > m_nmax ) {
     //Not room for another basket. Deliver + clear:
     fireCallback( *data );
     DataArea::Mutable::size(*data) = 0;
-    nc_assert_always( data->size() == 0 );
+    nc_assert( data->size() == 0 );
   }
   //Return to queue:
   std::unique_lock<std::mutex> lock(m_cachemtx);
@@ -405,13 +405,16 @@ void NCMMC::CB::CBMgr::threadReturnCache( DataAreaPtr data )
 
 void NCMMC::CB::CBMgr::fireCallback( const DataArea& data )
 {
-  nc_assert_always(data.size()>0);
+  nc_assert(data.size()>0);
   NCRYSTAL_LOCK_GUARD( m_cbmtx );
   nc_assert( m_callback != nullptr );
   auto rv = m_callback( data );
   if ( rv == CallBackFctRV::HALTSRC )
     m_haltSource();
 }
+
+
+#endif
 
 NCMMC::CB::CBMgrInput NCMMC::CB::decodeCBMgrInput( StrView raw_str )
 {
@@ -450,5 +453,3 @@ NCMMC::CB::CBMgrInput NCMMC::CB::decodeCBMgrInput( StrView raw_str )
 
   return res;
 }
-
-#endif

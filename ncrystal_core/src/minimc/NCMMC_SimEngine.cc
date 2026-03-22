@@ -23,7 +23,11 @@
 #include "NCrystal/internal/extd_utils/NCABIUtils.hh"
 #include "NCrystal/internal/minimc/NCMMC_Utils.hh"
 #include "NCMMC_BasketUtils.hh"
-
+#ifndef NCRYSTAL_DISABLE_THREADS
+#  ifdef NCRYSTAL_DEBUGMMCMSG_ENABLED
+#    include <thread>
+#  endif
+#endif
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
 
@@ -34,6 +38,7 @@ namespace NCRYSTAL_NAMESPACE {
         //The input:
         EngineOpts m_opt;
         GeometryPtr m_geom;
+        shared_obj<BasketMgr> m_bmgr;
         MatDef m_mat;
 
         //Derived values and caches:
@@ -47,6 +52,25 @@ namespace NCRYSTAL_NAMESPACE {
         BasketValBufDbl m_buf_xs_abs;
         BasketValBufDbl m_buf_ptransm;
         BasketValBufDbl m_buf_disttoscat;
+        Basket m_basket_buffer;
+
+        Basket allocateBasket() {
+          if ( m_basket_buffer.valid() ) {
+            m_basket_buffer.neutrons->nused = 0;
+            return std::move(m_basket_buffer);
+          } else {
+            return m_bmgr->allocateBasket();
+          }
+        }
+        void deallocateBasket( Basket&& b ) {
+          if ( !b.valid() )
+            return;
+          if ( m_basket_buffer.valid() ) {
+            m_bmgr->deallocateBasket( std::move(b) );
+          } else {
+            m_basket_buffer = std::move(b);
+          }
+        }
 
         static void checkBasketFields( const Basket& b )
         {
@@ -57,16 +81,29 @@ namespace NCRYSTAL_NAMESPACE {
 
       public:
 
+        ~StdSimEngine()
+        {
+          if ( m_basket_buffer.valid() ) {
+            try {
+              m_bmgr->deallocateBasket( std::move(m_basket_buffer) );
+            } catch(...) {
+              printf("NCrystal ERROR: Unexpected exception in ~StdSimEngine\n");
+            }
+          }
+        }
+
         shared_obj<SimEngine> clone() const override
         {
-          return makeSO<StdSimEngine>( m_opt, m_geom, m_mat );
+          return makeSO<StdSimEngine>( m_opt, m_geom, m_bmgr, m_mat );
         }
 
         StdSimEngine( const EngineOpts& eopts,
                       GeometryPtr geom,
+                      shared_obj<BasketMgr> bmgr,
                       MatDef mat )
           : m_opt( eopts ),
             m_geom( std::move(geom) ),
+            m_bmgr( std::move(bmgr) ),
             m_mat( std::move(mat) )
         {
           if ( ! ( m_opt.roulette.survival_probability > 1e-20 ) )
@@ -81,7 +118,7 @@ namespace NCRYSTAL_NAMESPACE {
                             <= (std::numeric_limits<int>::max()-1) );
         }
 
-        void step( Basket inbasket, RNG& rng, BasketMgr& mgr,
+        void step( Basket inbasket, RNG& rng,
                    const TallyFct& tallyfct ) override
         {
           //In this engine, each step produce 1 basket for tallying and 1
@@ -89,31 +126,23 @@ namespace NCRYSTAL_NAMESPACE {
           //pending basket does not need filling, we immediately process it
           //again, thus reducing the need to communicate with the global
           //thread-safe queue in the mgr.
-          //
-          //Additionally, and for the same reason, we provide a single buffer
-          //basket to be reused between these calls.
-          Basket buf;
           do {
-            inbasket = processBasket( std::move(inbasket), buf,
-                                      rng, mgr, tallyfct );
+            inbasket = processBasket( std::move(inbasket), rng, tallyfct );
           } while ( inbasket.valid()
                     && inbasket.size() >= basket_N_almost_Full );
           if ( inbasket.valid() ) {
-              //transfer to global queue:
-              mgr.addPendingBasket( std::move(inbasket) );
+            //transfer to global queue:
+            m_bmgr->addPendingBasket( std::move(inbasket) );
           }
-          if ( buf.valid() )
-            mgr.deallocateBasket( std::move(buf) );
         }
 
       private:
         Basket processBasket( Basket inbasket,
-                              Basket& basket_buffer,
                               RNG& rng,
-                              BasketMgr& mgr,
                               const TallyFct& tallyfct )
         {
-          NCRYSTAL_DEBUGMMCMSG("StdSimEngine::processBasket inbasket.size()="
+          NCRYSTAL_DEBUGMMCMSG("Thread "<<std::this_thread::get_id()
+                               <<" StdSimEngine::processBasket inbasket.size()="
                                <<inbasket.size());
 
           Basket result_basket;
@@ -169,8 +198,7 @@ namespace NCRYSTAL_NAMESPACE {
                                                   values_abs_xs_or_nullptr );
 
             tallyfct( inbasket );
-            nc_assert_always(!basket_buffer.valid());
-            basket_buffer = std::move(inbasket);
+            deallocateBasket( std::move(inbasket) );
             return result_basket;
           }
 
@@ -251,11 +279,11 @@ namespace NCRYSTAL_NAMESPACE {
             //We also skip any particle with weight=0 or vanishing scattering
             //cross section.
 
-            Basket outb = std::move(basket_buffer);
+            Basket outb = allocateBasket();
             if ( outb.valid() )
               outb.neutrons->nused = 0;
             else
-              outb = mgr.allocateBasket();
+              outb = allocateBasket();
             nc_assert( outb.valid() && outb.empty() );
             checkBasketFields( outb );
             auto& inb = inbasket;
@@ -382,9 +410,7 @@ namespace NCRYSTAL_NAMESPACE {
               outb.neutrons->fields.w.data[i] *= m_buf_ptransm[i];
 
             tallyfct( outb );
-            //store the buffer for future use:
-            nc_assert( !basket_buffer.valid() );
-            basket_buffer = std::move(inbasket);
+            deallocateBasket( std::move(inbasket) );
           }
 
           return result_basket;
@@ -397,7 +423,8 @@ namespace NCRYSTAL_NAMESPACE {
 NC::shared_obj<NCMMC::SimEngine>
 NCMMC::createStdSimEngine( GeometryPtr geom,
                            MatDef mat,
+                           shared_obj<BasketMgr> bmgr,
                            const EngineOpts& opts )
 {
-  return makeSO<StdSimEngine>( opts, std::move(geom), std::move(mat) );
+  return makeSO<StdSimEngine>( opts, std::move(geom), std::move(bmgr), std::move(mat) );
 }

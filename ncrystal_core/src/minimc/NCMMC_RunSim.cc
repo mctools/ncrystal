@@ -39,18 +39,18 @@ NCMMC::runSim_StdEngine( GeometryPtr geom,
        == EngineOpts::IncludeAbsorption::NO )
     matdef.absorption = nullptr;
 
-  auto engine = createStdSimEngine( geom, std::move(matdef), eopts );
-  auto tallymgr = makeSO<TallyMgr>( tally->cloneSetup() );
-
   //Figure out which baskets are needed by tally and callbacks:
   BasketType bt = BasketType::Basic;
   if ( callback.has_value() )
     bt = callback.value().basketType;
   if ( tally->needsExtendedBaskets() )
     bt = BasketType::Extended;
+  auto bmgr = createBasketMgr( geom, src, bt );
 
-  auto bmgrs = createBasketManagement( geom, src, bt, eopts.nthreads );
-  SimMgr mgr( eopts, engine, std::move(bmgrs), tallymgr, callback );
+  auto engine = createStdSimEngine( geom, std::move(matdef), bmgr, eopts );
+  auto tallymgr = makeSO<TallyMgr>( tally->cloneSetup() );
+
+  SimMgr mgr( eopts, engine, std::move(bmgr), tallymgr, callback );
   auto launchSimStats = mgr.launchSimulations( eopts.nthreads,
                                                eopts.seed );
   auto tally_result = tallymgr->getFinalResult();

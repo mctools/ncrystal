@@ -27,9 +27,6 @@
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
 
-    //Abstract interface to Baskets and related queue and memory pool managers.
-    //The interface is intended to have a low overhead despite the abstraction.
-
     namespace detail { class UBImpl; }
 
     class Basket final : MoveOnly {
@@ -50,7 +47,7 @@ namespace NCRYSTAL_NAMESPACE {
       std::size_t empty() const ncnoexceptndebug { return size()==0; }
       bool valid() const noexcept { return neutrons != nullptr; }
 
-      //This one is always available:
+      //This is always available:
       NeutronBasket * neutrons = nullptr;
       BasketValBufInt* nscat = nullptr;
       BasketValBufInt* nscat_inelas = nullptr;
@@ -65,54 +62,95 @@ namespace NCRYSTAL_NAMESPACE {
       std::size_t append1( const Basket& o, std::size_t idx_o );
     };
 
+    class WorkerToken;
+
     class BasketMgr : NoCopyMove {
     public:
-      //Universal abstraction of various basket management operations.
+
+      //Manager class handling basket allocation's, and shipping baskets of
+      //neutrons from the source and between worker threads.
+
       virtual ~BasketMgr() = default;
 
-      virtual Basket allocateBasket() = 0;
-      virtual void deallocateBasket( Basket&& b ) = 0;
-      virtual void addPendingBasket( Basket&& b ) = 0;
-
-      //Each MT worker should have its own BasketMgr, since some memory
-      //pools are kept thread-local for efficiency. Before workers are spawned,
-      //additional instances should therefore be created with this:
-      virtual shared_obj<BasketMgr> cloneMgrForThread() = 0;
-    };
-
-    class InputBasketProvider : NoCopyMove {
-    public:
-      //Manager providing input baskets for simulation steps, by combining
-      //particles from the source with those added back during a simulation step
-      //by a call to addPendingBasket.
-
-      virtual ~InputBasketProvider() = default;
-
-      //Get the input baskets. Any source neutrons missing the geometry will be
-      //added to the counts in the missCount object, and provided to the
+      //Get an input basket to be processed by the simulation engine. Will
+      //either return a non-empty valid basket, or an invalid one at the end of
+      //simulation. In case no baskets are pending and the source has run out,
+      //this might mean waiting to see if other worker threads will register new
+      //pending baskets.
+      //
+      //Any neutrons delivered by the source and which are missing the geometry,
+      //will be added to the counts in the missCount object, and provided to the
       //TallyFct (if one is provided).
-      virtual Basket getInputBasket( RNG&, const TallyFct&,
+      //
+      //For the manager to do its work, it is required that each worker thread
+      //should keep a single worker token around, with lifetime ending when the
+      //thread is done (after having received an invalid basket).
+      virtual Basket getInputBasket( WorkerToken&,
+                                     RNG&,
+                                     const TallyFct&,
                                      ParticleCountSum& missCount ) = 0;
+
+      //Add a basket needing further processing:
+      virtual void addPendingBasket( Basket&& ) = 0;
+
+      //Apart from i/o to the baskets needing processing, basic basket
+      //allocation and deallocation is also possible:
+      virtual Basket allocateBasket() = 0;
+      virtual void deallocateBasket( Basket&& ) = 0;
+
 
       //In case simulation needs to be halted prematurely for whatever reason, a
       //call to haltSource will cause no more neutrons to be taken from the
-      //source:
+      //source (but already pending neutrons will be continued to be processed).
       virtual void haltSource() = 0;
+
+      //If the simulation is being aborted due to an exception or similar error
+      //in one thread, a call to haltError will completely block more baskets
+      //coming out of getInputBasket:
+      virtual void haltError() = 0;
+
+      //Dispose of a token (done automatically from the token destructor):
+      virtual void tokenDispose( WorkerToken& ) = 0;
 
     };
 
-    //The two closely related managers are always created together by this
-    //factory function. Note that the BasketMgr should be subsequently
-    //cloned so each worker thread has its own instance, while the same
-    //InputBasketProvider is used by all threads. The implementation details can
-    //also depend on the thread count of the simulation:
-    using BasketManagementPair = std::pair< shared_obj<BasketMgr>,
-                                            shared_obj<InputBasketProvider> >;
-    BasketManagementPair createBasketManagement( GeometryPtr,
-                                                 SourcePtr,
-                                                 BasketType,
-                                                 ThreadCount );
+    //Factory function for the manager:
+    shared_obj<BasketMgr> createBasketMgr( GeometryPtr,
+                                           SourcePtr,
+                                           BasketType );
 
+
+    class WorkerToken final : MoveOnly {
+      std::shared_ptr<BasketMgr> m_bmgr;
+      bool m_active = false;
+      Basket m_basketbuf;
+      friend class detail::UBImpl;
+      bool needsDispose() const noexcept
+      {
+        return m_active || m_basketbuf.valid();
+      };
+    public:
+      WorkerToken( shared_obj<BasketMgr> ibp )
+        : m_bmgr( ibp.getsp() )
+      {
+      }
+      void dispose()
+      {
+        if ( needsDispose() )
+          m_bmgr->tokenDispose(*this);
+        nc_assert( !needsDispose() );
+      }
+      ~WorkerToken() {
+        if ( needsDispose() ) {
+          try {
+            dispose();
+          } catch (...) {
+            std::printf("NCrystal ERROR: Ignoring Exception"
+                        " in WorkerToken destructor!\n");
+          }
+        }
+      }
+    };
   }
 }
 

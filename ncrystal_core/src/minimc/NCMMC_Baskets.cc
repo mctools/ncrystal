@@ -20,7 +20,12 @@
 
 #include "NCrystal/internal/minimc/NCMMC_Baskets.hh"
 #include "NCMMC_BasketSrcFiller.hh"
+#include "NCMMC_MemPool.hh"
 #include "NCMMC_BasketUtils.hh"
+#ifndef NCRYSTAL_DISABLE_THREADS
+#  include <condition_variable>
+#  include <mutex>
+#endif
 
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
@@ -37,6 +42,26 @@ namespace NCRYSTAL_NAMESPACE {
       static const void* access_internalc( const Basket& b ) noexcept
       {
         return b.internal;
+      }
+      static bool& access_token_activeflag( WorkerToken& t ) noexcept
+      {
+        return t.m_active;
+      }
+      static Basket& access_token_basket_buf( WorkerToken& t ) noexcept
+      {
+        return t.m_basketbuf;
+      }
+      static Basket&
+      token_basket_buf_refresh( WorkerToken& t,
+                                BasketMgr& bmgr ) ncnoexceptndebug
+      {
+        Basket& b = t.m_basketbuf;
+        if ( !b.valid() )
+          b = bmgr.allocateBasket();
+        if ( b.size()>0 )
+          b.neutrons->nused = 0;
+        nc_assert ( b.size() == 0 );
+        return b;
       }
     };
 
@@ -150,7 +175,6 @@ namespace NCRYSTAL_NAMESPACE {
         NeutronBasket& get_neutrons() { return basic.get_neutrons(); }
         const NeutronBasket& get_neutrons() const { return basic.get_neutrons(); }
 
-
         void init_extra( std::size_t i ) ncnoexceptndebug
         {
           basic.init_extra(i);
@@ -217,7 +241,7 @@ namespace NCRYSTAL_NAMESPACE {
       static_assert( std::is_trivially_destructible<Basket_Basic>::value, "" );
       static_assert( std::is_trivially_destructible<Basket_Extended>::value, "" );
 
-      inline void *& ub_internal( Basket& b )
+      inline void *& ub_internal( Basket& b ) noexcept
       {
         return detail::UBImpl::access_internal(b);
       }
@@ -227,11 +251,8 @@ namespace NCRYSTAL_NAMESPACE {
         //typedef templated internal data structures:
         using basket_t = TBasket;
         using basket_src_filler_t = BasketSrcFiller<basket_t>;
-        using basketqueuemgr_t = BasketQueueMgr<basket_t>;
-        using basket_holder_t = typename basketqueuemgr_t::basket_holder_t;
-        static constexpr int local_basket_max_poolsize = 4;
-        using heapmem_t = typename basket_holder_t::heapmem_t;
-        using heapmempool_t = HeapMemPool<heapmem_t,local_basket_max_poolsize>;
+        using heapmem_t = HeapMem<alignof(TBasket),sizeof(TBasket)>;
+        using heapmempool_t = HeapMemPool<heapmem_t,16>;
 
         static basket_t& real_basket( Basket& b )
         {
@@ -254,18 +275,6 @@ namespace NCRYSTAL_NAMESPACE {
         {
           auto& src = *const_cast<basket_t*>(&src_c);
           src.assignToUB( dst );
-        }
-
-        static Basket toUserBasket( basket_holder_t&& bh ) {
-          //NB: Map invalid basket to invalid basket.
-          Basket res;
-          nc_assert( !res.valid() );
-          if ( bh.valid() ) {
-            assign_basket_parameters( res, bh.basket() );
-            ub_internal(res) = bh.stealMemory().release_raw();
-            nc_assert( res.valid() );
-          }
-          return res;
         }
 
         class ViewBasketAsUB final {
@@ -294,124 +303,120 @@ namespace NCRYSTAL_NAMESPACE {
           return real_basket(dst).append1( real_basket(src), idx_src );
         }
 
-        static basket_holder_t moveToBasketHolder( Basket&& b )
+        static heapmem_t releaseMem( Basket&& b )
         {
-          nc_assert_always(ub_internal(b)!=nullptr);
+          nc_assert(ub_internal(b)!=nullptr);
           Basket tmp;
           tmp.swap(b);
           heapmem_t mem;
-          mem.set_raw(ub_internal(tmp));
           ub_internal(tmp) = nullptr;
-          basket_holder_t bh{ no_init };
-          bh.set_raw_from_active_heapmem( std::move(mem) );
-          return bh;
+          mem.set_raw(ub_internal(tmp));
+          return mem;
         }
 
-        class UBMgr final : public BasketMgr {
+        static void emergencyCleanupMemory( Basket&& b )
+        {
+          releaseMem( std::move(b) ).deallocate();
+        }
+
+        static Basket constructBasketFromHeapMem( heapmem_t mem )
+        {
+          nc_assert(mem.data()!=nullptr);
+          //Construct a basket object in the heap memory and move ownership to
+          //the result basket. It is important that the result basket is fully
+          //initialised before any exception might be thrown:
+          static_assert( std::is_nothrow_constructible<basket_t>::value, "" );
+          basket_t * b  = new(mem.release_raw()) basket_t;
+          Basket res;
+          ub_internal(res) = (void*)b;
+          assign_basket_parameters( res, *b );
+          nc_assert( res.neutrons != nullptr && res.neutrons->nused == 0);
+          return res;
+        }
+
+        class BskMgr final : public BasketMgr {
         public:
-          //NOTE: basketqueuemgr_t is MT safe, but UBMgr is NOT, needing one
-          //cloned instance per thread.
-          UBMgr( std::shared_ptr<basketqueuemgr_t> bmgr = nullptr )
-            : m_mgr( [&bmgr]()
-            { return ( bmgr==nullptr
-                       ? std::make_shared<basketqueuemgr_t>()
-                       : std::move(bmgr) ); }() )
-          {
-          }
-
-          Basket allocateBasket() override
-          {
-            Basket res;
-            //Get the heap memory:
-            heapmem_t mem;
-            if ( !m_localMemPool.empty() )
-              mem = m_localMemPool.allocate();
-            else
-              mem = m_mgr->allocateBasket().stealMemory();
-            nc_assert(mem.data()!=nullptr);
-            //Construct a basket object in the heap memory and move ownership to
-            //the result basket. It is important that the result basket is fully
-            //initialised before any exception might be thrown:
-            static_assert( std::is_nothrow_constructible<basket_t>::value, "" );
-            basket_t * b  = new(mem.release_raw()) basket_t;
-            ub_internal(res) = (void*)b;
-            assign_basket_parameters( res, *b );
-            return res;
-          }
-
-          void deallocateBasket( Basket&& b ) override
-          {
-            nc_assert( b.valid() );
-            auto mem = moveToBasketHolder( std::move(b) ).stealMemory();
-            nc_assert( mem.data() != nullptr );
-            //return mem to local mempool or overflow to global mgr:
-            nc_assert( m_localMemPool.size() <= local_basket_max_poolsize );
-            if ( m_localMemPool.size() == local_basket_max_poolsize )
-              m_mgr->deallocateHeapMem( std::move(mem) );
-            else
-              m_localMemPool.deallocate( std::move(mem) );
-          }
-
-          void addPendingBasket( Basket&& b ) override
-          {
-            nc_assert( b.valid() );
-            if ( b.empty() )
-              deallocateBasket( std::move(b) );
-            else
-              m_mgr->addPendingBasket( moveToBasketHolder( std::move(b) ) );
-          }
-
-          shared_obj<BasketMgr> cloneMgrForThread() override
-          {
-            return makeSO<UBMgr>( m_mgr );
-          }
-
-          shared_obj<basketqueuemgr_t> realManager() { return m_mgr; }
-
-        private:
-          shared_obj<basketqueuemgr_t> m_mgr;//the actual manager implementation, one
-                                        //for all threads.
-          heapmempool_t m_localMemPool;//A small thread-local memory pool.
-        };
-
-        class InBskProv final : public InputBasketProvider {
-          basket_src_filler_t m_srcfiller;
-          ThreadCount m_nthreads;
-
-          static ThreadedUsage determineThreadedUsage(ThreadCount nthreads)
-          {
-#ifndef NCRYSTAL_DISABLE_THREADS
-            return ( nthreads.get() > 1
-                     ? ThreadedUsage::Multi
-                     : ThreadedUsage::Single );
-#else
-            (void)nthreads;
-            return ThreadedUsage::Single;
-#endif
-          }
-
-        public:
-          InBskProv( GeometryPtr geom,
-                     SourcePtr src,
-                     shared_obj<basketqueuemgr_t> bmgr,
-                     ThreadCount nthreads )
-            : m_srcfiller( std::move(geom),
-                           std::move(src),
-                           std::move(bmgr),
-                           determineThreadedUsage(nthreads) ),
-              m_nthreads( nthreads )
+          BskMgr( GeometryPtr geom, SourcePtr src )
+            : m_srcfiller( std::move(geom), std::move(src) )
           {
           }
 
           void haltSource() override
           {
-            m_srcfiller.haltSource();
+#ifndef NCRYSTAL_DISABLE_THREADS
+            std::unique_lock<std::mutex> lock(m_mutex);
+#endif
+            m_data.src_ran_out = true;
           }
 
-          Basket getInputBasket( RNG& rng,
-                                          const TallyFct& tallyfct,
-                                          ParticleCountSum& missCount ) override
+          void haltError() override
           {
+#ifndef NCRYSTAL_DISABLE_THREADS
+            std::unique_lock<std::mutex> lock(m_mutex);
+#endif
+            m_data.src_ran_out = true;
+            m_data.is_error = true;
+#ifndef NCRYSTAL_DISABLE_THREADS
+            m_condvar.notify_all();
+#endif
+          }
+
+          Basket allocateBasketNoLock()
+          {
+            //call only when lock is already acquired
+            return constructBasketFromHeapMem( m_data.mempool.allocate() );
+          }
+
+          Basket allocateBasket() override
+          {
+#ifndef NCRYSTAL_DISABLE_THREADS
+            std::unique_lock<std::mutex> lock(m_mutex);
+#endif
+            return allocateBasketNoLock();
+          }
+
+          void deallocateBasketNoLock( Basket&& b )
+          {
+            //call only when lock is already acquired
+            if ( b.valid() ) {
+              auto mem = releaseMem(std::move(b));
+              m_data.mempool.deallocate( std::move(mem) );
+            }
+          }
+
+          void deallocateBasket( Basket&& b ) override
+          {
+            if ( b.valid() ) {
+#ifndef NCRYSTAL_DISABLE_THREADS
+              std::unique_lock<std::mutex> lock(m_mutex);
+#endif
+              deallocateBasketNoLock( std::move(b) );
+            }
+          }
+
+          void addPendingBasket( Basket&& b ) override
+          {
+            nc_assert( b.valid() );
+#ifndef NCRYSTAL_DISABLE_THREADS
+            std::unique_lock<std::mutex> lock(m_mutex);
+#endif
+            if ( m_data.is_error || b.empty() ) {
+              auto mem = releaseMem(std::move(b));
+              m_data.mempool.deallocate( std::move(mem) );
+              return;
+            }
+            m_data.pending.emplace_back( std::move(b) );
+#ifndef NCRYSTAL_DISABLE_THREADS
+            m_condvar.notify_one();
+#endif
+          }
+
+          Basket getInputBasket( WorkerToken& token,
+                                 RNG& rng,
+                                 const TallyFct& tallyfct,
+                                 ParticleCountSum& missCount ) override
+          {
+            Basket result;
             std::function<void(const basket_t&)> resultfct;
             if ( tallyfct != nullptr ) {
               resultfct = [&tallyfct]( const basket_t& b )
@@ -419,10 +424,151 @@ namespace NCRYSTAL_NAMESPACE {
                 tallyfct( ViewBasketAsUB( b ).view() );
               };
             }
-            auto bh = m_srcfiller.getPendingBasket( m_nthreads, rng,
-                                                    resultfct, missCount );
-            return toUserBasket( std::move(bh) );
+#ifdef NCRYSTAL_DISABLE_THREADS
+            if ( !m_data.pending.empty() ) {
+              result = std::move( m_data.pending.back() );
+              m_data.pending.pop_back();
+            } else {
+              result = allocateBasketNoLock();
+            }
+            nc_assert(result.valid());
+            if ( result.size() > basket_N_almost_Full )
+              return result;
+            if ( !m_data.src_ran_out ) {
+              Basket& tk_buf
+                = detail::UBImpl::token_basket_buf_refresh(token,*this);
+              nc_assert( tk_buf.valid() && tk_buf.size() == 0 );
+              if (!m_srcfiller.fillFromSource( real_basket( result ),
+                                               rng,
+                                               resultfct,
+                                               missCount,
+                                               real_basket(tk_buf))) {
+                m_data.src_ran_out = true;
+              }
+            }
+            if ( result.size() == 0 )
+              deallocateBasketNoLock( std::move(result) );//done!
+            return result;
+#else
+            bool use_source = false;
+            bool& tk_active = detail::UBImpl::access_token_activeflag( token );
+            std::unique_lock<std::mutex> lock(m_mutex);
+            if ( !tk_active ) {
+              tk_active = true;
+              ++m_data.ntokens;
+            }
+            ++m_data.ntokenswaiting;
+            auto& data = m_data;
+            m_condvar.wait( lock, [&data, &use_source, &result ]()
+            {
+              if ( data.is_error ) {
+                use_source = false;
+                return true;//done waiting: general error
+              }
+              use_source = !data.src_ran_out;
+              if ( !data.pending.empty() ) {
+                result = std::move( data.pending.back() );
+                data.pending.pop_back();
+                if ( result.size() > basket_N_almost_Full )
+                  use_source = false;
+                return true;//done waiting: got something
+              }
+              //Nothing pending, check the source:
+              if ( use_source )
+                return true;//done waiting: must fill new basket from source!
+
+              //Nothing pending, source ran out, and there was no error. If all
+              //worker threads are waiting for something, this is a sign that
+              //the simulation is actually complete.
+              if ( data.ntokens > data.ntokenswaiting ) {
+                return false;//keep waiting: some workers are still working and
+                             //might produce new pending baskets.
+              }
+              return true;//done waiting: no more work to do
+            });
+
+            nc_assert( bool(lock) );//we still have the lock
+            --m_data.ntokenswaiting;
+
+            if ( use_source && !result.valid() ) {
+              //allocate a new basket while we still have the lock
+              result = constructBasketFromHeapMem( m_data.mempool.allocate() );
+              nc_assert(result.size()==0);
+            }
+
+            lock.unlock();//release lock, src filling can happen concurrently
+
+            if ( use_source ) {
+              nc_assert( result.valid() );
+              if ( result.size() < basket_N_almost_Full ) {
+                //Ensure we have an extra basket buffer, needed for the
+                //fillFromSource call:
+                Basket& tk_buf
+                  = detail::UBImpl::token_basket_buf_refresh(token,*this);
+                nc_assert( tk_buf.valid() && tk_buf.size() == 0 );
+                if (!m_srcfiller.fillFromSource( real_basket( result ),
+                                                 rng,
+                                                 resultfct,
+                                                 missCount,
+                                                 real_basket(tk_buf))) {
+                  //source ran out, must lock again to note this down:
+                  lock.lock();
+                  m_data.src_ran_out = true;
+                  lock.unlock();
+                }
+              }
+              nc_assert(!bool(lock));
+              if ( result.valid() && result.empty() ) {
+                //Unlikely to happen, but just in case:
+                deallocateBasket( std::move(result) );
+              }
+            }
+            return result;
+#endif
           }
+
+          void tokenDispose( WorkerToken& tk ) override
+          {
+            bool& tk_active = detail::UBImpl::access_token_activeflag( tk );
+            Basket tk_basket = std::move( detail::UBImpl
+                                          ::access_token_basket_buf(tk) );
+            if ( !tk_active && !tk_basket.valid() )
+              return;
+#ifndef NCRYSTAL_DISABLE_THREADS
+            std::unique_lock<std::mutex> lock(m_mutex);//NB: not noexcept!
+#endif
+            if ( tk_basket.valid() )
+              deallocateBasketNoLock( std::move(tk_basket) );
+            if ( tk_active ) {
+              tk_active = false;
+#ifndef NCRYSTAL_DISABLE_THREADS
+              nc_assert( m_data.ntokens > 0 );
+              --m_data.ntokens;
+              m_condvar.notify_all();
+#endif
+            }
+          }
+
+        private:
+#ifndef NCRYSTAL_DISABLE_THREADS
+          std::mutex m_mutex;
+          std::condition_variable m_condvar;
+#endif
+          //The condvar and data on the following struct is protected by the
+          //mutex access:
+          struct Data {
+#ifndef NCRYSTAL_DISABLE_THREADS
+            std::size_t ntokens = 0;
+            std::size_t ntokenswaiting = 0;
+#endif
+            std::vector<Basket> pending;
+            heapmempool_t mempool;
+            bool src_ran_out = false;
+            bool is_error = false;
+          };
+          Data m_data;
+          //The srcfiller can be used concurrently, without locking m_mutex:
+          basket_src_filler_t m_srcfiller;
         };
       };
     }
@@ -461,14 +607,14 @@ void NCMMC::Basket::dealloc_warn() noexcept
     {
       NCRYSTAL_WARN("MiniMC Basket went out of scope without"
                     " being handed to the manager.");
-      nc_assert_always(!internal);
+      nc_assert_always(internal);
       auto bt = this->basketType();
       Basket tmp;
       tmp.swap(*this);
       if ( bt == BasketType::Basic ) {
-        UBHImpl<Basket_Basic>::moveToBasketHolder(std::move(tmp));
+        UBHImpl<Basket_Basic>::emergencyCleanupMemory(std::move(tmp));
       } else if ( bt == BasketType::Extended ) {
-        UBHImpl<Basket_Extended>::moveToBasketHolder(std::move(tmp));
+        UBHImpl<Basket_Extended>::emergencyCleanupMemory(std::move(tmp));
       } else {
         nc_assert_always(false);
       }
@@ -482,25 +628,18 @@ void NCMMC::Basket::dealloc_warn() noexcept
   }
 }
 
-NCMMC::BasketManagementPair
-NCMMC::createBasketManagement( GeometryPtr geom,
-                               SourcePtr src,
-                               BasketType bt,
-                               ThreadCount nthreads )
+NC::shared_obj<NCMMC::BasketMgr>
+NCMMC::createBasketMgr( GeometryPtr geom,
+                        SourcePtr src,
+                        BasketType bt )
 {
   if ( bt == BasketType::Basic ) {
-    auto ubmgr = makeSO< UBHImpl<Basket_Basic>::UBMgr >();
-    auto prov
-      = makeSO<UBHImpl<Basket_Basic>::InBskProv>
-      ( std::move(geom), std::move(src), ubmgr->realManager(), nthreads );
-    return { std::move(ubmgr), std::move(prov) };
+    return makeSO<UBHImpl<Basket_Basic>::BskMgr>
+      ( std::move(geom), std::move(src) );
   } else {
     if ( bt != BasketType::Extended )
       NCRYSTAL_THROW(BadInput,"Invalid basket type.");
-    auto ubmgr = makeSO< UBHImpl<Basket_Extended>::UBMgr >();
-    auto prov
-      = makeSO<UBHImpl<Basket_Extended>::InBskProv>
-      ( std::move(geom), std::move(src), ubmgr->realManager(), nthreads );
-    return { std::move(ubmgr), std::move(prov) };
+    return makeSO<UBHImpl<Basket_Extended>::BskMgr>
+      ( std::move(geom), std::move(src) );
   }
 }

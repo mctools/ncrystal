@@ -63,13 +63,13 @@ namespace NCRYSTAL_NAMESPACE {
 
       //Advance the simulation one step. This does not need to be multi-thread
       //safe.
-      virtual void step( Basket, RNG&, BasketMgr&,
-                         const TallyFct& tallyfct ) = 0;
+      virtual void step( Basket, RNG&, const TallyFct& tallyfct ) = 0;
     };
 
     //Create a std simulation engine through this factory function:
     shared_obj<SimEngine> createStdSimEngine( GeometryPtr,
                                               MatDef,
+                                              shared_obj<BasketMgr>,
                                               const EngineOpts& opts = {} );
 
 

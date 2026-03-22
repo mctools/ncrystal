@@ -90,10 +90,11 @@ namespace NCRYSTAL_NAMESPACE {
 #  undef NCRYSTAL_DEBUGMMCMSG
 #endif
 
-#if 0 //#ifndef NDEBUG (always disable, messes up tests)
-#define NCRYSTAL_DEBUGMMCMSG(msg) ::NCRYSTAL_NAMESPACE::Msg::detail:: \
+#if 0 // <-- change 0 to 1 to enable MiniMC debug messages
+#  define NCRYSTAL_DEBUGMMCMSG(msg) ::NCRYSTAL_NAMESPACE::Msg::detail:: \
   outputMsgMS( ::NCRYSTAL_NAMESPACE::Msg::detail::MsgStream() << "MMC:" << msg, \
                ::NCRYSTAL_NAMESPACE::MsgType::Info );
+#  define NCRYSTAL_DEBUGMMCMSG_ENABLED
 #else
 #  define NCRYSTAL_DEBUGMMCMSG(msg) {}
 #endif
