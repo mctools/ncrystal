@@ -290,6 +290,11 @@ std::pair<unsigned,unsigned> NC::detectSimpleRationalNumbers(double value)
   return it->second;
 }
 
+void NC::detail::streamdblfmtg( std::ostream& os, double val )
+{
+  os << fmtg(val);
+}
+
 namespace NCRYSTAL_NAMESPACE {
   std::ostream& operator<<( std::ostream& os , const detail_FmtDblFrac& fd ) {
     auto ab = detectSimpleRationalNumbers(fd.val);

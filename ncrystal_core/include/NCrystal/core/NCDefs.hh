@@ -997,14 +997,22 @@ namespace NCRYSTAL_NAMESPACE {
     return ensureCompatible<TOther>(), *reinterpret_cast<const TOther*>(this);
   }
 
+  namespace detail {
+    NCRYSTAL_API void streamdblfmtg( std::ostream&, double );
+  }
+
   template <class TValue, std::size_t N>
-  inline ncconstexpr17 std::ostream& operator<< (std::ostream& os, const FixedVector<TValue,N>& dir)
+  inline ncconstexpr17 std::ostream& operator<< (std::ostream& os,
+                                                 const FixedVector<TValue,N>& dir)
   {
     if ( N==0 )
       return os << "{}";
-    os << "{ " << dir[0];
-    for (std::size_t i = 1; i < N; ++i)
-      os << ", " << dir[i];
+    os << "{ ";
+    detail::streamdblfmtg(os,dir[0]);
+    for (std::size_t i = 1; i < N; ++i) {
+      os << ", ";
+      detail::streamdblfmtg(os,dir[i]);
+    }
     return os << " }";
   }
 

@@ -107,5 +107,3 @@ void NCrystal::RNG::generateRandomBits( std::size_t nbytes, uint8_t* data )
   }
 }
 #endif
-//FIXME:   inline ncconstexpr17 std::ostream& operator<< (std::ostream& os, const FixedVector<TValue,N>& dir)
-//                 does not use fmt!!!
