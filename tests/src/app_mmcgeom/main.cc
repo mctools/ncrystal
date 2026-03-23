@@ -1562,6 +1562,67 @@ int main(int,char**) {
   }
 
   {
+    auto geom = NCMMC::createGeometry( "sphere;r=1.234" );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, -1.234 }, { 0, 0, 1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, -1.234, 0 }, { 0, 1, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { -1.234, 0, 0 }, { 1, 0, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, 1.234 }, { 0, 0, -1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 1.234, 0 }, { 0, -1, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 1.234, 0, 0 }, { -1, 0, 0 } ), 2.468 );
+    constexpr double x = 1.234 + 1e-14;//make sure being juuuust outside the
+                                       //sphere still gives the correct path
+                                       //across (if this was not the case, we
+                                       //would have to be super careful when
+                                       //placing sources at the edge of the
+                                       //sphere).
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, -x }, { 0, 0, 1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, -x, 0 }, { 0, 1, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { -x, 0, 0 }, { 1, 0, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, x }, { 0, 0, -1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, x, 0 }, { 0, -1, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { x, 0, 0 }, { -1, 0, 0 } ), 2.468 );
+  }
+  {
+    //same for cylinder:
+    auto geom = NCMMC::createGeometry( "cyl;r=1.234" );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, -1.234 }, { 0, 0, 1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { -1.234, 0, 0 }, { 1, 0, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, 1.234 }, { 0, 0, -1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 1.234, 0, 0 }, { -1, 0, 0 } ), 2.468 );
+    constexpr double x = 1.234 + 1e-14;
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, -x }, { 0, 0, 1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { -x, 0, 0 }, { 1, 0, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, x }, { 0, 0, -1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { x, 0, 0 }, { -1, 0, 0 } ), 2.468 );
+  }
+  {
+    //same for box:
+    auto geom = NCMMC::createGeometry( "box;dx=1.234;dy=1.234;dz=1.234" );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, -1.234 }, { 0, 0, 1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, -1.234, 0 }, { 0, 1, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { -1.234, 0, 0 }, { 1, 0, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, 1.234 }, { 0, 0, -1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 1.234, 0 }, { 0, -1, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 1.234, 0, 0 }, { -1, 0, 0 } ), 2.468 );
+    constexpr double x = 1.234 + 1e-14;
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, -x }, { 0, 0, 1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, -x, 0 }, { 0, 1, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { -x, 0, 0 }, { 1, 0, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, x }, { 0, 0, -1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, x, 0 }, { 0, -1, 0 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { x, 0, 0 }, { -1, 0, 0 } ), 2.468 );
+  }
+  {
+    //same for slab:
+    auto geom = NCMMC::createGeometry( "slab;dz=1.234" );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, -1.234 }, { 0, 0, 1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, 1.234 }, { 0, 0, -1 } ), 2.468 );
+    constexpr double x = 1.234 + 1e-14;
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, -x }, { 0, 0, 1 } ), 2.468 );
+    REQUIREFLTEQ( distToVolExit( geom, { 0, 0, x }, { 0, 0, -1 } ), 2.468 );
+  }
+
+  {
     auto geom = NCMMC::createGeometry( "sphere;r=2.0" );
     REQUIREFLTEQ( distToVolExit( geom, { 0, 0, 0 }, { 0, 0, 1 } ), 2.0);
     REQUIREFLTEQ( distToVolExit( geom, { 0, 0, 0 }, { 1, 1, 1 } ), 2.0);

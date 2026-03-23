@@ -484,28 +484,14 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
   //Ok, we now have count, thickness, energy, is_sphere/is_slab and
   //is_pencil. Time to translate to actual cfg strings:
 
-  const char * g15 = "%.15g";
-
   std::ostringstream ss_src;
   std::ostringstream ss_geom;
   const double src_z = (-0.5) * thickness_meter;
-  //Slightly more efficient if we start pencil beams inside the geometry
-  //(1e-14 is small but will not be obscured by "%.15g".
   if ( is_sphere ) {
     nc_assert_always( !is_slab );
     ss_geom << "sphere;r="<<fmt(thickness_meter*0.5);
     if ( is_pencil ) {
-      const double src_z_plus_epsilon = src_z * (1.0-1e-14);
-      ss_src << "constant;z=" << fmt(src_z_plus_epsilon,g15);//fixme: do away
-                                                             //with the epsilon?
-                                                             //Also needs unit
-                                                             //test that
-                                                             //proptovolentry
-                                                             //always gives a
-                                                             //proptovolexit of
-                                                             //the correct
-                                                             //magnitude in this
-                                                             //case.
+      ss_src << "constant;z=" << fmt(src_z);
     } else {
       ss_src << "circular;z=" << fmt(src_z)
              << ";r="<<fmt(thickness_meter*0.5);

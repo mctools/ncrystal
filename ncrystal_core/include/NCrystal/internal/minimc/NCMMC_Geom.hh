@@ -55,9 +55,6 @@ namespace NCRYSTAL_NAMESPACE {
       //direction, it should afterwards be heading out of the shape (in other
       //words, a neutron sitting directly on the surface and a direction
       //pointing into the shape should not have a distToVolumeExit of 0).
-      //FIXME: Double check the above is exactly valid also for a sphere, then
-      //our scenario for pencil beam into a sphere does not have to move src_z
-      //to (1-1e-14) times sphere_radius.
       virtual void distToVolumeExit( const NeutronBasket&,
                                      BasketValBufDbl& ) const = 0;
 

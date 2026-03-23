@@ -119,7 +119,7 @@ Caught expected NCBadInput('Forbidden character "\\x0-30" in MiniMC scenario str
   cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
     -> geomcfg   = "sphere;r=0.001"
-    -> srccfg    = "constant;z=-0.00099999999999999;wl=1;n=1e6"
+    -> srccfg    = "constant;z=-0.001;wl=1;n=1e6"
 
 >>> Testing
   scenario = "1Aa on slab"
@@ -461,7 +461,7 @@ Testing scenario: "Al_sg225.ncmat" + ""
 
 Testing scenario: "Al_sg225.ncmat;temp=300K" + "2Aa pencil on 2mm sphere"
   decoded geomcfg="sphere;r=0.001"
-  decoded srccfg="constant;z=-0.00099999999999999;wl=2;n=1e6"
+  decoded srccfg="constant;z=-0.001;wl=2;n=1e6"
   override_n set => Appending ";n=2e5" to src_cfg
 
 Testing scenario: "Be_sg194.ncmat;temp=80K" + "10meV on 2mm sphere"

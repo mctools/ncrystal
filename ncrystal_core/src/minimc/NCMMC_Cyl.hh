@@ -81,11 +81,6 @@ namespace NCRYSTAL_NAMESPACE {
         return m_dy == 0.0;
       }
 
-      //Fixme: would the usage of pointIsInside in the engine (or rather in the
-      //constant source) not be better served by simply calling
-      //distToVolumeEntry? Then we could also emit errors there and move the
-      //particles forward, etc.? The constant source could even move itself
-      //towards the geometry (or create a cloned moved copy of itself).
       bool pointIsInside( const Vector& v ) const
       {
         return ( ncsquare(v.x())+ncsquare(v.z()) <= m_radiusSq
