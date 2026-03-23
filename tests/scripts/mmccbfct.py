@@ -24,97 +24,134 @@
 
 import NCrystalDev.minimc as ncmmc
 import NCrystalDev.core as nccore
+from NCrystalDev.constants import ekin2wl
+from NCTestUtils.dirs import get_named_test_data_dir
+from NCrystalDev.hist import Hist1D
 
-def main(do_plot):
-    #FIXME: This is not testing much. We should monitor the resulting histograms
-    #for compatibility with a reference.
+def main(do_plot, do_update):
+    from NCrystalDev.hist import HistFiller1D
 
-    from NCrystalDev.hist import HistFiller1D as Hist
-
-    hist_e0_fwd = Hist( 500, 0.0, 0.1, title='e0 (fwd)' )
-    hist_e0_back = Hist( 500, 0.0, 0.1, title='e0 (back)' )
-    hist_e_fwd = Hist( 400, 0.0, 0.1, title='E (fwd)' )
-    hist_e_back = Hist( 400, 0.0, 0.1, title='E (back)' )
-    hist_nscat_fwd = Hist( 22, -1.5, 20.5, title='nscat (fwd)' )
-    hist_nscat_back = Hist( 22, -1.5, 20.5, title='nscat (back)' )
-    hist_nscat = Hist( 22, -1.5, 20.5, title='nscat' )
-
+    hists = {}
+    def add_hist( key, nbins, xmin, xmax ):
+        assert key not in hists
+        hists[key] = HistFiller1D(nbins,xmin,xmax,title=key)
+    add_hist( 'wl0_fwd', 100, 2.5, 5.5 )
+    add_hist( 'wl0_back', 100, 2.5, 5.5 )
+    add_hist( 'e_fwd', 100, 0.0, 0.1 )
+    add_hist( 'e_back', 100, 0.0, 0.1 )
+    add_hist( 'nscat_fwd', 22, -1.5, 20.5 )
+    add_hist( 'nscat_back', 22, -1.5, 20.5 )
+    #add_hist( 'nscat', 22, -1.5, 20.5 )
 
     ntot = [0]
     def cb( data ):
-        nscat,e,w,uz,e0 = (data['nscat'],data['ekin'], data['w'], data['uz'],
-                           data['ekin0'])
+        nscat,e,w,uz,wl0 = (data['nscat'],data['ekin'], data['w'], data['uz'],
+                            ekin2wl(data['ekin0']))
         print('Callback processing %i neutrons'%len(w))
         print('    Available fields:',' '.join(data.keys()))
-        if False:
-            print('   -> nscat range: %g to %g'%( nscat.min(), nscat.max() ))
-            print('   -> w range: %g to %g'%( w.min(), w.max() ))
-            print('   -> uz range: %g to %g'%( uz.min(), uz.max() ))
-            print('     -> counts: %i (nscat=-1), %i (nscat=0), %i (nscat=1), %i (nscat>1)'%(len(e[nscat==-1]),
-                                                                                             len(e[nscat==0]),
-                                                                                             len(e[nscat==1]),
-                                                                                             len(e[nscat>1]),))
-            print('     -> uz @ nscat=0:',uz[nscat==0])
-            print('     -> w @ nscat=0:',w[nscat==0])
-            print('     -> uz @ nscat=1:',uz[nscat==1])
-            print('     -> w @ nscat=1:',w[nscat==1])
+        assert len(data)==18, "callback should trigger extended baskets"
         ntot[0] += len( w )
         mask_fwd = uz > 0.5
         mask_back = uz < -0.5
-        #hist_x0_fwd.fill( x0[mask_fwd], w[mask_fwd] )
-        #hist_x0_back.fill( x0[mask_back], w[mask_back] )
-        hist_e0_fwd.fill( e0[mask_fwd], w[mask_fwd] )
-        hist_e0_back.fill( e0[mask_back], w[mask_back] )
-        hist_e_fwd.fill( e[mask_fwd], w[mask_fwd] )
-        hist_e_back.fill( e[mask_back], w[mask_back] )
-        hist_nscat.fill( nscat )
-        hist_nscat_fwd.fill( nscat[mask_fwd], w[mask_fwd] )
-        hist_nscat_back.fill( nscat[mask_back], w[mask_back] )
+        hists['wl0_fwd'].fill( wl0[mask_fwd], w[mask_fwd] )
+        hists['wl0_back'].fill( wl0[mask_back], w[mask_back] )
+        hists['e_fwd'].fill( e[mask_fwd], w[mask_fwd] )
+        hists['e_back'].fill( e[mask_back], w[mask_back] )
+        hists['nscat_fwd'].fill( nscat[mask_fwd], w[mask_fwd] )
+        hists['nscat_back'].fill( nscat[mask_back], w[mask_back] )
 
     nccore.enableFactoryThreads()
     res = ncmmc.run(
-        #'void.ncmat',
         'Al_sg225.ncmat;temp=300',
-        scenario='6Aa on 10cm slab 1e6 times',
-        enginecfg='nthreads=auto',#;absorption=0',#;nscatlimit=1',#fixme: allow nthreads=0?
+        geomcfg="slab;dz=0.05",
+        srccfg="constant;n=6e5;z=-0.05;wl=4+-0.2",
+        enginecfg='nthreads=2',
         callback = cb
     )
-    print(res.setup['geom']['decoded'])
-    print(res.setup['src']['decoded'])
+    assert ( res.setup['geom']['decoded']['short_description']
+             == 'slab with thickness 100mm' )
     tallied_stats = res.output_metadata['tallied']
 
-    #FIXME put back in: assert tallied_stats['count'] == ntot[0]
+    assert tallied_stats['count'] == ntot[0]
 
+    #convert to Hist1D:
+    for k in hists.keys():
+        hists[k] = hists[k].to_hist1d()
+
+    print()
     print('Total neutrons tallied (count): %i'%tallied_stats['count'])
     print('Total neutrons tallied (sumw): %i'%tallied_stats['weight'])
     print('Total neutrons tallied in E(fwd) hist (sumw) %i'
-          % hist_e_fwd.to_hist1d().contents.sum())
+          % hists['e_fwd'].contents.sum())
     print('Total neutrons tallied in E(back) hist (sumw) %i'
-          % hist_e_back.to_hist1d().contents.sum())
-    #res.dump()
-    #res.tally('theta').dump()
+          % hists['e_back'].contents.sum())
+
+
+    #Find refs:
+    td = get_named_test_data_dir('mmcref',for_updates = do_update)
+    def key2path(key):
+        return td.joinpath(f'href_cbfct_{key}.json')
+
+    #update refs:
+    if do_update:
+        for key, h in sorted(hists.items()):
+            f_href = key2path(key)
+            print(f"Updating {f_href}")
+            f_href.write_text(h.to_json())
+        raise SystemExit('Updates done. Aborting.')
+
+
+    hists_ref = {}
+    for key in sorted(hists.keys()):
+        f_href = key2path(key)
+        if not f_href.is_file():
+            raise SystemExit(f'Reference file {f_href} not found.'
+                             ' Run with --update to generate')
+        hists_ref[key] = Hist1D(f_href.read_text())
+
+    worst_pval = 1.0
+    print()
+    for key in sorted(hists.keys()):
+        h, h_ref = hists[key], hists_ref[key]
+        pval = h.check_compat( h_ref, return_pval = True )
+        print( f"{key}: Pvalue for comp. with ref"
+               f" (higher is more compatible): {pval:g}" )
+        worst_pval = min(worst_pval,pval)
+
+    def result():
+        if worst_pval < 0.05:
+            raise SystemExit('Incompatibility detected')
 
     if not do_plot:
-        return
-    #res.tally('theta').plot()
-
-    #hist_nscat.to_hist1d().plot()
-    #raise SystemExit
+        return result()
 
     common = dict( error_bands=2.0, alpha = 0.5, do_show=False)
 
-    def pl( hfwd, hback ):
-        hfwd.to_hist1d().plot(label='fwd',**common,color='red')
-        plt = hback.to_hist1d().plot(label='back',**common,color='green')
+    def pl( hfwd_key, hback_key ):
+        hfwd = hists[hfwd_key]
+        hback = hists[hback_key]
+        hfwd.plot(label=hfwd.title,**common,color='red')
+        plt = hback.plot(label=hback.title,**common,color='green')
         plt.gca().legend()
         plt.gca().semilogy()
         plt.grid()
         plt.show()
-    pl(hist_e0_fwd,hist_e0_back)
-    #pl(hist_x0_fwd,hist_x0_back)
-    pl(hist_e_fwd,hist_e_back)
-    pl(hist_nscat_fwd,hist_nscat_back)
+    pl('wl0_fwd','wl0_back')
+    pl('e_fwd','e_back')
+    pl('nscat_fwd','nscat_back')
+
+    for key in sorted(hists.keys()):
+        h, h_ref = hists[key], hists_ref[key]
+        h_ref.plot(do_show=False,error_bands=1.0,
+                   alpha=0.3,color='blue',label='ref')
+        plt=h.plot(do_show=False,color='none',logy=True,label='new')
+        plt.legend()
+        plt.title(key)
+        plt.grid()
+        plt.show()
+
 
 if __name__ == '__main__':
     import sys
-    main(do_plot = '--plot' in sys.argv[1:])
+    main(do_plot = '--plot' in sys.argv[1:],
+         do_update = '--update' in sys.argv[1:])
