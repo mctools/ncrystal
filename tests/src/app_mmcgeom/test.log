@@ -1,3 +1,35 @@
+testProbTransm(geom_is_unbounded=0)
+  TEST i=0 ptransm=1 (expected: 1) from dist=0 and macroxs=0
+  TEST i=1 ptransm=1 (expected: 1) from dist=0.01 and macroxs=0
+  TEST i=2 ptransm=1 (expected: 1) from dist=1e+99 and macroxs=0
+  TEST i=3 ptransm=1 (expected: 1) from dist=0 and macroxs=1
+  TEST i=4 ptransm=0.99005 (expected: 0.99005) from dist=0.01 and macroxs=1
+  TEST i=5 ptransm=0 (expected: 0) from dist=1e+99 and macroxs=1
+  TEST i=6 ptransm=1 (expected: 1) from dist=0 and macroxs=10000
+  TEST i=7 ptransm=3.72008e-44 (expected: 3.72008e-44) from dist=0.01 and macroxs=10000
+  TEST i=8 ptransm=0 (expected: 0) from dist=1e+99 and macroxs=10000
+  TEST i=9 ptransm=1 (expected: 1) from dist=0 and macroxs=inf
+  TEST i=10 ptransm=0 (expected: 0) from dist=0.01 and macroxs=inf
+  TEST i=11 ptransm=0 (expected: 0) from dist=1e+99 and macroxs=inf
+  TEST i=0 ptransm=1 (expected: 1) from dist=0 and macroxs=0
+  TEST i=1 ptransm=1 (expected: 1) from dist=0.01 and macroxs=0
+  TEST i=2 ptransm=1 (expected: 1) from dist=1e+99 and macroxs=0
+testProbTransm(geom_is_unbounded=1)
+  TEST i=0 ptransm=1 (expected: 1) from dist=0 and macroxs=0
+  TEST i=1 ptransm=1 (expected: 1) from dist=0.01 and macroxs=0
+  TEST i=2 ptransm=0 (expected: 0) from dist=inf and macroxs=0
+  TEST i=3 ptransm=1 (expected: 1) from dist=0 and macroxs=1
+  TEST i=4 ptransm=0.99005 (expected: 0.99005) from dist=0.01 and macroxs=1
+  TEST i=5 ptransm=0 (expected: 0) from dist=inf and macroxs=1
+  TEST i=6 ptransm=1 (expected: 1) from dist=0 and macroxs=10000
+  TEST i=7 ptransm=3.72008e-44 (expected: 3.72008e-44) from dist=0.01 and macroxs=10000
+  TEST i=8 ptransm=0 (expected: 0) from dist=inf and macroxs=10000
+  TEST i=9 ptransm=1 (expected: 1) from dist=0 and macroxs=inf
+  TEST i=10 ptransm=0 (expected: 0) from dist=0.01 and macroxs=inf
+  TEST i=11 ptransm=0 (expected: 0) from dist=inf and macroxs=inf
+  TEST i=0 ptransm=1 (expected: 1) from dist=0 and macroxs=0
+  TEST i=1 ptransm=1 (expected: 1) from dist=0.01 and macroxs=0
+  TEST i=2 ptransm=0 (expected: 0) from dist=inf and macroxs=0
 UnboundedCylinder case: pos = { 0, 0, -10 }  dir={ 0, 0, 1 }
    DistToEntry:
                refdist = 7

@@ -35,7 +35,7 @@ namespace NCRYSTAL_NAMESPACE {
                                       const double * __restrict b,
                                       std::size_t n )
     {
-      //Assuming all a[i], b[i]>=0 and that a[i] is infinite, implements a[i] *=
+      //Assuming all a[i], b[i]>=0 and that a[i] is finite, implements a[i] *=
       // b[i] in a way so the result is always 0 if a[i] is zero. Specifically,
       // this is intended to allow the case of (a[i],b[i])=(0,inf) to yield 0
       // without triggering Nan or FPE.
@@ -43,6 +43,7 @@ namespace NCRYSTAL_NAMESPACE {
       //It was tested that this seems to vectorize nicely.
       for ( std::size_t i = 0; i < n; ++i ) {
         nc_assert( std::isfinite(a[i]) );
+        nc_assert( !std::isnan(a[i]) );
         nc_assert( b[i] >= 0.0 );
         a[i] *= ( a[i] ? b[i] : 0.0 );
       }
@@ -60,10 +61,6 @@ void NCMMCU::calcProbTransm( NumberDensity nd, std::size_t n,
   //unbounded, we need to consider that dist=inf is a possibility. In that case
   //we want the transmission probability to be 0 (to not tally something not
   //leaving the geometry).
-
-  //Fixme: Ensure we unit test the behaviour here, especially regarding
-  //geom_is_unbounded, dists[i]=inf, and xs=0.0. Optionally xs=inf would be nice
-  //to get to work (should give ptransm=0)
   if ( !xs_or_nullptr ) {
     if ( geom_is_unbounded ) {
       for ( auto i : ncrange( n ) ) {
@@ -83,8 +80,15 @@ void NCMMCU::calcProbTransm( NumberDensity nd, std::size_t n,
 
   for ( auto i : ncrange( n ) )
     out[i] = macroXS( nd, CrossSect{xs_or_nullptr[i]} );
+
+  //To allow infinite cross sections without triggering inf*0=nan, we do the
+  //following trick (note that we want (xs=inf)*(dist=0) to give prob_transm=0).
+  constexpr double dbl_max = std::numeric_limits<double>::max();
+  for ( std::size_t i = 0; i < n; ++i )
+    out[i] = ncmin( dbl_max, out[i] );
+
   if ( geom_is_unbounded ) {
-    safe_mult_strongzero( out, dists, n );//fixme would fail if xs=inf
+    safe_mult_strongzero( out, dists, n );
   } else {
     for ( auto i : ncrange( n ) )
       out[i] *= dists[i];

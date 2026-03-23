@@ -36,6 +36,8 @@ namespace NCRYSTAL_NAMESPACE {
       //Internal utilities that are useful when implementing MMC simulation
       //engines.
 
+      //Transmission probability. Handles xs=inf correctly, and handles dist=inf
+      //correctly if geom_is_unbounded=true:
       void calcProbTransm( NumberDensity nd, std::size_t N,
                            bool geom_is_unbounded,
                            const double * ncrestrict xs_or_nullptr,

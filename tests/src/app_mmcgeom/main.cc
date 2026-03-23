@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/minimc/NCMMC_Geom.hh"
+#include "NCrystal/internal/minimc/NCMMC_Utils.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include <iostream>
@@ -628,7 +629,6 @@ namespace {
 
     double distToEntry( const NC::Vector& pos, const NC::Vector& dir_raw ) const
     {
-      //std::cout<<"TKTEST pointIsCompletelyInside(pos)="<<pointIsCompletelyInside(pos)<<std::endl;
       if ( pointIsCompletelyInside(pos,1e-12) ) {
         return 0.0;
       }
@@ -1422,7 +1422,63 @@ void testSphereCases2()
   }
 }
 
+void testProbTransm( bool geom_is_unbounded )
+{
+  std::cout << "testProbTransm(geom_is_unbounded="<<geom_is_unbounded<<")"
+            << std::endl;
+
+  constexpr auto nxs = 4;
+  constexpr auto nd = 3;
+  constexpr auto n = nxs*nd;
+  const double vals_xs[nxs] = { 0.0, 0.01, 100, NC::kInfinity };
+  const double vals_dists[nd] = { 0.0, 0.01, NC::kInfinity };
+  double xs[n];
+  double dist[n];
+  unsigned idx = 0;
+  for ( auto val_xs : vals_xs ) {
+    for ( auto val_dist : vals_dists ) {
+      xs[idx] = val_xs;
+      dist[idx] = ( NC::ncisinf(val_dist)
+                    ? ( geom_is_unbounded ? val_dist : 1e99 )
+                    : val_dist );
+      ++idx;
+    }
+  }
+  nc_assert_always(idx==n);
+  double out[n];
+  NC::NumberDensity numdens{ 1.0 };
+  NCMMC::Utils::calcProbTransm( numdens, n, geom_is_unbounded,
+                                xs,
+                                dist, out );
+  for ( auto i : NC::ncrange(n) ) {
+    double macroxs = 100.0 * xs[i] * numdens.get(); //[1/m]
+    double ptransm = ( dist[i] == 0.0
+                       ? 1.0
+                       : ( NC::ncisinf(dist[i])
+                           ? 0.0
+                           : std::exp( -macroxs * dist[i] ) ) );
+    std::cout<<"  TEST i="<<i<<" ptransm="<<out[i]
+             <<" (expected: "<<ptransm<<") from dist="
+             <<NC::fmt(dist[i])<<" and macroxs="<<NC::fmt(macroxs)<<std::endl;
+    REQUIREFLTEQ( ptransm, out[i] );
+  }
+  NCMMC::Utils::calcProbTransm( numdens, n, geom_is_unbounded,
+                                nullptr,
+                                vals_dists, out );
+  for ( auto i : NC::ncrange(nd) ) {
+    double ptransm = ( NC::ncisinf(dist[i]) ? 0.0 : 1.0 );
+    std::cout<<"  TEST i="<<i<<" ptransm="<<out[i]
+             <<" (expected: "<<ptransm<<") from dist="
+             <<NC::fmt(dist[i])<<" and macroxs=0"<<std::endl;
+    REQUIREFLTEQ( ptransm, out[i] );
+  }
+
+
+}
+
 int main(int,char**) {
+  testProbTransm(false);
+  testProbTransm(true);
   testUnboundedCylinderCases();
   testBoundedCylinderCases();
   testSphereCases();
