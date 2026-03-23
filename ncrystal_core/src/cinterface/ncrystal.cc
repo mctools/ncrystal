@@ -75,13 +75,13 @@ namespace NCRYSTAL_NAMESPACE {
     public:
       AtomDataObj( AtomDataSP ad, std::string displayLabel = "" )
         : m_atomDataSO(std::move(ad)),
-          m_displayLabel_ptr( displayLabel.empty() ? nullptr : std::make_unique<std::string>(std::move(displayLabel)) ),
+          m_displayLabel_ptr( displayLabel.empty() ? nullptr : ncmake_unique<std::string>(std::move(displayLabel)) ),
           m_description_ptr([this]() -> decltype(m_description_ptr)
           {
             std::string descr = m_atomDataSO->description(false);
             if ( m_displayLabel_ptr != nullptr && descr == *m_displayLabel_ptr )
               return nullptr;
-            return std::make_unique<std::string>(std::move(descr));
+            return ncmake_unique<std::string>(std::move(descr));
           }())
       {
       }

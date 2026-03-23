@@ -173,18 +173,18 @@ NC::ElIncScatter::ElIncScatter( const Info& info, const ElIncScatterCfg& cfg )
   if (!res.has_value())
     NCRYSTAL_THROW(MissingInfo,"Info object passed to ElIncScatter lacks information to create Debye-Waller factors.");
 
-  m_elincxs = std::make_unique<ElIncXS>( std::move(res.value().msd),
-                                         std::move(res.value().bixs),
-                                         std::move(res.value().scale) );
+  m_elincxs = ncmake_unique<ElIncXS>( std::move(res.value().msd),
+                                      std::move(res.value().bixs),
+                                      std::move(res.value().scale) );
 }
 
 NC::ElIncScatter::ElIncScatter( const VectD& elements_meanSqDisp,
                                 const VectD& elements_boundincohxs,
                                 const VectD& elements_scale )
 {
-  m_elincxs = std::make_unique<ElIncXS>( elements_meanSqDisp,
-                                         elements_boundincohxs,
-                                         elements_scale );
+  m_elincxs = ncmake_unique<ElIncXS>( elements_meanSqDisp,
+                                      elements_boundincohxs,
+                                      elements_scale );
 }
 
 NC::CrossSect NC::ElIncScatter::crossSectionIsotropic( CachePtr& cp, NeutronEnergy ekin ) const
@@ -218,8 +218,8 @@ std::shared_ptr<NC::ProcImpl::Process> NC::ElIncScatter::createMerged( const Pro
   auto& o = *optr;
   nc_assert( m_elincxs != nullptr );
   nc_assert( o.m_elincxs != nullptr );
-  return std::make_shared<ElIncScatter>(std::make_unique<ElIncXS>( *m_elincxs, scale_self,
-                                                                   *o.m_elincxs, scale_other ));
+  return std::make_shared<ElIncScatter>(ncmake_unique<ElIncXS>( *m_elincxs, scale_self,
+                                                                *o.m_elincxs, scale_other ));
 }
 
 NC::Optional<std::string> NC::ElIncScatter::specificJSONDescription() const

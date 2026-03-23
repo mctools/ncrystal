@@ -177,7 +177,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     std::unique_ptr<PlaneProvider> actual_createStdPlaneProvider( const Info* info, OptionalInfoPtr iptr )
     {
-      auto unable = []() { return std::make_unique<PlaneProviderStd_Unable>(); };
+      auto unable = []() { return ncmake_unique<PlaneProviderStd_Unable>(); };
 
       if ( !info->hasHKLInfo() )
         return unable();
@@ -188,7 +188,7 @@ namespace NCRYSTAL_NAMESPACE {
         //particularly important to avoid a spurious failure, since we (at least
         //for now?) always use a type of HKLInfoType::Minimal when the hkl list
         //is valid but empty.
-        return std::make_unique<PlaneProviderStd_AbleButEmpty>();
+        return ncmake_unique<PlaneProviderStd_AbleButEmpty>();
       }
 
       auto hitype = info->hklInfoType();
@@ -196,13 +196,13 @@ namespace NCRYSTAL_NAMESPACE {
       case HKLInfoType::SymEqvGroup:
         if ( !info->hasStructureInfo() || info->getStructureInfo().spacegroup == 0 )
           return unable();
-        return std::make_unique<PlaneProviderStd_HKL>( info, std::move(iptr) );
+        return ncmake_unique<PlaneProviderStd_HKL>( info, std::move(iptr) );
       case HKLInfoType::ExplicitHKLs:
         if ( !info->hasStructureInfo() )
           return unable();
-        return std::make_unique<PlaneProviderStd_HKL>( info, std::move(iptr) );
+        return ncmake_unique<PlaneProviderStd_HKL>( info, std::move(iptr) );
       case HKLInfoType::ExplicitNormals:
-        return std::make_unique<PlaneProviderStd_Normals>( info, std::move(iptr) );
+        return ncmake_unique<PlaneProviderStd_Normals>( info, std::move(iptr) );
       case HKLInfoType::Minimal:
         return unable();
       };

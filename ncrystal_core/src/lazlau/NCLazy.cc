@@ -546,10 +546,10 @@ NC::InfoPtr NC::Lazy::buildInfo( const LazyCfgVars& cfg, const ParsedLazyData& d
     const double fraction = ( double(e.first) / double(chemform_ntot) );
     auto atomdatasp = atomdb.lookupAtomData( elementZToName( e.second.Z() ) );
     IndexedAtomData iad{ atomdatasp, AtomIndex{atom_idx_counter++} };
-    dyninfos.emplace_back( std::make_unique<DI_VDOSDebye>(fraction,
-                                                          iad,
-                                                          builder.temperature.value(),
-                                                          data.debye_temp ) );
+    dyninfos.emplace_back( NC::ncmake_unique<DI_VDOSDebye>(fraction,
+                                                           iad,
+                                                           builder.temperature.value(),
+                                                           data.debye_temp ) );
   }
 
   dyninfos.shrink_to_fit();

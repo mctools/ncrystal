@@ -164,7 +164,7 @@ int main()
   }
   //Now with *not* OK object (not kept in shared object):
   {
-    auto spA = std::make_unique<A>();
+    auto spA = NC::ncmake_unique<A>();
     A* a = spA.get();
     (void)a;
     bool gotexpectederror(false);

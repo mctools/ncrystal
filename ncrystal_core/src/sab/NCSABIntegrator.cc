@@ -79,7 +79,7 @@ NS::SABIntegrator::Impl::Impl( shared_obj<const SABData> data,
                                std::shared_ptr<const SABExtender> sabextender )
   : m_data(std::move(data)),
     m_egrid((egrid&&!egrid->empty())?*egrid:VectD()),
-    m_extender(!sabextender?std::make_unique<SABFGExtender>(m_data->temperature(),m_data->elementMassAMU(),m_data->boundXS()):std::move(sabextender)),
+    m_extender(!sabextender?ncmake_unique<SABFGExtender>(m_data->temperature(),m_data->elementMassAMU(),m_data->boundXS()):std::move(sabextender)),
     m_egridMargin{ 1.05 }
 {
 }
@@ -389,7 +389,7 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
     //No alpha ranges at all -> cross section is 0 here.
     if (!doSampler)
       return { nullptr, 0.0 };
-    return { std::make_unique<SABSamplerAtE_NoScatter>(), 0.0 };
+    return { ncmake_unique<SABSamplerAtE_NoScatter>(), 0.0 };
   }
 
   nc_assert( ibeta_low + alpharanges.size() == betaGrid.size() ) ;
@@ -536,14 +536,14 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
     return { nullptr, xs_total };
 
   if ( xs_total == 0.0 )
-    return { std::make_unique<SABSamplerAtE_NoScatter>(), xs_total };
+    return { ncmake_unique<SABSamplerAtE_NoScatter>(), xs_total };
 
   nc_assert(!!m_derivedData);
-  SamplerAtE_uptr up = std::make_unique<SABSamplerAtE_Alg1>( m_derivedData,
-                                                             std::move(betasampler_vals),
-                                                             std::move(betasampler_weights),
-                                                             std::move(sampler_infos),
-                                                             ibeta_low,
-                                                             ( starts_at_kinematic_endpoint ? beta_lower_limit : 1.0 ) );
+  SamplerAtE_uptr up = ncmake_unique<SABSamplerAtE_Alg1>( m_derivedData,
+                                                          std::move(betasampler_vals),
+                                                          std::move(betasampler_weights),
+                                                          std::move(sampler_infos),
+                                                          ibeta_low,
+                                                          ( starts_at_kinematic_endpoint ? beta_lower_limit : 1.0 ) );
   return { std::move(up), xs_total };
 }

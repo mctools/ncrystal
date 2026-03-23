@@ -62,7 +62,7 @@ std::unique_ptr<const NC::SAB::SABScatterHelper> NC::SAB::createScatterHelper( s
   nc_assert(!!data);
   SABIntegrator si(data,energyGrid.get());
   auto sh = si.createScatterHelper();
-  return std::make_unique<SABScatterHelper>(std::move(sh));
+  return ncmake_unique<SABScatterHelper>(std::move(sh));
 }
 
 void NC::SAB::clearScatterHelperCache() {

@@ -794,7 +794,7 @@ void test_atomdb() {
     NC::registerInMemoryFileData(fn,std::string(ncmatdata));
     std::unique_ptr<NC::MatCfg> cfg;
     try {
-      cfg = std::make_unique<NC::MatCfg>(fn+";inelas=freegas;"+cfgstr);
+      cfg = NC::ncmake_unique<NC::MatCfg>(fn+";inelas=freegas;"+cfgstr);
     } catch ( NC::Error::BadInput& e ) {
       if (expectbadcfg) {
         std::cout<<"Got expected MatCfg ERROR: NC::"<<e.getTypeName()<< ": "<<e.what() << std::endl;

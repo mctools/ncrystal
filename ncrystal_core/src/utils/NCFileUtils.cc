@@ -350,12 +350,7 @@ std::string NC::ncgetcwd() {
   if (errno == ERANGE) {
     //crazy system with crazy long path.
     constexpr std::size_t nlarge = 131072;
-#if nc_cplusplus >= 201402L
-      //Our make_unique for c++11 seems to have problems with arrays
-    auto largebuf = std::make_unique<char[]>(nlarge);
-#else
-    std::unique_ptr<char[]> largebuf(new char[nlarge]());
-#endif
+    auto largebuf = ncmake_unique_array<char>(nlarge);
     if (getcwd(&largebuf[0], nlarge))
       return std::string(&largebuf[0]);
     if (errno == ERANGE)

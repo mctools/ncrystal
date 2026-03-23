@@ -116,7 +116,7 @@ NC::SCBragg::SCBragg( const NC::Info& cinfo,
                       double dd,
                       PlaneProvider * plane_provider,
                       double prec, double ntrunc)
-  : m_pimpl(std::make_unique<pimpl>(cinfo,mosaicity,dd,sco,plane_provider,prec,ntrunc))
+  : m_pimpl(NC::ncmake_unique<pimpl>(cinfo,mosaicity,dd,sco,plane_provider,prec,ntrunc))
 {
 }
 

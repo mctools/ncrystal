@@ -424,7 +424,7 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
           hi.multiplicity = 2;
           hi.fsquared = FSquared;
           hi.dspacing = dspacing;
-          hi.explicitValues = std::make_unique<HKLInfo::ExplicitVals>();
+          hi.explicitValues = ncmake_unique<HKLInfo::ExplicitVals>();
           hi.explicitValues->list.emplace<std::vector<HKL>>();
           hi.explicitValues->list.get<std::vector<HKL>>().reserve(24);//shrinked below
           hi.explicitValues->list.get<std::vector<HKL>>().emplace_back(loop_h,loop_k,loop_l);
@@ -466,7 +466,7 @@ namespace NCRYSTAL_NAMESPACE {
       std::set<HKL> m_seenFallBack;//<--- ultimate fallback, bad performance but always works.
       double m_dcutoff;//for err msg (-1 means err disabled)
     public:
-      SymHKLSeenTracker( double dcutoff ) : m_seen(std::make_unique<FastArraySmall>()), m_dcutoff(dcutoff) {}
+      SymHKLSeenTracker( double dcutoff ) : m_seen(ncmake_unique<FastArraySmall>()), m_dcutoff(dcutoff) {}
       bool isFirstCheck( const HKL& hkl ) {
         auto idx = calcFastIdx<fast_small_C>(hkl);
         if ( idx.has_value() ) nclikely {
@@ -494,7 +494,7 @@ namespace NCRYSTAL_NAMESPACE {
         auto idx = calcFastIdx<fast_large_C>(v);
         if ( idx.has_value() ) {
           if (!m_seenLarge) ncunlikely {
-            m_seenLarge = std::make_unique<FastArrayLarge>();
+            m_seenLarge = ncmake_unique<FastArrayLarge>();
           }
           auto e = (*m_seenLarge)[idx.value()];
           if ( (bool)e )

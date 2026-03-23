@@ -203,7 +203,7 @@ int main() {
 
   //Register our custom factory with NCrystal, thus ensuring it gets invoked
   //when users call createScatter(..).
-  NC::FactImpl::registerFactory(std::make_unique<SimpleIncElasScatterFactory>());
+  NC::FactImpl::registerFactory(NC::ncmake_unique<SimpleIncElasScatterFactory>());
 
   //Add the Al_sg225_simpleincelas100barn.ncmat (virtual) file which has a
   //@CUSTOM_SIMPLEINCELAS section:

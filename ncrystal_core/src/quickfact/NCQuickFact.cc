@@ -299,8 +299,8 @@ extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_quickgasmix_factory)();
 
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_quick_factory)()
 {
-  NC::FactImpl::registerFactory( std::make_unique<NC::QuickFact>(NC::QuickType::FreeGas) );
-  NC::FactImpl::registerFactory( std::make_unique<NC::QuickFact>(NC::QuickType::Solid) );
+  NC::FactImpl::registerFactory( NC::ncmake_unique<NC::QuickFact>(NC::QuickType::FreeGas) );
+  NC::FactImpl::registerFactory( NC::ncmake_unique<NC::QuickFact>(NC::QuickType::Solid) );
   //the gasmix factory should be part of the same "stdquick" plugin.
   NCRYSTAL_APPLY_C_NAMESPACE(register_quickgasmix_factory)();
 }

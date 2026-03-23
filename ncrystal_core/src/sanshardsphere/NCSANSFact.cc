@@ -104,5 +104,5 @@ namespace NCRYSTAL_NAMESPACE {
 
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_experimentalscatfact)()
 {
-  NC::FactImpl::registerFactory(std::make_unique<NC::SansHardSphereFact>());
+  NC::FactImpl::registerFactory(NC::ncmake_unique<NC::SansHardSphereFact>());
 }

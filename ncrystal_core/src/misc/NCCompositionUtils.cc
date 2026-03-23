@@ -260,12 +260,7 @@ NC::CU::ElementBreakdownLW::ElementBreakdownLW(const NC::CU::FullElementBreakdow
       N = 1;
     }
   } else {
-#if nc_cplusplus >= 201402L
-    //Our make_unique for c++11 seems to have problems with arrays
-    m_other = std::make_unique<std::pair<double,uint16_t>[]>(N-1);
-#else
-    m_other = decltype(m_other)(new std::pair<double,uint16_t>[N-1]());
-#endif
+    m_other = ncmake_unique_array<std::pair<double,uint16_t>>(N-1);
     StableSum totfrac;
     for (auto af: Afrac)
       totfrac.add( af.second );

@@ -59,7 +59,7 @@ namespace NCRYSTAL_NAMESPACE {
 
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdlaz_factory)()
 {
-  NC::FactImpl::registerFactory(std::make_unique<NC::AltLauFact>());
+  NC::FactImpl::registerFactory(NC::ncmake_unique<NC::AltLauFact>());
   NC::DataSources::addRecognisedFileExtensions("laz");
   NC::DataSources::addRecognisedFileExtensions("lau");
 }

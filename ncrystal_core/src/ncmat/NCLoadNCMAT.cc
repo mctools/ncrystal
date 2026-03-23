@@ -50,7 +50,7 @@ namespace NCRYSTAL_NAMESPACE {
                     VectD&& egrid,
                     ScatKnlData&& data )
       : DI_ScatKnlDirect(fraction,std::move(atom),data.temperature),
-        m_inputdata(std::make_unique<ScatKnlData>(std::move(data)))
+        m_inputdata(ncmake_unique<ScatKnlData>(std::move(data)))
     {
       if (!egrid.empty())
         m_egrid = std::make_shared<const VectD>(std::move(egrid));
@@ -413,10 +413,10 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       elem2frac[iad.index] = e.fraction;
       switch (e.dyninfo_type) {
       case NCMATData::DynInfo::Sterile:
-        di = std::make_unique<DI_Sterile>(e.fraction, iad, cfgvars.temp);
+        di = ncmake_unique<DI_Sterile>(e.fraction, iad, cfgvars.temp);
         break;
       case NCMATData::DynInfo::FreeGas:
-        di = std::make_unique<DI_FreeGas>(e.fraction, iad, cfgvars.temp);
+        di = ncmake_unique<DI_FreeGas>(e.fraction, iad, cfgvars.temp);
         break;
       case NCMATData::DynInfo::VDOSDebye:
         {
@@ -433,7 +433,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
           }
           if ( !debye_temp.has_value() )
             debye_temp = element2DebyeTemp(iad.index);
-          di = std::make_unique<DI_VDOSDebye>(e.fraction, iad, cfgvars.temp, debye_temp.value());
+          di = ncmake_unique<DI_VDOSDebye>(e.fraction, iad, cfgvars.temp, debye_temp.value());
         }
         break;
       case NCMATData::DynInfo::VDOS:
@@ -454,15 +454,15 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
           nc_assert_always(vdos_egrid_reg.size()==2);
           PairDD vdos_egrid_pair(vdos_egrid_reg.front(),vdos_egrid_reg.back());
 
-          di = std::make_unique<DI_VDOSImpl>( e.fraction, iad, cfgvars.temp,
-                                              std::move(egrid),
-                                              VDOSData(vdos_egrid_pair,
-                                                       std::move(vdos_density_reg),
-                                                       cfgvars.temp,
-                                                       iad.data().scatteringXS(),//(full xs, incoherent approximation)
-                                                       iad.data().averageMassAMU()),
-                                              std::move(vdos_egrid_orig),
-                                              std::move(vdos_density_orig) );
+          di = ncmake_unique<DI_VDOSImpl>( e.fraction, iad, cfgvars.temp,
+                                           std::move(egrid),
+                                           VDOSData(vdos_egrid_pair,
+                                                    std::move(vdos_density_reg),
+                                                    cfgvars.temp,
+                                                    iad.data().scatteringXS(),//(full xs, incoherent approximation)
+                                                    iad.data().averageMassAMU()),
+                                           std::move(vdos_egrid_orig),
+                                           std::move(vdos_density_orig) );
           //If missing, estimate MSD/DebyeTemp from VDOS (in v4 or later):
           if ( data.version >= 4 ) {
             if ( tryElement2DebyeTemp(iad.index).has_value() ) {
@@ -531,9 +531,9 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
 
           //Egrid:
           VectD egrid = getEgrid(e.fields);
-          di = std::make_unique<DI_ScatKnlImpl>(e.fraction, iad,
-                                                std::move(egrid),
-                                                std::move(knldata));
+          di = ncmake_unique<DI_ScatKnlImpl>(e.fraction, iad,
+                                             std::move(egrid),
+                                             std::move(knldata));
           //TODO: Also try to estimate Debye temperature from SAB?
         }
         break;
@@ -600,10 +600,10 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       //from atom positions, and we have debye temperatures available. We must
       //add DI_VDOSDebye entries for all elements in this case:
       for ( auto& ef: elem2frac )
-        builder.dynamics.value().emplace_back(std::make_unique<DI_VDOSDebye>(ef.second,
-                                                                             *index2iad.at(ef.first.get()),
-                                                                             cfgvars.temp,
-                                                                             element2DebyeTemp(ef.first)));
+        builder.dynamics.value().emplace_back(ncmake_unique<DI_VDOSDebye>(ef.second,
+                                                                          *index2iad.at(ef.first.get()),
+                                                                          cfgvars.temp,
+                                                                          element2DebyeTemp(ef.first)));
     }
 
     nc_assert_always(elem2pos.size()==elem2frac.size());

@@ -375,19 +375,6 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-#if nc_cplusplus < 201402L
-//Make sure we can use std::make_unique from C++14 even in C++11 code
-//FIXME: use ncmake_unique from above instead!
-namespace std {
-  template<typename T, typename ...Args>
-  inline std::unique_ptr<T> make_unique( Args&& ...args )
-  {
-    return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
-  }
-}
-#endif
-
-
 ////////////////////////////
 // Inline implementations //
 ////////////////////////////

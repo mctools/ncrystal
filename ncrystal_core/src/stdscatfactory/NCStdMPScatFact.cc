@@ -106,5 +106,5 @@ namespace NCRYSTAL_NAMESPACE {
 
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdmpscat_factory)()
 {
-  NC::FactImpl::registerFactory(std::make_unique<NC::StdMPScatFact>());
+  NC::FactImpl::registerFactory(NC::ncmake_unique<NC::StdMPScatFact>());
 }

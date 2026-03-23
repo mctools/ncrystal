@@ -159,7 +159,7 @@ namespace NCRYSTAL_NAMESPACE {
             if ( cfg.get_sccutoff() && cfg.get_sccutoff() > info.hklDMinVal() ) {
               //Improve efficiency by treating planes with dspacing less than
               //sccutoff as having isotropic mosaicity distribution.
-              auto tmp = std::make_unique<PlaneProviderWCutOff>(cfg.get_sccutoff(),std::move(sc_pp));
+              auto tmp = ncmake_unique<PlaneProviderWCutOff>(cfg.get_sccutoff(),std::move(sc_pp));
               ppwcutoff = tmp.get();
               sc_pp = std::move(tmp);
               nc_assert( sc_pp!=nullptr && (void*)sc_pp.get()==(void*)ppwcutoff );
@@ -411,5 +411,5 @@ namespace NCRYSTAL_NAMESPACE {
 
 extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(register_stdscat_factory)()
 {
-  NC::FactImpl::registerFactory(std::make_unique<NC::StdScatFact>());
+  NC::FactImpl::registerFactory(NC::ncmake_unique<NC::StdScatFact>());
 }

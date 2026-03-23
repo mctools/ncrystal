@@ -449,7 +449,7 @@ namespace NCRYSTAL_NAMESPACE {
     template<class CacheClass>
     inline CacheClass& Process::accessCache(CachePtr& cpbase) const {
       if (!cpbase)
-        cpbase = std::make_unique<CacheClass>();
+        cpbase = ncmake_unique<CacheClass>();
 #ifndef NDEBUG
       if ( !dynamic_cast<CacheClass*>(cpbase.get()) ) {
         NCRYSTAL_THROW2( LogicError, "accessCache: type mismatch in class \"" << name()

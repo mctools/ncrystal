@@ -51,14 +51,14 @@ namespace {
     {
       if ( W == AllowWeights::YES ) {
         if ( O == OverflowHandling::Record )
-          m_h_WO = std::make_unique<Hist1D_WO>(nbins,xmin,xmax);
+          m_h_WO = NC::ncmake_unique<Hist1D_WO>(nbins,xmin,xmax);
         else
-          m_h_W = std::make_unique<Hist1D_W>(nbins,xmin,xmax);
+          m_h_W = NC::ncmake_unique<Hist1D_W>(nbins,xmin,xmax);
       } else {
         if ( O == OverflowHandling::Record )
-          m_h_O = std::make_unique<Hist1D_O>(nbins,xmin,xmax);
+          m_h_O = NC::ncmake_unique<Hist1D_O>(nbins,xmin,xmax);
         else
-          m_h = std::make_unique<Hist1D>(nbins,xmin,xmax);
+          m_h = NC::ncmake_unique<Hist1D>(nbins,xmin,xmax);
       }
     }
     void fill( double x )

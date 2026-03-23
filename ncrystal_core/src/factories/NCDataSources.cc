@@ -204,7 +204,7 @@ void NCD::enableAbsolutePaths( bool doEnable )
   if ( !doEnable ) {
     FactImpl::removeTextDataFactoryIfExists( factNameAbsPath );
   } else {
-    FactImpl::registerFactory( std::make_unique<TDFact_AbsPath>() );
+    FactImpl::registerFactory( ncmake_unique<TDFact_AbsPath>() );
   }
 }
 
@@ -353,7 +353,7 @@ void NCD::enableRelativePaths( bool doEnable )
   if ( !doEnable ) {
     FactImpl::removeTextDataFactoryIfExists( factNameRelPath );
   } else {
-    FactImpl::registerFactory( std::make_unique<TDFact_RelPath>() );
+    FactImpl::registerFactory( ncmake_unique<TDFact_RelPath>() );
   }
 }
 
@@ -475,7 +475,7 @@ void NCD::enableStandardDataLibrary( bool doEnable, Optional<std::string> reques
                                  );
 #endif
   if (!phys_dir.empty())
-    FactImpl::registerFactory( std::make_unique<TDFact_DirList>( VectS{phys_dir}, factNameStdLib, thePriority) );
+    FactImpl::registerFactory( ncmake_unique<TDFact_DirList>( VectS{phys_dir}, factNameStdLib, thePriority) );
   //silently register nothing if phys_dir is empty.
 }
 
@@ -521,7 +521,7 @@ void NCD::addCustomSearchDirectory( std::string dirname, Priority pr )
   //Make sure relevant factory is present:
   if (!FactImpl::currentlyHasFactory( FactImpl::FactoryType::TextData,
                                       factNameCustomSearchDirs) )
-    FactImpl::registerFactory( std::make_unique<TDFact_CustomDirList>() );
+    FactImpl::registerFactory( ncmake_unique<TDFact_CustomDirList>() );
 }
 
 void NCD::removeCustomSearchDirectories()
@@ -541,7 +541,7 @@ void NCD::enablePluginSearchPaths( bool doEnable )
   if ( !doEnable ) {
     FactImpl::removeTextDataFactoryIfExists( factNamePluginSearchPaths );
   } else {
-    FactImpl::registerFactory( std::make_unique<TDFact_PluginDirs>() );
+    FactImpl::registerFactory( ncmake_unique<TDFact_PluginDirs>() );
   }
 }
 
@@ -572,7 +572,7 @@ void NCD::enableStandardSearchPath( bool doEnable )
     for ( auto& e : split2(hardwired,0,':') )
       addEntry( e );
 #endif
-    FactImpl::registerFactory( std::make_unique<TDFact_DirList>( std::move(dirs), factNameStdSearchPath, Priority{default_priority_stdpath} ) );
+    FactImpl::registerFactory( ncmake_unique<TDFact_DirList>( std::move(dirs), factNameStdSearchPath, Priority{default_priority_stdpath} ) );
   }
 }
 
@@ -648,7 +648,7 @@ namespace NCRYSTAL_NAMESPACE {
       const bool was_empty = vfs.virtualFiles.empty();
       nc_map_force_emplace( vfs.virtualFiles, virtualFilename, std::move(tsd), priority );
       if ( was_empty )
-        FactImpl::registerFactory(std::make_unique<TDFact_VirtualFiles>());
+        FactImpl::registerFactory(ncmake_unique<TDFact_VirtualFiles>());
     }
   }
 
@@ -704,9 +704,9 @@ void NCD::registerNamedVirtualDataSource( const std::string& factoryName,
   static std::mutex mtx;
   NCRYSTAL_LOCK_GUARD(mtx);
 
-  auto new_fact = std::make_unique<TDFact_VirtualDataSource>( factoryName,
-                                                              std::move(virtualFiles),
-                                                              priority );
+  auto new_fact = ncmake_unique<TDFact_VirtualDataSource>( factoryName,
+                                                           std::move(virtualFiles),
+                                                           priority );
   if ( FactImpl::currentlyHasFactory(FactImpl::FactoryType::TextData,
                                      new_fact->name()) )
     FactImpl::removeTextDataFactoryIfExists( new_fact->name() );

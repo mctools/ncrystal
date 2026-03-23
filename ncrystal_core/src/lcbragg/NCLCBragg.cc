@@ -58,12 +58,12 @@ namespace NCRYSTAL_NAMESPACE {
           plane_provider = stdpp.get();
         }
 
-        m_lchelper = std::make_unique<LCHelper>( lcaxis.as<Vector>().unit().as<LCAxis>(),
-                                                 lcaxis_labframe,
-                                                 mosaicity,
-                                                 si.volume * si.n_atoms,
-                                                 plane_provider,
-                                                 prec, ntrunc);
+        m_lchelper = NC::ncmake_unique<LCHelper>( lcaxis.as<Vector>().unit().as<LCAxis>(),
+                                                  lcaxis_labframe,
+                                                  mosaicity,
+                                                  si.volume * si.n_atoms,
+                                                  plane_provider,
+                                                  prec, ntrunc );
 
         m_ekin_low = wl2ekin( m_lchelper->braggThreshold() );
 
@@ -95,7 +95,7 @@ namespace NCRYSTAL_NAMESPACE {
 NC::LCBragg::LCBragg( const Info& ci, const SCOrientation& sco, MosaicityFWHM mosaicity,
                       const LCAxis& lcaxis, int mode, double delta_d, PlaneProvider * plane_provider,
                       double prec, double ntrunc)
-  : m_pimpl(std::make_unique<pimpl>(this,lcaxis,mode,sco,ci,plane_provider,mosaicity,delta_d,prec,ntrunc))
+  : m_pimpl(NC::ncmake_unique<pimpl>(this,lcaxis,mode,sco,ci,plane_provider,mosaicity,delta_d,prec,ntrunc))
 {
   nc_assert_always(bool(m_pimpl->m_lchelper)!=bool(m_pimpl->m_scmodel!=nullptr));
 }
