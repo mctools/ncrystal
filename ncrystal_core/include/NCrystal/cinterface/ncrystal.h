@@ -1252,7 +1252,7 @@ extern "C" {
   /*             1 : [x, y, z, ux, uy, uz, ekin, weight, nscat, nscatinelas] */
   /*             2 : as <1> + initial [x, y, z, ux, uy, uz, ekin, weight]    */
   /*     n : Length of each data array (i.e. number of neutrons).            */
-  /*     return value: (0: std, 1: halt src).                                */
+  /*     return value: (0: std, 1: halt src, 2: error).                      */
   NCRYSTAL_API char* ncrystal_flexmmcrun( const char * jsonquery,
                                           const char * cb_options,
                                           unsigned (*cb)

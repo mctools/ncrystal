@@ -44,7 +44,8 @@ namespace NCRYSTAL_NAMESPACE {
         {
           STD = 0, // Standard.
           HALTSRC = 1, // Request that source stops producing particles.
-          MAXVALID = HALTSRC
+          HALTERR = 2, // Error encountered, halt all work.
+          MAXVALID = HALTERR
         };
       using CallBackFct = std::function<CallBackFctRV(const DataArea&)>;
 
@@ -116,10 +117,13 @@ namespace NCRYSTAL_NAMESPACE {
       class CBMgr : NoCopyMove {
         //Callback function manager. Class which collects data from worker
         //threads, collates them, and provides them to the provided callback
-        //function. The haltSource function is required in order to allow the
-        //source to be halted in case the callback function returns HALTSRC.
+        //function. The haltSource/haltError functions are required in order to
+        //allow the source to be halted in case the callback function returns
+        //HALTSRC/HALTERR:
       public:
-        CBMgr( CBMgrInput, std::function<void()> haltSource );
+        CBMgr( CBMgrInput,
+               std::function<void()> haltSource,
+               std::function<void()> haltError );
         ~CBMgr();
 
         //Function called by the worker threads:
@@ -142,13 +146,14 @@ namespace NCRYSTAL_NAMESPACE {
         std::size_t m_nmax;
         std::size_t m_nmax_caches;
         std::mutex m_cbmtx;
-        CallBackFct m_callback;
+        CallBackFct m_callback;//nullptr after an error!
 #else
         DataAreaPtr m_cache;
         std::size_t m_nmax;
         CallBackFct m_callback;
 #endif
         std::function<void()> m_haltSource;
+        std::function<void()> m_haltError;
       };
     }
   }

@@ -22,6 +22,7 @@
 #ifndef NCRYSTAL_DISABLE_THREADS
 #  include <thread>
 #  include <condition_variable>
+#  include <exception>
 #endif
 
 namespace NC = NCrystal;
@@ -48,15 +49,23 @@ public:
   {
     if ( callback.has_value() ) {
       std::weak_ptr<BasketMgr> weak_bpv = m_bmgr.getsp();
-      std::function<void()> haltSrc = [weak_bpv]()
+      std::function<void()> haltSource = [weak_bpv]()
       {
-        //halt the source if ptr is available (obviously no need otherwise)
+        //call haltSource if ptr is available (obviously no need otherwise)
         auto bpv = weak_bpv.lock();
         if ( bpv != nullptr )
           bpv->haltSource();
       };
+      std::function<void()> haltError = [weak_bpv]()
+      {
+        //call haltError if ptr is available (obviously no need otherwise)
+        auto bpv = weak_bpv.lock();
+        if ( bpv != nullptr )
+          bpv->haltError();
+      };
       m_cbmgr.emplace( std::move(callback.value()),
-                       std::move(haltSrc) );
+                       std::move(haltSource),
+                       std::move(haltError));
     }
   }
 

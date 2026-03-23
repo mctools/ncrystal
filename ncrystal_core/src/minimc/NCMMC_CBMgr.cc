@@ -229,6 +229,8 @@ void NCMMC::CB::CBMgr::registerData( const Basket& b )
   data_append( *datauptr, b );
   threadReturnCache( std::move(datauptr) );
 #else
+  if ( m_callback == nullptr )
+    return;
   if ( m_cache == nullptr ) {
     m_cache = ncmake_unique<DataArea>(m_nmax);
     nc_assert(!(m_cache->size() + b.size() > m_nmax));
@@ -315,28 +317,38 @@ void NCMMC::CB::CBMgr::flush()
       fireCallback( *data );
   }
 #else
-  if ( m_cache!=nullptr && m_cache->size() > 0 ) {
-    nc_assert( m_callback != nullptr );
+  if ( m_callback!=nullptr && m_cache!=nullptr && m_cache->size() > 0 ) {
     auto rv = m_callback( *m_cache );
     DataArea::Mutable::size(*m_cache) = 0;
-    //m_cache->clear();
-    if ( rv == CallBackFctRV::HALTSRC )
-      m_haltSource();
+    if ( rv != CallBackFctRV::STD ) {
+      static_assert( CallBackFctRV::MAXVALID == CallBackFctRV::HALTERR, "" );
+      nc_assert_always( rv == CallBackFctRV::HALTSRC
+                        || rv == CallBackFctRV::HALTERR );
+      if ( rv == CallBackFctRV::HALTERR ) {
+        m_haltError();
+        m_callback = nullptr;
+      } else {
+        m_haltSource();
+      }
+    }
   }
 #endif
 }
 
 NCMMC::CB::CBMgr::CBMgr( CBMgrInput input,
-                         std::function<void()> haltSource )
+                         std::function<void()> haltSource,
+                         std::function<void()> haltError )
   : m_nmax( input.cachelen > basket_N ? input.cachelen : basket_N ),
 #ifndef NCRYSTAL_DISABLE_THREADS
     m_nmax_caches( input.ncaches > 1 ? input.ncaches : 1 ),
 #endif
     m_callback(std::move(input.callbackfct)),
-    m_haltSource(std::move(haltSource))
+    m_haltSource(std::move(haltSource)),
+    m_haltError(std::move(haltError))
 {
   nc_assert(m_callback!=nullptr);
   nc_assert(m_haltSource!=nullptr);
+  nc_assert(m_haltError!=nullptr);
 
   //1e9 is high, memorable, fits in any kind of integer of at least 32 bits.
   if ( input.cachelen > CBMgrInput::cachelen_max )
@@ -407,12 +419,21 @@ void NCMMC::CB::CBMgr::fireCallback( const DataArea& data )
 {
   nc_assert(data.size()>0);
   NCRYSTAL_LOCK_GUARD( m_cbmtx );
-  nc_assert( m_callback != nullptr );
+  if ( m_callback == nullptr )
+    return;//previous error apparently
   auto rv = m_callback( data );
-  if ( rv == CallBackFctRV::HALTSRC )
+  if ( rv == CallBackFctRV::STD )
+    return;
+  static_assert( CallBackFctRV::MAXVALID == CallBackFctRV::HALTERR, "" );
+  nc_assert_always( rv == CallBackFctRV::HALTSRC
+                    || rv == CallBackFctRV::HALTERR );
+  if ( rv == CallBackFctRV::HALTERR ) {
+    m_haltError();
+    m_callback = nullptr;
+  } else {
     m_haltSource();
+  }
 }
-
 
 #endif
 

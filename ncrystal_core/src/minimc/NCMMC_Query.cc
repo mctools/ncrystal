@@ -103,15 +103,14 @@ void NCMMC::Query::JSONQuery_flexmmcrun( std::ostream& os,
       query_mmcrun(os,arg(0),arg(1),arg(2),arg(3),cb);
     } else {
       auto matcfg = MatCfg(argstr(0));
-      auto d = NCrystal::MiniMC::Utils::decodeScenario( matcfg,
-                                                        argstr(1).c_str() );
+      auto d = Utils::decodeScenario( matcfg,argstr(1).c_str() );
       query_mmcrun(os,arg(0),d.geomcfg,d.srccfg,arg(2),cb);
     }
   } else if ( key == sv_scenario ) {
     if ( nargs != 2 )
       invalid("correct usage: [\"mmc\",\"scenario\",CFGSTR,SCENARIOSTR]");
     auto matcfg = MatCfg(argstr(0));
-    auto d = NCrystal::MiniMC::Utils::decodeScenario( matcfg, argstr(1).c_str() );
+    auto d = Utils::decodeScenario( matcfg, argstr(1).c_str() );
     streamJSONDictEntry( os, "geomcfg", d.geomcfg, JSONDictPos::FIRST );
     streamJSONDictEntry( os, "srccfg", d.srccfg, JSONDictPos::LAST );
   } else if ( key == sv_list ) {

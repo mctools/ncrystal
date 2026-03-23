@@ -69,13 +69,13 @@ def run( cfgstr, *,
     More details at: https://github.com/mctools/ncrystal/wiki/minimc
 
     """
-    from ._mmc_impl import run
-    return run( resclass = MMCResults,
-                cfgstr = cfgstr, geomcfg = geomcfg,
-                srccfg = srccfg, scenario = scenario,
-                enginecfg = enginecfg, callback = callback,
-                callback_options = callback_options,
-                unpack = unpack )
+    from ._mmc_impl import run as runimpl
+    return runimpl( resclass = MMCResults,
+                    cfgstr = cfgstr, geomcfg = geomcfg,
+                    srccfg = srccfg, scenario = scenario,
+                    enginecfg = enginecfg, callback = callback,
+                    callback_options = callback_options,
+                    unpack = unpack )
 
 def decode_scenario( cfgstr, scenario ):
     """Decodes the provided material cfgstr and scenario string in order to

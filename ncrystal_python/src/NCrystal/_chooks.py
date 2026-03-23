@@ -857,43 +857,46 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         cb_errors = []
         def cb_wrapper( data, cbtype, data_len ):
             if cb_errors:
-                return 1
-            cbtype = int(cbtype)
-            assert cbtype in (1,2)
-
-            n = int(data_len)
-            assert 0 < n <= 1000000000
-            def load( i ):
-                return _cptr_to_nparray( data[i], n, dealloc=False)
-
-            pydata = dict( x = load(0), y = load(1), z = load(2),
-                           ux = load(3), uy = load(4), uz = load(5),
-                           ekin = load(6), w = load(7), nscat = load(8),
-                           nscat_inelas = load(9) )
-            if cbtype==2:
-                pydata.update(
-                    dict( x0 = load(10), y0 = load(11), z0 = load(12),
-                          ux0 = load(13),uy0 = load(14), uz0 = load(15),
-                          ekin0 = load(16), w0 = load(17) )
-                )
-
+                return 2
+            rv = 0
             try:
-                user_rv = user_callback( pydata )
-                #FIXME: Just let the exception go! After we use
-                #       std::exception_ptr etc.
-                #Fixme: we need to test the experience in case of an error from
-                #the user callback, or the user pressing ctrl-c. However, we
-                #should also the what happens if there is an exception during
-                #the simulation itself. Also, which type should we emit (we
-                #might want an NCrystal exception instead of the RuntimeError
-                #below).
-            except Exception as e:
-                print("User callback threw exception: aborting.")
-                cb_errors.append(e)
-                user_rv = 1
+                cbtype = int(cbtype)
+                assert cbtype in (1,2)
 
-            #None or False -> 0 (STD), True -> 1 (HALTSRC)
-            return 1 if bool(user_rv) else 0
+                n = int(data_len)
+                assert 0 < n <= 1000000000
+                def load( i ):
+                    return _cptr_to_nparray( data[i], n, dealloc=False)
+
+                pydata = dict( x = load(0), y = load(1), z = load(2),
+                               ux = load(3), uy = load(4), uz = load(5),
+                               ekin = load(6), w = load(7), nscat = load(8),
+                               nscat_inelas = load(9) )
+                if cbtype==2:
+                    pydata.update(
+                        dict( x0 = load(10), y0 = load(11), z0 = load(12),
+                              ux0 = load(13),uy0 = load(14), uz0 = load(15),
+                              ekin0 = load(16), w0 = load(17) )
+                    )
+
+                user_rv = user_callback( pydata )
+                #TODO: Currently not aborting a long simjob on ctrl-C if
+                #      nthreads>2. Tricky to fix.
+                if not bool(user_rv):
+                    rv = 0 # STD (usual case)
+                else:
+                    #HALTERR or HALTSRC:
+                    rv = ( 2 if ( isinstance(user_rv,str)
+                                  and user_rv=='error' ) else 1 )
+                    if rv == 2 and not cb_errors:
+                        cb_errors.append(None)
+            except BaseException as exc:
+                rv = 2
+                cb_errors.append(exc)
+                del exc #maybe not needed, but exc.__traceback__ references the
+                        #function frame, so the function frame best not
+                        #reference exc.
+            return rv
 
         cb_c = _FLEXMMCRUNCBTYPE(cb_wrapper)
         cbopt_c = None
@@ -901,8 +904,9 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             cbopt_c = _str2cstr(callback_options)
         raw_str = _raw_flexmmcrun( cstr_query, cbopt_c, cb_c )
         if cb_errors:
-            raise RuntimeError('Exception encountered'
-                               ' during user callback') from cb_errors[0]
+            #Rethrow exception from callback function
+            user_callback_exception = cb_errors[0]
+            raise user_callback_exception
         return decode_query_result(raw_str)
 
     functions['flexmmcrun'] = flexmmcrun
