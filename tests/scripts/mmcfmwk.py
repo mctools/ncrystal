@@ -146,8 +146,8 @@ def main(do_plot, do_update):
     #the same results if running again on the same machine. However, there are
     #potential FP issues if changing platform, and B has nthreads=2 which ruins
     #it even on the same platform. Thus, we will only check for statistical
-    #compatiblility with the reference files (fixme: so we should not plotcmp
-    #resA above!).
+    #compatiblility with the reference files (todo: so we should not plotcmp
+    #resA above??).
 
     print("Verifying resA conversion stability.")
     assert resA.check_compat( resA, threshold=1.0 ) is True

@@ -24,8 +24,6 @@
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
 
-//Fixme tallyref (and possibly other parameters) is not unit tested.
-
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
     namespace {

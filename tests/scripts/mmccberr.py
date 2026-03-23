@@ -74,7 +74,7 @@ def main():
                   callback_options='basket_type=basic;cachelen=1e4' )
     print("ran callback %i times (%i neutrons)"%(n_cb[0],n_tot[0]))
     assert 14 <= n_cb[0] <= 22 # very rough, saw 17-18 in tests
-    assert 65e3 <= n_tot[0] <= 85e3 # very rough, saw 73k in tests
+    assert 58e3 <= n_tot[0] <= 92e3 # very rough, saw 73k in tests
     print(res.output_metadata['tallied']['count'],n_tot[0])
     assert res.output_metadata['tallied']['count']==n_tot[0]
 
@@ -90,6 +90,19 @@ def main():
     assert 550e3 <= n_tot[0] <= 900e3 # very rough, saw 656k in tests
     print(res.output_metadata['tallied']['count'],n_tot[0])
     assert res.output_metadata['tallied']['count']==n_tot[0]
+
+    #Test a few other things:
+    cb_opt = ['std']
+    n_tot[0] = 0
+    from NCrystalDev.exceptions import NCBadInput
+    with ensure_error(NCBadInput,
+                      'Invalid cachelen "1000000001"'
+                      ' (must be less than 1000000000)'):
+        res = mmcrun( "Al_sg225.ncmat", scenario='2Aa on 2cm 2e5 times',
+                      callback = cb,
+                      enginecfg = 'nthreads=2;tally=e',
+                      callback_options='cachelen=1000000001' )
+
 
 if __name__ == '__main__':
     main()

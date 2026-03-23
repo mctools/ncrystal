@@ -599,10 +599,6 @@ void NCMMC::Basket::dealloc_warn() noexcept
   //simulation engine.
   //
   //We can NOT leak from this as we are called from a destructor.
-  //
-  //Fixme: try to verify that the logic below actually works, doesn't trigger
-  //new issues, etc. At least do it once manually.
-
   try {
     {
       NCRYSTAL_WARN("MiniMC Basket went out of scope without"

@@ -203,7 +203,7 @@ namespace NCRYSTAL_NAMESPACE {
           const double tmaxval = ( -B[i] + sqrtD )*invtwoA;
           //Constrain to forward direction only (this might leave tmin=tmax=0,
           //i.e. a miss):
-          //fixme: maybe we do the ncmax thing later on anyway???
+          //NB: this ncmax might not be needed (we do it later?):
           tgt[i] = ncmax(0.0,tminval);
           tmax[i] = ncmax(0.0,tmaxval);
         }

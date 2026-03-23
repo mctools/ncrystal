@@ -396,7 +396,6 @@ class MMCTallyView:
         return tally_info()['tallyhistinfo'][self.name]['short_descr']
 
     def dump( self, *args, **kwargs):
-        #fixme args and docstring
         return self.hist_total.dump(*args,**kwargs)
 
     def plot( self,

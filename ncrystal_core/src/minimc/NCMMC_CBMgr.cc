@@ -29,7 +29,6 @@ namespace NCMMC = NCrystal::MiniMC;
 NCMMC::CB::DataArea::DataArea( std::size_t capacity )
   : m_capacity(capacity)
 {
-  //fixme: unit test this next exception:
   for ( auto i : ncrange(nfieldsmax) )
     m_datacache[i] = nullptr;
   if ( capacity > CBMgrInput::cachelen_max )
