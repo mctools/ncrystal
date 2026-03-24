@@ -44,7 +44,6 @@ namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
 
 namespace {
-
   constexpr double one_plus_eps = 1.0 + 3.0*std::numeric_limits<double>::epsilon();
   constexpr double one_minus_eps = 1.0 - 3.0*std::numeric_limits<double>::epsilon();
   static_assert(one_plus_eps>1.0,"");
@@ -59,12 +58,80 @@ namespace {
     bf.x.data[0] = pos.x();
     bf.y.data[0] = pos.y();
     bf.z.data[0] = pos.z();
-    auto u = dir.unit();
+    NC::Vector u = dir;
+    if ( NC::ncabs(u.mag2()-1.0)>1e-15 )
+      u = dir.unit();
     bf.ux.data[0] = u.x();
     bf.uy.data[0] = u.y();
     bf.uz.data[0] = u.z();
     bf.w.data[0] = 1.0;
     bf.ekin.data[0] = 0.025;
+  }
+
+  struct TestNeutron {
+    NC::Vector pos = NC::Vector{ 0.0, 0.0, 0.0 };
+    NC::Vector dir = NC::Vector{ 0.0, 0.0, 1.0 };
+    NC::NeutronEnergy ekin = NC::NeutronEnergy{ 0.025 };
+    double weight = 1.0;
+    bool operator==( const TestNeutron& o ) const
+    {
+      return ( pos == o.pos && dir == o.dir
+               && ekin == o.ekin && weight == o.weight );
+    }
+    TestNeutron() = default;
+    TestNeutron( const NCMMC::NeutronBasket& b )
+    {
+      nc_assert_always( b.nused == 1 );
+      auto& bf = b.fields;
+      pos.set( bf.x[0], bf.y[0], bf.z[0] );
+      dir.set( bf.ux[0], bf.uy[0], bf.uz[0] );
+      ekin = NC::NeutronEnergy{ bf.ekin[0] };
+      weight = bf.w[0];
+    }
+    void apply( NCMMC::NeutronBasket& b ) const
+    {
+      initBasket( b, pos, dir );
+      nc_assert_always( b.nused == 1 );
+      nc_assert_always( dir[0] == b.fields.ux[0] );
+      nc_assert_always( dir[1] == b.fields.uy[0] );
+      nc_assert_always( dir[2] == b.fields.uz[0] );
+
+      b.fields.ekin.data[0] = ekin.get();
+      b.fields.w.data[0] = weight;
+    }
+  };
+
+  TestNeutron propagate( const TestNeutron& in,
+                         bool geom_is_unbounded,
+                         double dist )
+  {
+    NCMMC::NeutronBasket b;
+    in.apply( b );
+    const double arr_dist[1] = { dist };
+    nc_assert_always( in.dir[0] == b.fields.ux[0] );
+    nc_assert_always( in.dir[1] == b.fields.uy[0] );
+    nc_assert_always( in.dir[2] == b.fields.uz[0] );
+    NCMMC::Utils::propagate( b, geom_is_unbounded, arr_dist );
+    return TestNeutron( b );
+  }
+
+  TestNeutron propAndAtten( const TestNeutron& in,
+                            NC::NumberDensity numdens,
+                            bool geom_is_unbounded,
+                            double dist,
+                            NC::Optional<double> xsval )
+  {
+
+    NCMMC::NeutronBasket b;
+    in.apply( b );
+    const double arr_dist[1] = { dist };
+    const double arr_xsval[1] = { xsval.value_or(-1.0) };
+    const double * ptr_xsval = ( xsval.has_value()
+                                 ? (const double*)arr_xsval
+                                 : nullptr );
+    NCMMC::Utils::propagateAndAttenuate( b, numdens, geom_is_unbounded,
+                                         arr_dist, ptr_xsval );
+    return TestNeutron( b );
   }
 
   double distToVolEntry( const NCMMC::Geometry& geom,
@@ -906,16 +973,6 @@ void testBoxCases()
            <<" Box test cases!"<<std::endl;
 }
 
-namespace {
-  void streamFmtV( std::ostream& os, const NC::Vector& v )
-  {
-    os << "{ " << NC::fmt(v[0])
-       << ", " << NC::fmt(v[1])
-       << ", " << NC::fmt(v[2]) << " }";
-  }
-
-}
-
 void testUnboundedCylinderCases()
 {
   using V = NC::Vector;
@@ -1024,11 +1081,7 @@ void testUnboundedCylinderCases()
     if ( !all_ok || verbose || has_manualref ) {
       std::cout<<"UnboundedCylinder case: pos = "<<pos<<"  dir="<<dir<<std::endl;
       if (!all_ok) {
-        std::cout<<"  -> High res: pos=";
-        streamFmtV( std::cout, pos );
-        std::cout<<" dir=";
-        streamFmtV( std::cout, dir );
-        std::cout<<std::endl;
+        std::cout<<"  -> High res: pos="<<pos<<" dir="<<dir<<std::endl;
       }
       std::cout<<"   DistToEntry:"<<std::endl;
       std::cout<<"               refdist = "
@@ -1426,7 +1479,6 @@ void testProbTransm( bool geom_is_unbounded )
 {
   std::cout << "testProbTransm(geom_is_unbounded="<<geom_is_unbounded<<")"
             << std::endl;
-
   constexpr auto nxs = 4;
   constexpr auto nd = 3;
   constexpr auto n = nxs*nd;
@@ -1446,21 +1498,41 @@ void testProbTransm( bool geom_is_unbounded )
   }
   nc_assert_always(idx==n);
   double out[n];
-  NC::NumberDensity numdens{ 1.0 };
+  const NC::NumberDensity numdens{ 1.0 };
   NCMMC::Utils::calcProbTransm( numdens, n, geom_is_unbounded,
                                 xs,
                                 dist, out );
+  auto calc_expected_ptransm = [geom_is_unbounded]( double distval,
+                                                    double macroxsval )
+  {
+    //NB: Synchronise expectation here with behaviour promised in
+    //    NCMMC_Utils.hh:
+    nc_assert_always(distval>=0.0);
+    nc_assert_always(macroxsval>=0.0);
+    if ( NC::ncisinf(distval) ) {
+      nc_assert_always( NC::ncisinf(distval) );
+      nc_assert_always( geom_is_unbounded );//otherwise not supported
+      return 0.0;
+    } else if ( distval == 0.0 ) {
+      return 1.0;
+    } else {
+      double res = std::exp( -macroxsval * distval );
+      nc_assert_always( !NC::ncisnan(res) );
+      nc_assert_always( res>=0.0 );
+      nc_assert_always( res<=1.0 );
+      return res;
+    }
+  };
   for ( auto i : NC::ncrange(n) ) {
-    double macroxs = 100.0 * xs[i] * numdens.get(); //[1/m]
-    double ptransm = ( dist[i] == 0.0
-                       ? 1.0
-                       : ( NC::ncisinf(dist[i])
-                           ? 0.0
-                           : std::exp( -macroxs * dist[i] ) ) );
+    const double macroxs = 100.0 * xs[i] * numdens.get(); //[1/m]
+    const double ptransm = calc_expected_ptransm( dist[i], macroxs );
     std::cout<<"  TEST i="<<i<<" ptransm="<<out[i]
              <<" (expected: "<<ptransm<<") from dist="
-             <<NC::fmt(dist[i])<<" and macroxs="<<NC::fmt(macroxs)<<std::endl;
+             <<NC::fmtg(dist[i])<<" and macroxs="<<NC::fmtg(macroxs)<<std::endl;
     REQUIREFLTEQ( ptransm, out[i] );
+    nc_assert_always( !NC::ncisnan(out[i]) );
+    nc_assert_always( out[i]>=0.0 );
+    nc_assert_always( out[i]<=1.0 );
   }
   NCMMC::Utils::calcProbTransm( numdens, n, geom_is_unbounded,
                                 nullptr,
@@ -1469,11 +1541,160 @@ void testProbTransm( bool geom_is_unbounded )
     double ptransm = ( NC::ncisinf(dist[i]) ? 0.0 : 1.0 );
     std::cout<<"  TEST i="<<i<<" ptransm="<<out[i]
              <<" (expected: "<<ptransm<<") from dist="
-             <<NC::fmt(dist[i])<<" and macroxs=0"<<std::endl;
+             <<NC::fmtg(dist[i])<<" and macroxs=0"<<std::endl;
     REQUIREFLTEQ( ptransm, out[i] );
   }
+  std::cout << "testPropagateAndAttenuate(geom_is_unbounded="
+            <<geom_is_unbounded<<")"
+            << std::endl;
 
 
+  struct Test {
+    double dist;
+    NC::Optional<double> xsval;
+  };
+  std::vector<Test> tests;
+
+  for ( auto val_xs : vals_xs ) {
+    for ( auto val_dist : vals_dists ) {
+      Test t;
+      t.dist = val_dist;
+      t.xsval = val_xs;
+      tests.push_back( t );
+    }
+  }
+  //Once again, but with NullOpt (ultimately nullptr) xs, to test also that path
+  //for vanishing xsect:
+  for ( auto val_dist : vals_dists ) {
+    Test t;
+    t.dist = val_dist;
+    tests.push_back( t );
+  }
+
+  unsigned i = 0;
+  for ( auto& t : tests ) {
+    std::cout<<"PropAndAttenuate test #"<<i++<<std::endl;
+    std::cout<<"   dist: "<<NC::fmtg(t.dist)<<std::endl;
+    std::cout<<"   xsval: ";
+    if ( t.xsval.has_value() )
+      std::cout << NC::fmtg(t.xsval.value());
+    else
+      std::cout << "null";
+    std::cout<<std::endl;
+    std::cout<<"   geom_is_unbounded: "<<geom_is_unbounded<<std::endl;;
+    const bool dist_is_inf = NC::ncisinf(t.dist);
+    //    const bool xsval_is_inf = NC::ncisinf(t.xsval.value_or(0.0));
+
+    if ( dist_is_inf && !geom_is_unbounded ) {
+      std::cout
+        << "  ==> Not testing (bounded geom + inf dist is unsupported)"
+        << std::endl;
+      continue;
+    }
+
+    const TestNeutron n1;
+    auto n2 = propAndAtten( n1, numdens, geom_is_unbounded, t.dist, t.xsval );
+    std::cout << "  ==> Verifying expected weight" << std::endl;
+    const double macroxs = 100.0 * t.xsval.value_or(0.0) * numdens.get();//[1/m]
+    const double ptransm = calc_expected_ptransm( t.dist, macroxs );
+    nc_assert_always( n1.weight == 1.0 );
+    nc_assert_always( n2.weight == ptransm );
+    std::cout << "        weight: "<<NC::fmtg(n2.weight)<<" (expected: "
+              <<NC::fmtg(ptransm)<<")"<<std::endl;
+    std::cout << "  ==> Verifying expected pos, dir and ekin" << std::endl;
+    nc_assert_always( n1.dir == n2.dir );
+    nc_assert_always( n1.ekin == n2.ekin );
+    const double delta_pos = (n1.pos-n2.pos).mag();
+    REQUIREFLTEQ( delta_pos, t.dist );//this also work when dist_is_inf
+    if ( t.dist == 0.0 ) {
+      nc_assert_always( n1 == n2 );
+      std::cout<<"  ==> dist=0. Verifying neutron unchanged."<<std::endl;
+      continue;
+    }
+    if ( !dist_is_inf ) {
+      std::cout<<"  ==> 0<dist<inf. Verifying neutron pos."<<std::endl;
+      auto expected_pos = n1.pos + n1.dir * t.dist;
+      nc_assert_always( (expected_pos-n2.pos).mag() < 1e-20 );
+      continue;
+    }
+    if ( dist_is_inf ) {
+      std::cout<<"  ==> dist=inf. Verifying neutron weight 0."<<std::endl;
+      nc_assert_always( n2.weight == 0.0 );
+    }
+    //fixme: we should test for macro_xs (not just xs) vanishing as well!
+    //I.e. numdens small/large might push xs to inf. Easiest if util function
+    //simply accepts just the macroxs values!
+  }
+
+  unsigned itest_prop = 0;
+  auto test_prop = [&itest_prop, geom_is_unbounded]( NC::Vector pos,
+                                                     NC::Vector dir,
+                                                     double ddist )
+  {
+    ++itest_prop;
+    std::cout<<"Test propagation #"<<itest_prop<<": pos="<<pos<<", dir="<<dir
+             <<", dist="<<ddist<<" geomub="<<geom_is_unbounded<<std::endl;
+    if (!geom_is_unbounded)
+      nc_assert_always(!NC::ncisinf(ddist));
+    nc_assert_always(ddist>=0.0);
+    TestNeutron in;
+    in.pos = pos;
+    in.dir = dir;
+    TestNeutron res = propagate( in, geom_is_unbounded, ddist );
+    nc_assert_always( in.pos == pos );
+    nc_assert_always( in.dir == dir );
+    nc_assert_always( res.dir == dir );
+
+    if ( ddist == 0.0 ) {
+      nc_assert_always( in == res );
+    } else {
+      //verify expected position:
+      NC::Vector expected_pos;
+      if ( NC::ncisinf(ddist) ) {
+        nc_assert_always(geom_is_unbounded);
+        auto f = []( double x, double ux )
+        {
+          return ux == 0.0 ? x : (( ux>0.0?1.0:-1.0)*NC::kInfinity);
+        };
+        expected_pos.set( f( in.pos[0], in.dir[0] ),
+                          f( in.pos[1], in.dir[1] ),
+                          f( in.pos[2], in.dir[2] ) );
+      } else {
+        expected_pos = in.pos + in.dir*ddist;
+      }
+      REQUIREFLTEQ( expected_pos[0], res.pos[0] );
+      REQUIREFLTEQ( expected_pos[1], res.pos[1] );
+      REQUIREFLTEQ( expected_pos[2], res.pos[2] );
+      REQUIREFLTEQ( expected_pos.mag(), res.pos.mag() );
+      //Verify that only pos can have changed:
+      res.pos = in.pos;
+      nc_assert_always( in == res );
+    }
+  };
+
+  NC::VectD testdists = { 0.0, 1e-5, 1.0, 1e5 };
+  if ( geom_is_unbounded )
+    testdists.push_back( NC::kInfinity );
+
+  NC::VectD testui_many = { 0.0, 0.5, 1.0 };
+  NC::VectD testui_few = { 0.0, 0.8 };
+  NC::VectD testpos_many = { -100.0, 0.0, 1e5 };
+  NC::VectD testpos_few = { 1.0 };
+  for ( auto ux : testui_many ) {
+    for ( auto uy : testui_few )
+      for ( auto uz : testui_few )
+        for ( auto x : testpos_few )
+          for ( auto y : testpos_many )
+            for ( auto z : testpos_few )
+              for ( auto ddist : testdists ) {
+                NC::Vector pp( x, y, z );
+                NC::Vector dd( ux, uy, uz );
+                if ( !dd.mag2() )
+                  continue;
+                dd = dd.unit();
+                test_prop( pp, dd, ddist );
+              }
+  }
 }
 
 int main(int,char**) {
@@ -1499,8 +1720,8 @@ int main(int,char**) {
       for ( auto y : miscvals ) {
         for ( auto z : vals_abslteq2 ) {
           if ( (ii++)%50 == 0 )
-            std::cout << "x="<<NC::fmt(x)<<", y="<<NC::fmt(y)
-                      <<", z="<<NC::fmt(z) <<std::endl;
+            std::cout << "x="<<NC::fmtg(x)<<", y="<<NC::fmtg(y)
+                      <<", z="<<NC::fmtg(z) <<std::endl;
           REQUIRE( geom->pointIsInside( { 0, 0, z } ) );
           REQUIREFLTEQ( distToVolExit( geom, { x, y, z }, { 0, 0, 1 } ),
                         2.0-z);

@@ -146,36 +146,11 @@ void NCMMCU::propagateAndAttenuate( NeutronBasket& b,
                                     const double* ncrestrict dists,
                                     const double* ncrestrict xsvals )
 {
-  //FIXME: if !xsvals but we have infinities, we need to check for those!!!!
-
   propagate( b, geom_is_unbounded, dists );
-  if ( xsvals ) {
-    double tmp[basket_N];
-    for ( auto i : ncrange( b.size() ) )
-      tmp[i] = macroXS( nd, CrossSect{ xsvals[i] } );
-    if ( geom_is_unbounded ) {
-      safe_mult_strongzero( tmp, dists, b.size() );
-    } else {
-      for ( auto i : ncrange( b.size() ) )
-        tmp[i] *= dists[i];
-    }
-    for ( auto i : ncrange( b.size() ) )
-      tmp[i] = -tmp[i];
-    for ( auto i : ncrange( b.size() ) )
-      tmp[i] = std::exp( tmp[i] );
-    for ( auto i : ncrange( b.size() ) ) {
-      b.fields.w.data[i] *= tmp[i];
-    }
-    //fixme: for the special case of macroxs=0 and dist=inf we need to set w=0.
-  }
-
-  if ( geom_is_unbounded ) {
-    //Make sure that particles propagating to infinity without scattering are
-    //always "lost" to the tallies by setting w=0. This is needed for when cross
-    //sections are 0 but distances are infinite.
-    for ( auto i : ncrange( b.size() ) )
-      b.fields.w.data[i] *= (1.0-static_cast<double>(std::isinf(dists[i])));
-  }
+  double tmp[basket_N];
+  calcProbTransm( nd, b.size(), geom_is_unbounded, xsvals, dists, tmp );
+  for ( auto i : ncrange( b.size() ) )
+    b.fields.w.data[i] *= tmp[i];
 }
 
 void NCMMCU::sampleRandDists( RNG& rng, NumberDensity nd,
@@ -192,6 +167,7 @@ void NCMMCU::sampleRandDists( RNG& rng, NumberDensity nd,
       continue;
     }
     if ( std::isinf(dists[i]) ) ncunlikely {
+      nc_assert( tgt[i] > 0.0 );
       tgt[i] = std::log( tgt[i] )/(-macroxs);
     } else {
       RandExpIntervalSampler rs( 0.0, dists[i], macroxs );

@@ -36,18 +36,34 @@ namespace NCRYSTAL_NAMESPACE {
       //Internal utilities that are useful when implementing MMC simulation
       //engines.
 
-      //Transmission probability. Handles xs=inf correctly, and handles dist=inf
-      //correctly if geom_is_unbounded=true:
+      //Transmission probability. Handles xs=inf always, and handles dist=inf
+      //correctly if geom_is_unbounded=true.
+      //
+      // The result will be:
+      //  dist = inf : P = 0.0 (NOTE: Requires geom_is_unbounded=true!)
+      //  dist = 0   : P = 1.0
+      //  0<dist<inf : P = exp(-k*xs*dist) (k=numdens*100.0)
+      //
+      //Note that for (xs,dist)=(inf,0) we return P=0.0 and not P=1.0, and this
+      //choice is to make tallying of unbounded geometries easier.
       void calcProbTransm( NumberDensity nd, std::size_t N,
                            bool geom_is_unbounded,
                            const double * ncrestrict xs_or_nullptr,
                            const double * ncrestrict dist,
                            double * ncrestrict out );
 
+      //Moves the neutron forward. If geom_is_unbounded, this also works as
+      //expected for dist=inf (e.g. moving a neutron with any pos and
+      //dir=(0,-1/sqrt2,1/sqrt2) forward dist=inf, will result in a neutron with
+      //position (0,-inf,inf). Notably this will NOT give (nan,-inf,inf).
       void propagate( NeutronBasket& b,
                       bool geom_is_unbounded,
                       const double* ncrestrict dists );
 
+      //Combines the propagate and calcProbTransm functions in order to move the
+      //neutrons forward. Notably if dist=0 this will leave the neutron
+      //unchanged and if dist=inf (requires geom_is_unbounded=true) it will be
+      //left with weight=0.
       void propagateAndAttenuate( NeutronBasket& b,
                                   NumberDensity nd,
                                   bool geom_is_unbounded,

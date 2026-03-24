@@ -128,10 +128,7 @@ int main(int,char**) {
 
   const std::vector<double> xvals =
     { -1e99, -10.0, -1.0+1e-15, -1.0, -1.0+1e-15, -0.5, -1e-15, 0.0, 1e-15,
-      1.0-1e-15, 0.5, 1.0, 1.0+1e-15, 10.0, 1e99 };//fixme: if we add inf here
-                                                   //we trigger asserts. We
-                                                   //should test infinity slab
-                                                   //gun with dir (1,0,0)
+      1.0-1e-15, 0.5, 1.0, 1.0+1e-15, 10.0, 1e99 };
   const std::vector<double> uxvals =
     { -1.0, -1.0+1e-15, -0.5, -1e-15, 0.0, 1e-15, 0.5, 1.0-1e-15, 1.0 };
   for ( auto& slab_halfthickness : xvals ) {

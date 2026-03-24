@@ -256,13 +256,10 @@ namespace NCRYSTAL_NAMESPACE {
                                          m_buf_disttoexit.data,
                                          m_buf_ptransm.data );
 
-          //FIXME: Make sure we handle xs_scat=0 correctly!!
-
           //fixme: stop recalculating macro_xs, but immediately convert xs
           //values to macroscopic values right after query!
 
-          //Pick scattering points (note returns kInfinity if macro scat xs=0):
-
+          //Pick scattering points (note gives dist=inf if macro scat xs=0):
           MiniMC::Utils::sampleRandDists(rng,
                                          m_mat.numDens,
                                          m_buf_disttoexit.data,
@@ -335,7 +332,7 @@ namespace NCRYSTAL_NAMESPACE {
                                       CrossSect{ *std::next(values_abs_xs_or_nullptr,i) } )
                     : 0.0 );
 
-              nc_assert( !std::isinf(m_buf_disttoscat[i]));
+              nc_assert( !NC::ncisinf(m_buf_disttoscat[i]));//dealt with above
               const double weight_reduction_factor
                 = std::exp( -macro_abs_xs * m_buf_disttoscat[i] );
 
@@ -354,8 +351,9 @@ namespace NCRYSTAL_NAMESPACE {
               auto& outb_fields = outb.neutrons->fields;
               outb_fields.w.data[j] *= roulette_weight_factor;
 
-              //Move to scattering point and attenuate: (fixme: can disttoscat
-              //be inf if xs=0??)
+              //Move to scattering point and attenuate. Note that we dealt with
+              //disttoscat=inf above, so can use a simple propagation:
+              nc_assert(!NC::ncisinf( m_buf_disttoscat[i]));//dealt with above
               outb_fields.x.data[j] += m_buf_disttoscat[i] * outb_fields.ux[j];
               outb_fields.y.data[j] += m_buf_disttoscat[i] * outb_fields.uy[j];
               outb_fields.z.data[j] += m_buf_disttoscat[i] * outb_fields.uz[j];
@@ -368,7 +366,7 @@ namespace NCRYSTAL_NAMESPACE {
                                  rng,
                                  BasketUtils::ekin_obj(*outb.neutrons,j),
                                  BasketUtils::dir_obj(*outb.neutrons,j));
-              nc_assert( ncabs(outcome.direction.as<Vector>().mag()-1) < 1e-9 );
+              nc_assert( ncabs(outcome.direction.as<Vector>().mag()-1.0) < 1e-9 );
               outb_fields.ux.data[j] = outcome.direction[0];
               outb_fields.uy.data[j] = outcome.direction[1];
               outb_fields.uz.data[j] = outcome.direction[2];

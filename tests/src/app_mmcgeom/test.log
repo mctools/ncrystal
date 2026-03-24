@@ -14,6 +14,244 @@ testProbTransm(geom_is_unbounded=0)
   TEST i=0 ptransm=1 (expected: 1) from dist=0 and macroxs=0
   TEST i=1 ptransm=1 (expected: 1) from dist=0.01 and macroxs=0
   TEST i=2 ptransm=1 (expected: 1) from dist=1e+99 and macroxs=0
+testPropagateAndAttenuate(geom_is_unbounded=0)
+PropAndAttenuate test #0
+   dist: 0
+   xsval: 0
+   geom_is_unbounded: 0
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=0. Verifying neutron unchanged.
+PropAndAttenuate test #1
+   dist: 0.01
+   xsval: 0
+   geom_is_unbounded: 0
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> 0<dist<inf. Verifying neutron pos.
+PropAndAttenuate test #2
+   dist: inf
+   xsval: 0
+   geom_is_unbounded: 0
+  ==> Not testing (bounded geom + inf dist is unsupported)
+PropAndAttenuate test #3
+   dist: 0
+   xsval: 0.01
+   geom_is_unbounded: 0
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=0. Verifying neutron unchanged.
+PropAndAttenuate test #4
+   dist: 0.01
+   xsval: 0.01
+   geom_is_unbounded: 0
+  ==> Verifying expected weight
+        weight: 0.99005 (expected: 0.99005)
+  ==> Verifying expected pos, dir and ekin
+  ==> 0<dist<inf. Verifying neutron pos.
+PropAndAttenuate test #5
+   dist: inf
+   xsval: 0.01
+   geom_is_unbounded: 0
+  ==> Not testing (bounded geom + inf dist is unsupported)
+PropAndAttenuate test #6
+   dist: 0
+   xsval: 100
+   geom_is_unbounded: 0
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=0. Verifying neutron unchanged.
+PropAndAttenuate test #7
+   dist: 0.01
+   xsval: 100
+   geom_is_unbounded: 0
+  ==> Verifying expected weight
+        weight: 3.72008e-44 (expected: 3.72008e-44)
+  ==> Verifying expected pos, dir and ekin
+  ==> 0<dist<inf. Verifying neutron pos.
+PropAndAttenuate test #8
+   dist: inf
+   xsval: 100
+   geom_is_unbounded: 0
+  ==> Not testing (bounded geom + inf dist is unsupported)
+PropAndAttenuate test #9
+   dist: 0
+   xsval: inf
+   geom_is_unbounded: 0
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=0. Verifying neutron unchanged.
+PropAndAttenuate test #10
+   dist: 0.01
+   xsval: inf
+   geom_is_unbounded: 0
+  ==> Verifying expected weight
+        weight: 0 (expected: 0)
+  ==> Verifying expected pos, dir and ekin
+  ==> 0<dist<inf. Verifying neutron pos.
+PropAndAttenuate test #11
+   dist: inf
+   xsval: inf
+   geom_is_unbounded: 0
+  ==> Not testing (bounded geom + inf dist is unsupported)
+PropAndAttenuate test #12
+   dist: 0
+   xsval: null
+   geom_is_unbounded: 0
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=0. Verifying neutron unchanged.
+PropAndAttenuate test #13
+   dist: 0.01
+   xsval: null
+   geom_is_unbounded: 0
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> 0<dist<inf. Verifying neutron pos.
+PropAndAttenuate test #14
+   dist: inf
+   xsval: null
+   geom_is_unbounded: 0
+  ==> Not testing (bounded geom + inf dist is unsupported)
+Test propagation #1: pos={ 1, -100, 1 }, dir={ 0, 0, 1 }, dist=0 geomub=0
+Test propagation #2: pos={ 1, -100, 1 }, dir={ 0, 0, 1 }, dist=1e-05 geomub=0
+Test propagation #3: pos={ 1, -100, 1 }, dir={ 0, 0, 1 }, dist=1 geomub=0
+Test propagation #4: pos={ 1, -100, 1 }, dir={ 0, 0, 1 }, dist=100000 geomub=0
+Test propagation #5: pos={ 1, 0, 1 }, dir={ 0, 0, 1 }, dist=0 geomub=0
+Test propagation #6: pos={ 1, 0, 1 }, dir={ 0, 0, 1 }, dist=1e-05 geomub=0
+Test propagation #7: pos={ 1, 0, 1 }, dir={ 0, 0, 1 }, dist=1 geomub=0
+Test propagation #8: pos={ 1, 0, 1 }, dir={ 0, 0, 1 }, dist=100000 geomub=0
+Test propagation #9: pos={ 1, 100000, 1 }, dir={ 0, 0, 1 }, dist=0 geomub=0
+Test propagation #10: pos={ 1, 100000, 1 }, dir={ 0, 0, 1 }, dist=1e-05 geomub=0
+Test propagation #11: pos={ 1, 100000, 1 }, dir={ 0, 0, 1 }, dist=1 geomub=0
+Test propagation #12: pos={ 1, 100000, 1 }, dir={ 0, 0, 1 }, dist=100000 geomub=0
+Test propagation #13: pos={ 1, -100, 1 }, dir={ 0, 1, 0 }, dist=0 geomub=0
+Test propagation #14: pos={ 1, -100, 1 }, dir={ 0, 1, 0 }, dist=1e-05 geomub=0
+Test propagation #15: pos={ 1, -100, 1 }, dir={ 0, 1, 0 }, dist=1 geomub=0
+Test propagation #16: pos={ 1, -100, 1 }, dir={ 0, 1, 0 }, dist=100000 geomub=0
+Test propagation #17: pos={ 1, 0, 1 }, dir={ 0, 1, 0 }, dist=0 geomub=0
+Test propagation #18: pos={ 1, 0, 1 }, dir={ 0, 1, 0 }, dist=1e-05 geomub=0
+Test propagation #19: pos={ 1, 0, 1 }, dir={ 0, 1, 0 }, dist=1 geomub=0
+Test propagation #20: pos={ 1, 0, 1 }, dir={ 0, 1, 0 }, dist=100000 geomub=0
+Test propagation #21: pos={ 1, 100000, 1 }, dir={ 0, 1, 0 }, dist=0 geomub=0
+Test propagation #22: pos={ 1, 100000, 1 }, dir={ 0, 1, 0 }, dist=1e-05 geomub=0
+Test propagation #23: pos={ 1, 100000, 1 }, dir={ 0, 1, 0 }, dist=1 geomub=0
+Test propagation #24: pos={ 1, 100000, 1 }, dir={ 0, 1, 0 }, dist=100000 geomub=0
+Test propagation #25: pos={ 1, -100, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=0 geomub=0
+Test propagation #26: pos={ 1, -100, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=1e-05 geomub=0
+Test propagation #27: pos={ 1, -100, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=1 geomub=0
+Test propagation #28: pos={ 1, -100, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=100000 geomub=0
+Test propagation #29: pos={ 1, 0, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=0 geomub=0
+Test propagation #30: pos={ 1, 0, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=1e-05 geomub=0
+Test propagation #31: pos={ 1, 0, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=1 geomub=0
+Test propagation #32: pos={ 1, 0, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=100000 geomub=0
+Test propagation #33: pos={ 1, 100000, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=0 geomub=0
+Test propagation #34: pos={ 1, 100000, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=1e-05 geomub=0
+Test propagation #35: pos={ 1, 100000, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=1 geomub=0
+Test propagation #36: pos={ 1, 100000, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=100000 geomub=0
+Test propagation #37: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=0 geomub=0
+Test propagation #38: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=1e-05 geomub=0
+Test propagation #39: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=1 geomub=0
+Test propagation #40: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=100000 geomub=0
+Test propagation #41: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=0 geomub=0
+Test propagation #42: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=1e-05 geomub=0
+Test propagation #43: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=1 geomub=0
+Test propagation #44: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=100000 geomub=0
+Test propagation #45: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=0 geomub=0
+Test propagation #46: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=1e-05 geomub=0
+Test propagation #47: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=1 geomub=0
+Test propagation #48: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=100000 geomub=0
+Test propagation #49: pos={ 1, -100, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=0 geomub=0
+Test propagation #50: pos={ 1, -100, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=1e-05 geomub=0
+Test propagation #51: pos={ 1, -100, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=1 geomub=0
+Test propagation #52: pos={ 1, -100, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=100000 geomub=0
+Test propagation #53: pos={ 1, 0, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=0 geomub=0
+Test propagation #54: pos={ 1, 0, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=1e-05 geomub=0
+Test propagation #55: pos={ 1, 0, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=1 geomub=0
+Test propagation #56: pos={ 1, 0, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=100000 geomub=0
+Test propagation #57: pos={ 1, 100000, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=0 geomub=0
+Test propagation #58: pos={ 1, 100000, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=1e-05 geomub=0
+Test propagation #59: pos={ 1, 100000, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=1 geomub=0
+Test propagation #60: pos={ 1, 100000, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=100000 geomub=0
+Test propagation #61: pos={ 1, -100, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=0 geomub=0
+Test propagation #62: pos={ 1, -100, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=1e-05 geomub=0
+Test propagation #63: pos={ 1, -100, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=1 geomub=0
+Test propagation #64: pos={ 1, -100, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=100000 geomub=0
+Test propagation #65: pos={ 1, 0, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=0 geomub=0
+Test propagation #66: pos={ 1, 0, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=1e-05 geomub=0
+Test propagation #67: pos={ 1, 0, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=1 geomub=0
+Test propagation #68: pos={ 1, 0, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=100000 geomub=0
+Test propagation #69: pos={ 1, 100000, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=0 geomub=0
+Test propagation #70: pos={ 1, 100000, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=1e-05 geomub=0
+Test propagation #71: pos={ 1, 100000, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=1 geomub=0
+Test propagation #72: pos={ 1, 100000, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=100000 geomub=0
+Test propagation #73: pos={ 1, -100, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=0 geomub=0
+Test propagation #74: pos={ 1, -100, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=1e-05 geomub=0
+Test propagation #75: pos={ 1, -100, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=1 geomub=0
+Test propagation #76: pos={ 1, -100, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=100000 geomub=0
+Test propagation #77: pos={ 1, 0, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=0 geomub=0
+Test propagation #78: pos={ 1, 0, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=1e-05 geomub=0
+Test propagation #79: pos={ 1, 0, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=1 geomub=0
+Test propagation #80: pos={ 1, 0, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=100000 geomub=0
+Test propagation #81: pos={ 1, 100000, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=0 geomub=0
+Test propagation #82: pos={ 1, 100000, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=1e-05 geomub=0
+Test propagation #83: pos={ 1, 100000, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=1 geomub=0
+Test propagation #84: pos={ 1, 100000, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=100000 geomub=0
+Test propagation #85: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=0 geomub=0
+Test propagation #86: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=1e-05 geomub=0
+Test propagation #87: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=1 geomub=0
+Test propagation #88: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=100000 geomub=0
+Test propagation #89: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=0 geomub=0
+Test propagation #90: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=1e-05 geomub=0
+Test propagation #91: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=1 geomub=0
+Test propagation #92: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=100000 geomub=0
+Test propagation #93: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=0 geomub=0
+Test propagation #94: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=1e-05 geomub=0
+Test propagation #95: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=1 geomub=0
+Test propagation #96: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=100000 geomub=0
+Test propagation #97: pos={ 1, -100, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=0 geomub=0
+Test propagation #98: pos={ 1, -100, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=1e-05 geomub=0
+Test propagation #99: pos={ 1, -100, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=1 geomub=0
+Test propagation #100: pos={ 1, -100, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=100000 geomub=0
+Test propagation #101: pos={ 1, 0, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=0 geomub=0
+Test propagation #102: pos={ 1, 0, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=1e-05 geomub=0
+Test propagation #103: pos={ 1, 0, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=1 geomub=0
+Test propagation #104: pos={ 1, 0, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=100000 geomub=0
+Test propagation #105: pos={ 1, 100000, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=0 geomub=0
+Test propagation #106: pos={ 1, 100000, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=1e-05 geomub=0
+Test propagation #107: pos={ 1, 100000, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=1 geomub=0
+Test propagation #108: pos={ 1, 100000, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=100000 geomub=0
+Test propagation #109: pos={ 1, -100, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=0 geomub=0
+Test propagation #110: pos={ 1, -100, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=1e-05 geomub=0
+Test propagation #111: pos={ 1, -100, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=1 geomub=0
+Test propagation #112: pos={ 1, -100, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=100000 geomub=0
+Test propagation #113: pos={ 1, 0, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=0 geomub=0
+Test propagation #114: pos={ 1, 0, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=1e-05 geomub=0
+Test propagation #115: pos={ 1, 0, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=1 geomub=0
+Test propagation #116: pos={ 1, 0, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=100000 geomub=0
+Test propagation #117: pos={ 1, 100000, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=0 geomub=0
+Test propagation #118: pos={ 1, 100000, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=1e-05 geomub=0
+Test propagation #119: pos={ 1, 100000, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=1 geomub=0
+Test propagation #120: pos={ 1, 100000, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=100000 geomub=0
+Test propagation #121: pos={ 1, -100, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=0 geomub=0
+Test propagation #122: pos={ 1, -100, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=1e-05 geomub=0
+Test propagation #123: pos={ 1, -100, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=1 geomub=0
+Test propagation #124: pos={ 1, -100, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=100000 geomub=0
+Test propagation #125: pos={ 1, 0, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=0 geomub=0
+Test propagation #126: pos={ 1, 0, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=1e-05 geomub=0
+Test propagation #127: pos={ 1, 0, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=1 geomub=0
+Test propagation #128: pos={ 1, 0, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=100000 geomub=0
+Test propagation #129: pos={ 1, 100000, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=0 geomub=0
+Test propagation #130: pos={ 1, 100000, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=1e-05 geomub=0
+Test propagation #131: pos={ 1, 100000, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=1 geomub=0
+Test propagation #132: pos={ 1, 100000, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=100000 geomub=0
 testProbTransm(geom_is_unbounded=1)
   TEST i=0 ptransm=1 (expected: 1) from dist=0 and macroxs=0
   TEST i=1 ptransm=1 (expected: 1) from dist=0.01 and macroxs=0
@@ -30,6 +268,292 @@ testProbTransm(geom_is_unbounded=1)
   TEST i=0 ptransm=1 (expected: 1) from dist=0 and macroxs=0
   TEST i=1 ptransm=1 (expected: 1) from dist=0.01 and macroxs=0
   TEST i=2 ptransm=0 (expected: 0) from dist=inf and macroxs=0
+testPropagateAndAttenuate(geom_is_unbounded=1)
+PropAndAttenuate test #0
+   dist: 0
+   xsval: 0
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=0. Verifying neutron unchanged.
+PropAndAttenuate test #1
+   dist: 0.01
+   xsval: 0
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> 0<dist<inf. Verifying neutron pos.
+PropAndAttenuate test #2
+   dist: inf
+   xsval: 0
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 0 (expected: 0)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=inf. Verifying neutron weight 0.
+PropAndAttenuate test #3
+   dist: 0
+   xsval: 0.01
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=0. Verifying neutron unchanged.
+PropAndAttenuate test #4
+   dist: 0.01
+   xsval: 0.01
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 0.99005 (expected: 0.99005)
+  ==> Verifying expected pos, dir and ekin
+  ==> 0<dist<inf. Verifying neutron pos.
+PropAndAttenuate test #5
+   dist: inf
+   xsval: 0.01
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 0 (expected: 0)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=inf. Verifying neutron weight 0.
+PropAndAttenuate test #6
+   dist: 0
+   xsval: 100
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=0. Verifying neutron unchanged.
+PropAndAttenuate test #7
+   dist: 0.01
+   xsval: 100
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 3.72008e-44 (expected: 3.72008e-44)
+  ==> Verifying expected pos, dir and ekin
+  ==> 0<dist<inf. Verifying neutron pos.
+PropAndAttenuate test #8
+   dist: inf
+   xsval: 100
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 0 (expected: 0)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=inf. Verifying neutron weight 0.
+PropAndAttenuate test #9
+   dist: 0
+   xsval: inf
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=0. Verifying neutron unchanged.
+PropAndAttenuate test #10
+   dist: 0.01
+   xsval: inf
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 0 (expected: 0)
+  ==> Verifying expected pos, dir and ekin
+  ==> 0<dist<inf. Verifying neutron pos.
+PropAndAttenuate test #11
+   dist: inf
+   xsval: inf
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 0 (expected: 0)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=inf. Verifying neutron weight 0.
+PropAndAttenuate test #12
+   dist: 0
+   xsval: null
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=0. Verifying neutron unchanged.
+PropAndAttenuate test #13
+   dist: 0.01
+   xsval: null
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 1 (expected: 1)
+  ==> Verifying expected pos, dir and ekin
+  ==> 0<dist<inf. Verifying neutron pos.
+PropAndAttenuate test #14
+   dist: inf
+   xsval: null
+   geom_is_unbounded: 1
+  ==> Verifying expected weight
+        weight: 0 (expected: 0)
+  ==> Verifying expected pos, dir and ekin
+  ==> dist=inf. Verifying neutron weight 0.
+Test propagation #1: pos={ 1, -100, 1 }, dir={ 0, 0, 1 }, dist=0 geomub=1
+Test propagation #2: pos={ 1, -100, 1 }, dir={ 0, 0, 1 }, dist=1e-05 geomub=1
+Test propagation #3: pos={ 1, -100, 1 }, dir={ 0, 0, 1 }, dist=1 geomub=1
+Test propagation #4: pos={ 1, -100, 1 }, dir={ 0, 0, 1 }, dist=100000 geomub=1
+Test propagation #5: pos={ 1, -100, 1 }, dir={ 0, 0, 1 }, dist=inf geomub=1
+Test propagation #6: pos={ 1, 0, 1 }, dir={ 0, 0, 1 }, dist=0 geomub=1
+Test propagation #7: pos={ 1, 0, 1 }, dir={ 0, 0, 1 }, dist=1e-05 geomub=1
+Test propagation #8: pos={ 1, 0, 1 }, dir={ 0, 0, 1 }, dist=1 geomub=1
+Test propagation #9: pos={ 1, 0, 1 }, dir={ 0, 0, 1 }, dist=100000 geomub=1
+Test propagation #10: pos={ 1, 0, 1 }, dir={ 0, 0, 1 }, dist=inf geomub=1
+Test propagation #11: pos={ 1, 100000, 1 }, dir={ 0, 0, 1 }, dist=0 geomub=1
+Test propagation #12: pos={ 1, 100000, 1 }, dir={ 0, 0, 1 }, dist=1e-05 geomub=1
+Test propagation #13: pos={ 1, 100000, 1 }, dir={ 0, 0, 1 }, dist=1 geomub=1
+Test propagation #14: pos={ 1, 100000, 1 }, dir={ 0, 0, 1 }, dist=100000 geomub=1
+Test propagation #15: pos={ 1, 100000, 1 }, dir={ 0, 0, 1 }, dist=inf geomub=1
+Test propagation #16: pos={ 1, -100, 1 }, dir={ 0, 1, 0 }, dist=0 geomub=1
+Test propagation #17: pos={ 1, -100, 1 }, dir={ 0, 1, 0 }, dist=1e-05 geomub=1
+Test propagation #18: pos={ 1, -100, 1 }, dir={ 0, 1, 0 }, dist=1 geomub=1
+Test propagation #19: pos={ 1, -100, 1 }, dir={ 0, 1, 0 }, dist=100000 geomub=1
+Test propagation #20: pos={ 1, -100, 1 }, dir={ 0, 1, 0 }, dist=inf geomub=1
+Test propagation #21: pos={ 1, 0, 1 }, dir={ 0, 1, 0 }, dist=0 geomub=1
+Test propagation #22: pos={ 1, 0, 1 }, dir={ 0, 1, 0 }, dist=1e-05 geomub=1
+Test propagation #23: pos={ 1, 0, 1 }, dir={ 0, 1, 0 }, dist=1 geomub=1
+Test propagation #24: pos={ 1, 0, 1 }, dir={ 0, 1, 0 }, dist=100000 geomub=1
+Test propagation #25: pos={ 1, 0, 1 }, dir={ 0, 1, 0 }, dist=inf geomub=1
+Test propagation #26: pos={ 1, 100000, 1 }, dir={ 0, 1, 0 }, dist=0 geomub=1
+Test propagation #27: pos={ 1, 100000, 1 }, dir={ 0, 1, 0 }, dist=1e-05 geomub=1
+Test propagation #28: pos={ 1, 100000, 1 }, dir={ 0, 1, 0 }, dist=1 geomub=1
+Test propagation #29: pos={ 1, 100000, 1 }, dir={ 0, 1, 0 }, dist=100000 geomub=1
+Test propagation #30: pos={ 1, 100000, 1 }, dir={ 0, 1, 0 }, dist=inf geomub=1
+Test propagation #31: pos={ 1, -100, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=0 geomub=1
+Test propagation #32: pos={ 1, -100, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=1e-05 geomub=1
+Test propagation #33: pos={ 1, -100, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=1 geomub=1
+Test propagation #34: pos={ 1, -100, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=100000 geomub=1
+Test propagation #35: pos={ 1, -100, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=inf geomub=1
+Test propagation #36: pos={ 1, 0, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=0 geomub=1
+Test propagation #37: pos={ 1, 0, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=1e-05 geomub=1
+Test propagation #38: pos={ 1, 0, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=1 geomub=1
+Test propagation #39: pos={ 1, 0, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=100000 geomub=1
+Test propagation #40: pos={ 1, 0, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=inf geomub=1
+Test propagation #41: pos={ 1, 100000, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=0 geomub=1
+Test propagation #42: pos={ 1, 100000, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=1e-05 geomub=1
+Test propagation #43: pos={ 1, 100000, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=1 geomub=1
+Test propagation #44: pos={ 1, 100000, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=100000 geomub=1
+Test propagation #45: pos={ 1, 100000, 1 }, dir={ 0, 0.707107, 0.707107 }, dist=inf geomub=1
+Test propagation #46: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=0 geomub=1
+Test propagation #47: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=1e-05 geomub=1
+Test propagation #48: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=1 geomub=1
+Test propagation #49: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=100000 geomub=1
+Test propagation #50: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=inf geomub=1
+Test propagation #51: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=0 geomub=1
+Test propagation #52: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=1e-05 geomub=1
+Test propagation #53: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=1 geomub=1
+Test propagation #54: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=100000 geomub=1
+Test propagation #55: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=inf geomub=1
+Test propagation #56: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=0 geomub=1
+Test propagation #57: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=1e-05 geomub=1
+Test propagation #58: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=1 geomub=1
+Test propagation #59: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=100000 geomub=1
+Test propagation #60: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=inf geomub=1
+Test propagation #61: pos={ 1, -100, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=0 geomub=1
+Test propagation #62: pos={ 1, -100, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=1e-05 geomub=1
+Test propagation #63: pos={ 1, -100, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=1 geomub=1
+Test propagation #64: pos={ 1, -100, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=100000 geomub=1
+Test propagation #65: pos={ 1, -100, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=inf geomub=1
+Test propagation #66: pos={ 1, 0, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=0 geomub=1
+Test propagation #67: pos={ 1, 0, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=1e-05 geomub=1
+Test propagation #68: pos={ 1, 0, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=1 geomub=1
+Test propagation #69: pos={ 1, 0, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=100000 geomub=1
+Test propagation #70: pos={ 1, 0, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=inf geomub=1
+Test propagation #71: pos={ 1, 100000, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=0 geomub=1
+Test propagation #72: pos={ 1, 100000, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=1e-05 geomub=1
+Test propagation #73: pos={ 1, 100000, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=1 geomub=1
+Test propagation #74: pos={ 1, 100000, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=100000 geomub=1
+Test propagation #75: pos={ 1, 100000, 1 }, dir={ 0.529999, 0, 0.847998 }, dist=inf geomub=1
+Test propagation #76: pos={ 1, -100, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=0 geomub=1
+Test propagation #77: pos={ 1, -100, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=1e-05 geomub=1
+Test propagation #78: pos={ 1, -100, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=1 geomub=1
+Test propagation #79: pos={ 1, -100, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=100000 geomub=1
+Test propagation #80: pos={ 1, -100, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=inf geomub=1
+Test propagation #81: pos={ 1, 0, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=0 geomub=1
+Test propagation #82: pos={ 1, 0, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=1e-05 geomub=1
+Test propagation #83: pos={ 1, 0, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=1 geomub=1
+Test propagation #84: pos={ 1, 0, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=100000 geomub=1
+Test propagation #85: pos={ 1, 0, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=inf geomub=1
+Test propagation #86: pos={ 1, 100000, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=0 geomub=1
+Test propagation #87: pos={ 1, 100000, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=1e-05 geomub=1
+Test propagation #88: pos={ 1, 100000, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=1 geomub=1
+Test propagation #89: pos={ 1, 100000, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=100000 geomub=1
+Test propagation #90: pos={ 1, 100000, 1 }, dir={ 0.529999, 0.847998, 0 }, dist=inf geomub=1
+Test propagation #91: pos={ 1, -100, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=0 geomub=1
+Test propagation #92: pos={ 1, -100, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=1e-05 geomub=1
+Test propagation #93: pos={ 1, -100, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=1 geomub=1
+Test propagation #94: pos={ 1, -100, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=100000 geomub=1
+Test propagation #95: pos={ 1, -100, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=inf geomub=1
+Test propagation #96: pos={ 1, 0, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=0 geomub=1
+Test propagation #97: pos={ 1, 0, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=1e-05 geomub=1
+Test propagation #98: pos={ 1, 0, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=1 geomub=1
+Test propagation #99: pos={ 1, 0, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=100000 geomub=1
+Test propagation #100: pos={ 1, 0, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=inf geomub=1
+Test propagation #101: pos={ 1, 100000, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=0 geomub=1
+Test propagation #102: pos={ 1, 100000, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=1e-05 geomub=1
+Test propagation #103: pos={ 1, 100000, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=1 geomub=1
+Test propagation #104: pos={ 1, 100000, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=100000 geomub=1
+Test propagation #105: pos={ 1, 100000, 1 }, dir={ 0.404226, 0.646762, 0.646762 }, dist=inf geomub=1
+Test propagation #106: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=0 geomub=1
+Test propagation #107: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=1e-05 geomub=1
+Test propagation #108: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=1 geomub=1
+Test propagation #109: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=100000 geomub=1
+Test propagation #110: pos={ 1, -100, 1 }, dir={ 1, 0, 0 }, dist=inf geomub=1
+Test propagation #111: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=0 geomub=1
+Test propagation #112: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=1e-05 geomub=1
+Test propagation #113: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=1 geomub=1
+Test propagation #114: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=100000 geomub=1
+Test propagation #115: pos={ 1, 0, 1 }, dir={ 1, 0, 0 }, dist=inf geomub=1
+Test propagation #116: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=0 geomub=1
+Test propagation #117: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=1e-05 geomub=1
+Test propagation #118: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=1 geomub=1
+Test propagation #119: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=100000 geomub=1
+Test propagation #120: pos={ 1, 100000, 1 }, dir={ 1, 0, 0 }, dist=inf geomub=1
+Test propagation #121: pos={ 1, -100, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=0 geomub=1
+Test propagation #122: pos={ 1, -100, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=1e-05 geomub=1
+Test propagation #123: pos={ 1, -100, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=1 geomub=1
+Test propagation #124: pos={ 1, -100, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=100000 geomub=1
+Test propagation #125: pos={ 1, -100, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=inf geomub=1
+Test propagation #126: pos={ 1, 0, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=0 geomub=1
+Test propagation #127: pos={ 1, 0, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=1e-05 geomub=1
+Test propagation #128: pos={ 1, 0, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=1 geomub=1
+Test propagation #129: pos={ 1, 0, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=100000 geomub=1
+Test propagation #130: pos={ 1, 0, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=inf geomub=1
+Test propagation #131: pos={ 1, 100000, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=0 geomub=1
+Test propagation #132: pos={ 1, 100000, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=1e-05 geomub=1
+Test propagation #133: pos={ 1, 100000, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=1 geomub=1
+Test propagation #134: pos={ 1, 100000, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=100000 geomub=1
+Test propagation #135: pos={ 1, 100000, 1 }, dir={ 0.780869, 0, 0.624695 }, dist=inf geomub=1
+Test propagation #136: pos={ 1, -100, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=0 geomub=1
+Test propagation #137: pos={ 1, -100, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=1e-05 geomub=1
+Test propagation #138: pos={ 1, -100, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=1 geomub=1
+Test propagation #139: pos={ 1, -100, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=100000 geomub=1
+Test propagation #140: pos={ 1, -100, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=inf geomub=1
+Test propagation #141: pos={ 1, 0, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=0 geomub=1
+Test propagation #142: pos={ 1, 0, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=1e-05 geomub=1
+Test propagation #143: pos={ 1, 0, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=1 geomub=1
+Test propagation #144: pos={ 1, 0, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=100000 geomub=1
+Test propagation #145: pos={ 1, 0, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=inf geomub=1
+Test propagation #146: pos={ 1, 100000, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=0 geomub=1
+Test propagation #147: pos={ 1, 100000, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=1e-05 geomub=1
+Test propagation #148: pos={ 1, 100000, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=1 geomub=1
+Test propagation #149: pos={ 1, 100000, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=100000 geomub=1
+Test propagation #150: pos={ 1, 100000, 1 }, dir={ 0.780869, 0.624695, 0 }, dist=inf geomub=1
+Test propagation #151: pos={ 1, -100, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=0 geomub=1
+Test propagation #152: pos={ 1, -100, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=1e-05 geomub=1
+Test propagation #153: pos={ 1, -100, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=1 geomub=1
+Test propagation #154: pos={ 1, -100, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=100000 geomub=1
+Test propagation #155: pos={ 1, -100, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=inf geomub=1
+Test propagation #156: pos={ 1, 0, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=0 geomub=1
+Test propagation #157: pos={ 1, 0, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=1e-05 geomub=1
+Test propagation #158: pos={ 1, 0, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=1 geomub=1
+Test propagation #159: pos={ 1, 0, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=100000 geomub=1
+Test propagation #160: pos={ 1, 0, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=inf geomub=1
+Test propagation #161: pos={ 1, 100000, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=0 geomub=1
+Test propagation #162: pos={ 1, 100000, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=1e-05 geomub=1
+Test propagation #163: pos={ 1, 100000, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=1 geomub=1
+Test propagation #164: pos={ 1, 100000, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=100000 geomub=1
+Test propagation #165: pos={ 1, 100000, 1 }, dir={ 0.662266, 0.529813, 0.529813 }, dist=inf geomub=1
 UnboundedCylinder case: pos = { 0, 0, -10 }  dir={ 0, 0, 1 }
    DistToEntry:
                refdist = 7
@@ -1439,8 +1963,8 @@ x=-1e+199, y=-0.1, z=1e-20
 x=-1e+199, y=0, z=0.5
 x=-1e+199, y=10, z=1
 x=-1e+199, y=0.1, z=1.5
-x=-100000, y=-1e+199, z=1.99999999999999
-x=-100000, y=-2, z=1.9999999999999989
+x=-100000, y=-1e+199, z=2
+x=-100000, y=-2, z=2
 x=-100000, y=-1e-20, z=2
 x=-100000, y=1e-199, z=0
 x=-100000, y=2, z=-1e-199
@@ -1448,16 +1972,16 @@ x=-100000, y=1e+20, z=-1e-20
 x=-10, y=-100000, z=-0.5
 x=-10, y=-1, z=-1
 x=-10, y=-1e-199, z=-1.5
-x=-10, y=100000, z=-1.99999999999999
-x=-10, y=1, z=-1.9999999999999989
+x=-10, y=100000, z=-2
+x=-10, y=1, z=-2
 x=-10, y=1e+199, z=-2
 x=-2, y=-100000, z=1e-199
 x=-2, y=-1, z=1e-20
 x=-2, y=-1e-199, z=0.5
 x=-2, y=100000, z=1
 x=-2, y=1, z=1.5
-x=-2, y=1e+199, z=1.99999999999999
-x=-1, y=-10, z=1.9999999999999989
+x=-2, y=1e+199, z=2
+x=-1, y=-10, z=2
 x=-1, y=-0.1, z=2
 x=-1, y=0, z=0
 x=-1, y=10, z=-1e-199
@@ -1465,16 +1989,16 @@ x=-1, y=0.1, z=-1e-20
 x=-0.1, y=-1e+199, z=-0.5
 x=-0.1, y=-2, z=-1
 x=-0.1, y=-1e-20, z=-1.5
-x=-0.1, y=1e-199, z=-1.99999999999999
-x=-0.1, y=2, z=-1.9999999999999989
+x=-0.1, y=1e-199, z=-2
+x=-0.1, y=2, z=-2
 x=-0.1, y=1e+20, z=-2
 x=-1e-20, y=-1e+199, z=1e-199
 x=-1e-20, y=-2, z=1e-20
 x=-1e-20, y=-1e-20, z=0.5
 x=-1e-20, y=1e-199, z=1
 x=-1e-20, y=2, z=1.5
-x=-1e-20, y=1e+20, z=1.99999999999999
-x=-1e-199, y=-100000, z=1.9999999999999989
+x=-1e-20, y=1e+20, z=2
+x=-1e-199, y=-100000, z=2
 x=-1e-199, y=-1, z=2
 x=-1e-199, y=-1e-199, z=0
 x=-1e-199, y=100000, z=-1e-199
@@ -1482,16 +2006,16 @@ x=-1e-199, y=1, z=-1e-20
 x=-1e-199, y=1e+199, z=-0.5
 x=0, y=-10, z=-1
 x=0, y=-0.1, z=-1.5
-x=0, y=0, z=-1.99999999999999
-x=0, y=10, z=-1.9999999999999989
+x=0, y=0, z=-2
+x=0, y=10, z=-2
 x=0, y=0.1, z=-2
 x=0, y=1e+199, z=1e-199
 x=1e-199, y=-10, z=1e-20
 x=1e-199, y=-0.1, z=0.5
 x=1e-199, y=0, z=1
 x=1e-199, y=10, z=1.5
-x=1e-199, y=0.1, z=1.99999999999999
-x=100000, y=-1e+199, z=1.9999999999999989
+x=1e-199, y=0.1, z=2
+x=100000, y=-1e+199, z=2
 x=100000, y=-2, z=2
 x=100000, y=-1e-20, z=0
 x=100000, y=1e-199, z=-1e-199
@@ -1499,16 +2023,16 @@ x=100000, y=2, z=-1e-20
 x=100000, y=1e+20, z=-0.5
 x=10, y=-100000, z=-1
 x=10, y=-1, z=-1.5
-x=10, y=-1e-199, z=-1.99999999999999
-x=10, y=100000, z=-1.9999999999999989
+x=10, y=-1e-199, z=-2
+x=10, y=100000, z=-2
 x=10, y=1, z=-2
 x=10, y=1e+20, z=1e-199
 x=2, y=-100000, z=1e-20
 x=2, y=-1, z=0.5
 x=2, y=-1e-199, z=1
 x=2, y=100000, z=1.5
-x=2, y=1, z=1.99999999999999
-x=2, y=1e+199, z=1.9999999999999989
+x=2, y=1, z=2
+x=2, y=1e+199, z=2
 x=1, y=-10, z=2
 x=1, y=-0.1, z=0
 x=1, y=0, z=-1e-199
@@ -1516,16 +2040,16 @@ x=1, y=10, z=-1e-20
 x=1, y=0.1, z=-0.5
 x=0.1, y=-1e+199, z=-1
 x=0.1, y=-2, z=-1.5
-x=0.1, y=-1e-20, z=-1.99999999999999
-x=0.1, y=1e-199, z=-1.9999999999999989
+x=0.1, y=-1e-20, z=-2
+x=0.1, y=1e-199, z=-2
 x=0.1, y=2, z=-2
 x=0.1, y=0.1, z=1e-199
 x=1e+20, y=-1e+199, z=1e-20
 x=1e+20, y=-2, z=0.5
 x=1e+20, y=-1e-20, z=1
 x=1e+20, y=1e-199, z=1.5
-x=1e+20, y=2, z=1.99999999999999
-x=1e+20, y=1e+20, z=1.9999999999999989
+x=1e+20, y=2, z=2
+x=1e+20, y=1e+20, z=2
 x=1e+199, y=-100000, z=2
 x=1e+199, y=-1, z=0
 x=1e+199, y=-1e-199, z=-1e-199
