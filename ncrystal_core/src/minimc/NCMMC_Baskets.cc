@@ -601,8 +601,12 @@ void NCMMC::Basket::dealloc_warn() noexcept
   //We can NOT leak from this as we are called from a destructor.
   try {
     {
+#ifndef NDEBUG
+      //only in debug builds, this is for developers not when user callbacks
+      //throws an exception.
       NCRYSTAL_WARN("MiniMC Basket went out of scope without"
                     " being handed to the manager.");
+#endif
       nc_assert_always(internal);
       auto bt = this->basketType();
       Basket tmp;

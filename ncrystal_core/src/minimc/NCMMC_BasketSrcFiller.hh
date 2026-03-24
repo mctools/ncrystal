@@ -57,7 +57,7 @@ namespace NCRYSTAL_NAMESPACE {
                            const std::function<void(const basket_t&)>& resultFct,
                            ParticleCountSum& missCount,
                            basket_t& extra_basket_buffer,
-                           unsigned nretry = 10 ) {
+                           unsigned nretry = 20 ) {
 
         b.validateIfDbg();
         const std::size_t size_orig = b.size();
@@ -89,9 +89,14 @@ namespace NCRYSTAL_NAMESPACE {
           if ( nretry > 0 ) {
             return fillFromSource( b, rng, resultFct, missCount,
                                    extra_basket_buffer, nretry - 1 );
-          } else {
-            NCRYSTAL_THROW(CalcError,"Source particles consistently "
-                           "seem to miss the geometry.");
+          } else if ( b.size() == 0 ) {
+            NCRYSTAL_THROW(CalcError,"All (or almost all) source particles"
+                           " seem to miss the geometry.");
+          } else if ( b.size() < 16 ) {
+            bool bbb = false;
+            if (m_emittedMissWarning.compare_exchange_strong(bbb,true)) {
+              NCRYSTAL_WARN("Most source particles are missing the geometry.");
+            }
           }
         }
         return src_has_more;
@@ -176,6 +181,7 @@ namespace NCRYSTAL_NAMESPACE {
       GeometryPtr m_geom;
       SourcePtr m_src;
       bool m_srcParticlesMightBeOutside;
+      std::atomic<bool> m_emittedMissWarning = { false };
     };
   }
 }
