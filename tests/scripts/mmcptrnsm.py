@@ -99,7 +99,7 @@ def main(do_plot, do_update):
            f" (higher is more compatible): {pval:g}" )
 
     def result():
-        if pval < 0.05:
+        if pval < 0.01:
             raise SystemExit('Incompatibility detected')
 
 

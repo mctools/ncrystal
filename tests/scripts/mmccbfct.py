@@ -119,7 +119,7 @@ def main(do_plot, do_update):
         worst_pval = min(worst_pval,pval)
 
     def result():
-        if worst_pval < 0.05:
+        if worst_pval < 0.01:
             raise SystemExit('Incompatibility detected')
 
     if not do_plot:
