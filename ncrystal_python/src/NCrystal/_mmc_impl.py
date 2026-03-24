@@ -19,7 +19,16 @@
 ##                                                                            ##
 ################################################################################
 
+from ._numpy import _np, _np_linspace
 from .exceptions import NCBadInput
+
+_breakdown_colors = {
+    'SINGLESCAT_ELAS' : 'blue',
+    'SINGLESCAT_INELAS' : 'orangered',
+    'MULTISCAT_PUREELAS' : 'cornflowerblue',
+    'MULTISCAT_OTHER' : 'orange',
+    'NOSCAT' : 'green',
+}
 
 _cache_tally_info = [None]
 def tally_info():
@@ -161,3 +170,250 @@ def results_check_compat_impl( _self, other, threshold, errfct ):
                                      force_norm = True ):
                 return (f'incompatible histograms: {tn}/{hk}')
     return
+
+def _validate_mmcresults_dict(data):
+    #Very brief high-level validation:
+    if not data.get('datatype') == 'NCrystalMiniMCResults_v1':
+        return False
+    return set(data.keys()) == set(['datatype','input','output'])
+
+def _determine_rebin_factor( current_nbins,
+                             max_nbins = None,
+                             rebin_factor = None ):
+    assert current_nbins >= 1
+    if max_nbins is None and rebin_factor is None:
+        return 1
+    if max_nbins is not None and rebin_factor is not None:
+        raise NCBadInput('Can not set both max_nbins and rebin_factor.')
+    if rebin_factor is not None:
+        if current_nbins%rebin_factor != 0:
+            raise NCBadInput(f'Invalid rebin factor {rebin_factor} '
+                             f'is not a divisor of nbins={current_nbins}.')
+        return rebin_factor
+    assert max_nbins is not None
+    assert max_nbins >= 1
+    if max_nbins >= current_nbins:
+        return 1
+    for n in list(range(max_nbins,0,-1)):
+        if current_nbins % n == 0:
+            return current_nbins//n
+    return 1
+
+def _plot_tally( minimcresults_dict, tallyname,
+                 do_legend, breakdown, max_nbins, rebin_factor,
+                 do_show, do_newfig, do_grid, logy, title, plt, axis ):
+
+    from .plot import _import_matplotlib_plt, _plt_final
+    from .hist import Hist1D
+    assert isinstance(minimcresults_dict,dict)
+    assert minimcresults_dict.get('datatype') == 'NCrystalMiniMCResults_v1'
+    assert 'input' in minimcresults_dict
+    assert 'output' in minimcresults_dict
+
+    avail_tallies = sorted(minimcresults_dict['output']['tally'].keys())
+    if not avail_tallies:
+        raise NCBadInput('MiniMC results has no tallies!')
+
+    do_title = not ( not title or title=='none' )
+
+    if tallyname not in avail_tallies:
+        raise NCBadInput('Requested tally "%s" not available.'%tallyname)
+
+
+    tally_dict = minimcresults_dict['output']['tally'][tallyname]
+    assert isinstance(tally_dict,dict)
+    assert 'total' in tally_dict
+    assert 'tallyname' in tally_dict
+    assert tally_dict.get('datatype')=='NCrystalMiniMCTallyHistBreakdown_v1'
+    breakdown_dict = tally_dict.get('breakdown') or None
+    if breakdown == 'auto':
+        breakdown = bool(breakdown_dict)
+    if breakdown and not breakdown_dict:
+        raise NCBadInput('breakdown=True but provided tally does not'
+                         ' have breakdown histograms')
+    def ensure_hist( e ):
+        if not isinstance(e,Hist1D):
+            e = Hist1D.objectify_data(e)
+        if not isinstance(e,Hist1D):
+            raise NCBadInput('Invalid input data: not a histogram')
+        return e
+    if breakdown:
+        breakdown =  dict( (k,ensure_hist(v))
+                           for k,v in breakdown_dict.items() )
+    else:
+        breakdown = None
+    mainhist = ensure_hist(tally_dict['total'])
+
+    if not breakdown:
+        do_legend = False
+
+    if breakdown:
+        nbins = [h.nbins for h in breakdown.values()]
+        nbins += [mainhist.nbins]
+        if len(set(nbins))!=1:
+            raise NCBadInput('Inconsistent binning of breakdown histograms')
+        nbins = nbins[0]
+        _ = set(breakdown.keys()) - set(_breakdown_colors.keys())
+        if _:
+            raise NCBadInput('Unexpected breakdown histogram key: %s'%_.pop())
+    else:
+        nbins = mainhist.nbins
+    rebin_factor = _determine_rebin_factor( nbins,
+                                            max_nbins = max_nbins,
+                                            rebin_factor = rebin_factor )
+    if rebin_factor != 1:
+        mainhist = mainhist.clone(rebin_factor=rebin_factor)
+        if breakdown:
+            breakdown = dict( (k,v.clone(rebin_factor=rebin_factor))
+                              for k,v in breakdown.items() )
+
+    assert bool(axis) == (axis is not None)
+    if do_newfig == 'auto':
+        do_newfig = not axis
+    if do_newfig and axis:
+        raise NCBadInput('incompatible: axis is not '
+                         'None and do_newfig=True')
+    if not plt and not axis:
+        from .plot import _import_matplotlib_plt
+        plt = _import_matplotlib_plt()
+    if do_newfig:
+        if not plt:
+            raise NCBadInput('unsupported combination: '
+                             'axis=None, do_newfig=True, plt=None')
+        plt.figure()
+        assert axis is None
+        axis = plt.gca()
+    if not axis:
+        assert plt is not None
+        axis = plt.gca()
+
+    if not mainhist.integral:
+        from ._common import warn
+        warn('Aborting plotting of empty histogram!')
+        return plt
+
+    #Look at config to determine total weights:
+    out_md = minimcresults_dict['output']['metadata']
+    tot_weight_incoming = out_md['provided']['weight']
+    nrays_incoming = out_md['provided']['count']
+    if minimcresults_dict['input']['engine']['decoded']['ignoremiss']:
+        tot_weight_incoming -= out_md['miss']['weight']
+        nrays_incoming -= out_md['miss']['count']
+    nonabsfrac = mainhist.integral/tot_weight_incoming
+    absfrac = 1.0 - nonabsfrac
+
+    #FIXME: If enginecfg has absorption=False, we should simply verify that
+    #absfrac is super small (i.e. roulette fluctuations), taking statistics into
+    #account, and then enforce sum of remaining parts to be 100%. It could be
+    #that we should move this logic onto the MMCResults object.
+
+    def _fractionval_fmt(x):
+        return f'({x*100.0:.3g}%)'
+
+    label_order = []
+
+    if breakdown:
+        hists = [ (k,v) for k,v in breakdown.items() if v.integral > 0.0 ]
+        assert hists
+        #Sort histograms for (possibly) more meaningful plot order:
+        hists.sort( key = lambda kv: ['MULTISCAT_OTHER',
+                                      'SINGLESCAT_INELAS',
+                                      'MULTISCAT_PUREELAS',
+                                      'SINGLESCAT_ELAS',
+                                      'NOSCAT'].index(kv[0]))
+
+        h = hists[0][1].clone()
+        curve = h._hist_curve()
+        ymax_non_NOSCAT = [0.0]
+        def _addplot( ptitle, curve, refcurve = None, fraction = None):
+            maxval = 0.0
+            if refcurve is None:
+                y2 = _np.zeros(len(curve[1]))
+            else:
+                y2=refcurve[1]
+                maxval = y2.max()
+            if ptitle!='NOSCAT':
+                ymax_non_NOSCAT[0] = max(ymax_non_NOSCAT[0],
+                                         maxval,
+                                         curve[1].max())
+            lbl = ptitle if ptitle!='NOSCAT' else 'Transmitted'
+            if fraction is not None:
+                lbl = f'{lbl} {_fractionval_fmt(fraction)}'
+            label_order.append(lbl)
+            axis.fill_between(*curve,y2,
+                              label=lbl,
+                              edgecolor="none",
+                              facecolor=_breakdown_colors[ptitle])
+
+        def calcfrac(hh):
+            return hh.integral / tot_weight_incoming
+
+        _addplot( hists[0][0], curve, fraction = calcfrac(h) )
+
+        for i in range(1,len(hists)):
+            ki, hi = hists[i]
+            h.add_contents(hi)
+            newcurve = h._hist_curve()
+            assert _np.array_equal(curve[0],newcurve[0])
+            _addplot(ki, newcurve, curve,
+                     fraction = calcfrac(hi))
+            curve = newcurve
+
+        axis.errorbar(**mainhist.errorbar_args())
+        axis.set_xlim(mainhist.xmin,mainhist.xmax)
+    else:
+        lbl = 'All outgoing %s'%_fractionval_fmt(nonabsfrac)
+        label_order.append(lbl)
+        mainhist.plot_hist( plt=plt, do_show = False, label=lbl)
+        if do_title and not title and mainhist.title:
+            axis.set_title(mainhist.title)
+        if not logy:
+            axis.set_ylim(0.0)
+
+    from ._mmc_impl import tally_info
+    t_info = tally_info()['tallyhistinfo'][tallyname]
+    xlbl = t_info['short_descr'].capitalize()
+    if t_info['unit']:
+        xlbl += ' (%s)'%t_info['unit']
+    axis.set_xlabel(xlbl)
+
+    if tallyname=='theta' and mainhist.xmin==0 and mainhist.xmax==180:
+        axis.set_xticks(_np_linspace(0.0,180.0,180//30+1))
+        axis.set_xticks(_np_linspace(0.0,180.0,180//15+1),minor=True)
+    axis.set_ylabel('Intensity (arbitrary units)')
+    if do_title:
+        axis.set_title(title)
+
+    if absfrac > 0.0:
+        lbl="Absorbed %s"%_fractionval_fmt(absfrac)
+        label_order.append(lbl)
+        axis.plot([], [], ' ', label=lbl)
+
+    if do_legend:
+        #Enforce ordering!
+
+        #Instead of handles, labels = axis.get_legend_handles_labels(), we do
+        #the following because of our unit tests:
+        is_fake_plt = hasattr(axis,'the_real_inspected_object')
+        if is_fake_plt:
+            #Not real calls, just fake it.
+            class FakeHandle:
+                def __repr__(self):
+                    return 'FakeHandle'
+                pass
+            handles = [FakeHandle() for lbl in label_order]
+            labels = [lbl for lbl in label_order]
+        else:
+            handles,labels = axis.get_legend_handles_labels()
+
+        _ = sorted([hl for hl in zip(handles,labels)],
+                   key = lambda hl : label_order.index(hl[1]))
+        handles, labels = [hl[0] for hl in _], [hl[1] for hl in _]
+        plt.legend(handles,labels)
+
+    return _plt_final(do_grid = do_grid,
+                      do_legend = False,#plt.legend was already called above
+                      do_show = do_show,
+                      logx = False,
+                      logy = logy,
+                      plt = plt )

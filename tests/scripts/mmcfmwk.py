@@ -188,12 +188,19 @@ def main(do_plot, do_update):
     print(resA.tally_names)
     print("Sum test")
     h = resA.tally('theta').histogram_sum(select=['NOSCAT','MULTISCAT_PUREELAS'],
-                                       exclude='SINGLESCAT_ELAS')
+                                          exclude='SINGLESCAT_ELAS')
+    #Examples from doc-strings:
+    tt = resA.tally('theta')
+    tt.histogram_sum(select=['NOSCAT','MULTISCAT_PUREELAS'])
+    tt.histogram_sum(exclude='SINGLESCAT_ELAS')
+
     h.clone(rebin_factor=2).plot(logy=True)
-    h = resA.tally('theta').histogram_sum(select='NOSCAT')
-    assert h is resA.tally('theta').histograms['NOSCAT']
-    assert resA.tally('theta').histogram_sum() is resA.tally('theta').hist_total
-    print( sorted(resA.tally('theta').hist_breakdown.keys()) )
+    h = tt.histogram_sum(select='NOSCAT')
+    assert h == tt.histograms['NOSCAT']
+    assert h is not tt.histograms['NOSCAT']#should be cloned
+    assert tt.histogram_sum() == tt.hist_total
+    assert tt.histogram_sum() is not tt.hist_total
+    print( sorted(tt.hist_breakdown.keys()) )
 
     ncmmc.gen_doc( 'engine' )
     ncmmc.gen_doc( 'src' )

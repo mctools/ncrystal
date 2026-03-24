@@ -39,7 +39,7 @@ __all__ = [
 
 #Wrapper objects for results:
 
-from ._mmc_utils import MMCResults, MMCTallyView
+from .minimc_objects import MMCResults, MMCTallyView
 
 #Various API entry points:
 

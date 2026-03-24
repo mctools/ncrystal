@@ -376,8 +376,6 @@ def gendoc_scenario( **kwargs ):
     doc.add_empty()
     from .minimc import decode_scenario
     for descr, matcfg, scenariostr, key in _scenariocfg_examples:
-        #FIXME: Check that all the generated stuff looks reasonable, does not
-        #contain 0.0009999999999999999, etc.
         dec = decode_scenario( matcfg, scenariostr )
         assert set(dec.keys())==set(['geomcfg','srccfg'])
         gc,sc = dec['geomcfg'],dec['srccfg']
