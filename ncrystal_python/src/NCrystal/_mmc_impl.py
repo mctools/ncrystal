@@ -296,16 +296,26 @@ def _plot_tally( minimcresults_dict, tallyname,
     out_md = minimcresults_dict['output']['metadata']
     tot_weight_incoming = out_md['provided']['weight']
     nrays_incoming = out_md['provided']['count']
-    if minimcresults_dict['input']['engine']['decoded']['ignoremiss']:
+    eopts = minimcresults_dict['input']['engine']
+    if eopts['decoded']['ignoremiss']:
         tot_weight_incoming -= out_md['miss']['weight']
         nrays_incoming -= out_md['miss']['count']
-    nonabsfrac = mainhist.integral/tot_weight_incoming
-    absfrac = 1.0 - nonabsfrac
 
-    #FIXME: If enginecfg has absorption=False, we should simply verify that
-    #absfrac is super small (i.e. roulette fluctuations), taking statistics into
-    #account, and then enforce sum of remaining parts to be 100%. It could be
-    #that we should move this logic onto the MMCResults object.
+    def find_nonabsfrac():
+        #TODO: move logic to MMCResults method
+        if eopts['decoded']['absorption']:
+            return mainhist.integral/tot_weight_incoming
+        #no absorption, must be 0. We simply verify that the result is
+        #consistent with that.
+        totw, totw_err = mainhist.integrate_bins()
+        nonabsfrac = totw/tot_weight_incoming
+        nonabsfrac_err = totw_err/tot_weight_incoming
+        assert (nonabsfrac-1.0) < 0.2
+        assert (nonabsfrac-1.0) < 5.0*nonabsfrac_err
+        return 1.0
+
+    nonabsfrac = find_nonabsfrac()
+    absfrac = 1.0 - nonabsfrac
 
     def _fractionval_fmt(x):
         return f'({x*100.0:.3g}%)'
