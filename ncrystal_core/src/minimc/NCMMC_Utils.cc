@@ -51,7 +51,7 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-void NCMMCU::calcProbTransm( NumberDensity nd, std::size_t n,
+void NCMMCU::calcProbTransm( std::size_t n,
                              bool geom_is_unbounded,
                              const double * ncrestrict xs_or_nullptr,
                              const double * ncrestrict dists,
@@ -78,14 +78,11 @@ void NCMMCU::calcProbTransm( NumberDensity nd, std::size_t n,
     return;
   }
 
-  for ( auto i : ncrange( n ) )
-    out[i] = macroXS( nd, CrossSect{xs_or_nullptr[i]} );
-
   //To allow infinite cross sections without triggering inf*0=nan, we do the
   //following trick (note that we want (xs=inf)*(dist=0) to give prob_transm=0).
   constexpr double dbl_max = std::numeric_limits<double>::max();
   for ( std::size_t i = 0; i < n; ++i )
-    out[i] = ncmin( dbl_max, out[i] );
+    out[i] = ncmin( dbl_max, xs_or_nullptr[i] );
 
   if ( geom_is_unbounded ) {
     safe_mult_strongzero( out, dists, n );
@@ -141,19 +138,18 @@ void NCMMCU::propagate( NeutronBasket& b,
 }
 
 void NCMMCU::propagateAndAttenuate( NeutronBasket& b,
-                                    NumberDensity nd,
                                     bool geom_is_unbounded,
                                     const double* ncrestrict dists,
                                     const double* ncrestrict xsvals )
 {
   propagate( b, geom_is_unbounded, dists );
   double tmp[basket_N];
-  calcProbTransm( nd, b.size(), geom_is_unbounded, xsvals, dists, tmp );
+  calcProbTransm( b.size(), geom_is_unbounded, xsvals, dists, tmp );
   for ( auto i : ncrange( b.size() ) )
     b.fields.w.data[i] *= tmp[i];
 }
 
-void NCMMCU::sampleRandDists( RNG& rng, NumberDensity nd,
+void NCMMCU::sampleRandDists( RNG& rng,
                               const double * ncrestrict dists,
                               const double * ncrestrict xsvals,
                               std::size_t N,
@@ -161,7 +157,7 @@ void NCMMCU::sampleRandDists( RNG& rng, NumberDensity nd,
 {
   NewABI::generateMany( rng, N, tgt );
   for ( auto i : ncrange(N) ) {
-    double macroxs = macroXS( nd, CrossSect{ xsvals[i] } );
+    double macroxs = xsvals[i];
     if ( !macroxs ) ncunlikely {
       tgt[i] = kInfinity;
       continue;
@@ -432,7 +428,7 @@ NCMMCU::ScenarioDecoded NCMMCU::decodeScenario( const MatCfg& matcfg,
     auto xs = scatter->crossSection( cache, neutron_energy,
                                      NeutronDirection{ 0.0, 0.0, 1.0 } );
     auto numdens = info->getNumberDensity();
-    double macroxs = macroXS( numdens, xs );// [1/m]
+    double macroxs = macroXSFactor( numdens ) * xs.dbl();// [1/m]
     if ( macroxs < 1e-99 || macroxs > 1e99 ) {
       thickness_meter = 0.01;//fall back value of 1cm
     } else {

@@ -38,7 +38,7 @@ PropAndAttenuate test #2
   ==> Not testing (bounded geom + inf dist is unsupported)
 PropAndAttenuate test #3
    dist: 0
-   xsval: 0.01
+   xsval: 1
    geom_is_unbounded: 0
   ==> Verifying expected weight
         weight: 1 (expected: 1)
@@ -46,7 +46,7 @@ PropAndAttenuate test #3
   ==> dist=0. Verifying neutron unchanged.
 PropAndAttenuate test #4
    dist: 0.01
-   xsval: 0.01
+   xsval: 1
    geom_is_unbounded: 0
   ==> Verifying expected weight
         weight: 0.99005 (expected: 0.99005)
@@ -54,12 +54,12 @@ PropAndAttenuate test #4
   ==> 0<dist<inf. Verifying neutron pos.
 PropAndAttenuate test #5
    dist: inf
-   xsval: 0.01
+   xsval: 1
    geom_is_unbounded: 0
   ==> Not testing (bounded geom + inf dist is unsupported)
 PropAndAttenuate test #6
    dist: 0
-   xsval: 100
+   xsval: 10000
    geom_is_unbounded: 0
   ==> Verifying expected weight
         weight: 1 (expected: 1)
@@ -67,7 +67,7 @@ PropAndAttenuate test #6
   ==> dist=0. Verifying neutron unchanged.
 PropAndAttenuate test #7
    dist: 0.01
-   xsval: 100
+   xsval: 10000
    geom_is_unbounded: 0
   ==> Verifying expected weight
         weight: 3.72008e-44 (expected: 3.72008e-44)
@@ -75,7 +75,7 @@ PropAndAttenuate test #7
   ==> 0<dist<inf. Verifying neutron pos.
 PropAndAttenuate test #8
    dist: inf
-   xsval: 100
+   xsval: 10000
    geom_is_unbounded: 0
   ==> Not testing (bounded geom + inf dist is unsupported)
 PropAndAttenuate test #9
@@ -295,7 +295,7 @@ PropAndAttenuate test #2
   ==> dist=inf. Verifying neutron weight 0.
 PropAndAttenuate test #3
    dist: 0
-   xsval: 0.01
+   xsval: 1
    geom_is_unbounded: 1
   ==> Verifying expected weight
         weight: 1 (expected: 1)
@@ -303,7 +303,7 @@ PropAndAttenuate test #3
   ==> dist=0. Verifying neutron unchanged.
 PropAndAttenuate test #4
    dist: 0.01
-   xsval: 0.01
+   xsval: 1
    geom_is_unbounded: 1
   ==> Verifying expected weight
         weight: 0.99005 (expected: 0.99005)
@@ -311,7 +311,7 @@ PropAndAttenuate test #4
   ==> 0<dist<inf. Verifying neutron pos.
 PropAndAttenuate test #5
    dist: inf
-   xsval: 0.01
+   xsval: 1
    geom_is_unbounded: 1
   ==> Verifying expected weight
         weight: 0 (expected: 0)
@@ -319,7 +319,7 @@ PropAndAttenuate test #5
   ==> dist=inf. Verifying neutron weight 0.
 PropAndAttenuate test #6
    dist: 0
-   xsval: 100
+   xsval: 10000
    geom_is_unbounded: 1
   ==> Verifying expected weight
         weight: 1 (expected: 1)
@@ -327,7 +327,7 @@ PropAndAttenuate test #6
   ==> dist=0. Verifying neutron unchanged.
 PropAndAttenuate test #7
    dist: 0.01
-   xsval: 100
+   xsval: 10000
    geom_is_unbounded: 1
   ==> Verifying expected weight
         weight: 3.72008e-44 (expected: 3.72008e-44)
@@ -335,7 +335,7 @@ PropAndAttenuate test #7
   ==> 0<dist<inf. Verifying neutron pos.
 PropAndAttenuate test #8
    dist: inf
-   xsval: 100
+   xsval: 10000
    geom_is_unbounded: 1
   ==> Verifying expected weight
         weight: 0 (expected: 0)

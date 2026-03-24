@@ -116,7 +116,6 @@ namespace {
   }
 
   TestNeutron propAndAtten( const TestNeutron& in,
-                            NC::NumberDensity numdens,
                             bool geom_is_unbounded,
                             double dist,
                             NC::Optional<double> xsval )
@@ -129,7 +128,7 @@ namespace {
     const double * ptr_xsval = ( xsval.has_value()
                                  ? (const double*)arr_xsval
                                  : nullptr );
-    NCMMC::Utils::propagateAndAttenuate( b, numdens, geom_is_unbounded,
+    NCMMC::Utils::propagateAndAttenuate( b, geom_is_unbounded,
                                          arr_dist, ptr_xsval );
     return TestNeutron( b );
   }
@@ -1482,7 +1481,7 @@ void testProbTransm( bool geom_is_unbounded )
   constexpr auto nxs = 4;
   constexpr auto nd = 3;
   constexpr auto n = nxs*nd;
-  const double vals_xs[nxs] = { 0.0, 0.01, 100, NC::kInfinity };
+  const double vals_xs[nxs] = { 0.0, 1.0, 10000.0, NC::kInfinity };
   const double vals_dists[nd] = { 0.0, 0.01, NC::kInfinity };
   double xs[n];
   double dist[n];
@@ -1498,8 +1497,7 @@ void testProbTransm( bool geom_is_unbounded )
   }
   nc_assert_always(idx==n);
   double out[n];
-  const NC::NumberDensity numdens{ 1.0 };
-  NCMMC::Utils::calcProbTransm( numdens, n, geom_is_unbounded,
+  NCMMC::Utils::calcProbTransm( n, geom_is_unbounded,
                                 xs,
                                 dist, out );
   auto calc_expected_ptransm = [geom_is_unbounded]( double distval,
@@ -1524,7 +1522,7 @@ void testProbTransm( bool geom_is_unbounded )
     }
   };
   for ( auto i : NC::ncrange(n) ) {
-    const double macroxs = 100.0 * xs[i] * numdens.get(); //[1/m]
+    const double macroxs = xs[i];
     const double ptransm = calc_expected_ptransm( dist[i], macroxs );
     std::cout<<"  TEST i="<<i<<" ptransm="<<out[i]
              <<" (expected: "<<ptransm<<") from dist="
@@ -1534,7 +1532,7 @@ void testProbTransm( bool geom_is_unbounded )
     nc_assert_always( out[i]>=0.0 );
     nc_assert_always( out[i]<=1.0 );
   }
-  NCMMC::Utils::calcProbTransm( numdens, n, geom_is_unbounded,
+  NCMMC::Utils::calcProbTransm( n, geom_is_unbounded,
                                 nullptr,
                                 vals_dists, out );
   for ( auto i : NC::ncrange(nd) ) {
@@ -1583,7 +1581,6 @@ void testProbTransm( bool geom_is_unbounded )
     std::cout<<std::endl;
     std::cout<<"   geom_is_unbounded: "<<geom_is_unbounded<<std::endl;;
     const bool dist_is_inf = NC::ncisinf(t.dist);
-    //    const bool xsval_is_inf = NC::ncisinf(t.xsval.value_or(0.0));
 
     if ( dist_is_inf && !geom_is_unbounded ) {
       std::cout
@@ -1593,9 +1590,9 @@ void testProbTransm( bool geom_is_unbounded )
     }
 
     const TestNeutron n1;
-    auto n2 = propAndAtten( n1, numdens, geom_is_unbounded, t.dist, t.xsval );
+    auto n2 = propAndAtten( n1, geom_is_unbounded, t.dist, t.xsval );
     std::cout << "  ==> Verifying expected weight" << std::endl;
-    const double macroxs = 100.0 * t.xsval.value_or(0.0) * numdens.get();//[1/m]
+    const double macroxs = t.xsval.value_or(0.0);//[1/m]
     const double ptransm = calc_expected_ptransm( t.dist, macroxs );
     nc_assert_always( n1.weight == 1.0 );
     nc_assert_always( n2.weight == ptransm );
@@ -1621,9 +1618,6 @@ void testProbTransm( bool geom_is_unbounded )
       std::cout<<"  ==> dist=inf. Verifying neutron weight 0."<<std::endl;
       nc_assert_always( n2.weight == 0.0 );
     }
-    //fixme: we should test for macro_xs (not just xs) vanishing as well!
-    //I.e. numdens small/large might push xs to inf. Easiest if util function
-    //simply accepts just the macroxs values!
   }
 
   unsigned itest_prop = 0;

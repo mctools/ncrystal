@@ -145,6 +145,8 @@ namespace NCRYSTAL_NAMESPACE {
                                <<" StdSimEngine::processBasket inbasket.size()="
                                <<inbasket.size());
 
+          const double macroxsfactor = Utils::macroXSFactor( m_mat.numDens );
+
           Basket result_basket;
           nc_assert(!result_basket.valid());
 
@@ -156,10 +158,12 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert( tallyfct != nullptr );
           nc_assert( inbasket.valid() );
           nc_assert( !inbasket.empty() );
-          const bool has_scat = !( m_mat.scatter == nullptr
-                                   || m_mat.scatter->isNull() );
-          const bool has_abs = !( m_mat.absorption == nullptr
-                                  || m_mat.absorption->isNull() );
+          const bool has_scat = ( macroxsfactor>0.0
+                                  && m_mat.scatter != nullptr
+                                  && !m_mat.scatter->isNull() );
+          const bool has_abs = ( macroxsfactor>0.0
+                                 && m_mat.absorption != nullptr
+                                 && !m_mat.absorption->isNull() );
           const bool scatter_is_isotropic = !(has_scat&&m_mat.scatter->isOriented());
           const bool absorption_is_isotropic = !(has_abs&&m_mat.absorption->isOriented());
           const bool geom_is_unbounded = m_geom->hasUnboundedDistToVolExit();
@@ -185,14 +189,15 @@ namespace NCRYSTAL_NAMESPACE {
                                                     BasketUtils::dir_obj(*inbasket.neutrons,i) ).dbl();
               }
             }
-            values_abs_xs_or_nullptr = &m_buf_xs_abs[0];
+            for ( auto i : ncrange( inbasket.size() ) )
+              m_buf_xs_abs.data[i] *= macroxsfactor;
+            values_abs_xs_or_nullptr = &m_buf_xs_abs.data[0];
           }
 
           if (!has_scat) {
             //Special case of no scattering, just transmit (in-place) and return
             //an empty basket (i.e. nothing needs further processing):
             MiniMC::Utils::propagateAndAttenuate( *inbasket.neutrons,
-                                                  m_mat.numDens,
                                                   geom_is_unbounded,
                                                   m_buf_disttoexit.data,
                                                   values_abs_xs_or_nullptr );
@@ -229,8 +234,9 @@ namespace NCRYSTAL_NAMESPACE {
                 if ( inbasket.nscat->data[i] <= 0
                      || buf_scatxsval(inbasket)[i] < 0.0 )
                   buf_scatxsval(inbasket)[i]
-                    = m_mat.scatter->crossSectionIsotropic( m_sct_cacheptr,
-                                                            BasketUtils::ekin_obj(*inbasket.neutrons,i) ).dbl();
+                    = ( macroxsfactor * m_mat.scatter->crossSectionIsotropic
+                        ( m_sct_cacheptr,
+                          BasketUtils::ekin_obj(*inbasket.neutrons,i) ).dbl() );
               }
             } else {
               //not isotropic, always recalculate all xs values (except if
@@ -240,28 +246,24 @@ namespace NCRYSTAL_NAMESPACE {
                   buf_scatxsval(inbasket)[i] = 0.0;
                 else
                   buf_scatxsval(inbasket)[i]
-                    = m_mat.scatter->crossSection( m_sct_cacheptr,
-                                                   BasketUtils::ekin_obj(*inbasket.neutrons,i),
-                                                   BasketUtils::dir_obj(*inbasket.neutrons,i) ).dbl();
+                    = ( macroxsfactor * m_mat.scatter->crossSection
+                        ( m_sct_cacheptr,
+                          BasketUtils::ekin_obj(*inbasket.neutrons,i),
+                          BasketUtils::dir_obj(*inbasket.neutrons,i) ).dbl() );
               }
             }
           }
 
           //Transmission probability (note, as a special case this will be set
           //to 0 if disttoexit=inf):
-          MiniMC::Utils::calcProbTransm( m_mat.numDens,
-                                         inbasket.size(),
+          MiniMC::Utils::calcProbTransm( inbasket.size(),
                                          geom_is_unbounded,
                                          buf_scatxsval(inbasket),
                                          m_buf_disttoexit.data,
                                          m_buf_ptransm.data );
 
-          //fixme: stop recalculating macro_xs, but immediately convert xs
-          //values to macroscopic values right after query!
-
-          //Pick scattering points (note gives dist=inf if macro scat xs=0):
+          //Pick scattering points (note gives dist=inf if xs=0):
           MiniMC::Utils::sampleRandDists(rng,
-                                         m_mat.numDens,
                                          m_buf_disttoexit.data,
                                          buf_scatxsval(inbasket),
                                          inbasket.size(),
@@ -297,9 +299,7 @@ namespace NCRYSTAL_NAMESPACE {
               }
 
 
-              const double macro_scat_xs
-                = Utils::macroXS( m_mat.numDens,
-                                  CrossSect{ buf_scatxsval(inbasket)[i] } );
+              const double macro_scat_xs = buf_scatxsval(inbasket)[i];
 
               if (!(macro_scat_xs > 0.0))
                 continue;//can't scatter (all relevant weight should have been
@@ -325,12 +325,9 @@ namespace NCRYSTAL_NAMESPACE {
               }
 
               //Get macroscopic scattering cross section:
-              //fixme cache factor macroXS( m_mat.numDens, CrossSect{1.0}).
-              const double macro_abs_xs
-                = ( values_abs_xs_or_nullptr
-                    ? Utils::macroXS( m_mat.numDens,
-                                      CrossSect{ *std::next(values_abs_xs_or_nullptr,i) } )
-                    : 0.0 );
+              const double macro_abs_xs = ( values_abs_xs_or_nullptr
+                                            ? values_abs_xs_or_nullptr[i]
+                                            : 0.0 );
 
               nc_assert( !NC::ncisinf(m_buf_disttoscat[i]));//dealt with above
               const double weight_reduction_factor
@@ -397,7 +394,6 @@ namespace NCRYSTAL_NAMESPACE {
             //disttoexit we end up with w=0, but these will be ignored later):
             auto& outb = inbasket;
             MiniMC::Utils::propagateAndAttenuate( *outb.neutrons,
-                                                  m_mat.numDens,
                                                   geom_is_unbounded,
                                                   m_buf_disttoexit.data,
                                                   values_abs_xs_or_nullptr );

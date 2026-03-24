@@ -34,7 +34,9 @@ namespace NCRYSTAL_NAMESPACE {
     namespace Utils {
 
       //Internal utilities that are useful when implementing MMC simulation
-      //engines.
+      //engines. Cross sections accepted are always macroscopic cross sections
+      //in units of 1/m. They can be converted from barn/atom via the
+      //macroXSFactor.
 
       //Transmission probability. Handles xs=inf always, and handles dist=inf
       //correctly if geom_is_unbounded=true.
@@ -46,7 +48,7 @@ namespace NCRYSTAL_NAMESPACE {
       //
       //Note that for (xs,dist)=(inf,0) we return P=0.0 and not P=1.0, and this
       //choice is to make tallying of unbounded geometries easier.
-      void calcProbTransm( NumberDensity nd, std::size_t N,
+      void calcProbTransm( std::size_t N,
                            bool geom_is_unbounded,
                            const double * ncrestrict xs_or_nullptr,
                            const double * ncrestrict dist,
@@ -65,12 +67,11 @@ namespace NCRYSTAL_NAMESPACE {
       //unchanged and if dist=inf (requires geom_is_unbounded=true) it will be
       //left with weight=0.
       void propagateAndAttenuate( NeutronBasket& b,
-                                  NumberDensity nd,
                                   bool geom_is_unbounded,
                                   const double* ncrestrict dists,
                                   const double* ncrestrict xsvals = nullptr );
 
-      void sampleRandDists( RNG& rng, NumberDensity nd,
+      void sampleRandDists( RNG& rng,
                             const double * ncrestrict dists,
                             const double * ncrestrict xsvals,
                             std::size_t N,
@@ -99,9 +100,8 @@ namespace NCRYSTAL_NAMESPACE {
 
       //returns macroscocopic XS, or attenuation coefficient, in units of
       //1/m. NB, using nc_as_const for pre C++17:
-      inline constexpr double macroXS( NumberDensity nd, CrossSect xs ) noexcept
-      {
-        return 100.0 * nc_as_const(nd).dbl() * nc_as_const(xs).dbl();
+      inline constexpr double macroXSFactor( NumberDensity nd ) noexcept {
+        return 100.0 * nc_as_const(nd).dbl();
       }
 
       inline double fast_sqrt_clippos( double x ) noexcept {
