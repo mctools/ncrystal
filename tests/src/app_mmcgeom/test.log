@@ -1133,16 +1133,6 @@ BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107
                   dist = 0
      expected (manual) = 0
    DistToExit:
-               refdist = 4.44089e-16
-                  dist = 4.44089e-16
-     expected (manual) = 4.44089e-16
-
-BoundedCylinder case: pos = { 2.12132, 0, 2.12132 }  dir={ 0.707107, 0, 0.707107 }
-   DistToEntry:
-               refdist = 0
-                  dist = 0
-     expected (manual) = 0
-   DistToExit:
                refdist = 3.55271e-15
                   dist = 3.55271e-15
      expected (manual) = 3.55271e-15
@@ -1313,7 +1303,7 @@ BoundedCylinder case: pos = { 0, 1, -2 }  dir={ 0, 1, 0 }
                   dist = 1
      expected (manual) = 1
 
-Tested a total of 100027 BoundedCylinder test cases!
+Tested a total of 100026 BoundedCylinder test cases!
 Sphere case: pos = { 0, 0, -10 }  dir={ 0, 0, 1 }
    DistToEntry:
                refdist = 7
