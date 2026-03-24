@@ -217,6 +217,13 @@ format.
         return parser
     args=parser.parse_args(arglist)
 
+    #Accept magic "help" cfgstrings for quick help on any subject:
+    if args.CFGSTR=='help':
+        parser.error("Use -h/--help for instructions"
+                     " (or --full-help for even more)")
+    if args.SCENARIO=='help':
+        args.SCENARIO = None
+        args.doc = 'scenario'
     if args.enginecfg=='help':
         args.enginecfg = None
         args.doc = 'engine'

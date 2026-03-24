@@ -95,8 +95,13 @@ def main():
     test('--full')
     test('-e','help')
     test('--srccfg=help')
+    with ensure_error(ArgumentError,
+                      'Use -h/--help for instructions'
+                      ' (or --full-help for even more)'):
+        test('help')
     test('--geomcfg','help')
     test('solid::GdO3/1gcm3','-d')
+    test('solid::GdO3/1gcm3','help')
     test('solid::GdO3/1gcm3','2Aa on 2cm','-d')
     test('solid::GdO3/1gcm3','2Aa on 2cm','-e','ignoremiss=1','-d')
     test('solid::GdO3/1gcm3','--decode')
