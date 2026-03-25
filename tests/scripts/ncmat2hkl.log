@@ -64,6 +64,8 @@ STDOUT># ncrystal_cfgstr "stdlib::Al_sg225.ncmat;dcutoff=0.6"
 STDOUT>#
 STDOUT># Format: "laz" (suitable for McStas PowderN component)
 STDOUT>#
+STDOUT># ncmat2hklversion 2
+STDOUT>#
 STDOUT># orighdr : Original file had the following comments at the top:
 STDOUT># orighdr :
 STDOUT># orighdr : #
@@ -113,9 +115,9 @@ STDOUT># number_density 0.060232382561316 [atoms/Aa^3]
 STDOUT># weight 107.926153632 [g/mol of entire unit cell]
 STDOUT># average_mass 26.981538408 [average atomic g/mol]
 STDOUT>#
-STDOUT># sigma_coh 5.9793812338617 [barn/unitcell]
-STDOUT># sigma_inc 0.0328 [barn/unitcell]
-STDOUT># sigma_abs 0.924 [barn/unitcell]
+STDOUT># sigma_coh 1.4948453084654 [barn/atom]
+STDOUT># sigma_inc 0.0082 [barn/atom]
+STDOUT># sigma_abs 0.231 [barn/atom]
 STDOUT>#
 STDOUT># formula Al
 STDOUT># nformula_per_unitcell 4
@@ -248,6 +250,8 @@ STDOUT># ncrystal_cfgstr "stdlib::Al_sg225.ncmat;dcutoff=0.6"
 STDOUT>#
 STDOUT># Format: "lau" (suitable for McStas Single_crystal component)
 STDOUT>#
+STDOUT># ncmat2hklversion 2
+STDOUT>#
 STDOUT># orighdr : Original file had the following comments at the top:
 STDOUT># orighdr :
 STDOUT># orighdr : #
@@ -297,9 +301,9 @@ STDOUT># number_density 0.060232382561316 [atoms/Aa^3]
 STDOUT># weight 107.926153632 [g/mol of entire unit cell]
 STDOUT># average_mass 26.981538408 [average atomic g/mol]
 STDOUT>#
-STDOUT># sigma_coh 5.9793812338617 [barn/unitcell]
-STDOUT># sigma_inc 0.0328 [barn/unitcell]
-STDOUT># sigma_abs 0.924 [barn/unitcell]
+STDOUT># sigma_coh 1.4948453084654 [barn/atom]
+STDOUT># sigma_inc 0.0082 [barn/atom]
+STDOUT># sigma_abs 0.231 [barn/atom]
 STDOUT>#
 STDOUT># formula Al
 STDOUT># nformula_per_unitcell 4
@@ -340,9 +344,7 @@ STDOUT>    0   2   2  1      1.431742739      1.575735142
 STDOUT>    0  -2  -2  1      1.431742739      1.575735142
 STDOUT>    0   2  -2  1      1.431742739      1.575735142
 STDOUT>    0  -2   2  1      1.431742739      1.575735142
-STDOUT>    3   1   1  1      1.220994311      1.467994874
-STDOUT>   -3  -1  -1  1      1.220994311      1.467994874
-STDOUT>   <<<SNIPPED 298 LINES, MD5=c391023496cb3cc10041088709a64b2b>>>
+STDOUT>    <<<SNIPPED 300 LINES, MD5=c0dc5b84eed731ac44aa218656dde8b5>>>
 STDOUT>    2  -6   2  1     0.6104971554     0.6735642717
 STDOUT>   -2   6  -2  1     0.6104971554     0.6735642717
 STDOUT>    2  -6  -2  1     0.6104971554     0.6735642717
@@ -447,6 +449,8 @@ res># ncrystal_cfgstr "stdlib::CaSiO3_sg2_Wollastonite.ncmat;dcutoff=3.2"
 res>#
 res># Format: "laz" (suitable for McStas PowderN component)
 res>#
+res># ncmat2hklversion 2
+res>#
 res># orighdr : Original file had the following comments at the top:
 res># orighdr :
 res># orighdr : (note the ncrystalmatcfg statement is disabled in this
@@ -501,9 +505,9 @@ res># number_density 0.080264473919228 [atoms/Aa^3]
 res># weight 696.96867100438 [g/mol of entire unit cell]
 res># average_mass 23.232289033479 [average atomic g/mol]
 res>#
-res># sigma_coh 114.47070121272 [barn/unitcell]
-res># sigma_inc 0.3384 [barn/unitcell]
-res># sigma_abs 3.60942 [barn/unitcell]
+res># sigma_coh 3.815690040424 [barn/atom]
+res># sigma_inc 0.01128 [barn/atom]
+res># sigma_abs 0.120314 [barn/atom]
 res>#
 res># formula CaO3Si
 res># nformula_per_unitcell 6
@@ -658,6 +662,8 @@ res># ncrystal_cfgstr "stdlib::CaSiO3_sg2_Wollastonite.ncmat;dcutoff=3.2"
 res>#
 res># Format: "lau" (suitable for McStas Single_crystal component)
 res>#
+res># ncmat2hklversion 2
+res>#
 res># orighdr : Original file had the following comments at the top:
 res># orighdr :
 res># orighdr : (note the ncrystalmatcfg statement is disabled in this
@@ -712,9 +718,9 @@ res># number_density 0.080264473919228 [atoms/Aa^3]
 res># weight 696.96867100438 [g/mol of entire unit cell]
 res># average_mass 23.232289033479 [average atomic g/mol]
 res>#
-res># sigma_coh 114.47070121272 [barn/unitcell]
-res># sigma_inc 0.3384 [barn/unitcell]
-res># sigma_abs 3.60942 [barn/unitcell]
+res># sigma_coh 3.815690040424 [barn/atom]
+res># sigma_inc 0.01128 [barn/atom]
+res># sigma_abs 0.120314 [barn/atom]
 res>#
 res># formula CaO3Si
 res># nformula_per_unitcell 6
@@ -895,6 +901,8 @@ OUTFILE># ncrystal_cfgstr "stdlib::Y2SiO5_sg15_YSO.ncmat;dcutoff=2"
 OUTFILE>#
 OUTFILE># Format: "laz" (suitable for McStas PowderN component)
 OUTFILE>#
+OUTFILE># ncmat2hklversion 2
+OUTFILE>#
 OUTFILE># orighdr : Original file had the following comments at the top:
 OUTFILE># orighdr :
 OUTFILE># orighdr : (note the ncrystalmatcfg statement is disabled in this
@@ -952,9 +960,9 @@ OUTFILE># number_density 0.071910692450828 [atoms/Aa^3]
 OUTFILE># weight 2287.1497159104 [g/mol of entire unit cell]
 OUTFILE># average_mass 35.736714311099 [average atomic g/mol]
 OUTFILE>#
-OUTFILE># sigma_coh 307.33731029238 [barn/unitcell]
-OUTFILE># sigma_inc 2.464 [barn/unitcell]
-OUTFILE># sigma_abs 21.8556 [barn/unitcell]
+OUTFILE># sigma_coh 4.8021454733184 [barn/atom]
+OUTFILE># sigma_inc 0.0385 [barn/atom]
+OUTFILE># sigma_abs 0.34149375 [barn/atom]
 OUTFILE>#
 OUTFILE># formula O5SiY2
 OUTFILE># nformula_per_unitcell 8
@@ -1136,6 +1144,8 @@ OUTFILE># ncrystal_cfgstr "stdlib::Y2SiO5_sg15_YSO.ncmat;dcutoff=2"
 OUTFILE>#
 OUTFILE># Format: "lau" (suitable for McStas Single_crystal component)
 OUTFILE>#
+OUTFILE># ncmat2hklversion 2
+OUTFILE>#
 OUTFILE># orighdr : Original file had the following comments at the top:
 OUTFILE># orighdr :
 OUTFILE># orighdr : (note the ncrystalmatcfg statement is disabled in this
@@ -1193,9 +1203,9 @@ OUTFILE># number_density 0.071910692450828 [atoms/Aa^3]
 OUTFILE># weight 2287.1497159104 [g/mol of entire unit cell]
 OUTFILE># average_mass 35.736714311099 [average atomic g/mol]
 OUTFILE>#
-OUTFILE># sigma_coh 307.33731029238 [barn/unitcell]
-OUTFILE># sigma_inc 2.464 [barn/unitcell]
-OUTFILE># sigma_abs 21.8556 [barn/unitcell]
+OUTFILE># sigma_coh 4.8021454733184 [barn/atom]
+OUTFILE># sigma_inc 0.0385 [barn/atom]
+OUTFILE># sigma_abs 0.34149375 [barn/atom]
 OUTFILE>#
 OUTFILE># formula O5SiY2
 OUTFILE># nformula_per_unitcell 8
@@ -1228,9 +1238,7 @@ OUTFILE>    1   1   1  1       4.46602879      1.266559772
 OUTFILE>   -1  -1  -1  1       4.46602879      1.266559772
 OUTFILE>    1  -1   1  1       4.46602879      1.266559772
 OUTFILE>   -1   1  -1  1       4.46602879      1.266559772
-OUTFILE>    1   1  -2  1      4.126364622    0.03070210579
-OUTFILE>   -1  -1   2  1      4.126364622    0.03070210579
-OUTFILE>   <<<SNIPPED 180 LINES, MD5=e5f3e1fefe702df3f4a2ce0f12f95ded>>>
+OUTFILE>   <<<SNIPPED 182 LINES, MD5=2d1ee111efe32417fefb92f30266d2c2>>>
 OUTFILE>    3   1  -5  1      2.005379573      19.06393288
 OUTFILE>   -3  -1   5  1      2.005379573      19.06393288
 OUTFILE>    3  -1  -5  1      2.005379573      19.06393288
@@ -1343,6 +1351,8 @@ res># ncrystal_cfgstr "stdlib::Mg2SiO4_sg62_MagnesiumSilicate.ncmat;dcutoff=1.2"
 res>#
 res># Format: "laz" (suitable for McStas PowderN component)
 res>#
+res># ncmat2hklversion 2
+res>#
 res># orighdr : Original file had the following comments at the top:
 res># orighdr :
 res># orighdr : (note the ncrystalmatcfg statement is disabled in this
@@ -1402,9 +1412,9 @@ res># number_density 0.096463365824363 [atoms/Aa^3]
 res># weight 562.77132241878 [g/mol of entire unit cell]
 res># average_mass 20.098975800671 [average atomic g/mol]
 res>#
-res># sigma_coh 105.40446321616 [barn/unitcell]
-res># sigma_inc 0.6688 [barn/unitcell]
-res># sigma_abs 1.19104 [barn/unitcell]
+res># sigma_coh 3.7644451148629 [barn/atom]
+res># sigma_inc 0.023885714285714 [barn/atom]
+res># sigma_abs 0.042537142857143 [barn/atom]
 res>#
 res># formula Mg2O4Si
 res># nformula_per_unitcell 4
@@ -1435,9 +1445,7 @@ res>    1   2   1  8      2.457689682      12.62792325
 res>    0   0   2  2          2.37767      11.94116721
 res>    4   1   0  4      2.346126227      1.466305609
 res>    1   0   2  4      2.315606518      4.967851856
-res>    2   2   1  8      2.268142505      39.23091723
-res>    4   0   1  4      2.247523919      48.24218684
-res>    <<<SNIPPED 79 LINES, MD5=b5e8552fd98129c2935dd5850a4e8b99>>>
+res>    <<<SNIPPED 81 LINES, MD5=fe9770b337abf22c00f62ac113741b67>>>
 res>    5   3   2  8      1.223068405      4.324137094
 res>    7   1   2  8      1.216565473     0.9439156107
 res>    8   1   1  8      1.206368988      2.943223982
@@ -1550,6 +1558,8 @@ res># ncrystal_cfgstr "stdlib::Mg2SiO4_sg62_MagnesiumSilicate.ncmat;dcutoff=1.2"
 res>#
 res># Format: "lau" (suitable for McStas Single_crystal component)
 res>#
+res># ncmat2hklversion 2
+res>#
 res># orighdr : Original file had the following comments at the top:
 res># orighdr :
 res># orighdr : (note the ncrystalmatcfg statement is disabled in this
@@ -1609,9 +1619,9 @@ res># number_density 0.096463365824363 [atoms/Aa^3]
 res># weight 562.77132241878 [g/mol of entire unit cell]
 res># average_mass 20.098975800671 [average atomic g/mol]
 res>#
-res># sigma_coh 105.40446321616 [barn/unitcell]
-res># sigma_inc 0.6688 [barn/unitcell]
-res># sigma_abs 1.19104 [barn/unitcell]
+res># sigma_coh 3.7644451148629 [barn/atom]
+res># sigma_inc 0.023885714285714 [barn/atom]
+res># sigma_abs 0.042537142857143 [barn/atom]
 res>#
 res># formula Mg2O4Si
 res># nformula_per_unitcell 4
@@ -1642,9 +1652,7 @@ res>    0   1  -1  1      3.722820903      2.642900744
 res>    0  -1   1  1      3.722820903      2.642900744
 res>    1   1   1  1      3.497225064      1.829695889
 res>   -1  -1  -1  1      3.497225064      1.829695889
-res>    1   1  -1  1      3.497225064      1.829695889
-res>   -1  -1   1  1      3.497225064      1.829695889
-res>   <<<SNIPPED 592 LINES, MD5=8d5ddd5d8d2230c17886077ca4e27fa0>>>
+res>   <<<SNIPPED 594 LINES, MD5=9bbe630387d7e8cc2f5dbcce60206b5d>>>
 res>    2  -3   3  1      1.205769094     0.5604269713
 res>   -2   3  -3  1      1.205769094     0.5604269713
 res>    2  -3  -3  1      1.205769094     0.5604269713
@@ -1757,6 +1765,8 @@ STDOUT># ncrystal_cfgstr "stdlib::PbO-alpha_sg129_Litharge.ncmat;dcutoff=0.9"
 STDOUT>#
 STDOUT># Format: "laz" (suitable for McStas PowderN component)
 STDOUT>#
+STDOUT># ncmat2hklversion 2
+STDOUT>#
 STDOUT># orighdr : Original file had the following comments at the top:
 STDOUT># orighdr :
 STDOUT># orighdr : #
@@ -1813,9 +1823,9 @@ STDOUT># number_density 0.050913375778796 [atoms/Aa^3]
 STDOUT># weight 446.4324244042 [g/mol of entire unit cell]
 STDOUT># average_mass 111.60810610105 [average atomic g/mol]
 STDOUT>#
-STDOUT># sigma_coh 30.694323814871 [barn/unitcell]
-STDOUT># sigma_inc 0.0076 [barn/unitcell]
-STDOUT># sigma_abs 0.34238 [barn/unitcell]
+STDOUT># sigma_coh 7.6735809537177 [barn/atom]
+STDOUT># sigma_inc 0.0019 [barn/atom]
+STDOUT># sigma_abs 0.085595 [barn/atom]
 STDOUT>#
 STDOUT># formula OPb
 STDOUT># nformula_per_unitcell 2
@@ -2010,6 +2020,8 @@ STDOUT># ncrystal_cfgstr "stdlib::PbO-alpha_sg129_Litharge.ncmat;dcutoff=0.9"
 STDOUT>#
 STDOUT># Format: "lau" (suitable for McStas Single_crystal component)
 STDOUT>#
+STDOUT># ncmat2hklversion 2
+STDOUT>#
 STDOUT># orighdr : Original file had the following comments at the top:
 STDOUT># orighdr :
 STDOUT># orighdr : #
@@ -2066,9 +2078,9 @@ STDOUT># number_density 0.050913375778796 [atoms/Aa^3]
 STDOUT># weight 446.4324244042 [g/mol of entire unit cell]
 STDOUT># average_mass 111.60810610105 [average atomic g/mol]
 STDOUT>#
-STDOUT># sigma_coh 30.694323814871 [barn/unitcell]
-STDOUT># sigma_inc 0.0076 [barn/unitcell]
-STDOUT># sigma_abs 0.34238 [barn/unitcell]
+STDOUT># sigma_coh 7.6735809537177 [barn/atom]
+STDOUT># sigma_inc 0.0019 [barn/atom]
+STDOUT># sigma_abs 0.085595 [barn/atom]
 STDOUT>#
 STDOUT># formula OPb
 STDOUT># nformula_per_unitcell 2
@@ -2102,9 +2114,7 @@ STDOUT>    0   0  -2  1            2.505      0.434620644
 STDOUT>    1   1   1  1      2.444275663     0.8417859488
 STDOUT>   -1  -1  -1  1      2.444275663     0.8417859488
 STDOUT>    1   1  -1  1      2.444275663     0.8417859488
-STDOUT>   -1  -1   1  1      2.444275663     0.8417859488
-STDOUT>    1  -1   1  1      2.444275663     0.8417859488
-STDOUT>    <<<SNIPPED 389 LINES, MD5=6458f4ec6b9fd83d51474b8a8d3b7a24>>>
+STDOUT>    <<<SNIPPED 391 LINES, MD5=b86004089b64e3264f4301fb16cfc225>>>
 STDOUT>    0   3   4  1     0.9085771871     0.1180953212
 STDOUT>    0  -3  -4  1     0.9085771871     0.1180953212
 STDOUT>    0   3  -4  1     0.9085771871     0.1180953212
@@ -2242,6 +2252,8 @@ res># ncrystal_cfgstr "stdlib::MgCO3_sg167_MagnesiumCarbonate.ncmat;dcutoff=1"
 res>#
 res># Format: "laz" (suitable for McStas PowderN component)
 res>#
+res># ncmat2hklversion 2
+res>#
 res># orighdr : Original file had the following comments at the top:
 res># orighdr :
 res># orighdr : #
@@ -2295,9 +2307,9 @@ res># number_density 0.10762281825171 [atoms/Aa^3]
 res># weight 505.88401595091 [g/mol of entire unit cell]
 res># average_mass 16.862800531697 [average atomic g/mol]
 res>#
-res># sigma_coh 131.25652118727 [barn/unitcell]
-res># sigma_inc 0.5004 [barn/unitcell]
-res># sigma_abs 0.40242 [barn/unitcell]
+res># sigma_coh 4.375217372909 [barn/atom]
+res># sigma_inc 0.01668 [barn/atom]
+res># sigma_abs 0.013414 [barn/atom]
 res>#
 res># formula CMgO3
 res># nformula_per_unitcell 6
@@ -2470,6 +2482,8 @@ res># ncrystal_cfgstr "stdlib::MgCO3_sg167_MagnesiumCarbonate.ncmat;dcutoff=1"
 res>#
 res># Format: "lau" (suitable for McStas Single_crystal component)
 res>#
+res># ncmat2hklversion 2
+res>#
 res># orighdr : Original file had the following comments at the top:
 res># orighdr :
 res># orighdr : #
@@ -2523,9 +2537,9 @@ res># number_density 0.10762281825171 [atoms/Aa^3]
 res># weight 505.88401595091 [g/mol of entire unit cell]
 res># average_mass 16.862800531697 [average atomic g/mol]
 res>#
-res># sigma_coh 131.25652118727 [barn/unitcell]
-res># sigma_inc 0.5004 [barn/unitcell]
-res># sigma_abs 0.40242 [barn/unitcell]
+res># sigma_coh 4.375217372909 [barn/atom]
+res># sigma_inc 0.01668 [barn/atom]
+res># sigma_abs 0.013414 [barn/atom]
 res>#
 res># formula CMgO3
 res># nformula_per_unitcell 6
@@ -2562,9 +2576,7 @@ res>    1  -2   0  1            2.316      7.327750476
 res>   -1   2   0  1            2.316      7.327750476
 res>    2  -1   3  1      2.101552894      60.43677614
 res>   -2   1  -3  1      2.101552894      60.43677614
-res>    2  -1  -3  1      2.101552894      60.43677614
-res>   -2   1   3  1      2.101552894      60.43677614
-res>   <<<SNIPPED 276 LINES, MD5=ba8d734993514523f832279536aa3a72>>>
+res>   <<<SNIPPED 278 LINES, MD5=a138cacef2eebf3045991568e47abe42>>>
 res>    1   2  11  1      1.013964751      20.88497846
 res>   -1  -2 -11  1      1.013964751      20.88497846
 res>    1  -3 -11  1      1.013964751      20.88497846
@@ -2693,6 +2705,8 @@ STDOUT># ncrystal_cfgstr "stdlib::Al2O3_sg167_Corundum.ncmat;dcutoff=1.5"
 STDOUT>#
 STDOUT># Format: "laz" (suitable for McStas PowderN component)
 STDOUT>#
+STDOUT># ncmat2hklversion 2
+STDOUT>#
 STDOUT># orighdr : Original file had the following comments at the top:
 STDOUT># orighdr :
 STDOUT># orighdr : #
@@ -2744,9 +2758,9 @@ STDOUT># number_density 0.11786695710761 [atoms/Aa^3]
 STDOUT># weight 611.76594571378 [g/mol of entire unit cell]
 STDOUT># average_mass 20.392198190459 [average atomic g/mol]
 STDOUT>#
-STDOUT># sigma_coh 94.108767148701 [barn/unitcell]
-STDOUT># sigma_inc 0.1128 [barn/unitcell]
-STDOUT># sigma_abs 2.77542 [barn/unitcell]
+STDOUT># sigma_coh 3.1369589049567 [barn/atom]
+STDOUT># sigma_inc 0.00376 [barn/atom]
+STDOUT># sigma_abs 0.092514 [barn/atom]
 STDOUT>#
 STDOUT># formula Al2O3
 STDOUT># nformula_per_unitcell 6
@@ -2869,6 +2883,8 @@ STDOUT># ncrystal_cfgstr "stdlib::Al2O3_sg167_Corundum.ncmat;dcutoff=1.5"
 STDOUT>#
 STDOUT># Format: "lau" (suitable for McStas Single_crystal component)
 STDOUT>#
+STDOUT># ncmat2hklversion 2
+STDOUT>#
 STDOUT># orighdr : Original file had the following comments at the top:
 STDOUT># orighdr :
 STDOUT># orighdr : #
@@ -2920,9 +2936,9 @@ STDOUT># number_density 0.11786695710761 [atoms/Aa^3]
 STDOUT># weight 611.76594571378 [g/mol of entire unit cell]
 STDOUT># average_mass 20.392198190459 [average atomic g/mol]
 STDOUT>#
-STDOUT># sigma_coh 94.108767148701 [barn/unitcell]
-STDOUT># sigma_inc 0.1128 [barn/unitcell]
-STDOUT># sigma_abs 2.77542 [barn/unitcell]
+STDOUT># sigma_coh 3.1369589049567 [barn/atom]
+STDOUT># sigma_inc 0.00376 [barn/atom]
+STDOUT># sigma_abs 0.092514 [barn/atom]
 STDOUT>#
 STDOUT># formula Al2O3
 STDOUT># nformula_per_unitcell 6
@@ -2961,9 +2977,7 @@ STDOUT>    2  -1   3  1      2.084603568      74.93728065
 STDOUT>   -2   1  -3  1      2.084603568      74.93728065
 STDOUT>    2  -1  -3  1      2.084603568      74.93728065
 STDOUT>   -2   1   3  1      2.084603568      74.93728065
-STDOUT>    1   1   3  1      2.084603568      74.93728065
-STDOUT>   -1  -1  -3  1      2.084603568      74.93728065
-STDOUT>   <<<SNIPPED 56 LINES, MD5=7e53b8d924349334b7278b4ef1ec0238>>>
+STDOUT>   <<<SNIPPED 58 LINES, MD5=56fac9814134b38b01005f2ebcd5560c>>>
 STDOUT>    1  -1   8  1      1.510413467      7.252143724
 STDOUT>   -1   1  -8  1      1.510413467      7.252143724
 STDOUT>    0   1   8  1      1.510413467      7.252143724
@@ -3065,6 +3079,8 @@ res># ncrystal_cfgstr "stdlib::ZnO_sg186_ZincOxide.ncmat;dcutoff=0.5"
 res>#
 res># Format: "laz" (suitable for McStas PowderN component)
 res>#
+res># ncmat2hklversion 2
+res>#
 res># orighdr : Original file had the following comments at the top:
 res># orighdr :
 res># orighdr : #
@@ -3116,9 +3132,9 @@ res># number_density 0.083804730640494 [atoms/Aa^3]
 res># weight 162.7913317702 [g/mol of entire unit cell]
 res># average_mass 40.69783294255 [average atomic g/mol]
 res>#
-res># sigma_coh 16.571828111409 [barn/unitcell]
-res># sigma_inc 0.1556 [barn/unitcell]
-res># sigma_abs 2.22038 [barn/unitcell]
+res># sigma_coh 4.1429570278523 [barn/atom]
+res># sigma_inc 0.0389 [barn/atom]
+res># sigma_abs 0.555095 [barn/atom]
 res>#
 res># formula OZn
 res># nformula_per_unitcell 2
@@ -3157,9 +3173,7 @@ res>    3  -1   3 24     0.9076872689      2.174671808
 res>    3   0   2 12     0.8834330523      1.921087546
 res>    0   0   6  2     0.8678833333      1.286971722
 res>    2   0   5 12     0.8374513526      2.333944484
-res>    1   0   6 12     0.8294236555     0.3093157776
-res>    3  -1   4 24      0.824254826   0.006779709127
-res>    <<<SNIPPED 63 LINES, MD5=8500b2b8f5cfe4f83e0055e8413de37c>>>
+res>    <<<SNIPPED 65 LINES, MD5=f6ab198f9114e22497276f8df6a2f13e>>>
 res>    6  -1   1 24     0.5036547552     0.1525494695
 res>    5  -1   6 24     0.5016870519     0.5632489927
 res>    6  -3   4 12     0.5005364104    0.01388335562
@@ -3268,6 +3282,8 @@ res># ncrystal_cfgstr "stdlib::ZnO_sg186_ZincOxide.ncmat;dcutoff=0.5"
 res>#
 res># Format: "lau" (suitable for McStas Single_crystal component)
 res>#
+res># ncmat2hklversion 2
+res>#
 res># orighdr : Original file had the following comments at the top:
 res># orighdr :
 res># orighdr : #
@@ -3319,9 +3335,9 @@ res># number_density 0.083804730640494 [atoms/Aa^3]
 res># weight 162.7913317702 [g/mol of entire unit cell]
 res># average_mass 40.69783294255 [average atomic g/mol]
 res>#
-res># sigma_coh 16.571828111409 [barn/unitcell]
-res># sigma_inc 0.1556 [barn/unitcell]
-res># sigma_abs 2.22038 [barn/unitcell]
+res># sigma_coh 4.1429570278523 [barn/atom]
+res># sigma_inc 0.0389 [barn/atom]
+res># sigma_abs 0.555095 [barn/atom]
 res>#
 res># formula OZn
 res># nformula_per_unitcell 2
@@ -3360,9 +3376,7 @@ res>    1   0   2  1      1.912177635     0.6584121022
 res>   -1   0  -2  1      1.912177635     0.6584121022
 res>    1   0  -2  1      1.912177635     0.6584121022
 res>   -1   0   2  1      1.912177635     0.6584121022
-res>    1  -1   2  1      1.912177635     0.6584121022
-res>   -1   1  -2  1      1.912177635     0.6584121022
-res>   <<<SNIPPED 1348 LINES, MD5=20e137c3210457eb7717fc16060c0248>>>
+res>   <<<SNIPPED 1350 LINES, MD5=5aefb1d4080add3febb44eed7028c3d6>>>
 res>    1  -4   8  1     0.5001293869     0.3655831947
 res>   -1   4  -8  1     0.5001293869     0.3655831947
 res>    1  -4  -8  1     0.5001293869     0.3655831947
@@ -3472,6 +3486,8 @@ OUTFILE># ncrystal_cfgstr "stdlib::C_sg194_pyrolytic_graphite.ncmat;lcaxis=0,0,1
 OUTFILE>#
 OUTFILE># Format: "laz" (suitable for McStas PowderN component)
 OUTFILE>#
+OUTFILE># ncmat2hklversion 2
+OUTFILE>#
 OUTFILE># orighdr : Original file had the following comments at the top:
 OUTFILE># orighdr :
 OUTFILE># orighdr : (note the ncrystalmatcfg statement is disabled in this
@@ -3527,9 +3543,9 @@ OUTFILE># number_density 0.1133602288091 [atoms/Aa^3]
 OUTFILE># weight 48.044147612749 [g/mol of entire unit cell]
 OUTFILE># average_mass 12.011036903187 [average atomic g/mol]
 OUTFILE>#
-OUTFILE># sigma_coh 22.20191978555 [barn/unitcell]
-OUTFILE># sigma_inc 0.004 [barn/unitcell]
-OUTFILE># sigma_abs 0.014 [barn/unitcell]
+OUTFILE># sigma_coh 5.5504799463874 [barn/atom]
+OUTFILE># sigma_inc 0.001 [barn/atom]
+OUTFILE># sigma_abs 0.0035 [barn/atom]
 OUTFILE>#
 OUTFILE># formula C
 OUTFILE># nformula_per_unitcell 4
@@ -3564,9 +3580,7 @@ OUTFILE>    2   0   3 12     0.9630158454      1.032305946
 OUTFILE>    2   0   4 12     0.9003129067     0.3319382932
 OUTFILE>    1   0   7 12     0.8745073809     0.9789233814
 OUTFILE>    0   0   8  2         0.838875      5.085568037
-OUTFILE>    2   0   5 12     0.8352079056     0.9507867739
-OUTFILE>    2  -1   6 12     0.8281246412      5.042027652
-OUTFILE>   <<<SNIPPED 2205 LINES, MD5=d8aaa52f73d3b5774caa9223b182a204>>>
+OUTFILE>   <<<SNIPPED 2207 LINES, MD5=9973a0c2ac34dc5fba1faab596020219>>>
 OUTFILE>   12  -3  38 24     0.1315825535  1.099374128e-05
 OUTFILE>   13  -2  34 24     0.1313624492  1.051152442e-05
 OUTFILE>   14  -7  34 12     0.1313624492  1.051152442e-05
@@ -3676,6 +3690,8 @@ OUTFILE># ncrystal_cfgstr "stdlib::C_sg194_pyrolytic_graphite.ncmat;lcaxis=0,0,1
 OUTFILE>#
 OUTFILE># Format: "lau" (suitable for McStas Single_crystal component)
 OUTFILE>#
+OUTFILE># ncmat2hklversion 2
+OUTFILE>#
 OUTFILE># orighdr : Original file had the following comments at the top:
 OUTFILE># orighdr :
 OUTFILE># orighdr : (note the ncrystalmatcfg statement is disabled in this
@@ -3731,9 +3747,9 @@ OUTFILE># number_density 0.1133602288091 [atoms/Aa^3]
 OUTFILE># weight 48.044147612749 [g/mol of entire unit cell]
 OUTFILE># average_mass 12.011036903187 [average atomic g/mol]
 OUTFILE>#
-OUTFILE># sigma_coh 22.20191978555 [barn/unitcell]
-OUTFILE># sigma_inc 0.004 [barn/unitcell]
-OUTFILE># sigma_abs 0.014 [barn/unitcell]
+OUTFILE># sigma_coh 5.5504799463874 [barn/atom]
+OUTFILE># sigma_inc 0.001 [barn/atom]
+OUTFILE># sigma_abs 0.0035 [barn/atom]
 OUTFILE>#
 OUTFILE># formula C
 OUTFILE># nformula_per_unitcell 4
@@ -3768,9 +3784,7 @@ OUTFILE>    0   1   1  1      2.033560847      1.252923608
 OUTFILE>    0  -1  -1  1      2.033560847      1.252923608
 OUTFILE>    0   1  -1  1      2.033560847      1.252923608
 OUTFILE>    0  -1   1  1      2.033560847      1.252923608
-OUTFILE>    1   0   2  1      1.800625813     0.4112489902
-OUTFILE>   -1   0  -2  1      1.800625813     0.4112489902
-OUTFILE>   <<<SNIPPED 44316 LINES, MD5=9f8dc190855ed10d9b64fd454c181385>>>
+OUTFILE>    <<<SNIPPED 44318 LINES, MD5=b57f5afc39f0577659784ac110fe930d>>>
 OUTFILE>    2  -4  50  1     0.1311430314  1.004960407e-05
 OUTFILE>   -2   4 -50  1     0.1311430314  1.004960407e-05
 OUTFILE>    2  -4 -50  1     0.1311430314  1.004960407e-05
@@ -3883,6 +3897,8 @@ res># ncrystal_cfgstr "virtual::Al.ncmat;dcutoff=0.8"
 res>#
 res># Format: "laz" (suitable for McStas PowderN component)
 res>#
+res># ncmat2hklversion 2
+res>#
 res>#
 res># ncrystal_embedded_cfg : NCRYSTALMATCFG[dcutoff=0.8]
 res>#
@@ -3903,9 +3919,9 @@ res># number_density 0.060232382561316 [atoms/Aa^3]
 res># weight 107.926153632 [g/mol of entire unit cell]
 res># average_mass 26.981538408 [average atomic g/mol]
 res>#
-res># sigma_coh 5.9793812338617 [barn/unitcell]
-res># sigma_inc 0.0328 [barn/unitcell]
-res># sigma_abs 0.924 [barn/unitcell]
+res># sigma_coh 1.4948453084654 [barn/atom]
+res># sigma_inc 0.0082 [barn/atom]
+res># sigma_abs 0.231 [barn/atom]
 res>#
 res># formula Al
 res># nformula_per_unitcell 4
@@ -4020,6 +4036,8 @@ res># ncrystal_cfgstr "virtual::Al.ncmat;dcutoff=0.8"
 res>#
 res># Format: "lau" (suitable for McStas Single_crystal component)
 res>#
+res># ncmat2hklversion 2
+res>#
 res>#
 res># ncrystal_embedded_cfg : NCRYSTALMATCFG[dcutoff=0.8]
 res>#
@@ -4040,9 +4058,9 @@ res># number_density 0.060232382561316 [atoms/Aa^3]
 res># weight 107.926153632 [g/mol of entire unit cell]
 res># average_mass 26.981538408 [average atomic g/mol]
 res>#
-res># sigma_coh 5.9793812338617 [barn/unitcell]
-res># sigma_inc 0.0328 [barn/unitcell]
-res># sigma_abs 0.924 [barn/unitcell]
+res># sigma_coh 1.4948453084654 [barn/atom]
+res># sigma_inc 0.0082 [barn/atom]
+res># sigma_abs 0.231 [barn/atom]
 res>#
 res># formula Al
 res># nformula_per_unitcell 4
@@ -4112,9 +4130,7 @@ res>   -2  -2  -2  1      1.169013052      1.430257452
 res>    2   2  -2  1      1.169013052      1.430257452
 res>   -2  -2   2  1      1.169013052      1.430257452
 res>    2  -2   2  1      1.169013052      1.430257452
-res>   -2   2  -2  1      1.169013052      1.430257452
-res>    2  -2  -2  1      1.169013052      1.430257452
-res>    <<<SNIPPED 75 LINES, MD5=d7661f89da21c4f657a62c64ca4d90c3>>>
+res>    <<<SNIPPED 77 LINES, MD5=c0d31e418bdfcd291a0810c10635eb7f>>>
 res>    2  -4   2  1      0.826617056      1.074786165
 res>   -2   4  -2  1      0.826617056      1.074786165
 res>    2  -4  -2  1      0.826617056      1.074786165
@@ -4209,6 +4225,8 @@ OUTFILE># ncrystal_cfgstr "stdlib::Al_sg225.ncmat;dcutoff=0.6"
 OUTFILE>#
 OUTFILE># Format: "lau" (suitable for McStas Single_crystal component)
 OUTFILE>#
+OUTFILE># ncmat2hklversion 2
+OUTFILE>#
 OUTFILE># orighdr : Original file had the following comments at the top:
 OUTFILE># orighdr :
 OUTFILE># orighdr : #
@@ -4231,9 +4249,7 @@ OUTFILE># orighdr : #   https://www.crystallography.net/cod/9011602.html
 OUTFILE># orighdr : #   https://www.crystallography.net/cod/9012002.html
 OUTFILE># orighdr : #
 OUTFILE># orighdr : # The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
-OUTFILE># orighdr : # software from Figure 1 of:
-OUTFILE># orighdr : #
-OUTFILE><<<SNIPPED 352 LINES, MD5=3da385d0d8288ac61ba2a5c43d6fe6f0>>>
+OUTFILE><<<SNIPPED 354 LINES, MD5=09994e1931aada20bf1982519c90a7ec>>>
 OUTFILE>    6  -2   2  1     0.6104971554     0.6735642717
 OUTFILE>   -6   2  -2  1     0.6104971554     0.6735642717
 OUTFILE>    6  -2  -2  1     0.6104971554     0.6735642717

@@ -92,6 +92,8 @@ Wrote tmp_redirected_output.txt
 #
 # Format: "laz" (suitable for McStas PowderN component)
 #
+# ncmat2hklversion 2
+#
 # orighdr : Original file had the following comments at the top:
 # orighdr :
 # orighdr : #
@@ -141,9 +143,9 @@ Wrote tmp_redirected_output.txt
 # weight 107.926153632 [g/mol of entire unit cell]
 # average_mass 26.981538408 [average atomic g/mol]
 #
-# sigma_coh 5.9793812338617 [barn/unitcell]
-# sigma_inc 0.0328 [barn/unitcell]
-# sigma_abs 0.924 [barn/unitcell]
+# sigma_coh 1.4948453084654 [barn/atom]
+# sigma_inc 0.0082 [barn/atom]
+# sigma_abs 0.231 [barn/atom]
 #
 # formula Al
 # nformula_per_unitcell 4
@@ -394,6 +396,8 @@ Wrote tmp_redirected_output.txt
 #
 # Format: "laz" (suitable for McStas PowderN component)
 #
+# ncmat2hklversion 2
+#
 # orighdr : Original file had the following comments at the top:
 # orighdr :
 # orighdr : (note the ncrystalmatcfg statement is disabled in this
@@ -448,9 +452,9 @@ Wrote tmp_redirected_output.txt
 # weight 696.96867100438 [g/mol of entire unit cell]
 # average_mass 23.232289033479 [average atomic g/mol]
 #
-# sigma_coh 114.47070121272 [barn/unitcell]
-# sigma_inc 0.3384 [barn/unitcell]
-# sigma_abs 3.60942 [barn/unitcell]
+# sigma_coh 3.815690040424 [barn/atom]
+# sigma_inc 0.01128 [barn/atom]
+# sigma_abs 0.120314 [barn/atom]
 #
 # formula CaO3Si
 # nformula_per_unitcell 6
@@ -793,6 +797,8 @@ Wrote tmp_redirected_output.txt
 #
 # Format: "laz" (suitable for McStas PowderN component)
 #
+# ncmat2hklversion 2
+#
 # orighdr : Original file had the following comments at the top:
 # orighdr :
 # orighdr : (note the ncrystalmatcfg statement is disabled in this
@@ -850,9 +856,9 @@ Wrote tmp_redirected_output.txt
 # weight 2287.1497159104 [g/mol of entire unit cell]
 # average_mass 35.736714311099 [average atomic g/mol]
 #
-# sigma_coh 307.33731029238 [barn/unitcell]
-# sigma_inc 2.464 [barn/unitcell]
-# sigma_abs 21.8556 [barn/unitcell]
+# sigma_coh 4.8021454733184 [barn/atom]
+# sigma_inc 0.0385 [barn/atom]
+# sigma_abs 0.34149375 [barn/atom]
 #
 # formula O5SiY2
 # nformula_per_unitcell 8
@@ -1261,6 +1267,8 @@ Wrote tmp_redirected_output.txt
 #
 # Format: "lau" (suitable for McStas Single_crystal component)
 #
+# ncmat2hklversion 2
+#
 # orighdr : Original file had the following comments at the top:
 # orighdr :
 # orighdr : (note the ncrystalmatcfg statement is disabled in this
@@ -1318,9 +1326,9 @@ Wrote tmp_redirected_output.txt
 # weight 2287.1497159104 [g/mol of entire unit cell]
 # average_mass 35.736714311099 [average atomic g/mol]
 #
-# sigma_coh 307.33731029238 [barn/unitcell]
-# sigma_inc 2.464 [barn/unitcell]
-# sigma_abs 21.8556 [barn/unitcell]
+# sigma_coh 4.8021454733184 [barn/atom]
+# sigma_inc 0.0385 [barn/atom]
+# sigma_abs 0.34149375 [barn/atom]
 #
 # formula O5SiY2
 # nformula_per_unitcell 8
@@ -1353,9 +1361,7 @@ Wrote tmp_redirected_output.txt
    -1  -1  -1  1       4.46602879      1.266559772
     1  -1   1  1       4.46602879      1.266559772
    -1   1  -1  1       4.46602879      1.266559772
-    1   1  -2  1      4.126364622    0.03070210579
-   -1  -1   2  1      4.126364622    0.03070210579
-   <<<SNIPPED 144 LINES, MD5=2438b6e6e8c636987f0de85bc4e393c0>>>
+   <<<SNIPPED 146 LINES, MD5=14d9a0a526ed1713665be6f62e6bf259>>>
     1   3   1  1      2.125445086     0.5266760173
    -1  -3  -1  1      2.125445086     0.5266760173
     1  -3   1  1      2.125445086     0.5266760173
@@ -1739,6 +1745,8 @@ Wrote tmp_redirected_output.txt
 #
 # Format: "laz" (suitable for McStas PowderN component)
 #
+# ncmat2hklversion 2
+#
 # orighdr : Original file had the following comments at the top:
 # orighdr :
 # orighdr : (note the ncrystalmatcfg statement is disabled in this
@@ -1798,9 +1806,9 @@ Wrote tmp_redirected_output.txt
 # weight 562.77132241878 [g/mol of entire unit cell]
 # average_mass 20.098975800671 [average atomic g/mol]
 #
-# sigma_coh 105.40446321616 [barn/unitcell]
-# sigma_inc 0.6688 [barn/unitcell]
-# sigma_abs 1.19104 [barn/unitcell]
+# sigma_coh 3.7644451148629 [barn/atom]
+# sigma_inc 0.023885714285714 [barn/atom]
+# sigma_abs 0.042537142857143 [barn/atom]
 #
 # formula Mg2O4Si
 # nformula_per_unitcell 4
@@ -2161,6 +2169,8 @@ Wrote tmp_redirected_output.txt
 #
 # Format: "laz" (suitable for McStas PowderN component)
 #
+# ncmat2hklversion 2
+#
 # orighdr : Original file had the following comments at the top:
 # orighdr :
 # orighdr : #
@@ -2217,9 +2227,9 @@ Wrote tmp_redirected_output.txt
 # weight 446.4324244042 [g/mol of entire unit cell]
 # average_mass 111.60810610105 [average atomic g/mol]
 #
-# sigma_coh 30.694323814871 [barn/unitcell]
-# sigma_inc 0.0076 [barn/unitcell]
-# sigma_abs 0.34238 [barn/unitcell]
+# sigma_coh 7.6735809537177 [barn/atom]
+# sigma_inc 0.0019 [barn/atom]
+# sigma_abs 0.085595 [barn/atom]
 #
 # formula OPb
 # nformula_per_unitcell 2
@@ -2544,6 +2554,8 @@ Wrote tmp_redirected_output.txt
 #
 # Format: "laz" (suitable for McStas PowderN component)
 #
+# ncmat2hklversion 2
+#
 # orighdr : Original file had the following comments at the top:
 # orighdr :
 # orighdr : #
@@ -2597,9 +2609,9 @@ Wrote tmp_redirected_output.txt
 # weight 505.88401595091 [g/mol of entire unit cell]
 # average_mass 16.862800531697 [average atomic g/mol]
 #
-# sigma_coh 131.25652118727 [barn/unitcell]
-# sigma_inc 0.5004 [barn/unitcell]
-# sigma_abs 0.40242 [barn/unitcell]
+# sigma_coh 4.375217372909 [barn/atom]
+# sigma_inc 0.01668 [barn/atom]
+# sigma_abs 0.013414 [barn/atom]
 #
 # formula CMgO3
 # nformula_per_unitcell 6
@@ -2902,6 +2914,8 @@ Wrote tmp_redirected_output.txt
 #
 # Format: "lau" (suitable for McStas Single_crystal component)
 #
+# ncmat2hklversion 2
+#
 # orighdr : Original file had the following comments at the top:
 # orighdr :
 # orighdr : #
@@ -2955,9 +2969,9 @@ Wrote tmp_redirected_output.txt
 # weight 505.88401595091 [g/mol of entire unit cell]
 # average_mass 16.862800531697 [average atomic g/mol]
 #
-# sigma_coh 131.25652118727 [barn/unitcell]
-# sigma_inc 0.5004 [barn/unitcell]
-# sigma_abs 0.40242 [barn/unitcell]
+# sigma_coh 4.375217372909 [barn/atom]
+# sigma_inc 0.01668 [barn/atom]
+# sigma_abs 0.013414 [barn/atom]
 #
 # formula CMgO3
 # nformula_per_unitcell 6
@@ -2994,9 +3008,7 @@ Wrote tmp_redirected_output.txt
    -1   2   0  1            2.316      7.327750476
     2  -1   3  1      2.101552894      60.43677614
    -2   1  -3  1      2.101552894      60.43677614
-    2  -1  -3  1      2.101552894      60.43677614
-   -2   1   3  1      2.101552894      60.43677614
-   <<<SNIPPED 240 LINES, MD5=b9e69c9b197a6a0cd3f53d21af69fd2d>>>
+   <<<SNIPPED 242 LINES, MD5=bcbe9322b6c85ffb31b75175ca5364ea>>>
     4  -2  -6  1      1.050776447       7.07765402
    -4   2   6  1      1.050776447       7.07765402
     2   2   6  1      1.050776447       7.07765402
@@ -3262,6 +3274,8 @@ Wrote tmp_redirected_output.txt
 #
 # Format: "laz" (suitable for McStas PowderN component)
 #
+# ncmat2hklversion 2
+#
 # orighdr : Original file had the following comments at the top:
 # orighdr :
 # orighdr : #
@@ -3313,9 +3327,9 @@ Wrote tmp_redirected_output.txt
 # weight 611.76594571378 [g/mol of entire unit cell]
 # average_mass 20.392198190459 [average atomic g/mol]
 #
-# sigma_coh 94.108767148701 [barn/unitcell]
-# sigma_inc 0.1128 [barn/unitcell]
-# sigma_abs 2.77542 [barn/unitcell]
+# sigma_coh 3.1369589049567 [barn/atom]
+# sigma_inc 0.00376 [barn/atom]
+# sigma_abs 0.092514 [barn/atom]
 #
 # formula Al2O3
 # nformula_per_unitcell 6
@@ -3595,6 +3609,8 @@ Wrote tmp_redirected_output.txt
 #
 # Format: "laz" (suitable for McStas PowderN component)
 #
+# ncmat2hklversion 2
+#
 # orighdr : Original file had the following comments at the top:
 # orighdr :
 # orighdr : #
@@ -3646,9 +3662,9 @@ Wrote tmp_redirected_output.txt
 # weight 162.7913317702 [g/mol of entire unit cell]
 # average_mass 40.69783294255 [average atomic g/mol]
 #
-# sigma_coh 16.571828111409 [barn/unitcell]
-# sigma_inc 0.1556 [barn/unitcell]
-# sigma_abs 2.22038 [barn/unitcell]
+# sigma_coh 4.1429570278523 [barn/atom]
+# sigma_inc 0.0389 [barn/atom]
+# sigma_abs 0.555095 [barn/atom]
 #
 # formula OZn
 # nformula_per_unitcell 2

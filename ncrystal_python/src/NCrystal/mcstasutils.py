@@ -222,7 +222,8 @@ def cfgstr_2_hkl(*, cfgstr, tgtformat, verbose=True, fp_format = '%.14g' ):
         assert tgtformat=='lau'
         yield '# Format: "lau" (suitable for McStas Single_crystal component)'
     yield '#'
-
+    yield '# ncmat2hklversion 2'
+    yield '#'
     if orig_header:
         had_embedded_cfg = any( 'NCRYSTALMATCFG[' in e for e in orig_header)
         guard=' orighdr :'#something that hopefully will cause McStas code to
@@ -267,10 +268,14 @@ def cfgstr_2_hkl(*, cfgstr, tgtformat, verbose=True, fp_format = '%.14g' ):
     sigma_coh = sum(ai.atomData.coherentXS() * ai.count for ai in info.atominfos)
     sigma_inc = sum(ai.atomData.incoherentXS() * ai.count for ai in info.atominfos)
     sigma_abs = sum(ai.atomData.captureXS() * ai.count for ai in info.atominfos)
+    sigma_coh /= n_atoms
+    sigma_inc /= n_atoms
+    sigma_abs /= n_atoms
+
     yield '#'
-    yield f'# sigma_coh {fmtfp_header(sigma_coh)} [barn/unitcell]'
-    yield f'# sigma_inc {fmtfp_header(sigma_inc)} [barn/unitcell]'
-    yield f'# sigma_abs {fmtfp_header(sigma_abs)} [barn/unitcell]'
+    yield f'# sigma_coh {fmtfp_header(sigma_coh)} [barn/atom]'
+    yield f'# sigma_inc {fmtfp_header(sigma_inc)} [barn/atom]'
+    yield f'# sigma_abs {fmtfp_header(sigma_abs)} [barn/atom]'
     yield '#'
 
     has_debye_temp = True
