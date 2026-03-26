@@ -1,6 +1,7 @@
 Run two MiniMC scenarios
 Basic serialisation/deserialisation check
 Loading reference files
+Testing equality
 Test plotting code
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(alpha=0.3,color='blue',label='ref',step='post',x=array([  0.,   5.,  10.,  15.,  20.,  25.,  30.,  35.,  40.,  45.,  50.,
@@ -393,3 +394,266 @@ The available geometries are:
               r (default "0.01") : cylinder radius radius [m].
               dy (default "0") : Half-length of cylinder (0 means infinitely
                                  long) [m].
+==> Decoding src "circular;r=0.3;uy=2;uz=0;x=17;ekin=0.025+-0.001":
+{'cfgstr': 'circular;n=1e6;x=17;ekin=0.025+-0.001;ux=0;uy=1;uz=0;r=0.3',
+ 'decoded': {'name': 'circular',
+             'n': 1000000,
+             'x': 17.0,
+             'y': 0.0,
+             'z': 0.0,
+             'w': 1.0,
+             'wl': None,
+             'ekin': {'mode': 'lognormal', 'mean': 0.025, 'rms': 0.001},
+             'ux': 0.0,
+             'uy': 1.0,
+             'uz': 0.0,
+             'r': 0.3},
+ 'metadata': {'fixed_dir': [0.0, 1.0, 0.0],
+              'fixed_energy': None,
+              'mean_dir': [0.0, 1.0, 0.0],
+              'mean_energy': 0.025,
+              'energy_description': '(0.025+-0.001)eV'}}
+==> Decoding geom "box;dx=1;dy=1e-3;dz=0.0123":
+{'cfgstr': 'box;dx=1;dy=0.001;dz=0.0123',
+ 'decoded': {'name': 'box',
+             'dx': 1.0,
+             'dy': 0.001,
+             'dz': 0.0123,
+             'short_description': 'box with depth 24.6mm, width 2m, and height '
+                                  '2mm'}}
+==> Decoding engine "tallybins=+;tally=q,de":
+{'name': 'std',
+ 'cfgstr': 'tally=de,q;tallybins=+',
+ 'decoded': {'seed': 0,
+             'roulette': {'psurvival': 0.1,
+                          'weight_threshold': 0.01,
+                          'nscat_threshold': 2},
+             'ignoremiss': False,
+             'absorption': True,
+             'tallyref': 'truth',
+             'nscatlimit': None,
+             'tally': ['de', 'q'],
+             'tallybreakdown': True,
+             'tallybins': {'overrides': {'de': None,
+                                         'e': None,
+                                         'l': None,
+                                         'mu': None,
+                                         'nscat': None,
+                                         'nscat_uw': None,
+                                         'q': None,
+                                         'theta': None,
+                                         'w': None},
+                           'autobin_flags': ['+']},
+             'nthreads': 'auto'}}
+==> Decoding engine "0.025":
+Caught expected NCBadInput('cfgstr parameter must be a string')
+==> Decoding 0.025 "foo":
+Caught expected NCBadInput('cfgtype parameter must be "src", "geom", or "engine"')
+==> Decoding bar "foo":
+Caught expected NCBadInput('cfgtype parameter must be "src", "geom", or "engine"')
+Caught expected NCBadInput('Data seems to be in an unsupported format')
+Caught expected NCBadInput('Data seems to be in an unsupported format')
+Caught expected NCBadInput('Unsupported data format')
+Caught expected NCBadInput('Tally not available in MiniMC dataset: "e" (available tallies are "de", "mu", "q")')
+Caught expected NCBadInput('Tally not available in MiniMC dataset: "e" (no tallies were enabled!).')
+resA long title:
+'"constant;n=1e4;z=-0.009999999;wl=1.8" on "sphere;r=0.1" (69557 fills) ("nthreads=1;tallybins=theta:36:0:180")'
+resB long title:
+'"circular;n=1e4;z=-0.04338835;wl=2;r=0.04338835" on "sphere;r=0.04338835" (31554 fills) ("nthreads=2;tallybins=theta:36:0:180")'
+resV3 long title:
+'"circular;n=1;z=-0.005;ekin=1;r=0.005" on "sphere;r=0.005" (1 fills) ("nthreads=1;tally=de,mu,q")'
+resV0 long title:
+'"circular;n=1;z=-0.005;ekin=1;r=0.005" on "sphere;r=0.005" (1 fills) ("nthreads=1;tally=")'
+Caught expected NCCalcError('Incompatible MMCResults (incompatible input values for "material/cfgstr")')
+Caught expected TypeError('Do not create MMCTallyView objects directly')
+some tally units and short descriptions:
+'de' 'eV' 'energy loss'
+'mu' '' 'cosine scattering angle'
+'q' '1/Aa' 'scattering vector'
+resV3 mu tally dump method:
+Hist1D(nbins=200,xmin=-1,xmax=1):
+  title     : mu
+  integral  : 1
+  mean      : 1
+  rms       : 0
+  minfilled : 1
+  maxfilled : 1
+  underflow : 0 +- 0
+  overflow  : 0 +- 0
+Caught expected NCBadInput('Invalid rebin factor 17 is not a divisor of nbins=100.')
+Caught expected NCBadInput('Can not set both max_nbins and rebin_factor.')
+Caught expected NCBadInput('Missing required parameter: cfgstr.')
+Caught expected NCBadInput('The cfgstr parameter must be a string.')
+Caught expected NCBadInput('The scenario parameter must be a string.')
+Caught expected NCBadInput('Invalid enginecfg tallybins entry "e:5:0.0".')
+Caught expected NCBadInput('The srccfg parameter must be a string.')
+Caught expected NCBadInput('The geomcfg parameter must be a string.')
+Caught expected NCBadInput('The callback_options parameter must be a string.')
+Caught expected NCBadInput('Inconsistent parameters. Do not supply callback_options without a callback function.')
+Caught expected NCBadInput('Missing required parameters for geometry and source. Please supply either a scenario string, or both of geomcfg + srccfg strings.')
+Caught expected NCBadInput('Inconsistent parameters. Do not supply geomcfg or srccfg when also supplying a scenario string.')
+{'datatype': 'NCrystalMiniMCResults_v1',
+ 'input': {'material': {'cfgstr': 'void.ncmat',
+                        'decoded': {'format': 'NCrystal-MatCfg-v1',
+                                    'ismultiphase': False,
+                                    'data_name': 'void.ncmat',
+                                    'textdata_uid': '16',
+                                    'textdata_type': 'ncmat',
+                                    'pars': [],
+                                    'phasechoices': [],
+                                    'density': {'type': 'scalefactor',
+                                                'value': 1.0}}},
+           'geom': {'cfgstr': 'sphere;r=0.005',
+                    'decoded': {'name': 'sphere',
+                                'r': 0.005,
+                                'short_description': 'sphere with radius 5mm'}},
+           'src': {'cfgstr': 'circular;n=1;z=-0.005;ekin=0.01;r=0.005',
+                   'decoded': {'name': 'circular',
+                               'n': 1,
+                               'x': 0.0,
+                               'y': 0.0,
+                               'z': -0.005,
+                               'w': 1.0,
+                               'wl': None,
+                               'ekin': {'mode': 'fixed', 'value': 0.01},
+                               'ux': 0.0,
+                               'uy': 0.0,
+                               'uz': 1.0,
+                               'r': 0.005},
+                   'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
+                                'fixed_energy': 0.01,
+                                'mean_dir': [0.0, 0.0, 1.0],
+                                'mean_energy': 0.01,
+                                'energy_description': '0.01eV'}},
+           'engine': {'name': 'std',
+                      'cfgstr': 'nthreads=1;tally=e;tallybreakdown=0;tallybins=e:5:0:2',
+                      'decoded': {'seed': 0,
+                                  'roulette': {'psurvival': 0.1,
+                                               'weight_threshold': 0.01,
+                                               'nscat_threshold': 2},
+                                  'ignoremiss': False,
+                                  'absorption': True,
+                                  'tallyref': 'truth',
+                                  'nscatlimit': None,
+                                  'tally': ['e'],
+                                  'tallybreakdown': False,
+                                  'tallybins': {'overrides': {'de': None,
+                                                              'e': [5,
+                                                                    0.0,
+                                                                    2.0],
+                                                              'l': None,
+                                                              'mu': None,
+                                                              'nscat': None,
+                                                              'nscat_uw': None,
+                                                              'q': None,
+                                                              'theta': None,
+                                                              'w': None},
+                                                'autobin_flags': []},
+                                  'nthreads': 1}}},
+ 'output': {'tally': {'e': {'datatype': 'NCrystalMiniMCTallyHistBreakdown_v1',
+                            'tallyname': 'e',
+                            'total': '{"datatype": "NCrystalHist1D_v1", '
+                                     '"stats": {"integral": 1.0, "rms": 0.0, '
+                                     '"mean": 0.01, "minfilled": 0.01, '
+                                     '"maxfilled": 0.01}, "title": "e", '
+                                     '"bindata": {"xmin": 0.0, "xmax": 2.0, '
+                                     '"nbins": 5, "content": [1.0, 0.0, 0.0, '
+                                     '0.0, 0.0], "errorsq": [1.0, 0.0, 0.0, '
+                                     '0.0, 0.0], "underflow_errorsq": 0.0, '
+                                     '"overflow_errorsq": 0.0, "underflow": '
+                                     '0.0, "overflow": 0.0}}',
+                            'breakdown': {}}},
+            'metadata': {'provided': {'count': 1, 'weight': 1.0},
+                         'miss': {'count': 0, 'weight': 0.0},
+                         'tallied': {'count': 1, 'weight': 1.0}}}}
+{'datatype': 'NCrystalMiniMCResults_v1',
+ 'input': {'material': {'cfgstr': 'void.ncmat',
+                        'decoded': {'format': 'NCrystal-MatCfg-v1',
+                                    'ismultiphase': False,
+                                    'data_name': 'void.ncmat',
+                                    'textdata_uid': '16',
+                                    'textdata_type': 'ncmat',
+                                    'pars': [],
+                                    'phasechoices': [],
+                                    'density': {'type': 'scalefactor',
+                                                'value': 1.0}}},
+           'geom': {'cfgstr': 'sphere;r=0.005',
+                    'decoded': {'name': 'sphere',
+                                'r': 0.005,
+                                'short_description': 'sphere with radius 5mm'}},
+           'src': {'cfgstr': 'circular;n=1;z=-0.005;ekin=0.01;r=0.005',
+                   'decoded': {'name': 'circular',
+                               'n': 1,
+                               'x': 0.0,
+                               'y': 0.0,
+                               'z': -0.005,
+                               'w': 1.0,
+                               'wl': None,
+                               'ekin': {'mode': 'fixed', 'value': 0.01},
+                               'ux': 0.0,
+                               'uy': 0.0,
+                               'uz': 1.0,
+                               'r': 0.005},
+                   'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
+                                'fixed_energy': 0.01,
+                                'mean_dir': [0.0, 0.0, 1.0],
+                                'mean_energy': 0.01,
+                                'energy_description': '0.01eV'}},
+           'engine': {'name': 'std',
+                      'cfgstr': 'nthreads=1;tally=e;tallybreakdown=0;tallybins=e:5:0:2',
+                      'decoded': {'seed': 0,
+                                  'roulette': {'psurvival': 0.1,
+                                               'weight_threshold': 0.01,
+                                               'nscat_threshold': 2},
+                                  'ignoremiss': False,
+                                  'absorption': True,
+                                  'tallyref': 'truth',
+                                  'nscatlimit': None,
+                                  'tally': ['e'],
+                                  'tallybreakdown': False,
+                                  'tallybins': {'overrides': {'de': None,
+                                                              'e': [5,
+                                                                    0.0,
+                                                                    2.0],
+                                                              'l': None,
+                                                              'mu': None,
+                                                              'nscat': None,
+                                                              'nscat_uw': None,
+                                                              'q': None,
+                                                              'theta': None,
+                                                              'w': None},
+                                                'autobin_flags': []},
+                                  'nthreads': 1}}},
+ 'output': {'tally': {'e': {'datatype': 'NCrystalMiniMCTallyHistBreakdown_v1',
+                            'tallyname': 'e',
+                            'total': {'datatype': 'NCrystalHist1D_v1',
+                                      'title': 'e',
+                                      'stats': {'integral': 1.0,
+                                                'rms': 0.0,
+                                                'mean': 0.01,
+                                                'minfilled': 0.01,
+                                                'maxfilled': 0.01},
+                                      'bindata': {'xmin': 0.0,
+                                                  'xmax': 2.0,
+                                                  'nbins': 5,
+                                                  'content': [1.0,
+                                                              0.0,
+                                                              0.0,
+                                                              0.0,
+                                                              0.0],
+                                                  'errorsq': [1.0,
+                                                              0.0,
+                                                              0.0,
+                                                              0.0,
+                                                              0.0],
+                                                  'underflow': 0.0,
+                                                  'overflow': 0.0,
+                                                  'underflow_errorsq': 0.0,
+                                                  'overflow_errorsq': 0.0}},
+                            'breakdown': {}}},
+            'metadata': {'provided': {'count': 1, 'weight': 1.0},
+                         'miss': {'count': 0, 'weight': 0.0},
+                         'tallied': {'count': 1, 'weight': 1.0}}}}
+{"datatype":"NCrystalMiniMCResults_v1","input":{"material":{"cfgstr":"void.ncmat","decoded":{"format":"NCrystal-MatCfg-v1", "ismultiphase":false,"data_name":"void.ncmat","textdata_uid": "16","textdata_type":"ncmat","pars":[],"phasechoices":[],"density":{"type":"scalefactor","value":1.0}}},"geom":{"cfgstr":"sphere;r=0.005","decoded":{"name":"sphere","r":0.005,"short_description":"sphere with radius 5mm"}},"src":{"cfgstr":"circular;n=1;z=-0.005;ekin=0.01;r=0.005","decoded":{"name":"circular","n":1,"x":0.0,"y":0.0,"z":-0.005,"w":1.0,"wl":null,"ekin":{"mode":"fixed","value":0.01},"ux":0.0,"uy":0.0,"uz":1.0,"r":0.005},"metadata":{"fixed_dir":[0.0,0.0,1.0],"fixed_energy":0.01,"mean_dir":[0.0,0.0,1.0],"mean_energy":0.01,"energy_description":"0.01eV"}},"engine":{"name":"std","cfgstr":"nthreads=1;tally=e;tallybreakdown=0;tallybins=e:5:0:2","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"tallyref":"truth","nscatlimit":null,"tally":["e"],"tallybreakdown":false,"tallybins":{"overrides":{"de":null,"e":[5,0.0,2.0],"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":1}}},"output":{"tally":{"e":{"datatype":"NCrystalMiniMCTallyHistBreakdown_v1","tallyname":"e","total":{"datatype":"NCrystalHist1D_v1","title":"e","stats":{"integral":1.0,"rms":0.0,"mean":0.01,"minfilled":0.01,"maxfilled":0.01},"bindata":{"xmin":0.0,"xmax":2.0,"nbins":5,"content":[1.0,0.0,0.0,0.0,0.0],"errorsq":[1.0,0.0,0.0,0.0,0.0],"underflow":0.0,"overflow":0.0,"underflow_errorsq":0.0,"overflow_errorsq":0.0}},"breakdown":{} }},"metadata":{"provided":{"count":1,"weight":1.0},"miss":{"count":0,"weight":0.0},"tallied":{"count":1,"weight":1.0}}}}
+Caught expected NCBadInput('Invalid value of unpack (must be "dict", "json", "dict_jsoncompat", or "object"): \'foobar\'')
+Caught expected NCBadInput('Missing geomcfg parameter.')

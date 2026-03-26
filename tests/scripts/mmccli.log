@@ -413,6 +413,40 @@ The available geometries are:
               dy (default "0") : Half-length of cylinder (0 means infinitely
                                  long) [m].
 ===========================================
+============= CLI >>'' -t help<< ====================
+Available tally quantities:
+        de : energy loss (eV)
+         e : energy (eV)
+         l : wavelength (Aa)
+        mu : cosine scattering angle
+     nscat : number of scatterings
+  nscat_uw : unweighted number of scatterings
+         q : scattering vector (1/Aa)
+     theta : scattering angle (degree)
+         w : weight
+Other tally flags (affects all histograms if set):
+  highres
+  lowres
+  nobreakdown
+===========================================
+============= CLI >>-t help<< ====================
+Available tally quantities:
+        de : energy loss (eV)
+         e : energy (eV)
+         l : wavelength (Aa)
+        mu : cosine scattering angle
+     nscat : number of scatterings
+  nscat_uw : unweighted number of scatterings
+         q : scattering vector (1/Aa)
+     theta : scattering angle (degree)
+         w : weight
+Other tally flags (affects all histograms if set):
+  highres
+  lowres
+  nobreakdown
+===========================================
+============= CLI >>solid::GdO3/1gcm3 -i missing.json<< ====================
+Caught expected ArgumentError('Missing file: missing.json')
 ============= CLI >>solid::GdO3/1gcm3 -d<< ====================
 NCrystal MiniMC results:
    inputs cfg:
@@ -420,6 +454,30 @@ NCrystal MiniMC results:
      engine   : ""
      source   : "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578"
      geometry : "sphere;r=0.0102578"
+   output:
+     src ray count: 1e+06 particles (weight sum: 1e+06)
+     src rays missing geometry: 0 particles (weight sum: 0)
+     src rays miss fraction: 0% (by count) 0% (by weight)
+     tallied ray count: <HIDDEN> particles (weight sum: <HIDDEN>)
+     tally "theta":
+       Hist1D(nbins=180,xmin=0,xmax=180):
+         title     : theta
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+
+===========================================
+============= CLI >>solid::GdO3/1e-20gcm3 -d<< ====================
+NCrystal MiniMC results:
+   inputs cfg:
+     material : "solid::GdO3/1e-20gcm3"
+     engine   : ""
+     source   : "circular;n=1e6;z=-1.02578e+18;ekin=0.0252617;r=1.02578e+18"
+     geometry : "sphere;r=1.02578e+18"
    output:
      src ray count: 1e+06 particles (weight sum: 1e+06)
      src rays missing geometry: 0 particles (weight sum: 0)
@@ -568,6 +626,30 @@ NCrystal MiniMC results:
          overflow  : <HIDDEN> +- <HIDDEN>
 
 ===========================================
+============= CLI >>'solid::GdO3/1gcm3;comp=' 2Aa -d<< ====================
+NCrystal MiniMC results:
+   inputs cfg:
+     material : "solid::GdO3/1gcm3;coh_elas=0;incoh_elas=0;inelas=0;sans=0"
+     engine   : ""
+     source   : "circular;n=1e6;z=-0.005;wl=2;r=0.005"
+     geometry : "sphere;r=0.005"
+   output:
+     src ray count: 1e+06 particles (weight sum: 1e+06)
+     src rays missing geometry: 0 particles (weight sum: 0)
+     src rays miss fraction: 0% (by count) 0% (by weight)
+     tallied ray count: <HIDDEN> particles (weight sum: <HIDDEN>)
+     tally "theta":
+       Hist1D(nbins=180,xmin=0,xmax=180):
+         title     : theta
+         integral  : <HIDDEN>
+         mean      : <HIDDEN>
+         rms       : <HIDDEN>
+         minfilled : <HIDDEN>
+         maxfilled : <HIDDEN>
+         underflow : <HIDDEN> +- <HIDDEN>
+         overflow  : <HIDDEN> +- <HIDDEN>
+
+===========================================
 ============= CLI >>solid::GdO3/1gcm3 '2Aa on 2cm' -e ignoremiss=1 -d<< ====================
 NCrystal MiniMC results:
    inputs cfg:
@@ -615,6 +697,14 @@ Wrote: bla.json.gz
 ===========================================
 ============= CLI >>solid::GdO3/1gcm3 -i bla.json.gz --dump<< ====================
 Caught expected ArgumentError('Do not specify CFGSTR when using --input')
+============= CLI >>-i bla.json.gz --doc=engine<< ====================
+Caught expected ArgumentError('Incompatible options: --doc and --input')
+============= CLI >>-i bla.json.gz -e ''<< ====================
+Caught expected ArgumentError('Do not specify --enginecfg when using --input (use --tally instead if you are trying to filter tallies).')
+============= CLI >>-i bla.json.gz -s ''<< ====================
+Caught expected ArgumentError('Do not specify --geomcfg or --srccfg when using --input')
+============= CLI >>-i bla.json.gz -g ''<< ====================
+Caught expected ArgumentError('Do not specify --geomcfg or --srccfg when using --input')
 ============= CLI >>-i bla.json.gz --dump<< ====================
 NCrystal MiniMC results:
    inputs cfg:
@@ -835,4 +925,171 @@ Command to reproduce:
   ncrystal_minimc solid::GdO3/1gcm3 -g "sphere;r=0.0102578" -s "circular;n=1e6;z=-0.0102578;ekin=0.0252617;r=0.0102578" -e "nthreads=97;tally=q"
 ===========================================
 ============= CLI >>solid::GdO3/1gcm3 '1kT on 1mfp' --decode --quiet<< ====================
+===========================================
+============= CLI >>solid::GdO3/1gcm3 '1e3 times' -o bla_qemu.json.gz<< ====================
+Caught expected ArgumentError('Output file aready exists: bla_qemu.json.gz')
+============= CLI >>solid::GdO3/1gcm3 '1e3 times' -o ./bla_dummydir<< ====================
+Caught expected ArgumentError('Output file is a directory: ./bla_dummydir')
+============= CLI >>solid::GdO3/1gcm3 '1e3 times' -o ./bla_dummydir2/bla.json<< ====================
+Caught expected ArgumentError('Output directory not found: bla_dummydir2')
+============= CLI >>solid::GdO3/1gcm3 '1e3 times' -o ./bla_123.txt<< ====================
+Caught expected ArgumentError('Invalid filename (must end with .json or .json.gz): bla_123.txt')
+============= CLI >>solid::GdO3/1gcm3 '1kT on 1mfp' --decode --output=stdout<< ====================
+Caught expected ArgumentError('--output=stdout is incompatible with --decode')
+============= CLI >>solid::GdO3/1gcm3 '1kT on 1mfp' --dump --output=stdout<< ====================
+Caught expected ArgumentError('--output=stdout is incompatible with --dump')
+============= CLI >>solid::GdO3/1gcm3 '1kT on 1mfp' --doc engine --output=stdout<< ====================
+Caught expected ArgumentError('--output=stdout is incompatible with --doc')
+============= CLI >>solid::GdO3/1gcm3 '1kT on 1mfp' --plot --output=stdout<< ====================
+Caught expected ArgumentError('--output=stdout is incompatible with --plot')
+============= CLI >>solid::GdO3/1gcm3 '1kT on 1mfp' --doc engine --decode<< ====================
+Caught expected ArgumentError('Incompatible options: --decode and --doc')
+============= CLI >>solid::GdO3/1gcm3 help --decode<< ====================
+MiniMC scenario cfg-strings
+===========================
+
+Under the hood, a MiniMC simulation always needs configuration for four separate
+components:
+
+  * A material, defined by a standard NCrystal material cfg-string.
+  * A source of neutrons, defined by a source cfg-string.
+  * A simulation geometry, defined by a geometry cfg-string.
+  * Configuration of the simulation engine itself, defined by an engine cfg-
+    string.
+
+Often the full flexibility offered by these four cfg-strings is not needed.
+Therefore, as a convenient alternative, one can alternatively set up simpler
+"simulation scenarios", in which configuration of source and geometry is
+automatically handled. No matter what, a material cfg-string is always required
+of course, and an enginecfg can still be provided as desired.
+
+Examples
+--------
+
+The following examples show how the combination of two strings are enough to
+setup a MiniMC simulation: one standard NCrystal cfg-string defines the
+material, and one additional string defining the simulation scenario.
+
+In each example is also shown the actual underlying geomcfg and srccfg which are
+automatically generated based on the scenario. An enginecfg can also be provided
+separately as desired.
+
+  * Input:  material="Al_sg225.ncmat"
+            scenario=""
+    What:   Pencil beam of neutrons impinging centrally on a diameter=1mfp (mean
+            free path between scatterings) sphere of aluminium. Beam energy is
+            chosen to be hopefully interesting for the material, based on Bragg
+            threshold and temperature.
+    Output: geomcfg="sphere;r=0.0530935"
+            srccfg="circular;z=-0.0530935;r=0.0530935;wl=3.74084;n=1e6"
+  * Input:  material="Al_sg225.ncmat;temp=300K"
+            scenario="2Aa pencil on 2mm sphere"
+    What:   Pencil beam of 2Aa neutrons impinging centrally on a diameter=2mm
+            sphere of 300K aluminium.
+    Output: geomcfg="sphere;r=0.001"
+            srccfg="constant;z=-0.001;wl=2;n=1e6"
+  * Input:  material="Be_sg194.ncmat;temp=80K"
+            scenario="10meV on 2mm sphere"
+    What:   A zero-divergence beam of 10meV neutrons uniformly illuminating a
+            diameter=2mm sphere of 80K beryllium.
+    Output: geomcfg="sphere;r=0.001"
+            srccfg="circular;z=-0.001;r=0.001;ekin=0.01;n=1e6"
+  * Input:  material="gasmix::air/0.9relhumidity"
+            scenario="1.8Aa on 10cm slab"
+    What:   1.8Aa neutrons impinging at right incidence on an infinite slab of
+            thickness 10cm filled with humid air.
+    Output: geomcfg="slab;dz=0.05"
+            srccfg="constant;z=-0.05;wl=1.8;n=1e6"
+  * Input:  material="C_sg194_pyrolytic_graphite.ncmat"
+            scenario="0.99BT on 2mfp 1e5 times"
+    What:   100000 neutrons at a wavelength which is 99% of the Bragg threshold
+            of PG, uniformly illuminating a PG filled sphere whose diameter is 2
+            times the mean free path length between scatterings.
+    Output: geomcfg="sphere;r=0.01175025"
+            srccfg="circular;z=-0.01175025;r=0.01175025;wl=6.64389;n=1e5"
+
+Full syntax
+-----------
+
+The decodeScenario function parses a MiniMC quick simulation scenario string,
+according to the syntax:
+
+  ENERGY [pencil] [on [THICKNESS] [sphere|slab]] [COUNT times]
+
+The meaning of the various parameters (in uppercase above) and keywords (in
+lowercase above) is explained in the following.
+
+If given, COUNT is the initial number of neutrons to input into the simulation.
+Otherwise, the default value is 1e6 for isotropic materials, and 1e5 for
+anisotropic materials.
+
+  * ENERGY is the monochromatic beam energy like "1.8Aa", "25meV" or "0.1eV".
+    Special units "BT" means the bragg threshold of the material (or 4.0Aa in
+    case material does not have one), and "kT" means a kinetic energy equal to
+    Boltzmann's constant times the material temperature. Using either special
+    unit will cause the result to be rounded to 6 significant digits.
+  * "pencil" is an optional keyword related to the beam profile (see below).
+  * THICKNESS is the material thickness like "1mm", "2m", "0.4cm", or "2.5mfp".
+    The unit "mfp" corresponds to the mean-free-path length for a neutron
+    scattering interaction in the material (rounded to 6 significant digits).
+    Default THICKNESS is "1mfp".
+  * The keywords "sphere" or "slab" can be used to select the sample geometry
+    (default is a sphere).
+
+For a spherical geometry, the beam profile will by default be taken to be a beam
+with a uniform circular profile, of the same radius as the sphere. However, if
+the keyword "pencil" is provided, a pencil beam hitting the sphere centrally is
+used instead.
+
+As a special case, an empty scenario string is interpreted in the same way as a
+scenario string with contents "0.8BT" if the material has a Bragg threshold,
+otherwise it will be "1kT" if it has a temperature. If it neither has a Bragg
+threshold or a temperature, a value of "1.8Aa" is used as the ultimate fallback.
+
+For flexibility and usage from the cmdline, colons (:) and underscores (_) can
+be used as whitespace. Additionally, all repeated whitespace (tabs, newlines,
+etc.) is converted into a single space before parsing, and trailing or leading
+whitespace is trimmed away.
+===========================================
+============= CLI >>solid::GdO3/1gcm3 -t help<< ====================
+Available tally quantities:
+        de : energy loss (eV)
+         e : energy (eV)
+         l : wavelength (Aa)
+        mu : cosine scattering angle
+     nscat : number of scatterings
+  nscat_uw : unweighted number of scatterings
+         q : scattering vector (1/Aa)
+     theta : scattering angle (degree)
+         w : weight
+Other tally flags (affects all histograms if set):
+  highres
+  lowres
+  nobreakdown
+===========================================
+============= CLI >>-g 'sphere;r=1' -s 'constant;wl=1.8'<< ====================
+Caught expected ArgumentError('Missing CFGSTR argument')
+============= CLI >>void.ncmat --doc=engine<< ====================
+Caught expected ArgumentError('Do not supply CFGSTR argument with --doc')
+============= CLI >>void.ncmat 2Aa -s 'constant;wl=1.8'<< ====================
+Caught expected ArgumentError('Do not supply --srccfg or --geomcfg if also supplying a SCENARIO string')
+============= CLI >>void.ncmat 2Aa -g 'sphere;r=1'<< ====================
+Caught expected ArgumentError('Do not supply --srccfg or --geomcfg if also supplying a SCENARIO string')
+============= CLI >>void.ncmat -g 'sphere;r=1'<< ====================
+Caught expected ArgumentError('Options --srccfg and --geomcfg must always be supplied together (--enginecfg is optional and will default to an empty string).')
+============= CLI >>--doc=engine -o foobla_qemu.json.gz<< ====================
+Caught expected ArgumentError('Option --doc and --output can not be used together.')
+============= CLI >>void.ncmat 2Aa -t 'q,q,e,   foo, mu'<< ====================
+Caught expected ArgumentError('Unsupported tally flag: foo')
+============= CLI >>void.ncmat 2Aa -t q -e '   tally =   ;ddsfsdf'<< ====================
+Caught expected ArgumentError('Can not use --tally when the --enginecfg also contains "tally=..."')
+============= CLI >>void.ncmat 2Aa -t q -e '   sdftally =   '<< ====================
+Caught expected NCBadInput('Invalid parameter for chosen engine: "sdftally"')
+============= CLI >>void.ncmat 2Aa -o bla_hello.json<< ====================
+Wrote: bla_hello.json
+===========================================
+============= CLI >>void.ncmat 2Aa -o bla_hello.json<< ====================
+Caught expected ArgumentError('Output file aready exists: bla_hello.json')
+============= CLI >>void.ncmat 2Aa -o bla_hello.json --force<< ====================
+Wrote: bla_hello.json
 ===========================================

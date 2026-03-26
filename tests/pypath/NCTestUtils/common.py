@@ -66,10 +66,11 @@ class ensure_error:
     def __exit__(self, exc_type, exc_value, traceback):
         if exc_type is None:
             raise SystemExit('Did not emit exception as required!')
+        val = exc_value.args
         if exc_type != self.__et:
+            print('Message was: "%s"'%val)
             raise SystemExit(f'Emitted {exc_type.__name__}({exc_value}) instead of the'
                              f' required {self.__et.__name__}!')
-        val = exc_value.args
         if isinstance(val,tuple) and len(val)==1:
             val=val[0]
         elif len(val)>1:

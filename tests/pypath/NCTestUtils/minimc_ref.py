@@ -52,14 +52,10 @@ def minimc_unittest_stdsphere( *,
                            ' (typical_ekin,srcenergyparam)')
 
     if sphere_diam_meter is None:
-        ( sphere_diam_str,
-          sphere_diam ) = _approx_mfp_as_length_string( mat, ekin = ekin )
-    else:
-        sphere_diam_str = '%.14g'%sphere_diam_meter
-        sphere_diam = float(sphere_diam_str)
-        assert sphere_diam == sphere_diam_meter
+        _mxs = _macroxs_if_isotropic( mat, ekin = ekin )
+        sphere_diam_meter = 1.0/_mxs if _mxs else 0.01#fallback 1cm
 
-    sphere_radius = sphere_diam/2
+    sphere_radius = sphere_diam_meter/2
     if n is None:
         n = 1e4 if mat.scatter.isOriented() else 1e5
     srcz = (-sphere_radius)*(1-1e-13)
@@ -217,39 +213,9 @@ def minimc_unittest( *,
         raise SystemExit("ERROR: Possible compatibility issues detected!")
     return res
 
-def _approx_mfp_as_length_string( mat, **xsect_kwargs ):
-    macroxs_scatter = _macroxs_if_isotropic( mat, **xsect_kwargs )
-    if not macroxs_scatter:
-        return '1cm', 0.01#fallback
-    else:
-        mfp_scatter = 1.0 / macroxs_scatter
-        return ( _encode_length_to_str(mfp_scatter,round2digits=True),
-                 mfp_scatter )
-
-def _macroxs_if_isotropic( mat, **xsect_kwargs ):
+def _macroxs_if_isotropic( mat, *, ekin ):
     #macroxs_scatter in units of [1/m]
+    unit_cm = 0.01
     return ( None if mat.scatter.isOriented()
              else ( mat.info.factor_macroscopic_xs
-                    * mat.scatter.xsect( **xsect_kwargs )
-                    / _unit_cm ) )
-
-_unit_m = 1.0
-_unit_cm = 0.01
-_unit_mm = 0.001
-
-def _encode_length_to_str( length_meters, round2digits = False ):
-    assert length_meters>=0.0
-    if not length_meters:
-        return '0mm'
-    if round2digits:
-        def roundval(x):
-            return float('%.2g'%x)
-    else:
-        def roundval(x):
-            return x
-    if length_meters <= _unit_cm:
-        return f'{roundval(length_meters/_unit_mm):.14g}mm'
-    assert _unit_m == 1.0
-    if length_meters <= _unit_m:
-        return f'{roundval(length_meters/_unit_cm):.14g}cm'
-    return f'{roundval(length_meters/_unit_m):.14g}m'
+                    * mat.scatter.xsect( ekin = ekin ) / unit_cm ) )

@@ -107,7 +107,7 @@ class MMCResults:
             msg=f'Tally not available in MiniMC dataset: "{tallyname}"'
             tn = self.tally_names
             if not tn:
-                msg += ' (not tallies were enabled!).'
+                msg += ' (no tallies were enabled!).'
             else:
                 msg += ' (available tallies are "%s")'%('", "'.join(tn))
             raise NCBadInput(msg)
@@ -210,6 +210,12 @@ class MMCResults:
             ncprint(o)
         return o
 
+    def __eq__(self, o ):
+        if not isinstance(o,MMCResults):
+            return False
+        ds, do = self.__data, o._raw_data()
+        return( id(self) == id(o) or id(ds)==id(do) or ds == do )
+
     def check_compat( self, other, threshold = 0.05, check=False ):
         """Checks compatiblity between this and other MMCResults object. Two
         objects are deemed compatible if they contain the same input settings,
@@ -264,7 +270,27 @@ class MMCTallyView:
 
     @property
     def name( self ):
+        """The tally name (e.g. "q", "mu", "theta", ...)."""
         return self.__data['tallyname']
+
+    @property
+    def unit( self ):
+        """Return unit of tallied quantity like "eV", "Aa", or "1/Aa". Will be
+        an empty string for unit-less quantities.
+        """
+        from ._mmc_impl import tally_info
+        return tally_info()['tallyhistinfo'][self.name]['unit']
+
+    @property
+    def short_description( self ):
+        """Return a string with a short description of the tallied quantity,
+        like "wavelength" or "cosine scattering angle".
+        """
+        from ._mmc_impl import tally_info
+        return tally_info()['tallyhistinfo'][self.name]['short_descr']
+
+    def _raw_data( self ):
+        return self.__data
 
     @property
     def mother( self ):
@@ -299,27 +325,10 @@ class MMCTallyView:
         return d
 
     def __eq__(self, o ):
-        if id(self) == id(o):
-            return True
-        if self.name != o.name:
+        if not isinstance(o,MMCTallyView):
             return False
-        if not ( self.hist_total == o.hist_total ):
-            return False
-        hd = self.hist_breakdown
-        ohd = o.hist_breakdown
-        if (hd is None) != (ohd is None):
-            return False
-        if hd is None:
-            return True
-        if len(hd) != len(ohd):
-            return False
-        for k,h in hd.items():
-            oh = ohd.get(k)
-            if oh is None:
-                return False
-            if ( h != oh ):
-                return False
-        return True
+        ds, do = self.__data, o._raw_data()
+        return( id(self) == id(o) or id(ds)==id(do) or ds == do )
 
     @property
     def _nhists( self ):
@@ -358,20 +367,6 @@ class MMCTallyView:
         for o in hl[1:]:
             h.add_contents( o )
         return h
-
-    def unit( self ):
-        """Return unit of tallied quantity like "eV", "Aa", or "1/Aa". Will be
-        an empty string for unit-less quantities.
-        """
-        from ._mmc_impl import tally_info
-        return tally_info()['tallyhistinfo'][self.name]['unit']
-
-    def short_description( self ):
-        """Return a string with a short description of the tallied quantity,
-        like "wavelength" or "cosine scattering angle".
-        """
-        from ._mmc_impl import tally_info
-        return tally_info()['tallyhistinfo'][self.name]['short_descr']
 
     def dump( self, *args, **kwargs):
         """Shorthand for .hist_total.dump(*args,**kwargs)."""
@@ -421,10 +416,11 @@ class MMCTallyView:
         (normally matplotlib.pyplot).
         """
 
-        if title in (None,'auto','short'):
-            title = self.__mmcresults.short_title(latex=True)
-        elif title=='long':
-            title = self.__mmcresults.long_title(latex=True)
+        title = ( self.__mmcresults.short_title(latex=True)
+                  if title in (None,'auto','short')
+                  else ( self.__mmcresults.long_title(latex=True)
+                         if title=='long'
+                         else str(title) ) )
 
         from ._mmc_impl import _plot_tally
         _plot_tally( self.__mmcresults._raw_data(),

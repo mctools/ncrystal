@@ -222,23 +222,20 @@ format.
         parser.error("Use -h/--help for instructions"
                      " (or --full-help for even more)")
     if args.SCENARIO=='help':
-        args.SCENARIO = None
         args.doc = 'scenario'
-    if args.enginecfg=='help':
-        args.enginecfg = None
-        args.doc = 'engine'
-    if args.srccfg=='help':
-        args.srccfg = None
-        args.doc = 'src'
-    if args.geomcfg=='help':
-        args.geomcfg = None
-        args.doc = 'geom'
-
-    is_mode_doc = args.doc is not None
-    if is_mode_doc:
-        #Just short circuit everything below
         return args
-
+    elif args.enginecfg=='help':
+        args.doc = 'engine'
+        return args
+    elif args.srccfg=='help':
+        args.doc = 'src'
+        return args
+    elif args.geomcfg=='help':
+        args.doc = 'geom'
+        return args
+    elif args.tally=='help':
+        return args
+    is_mode_doc = args.doc is not None
 
     def check_infile( f ):
         if not f:
@@ -256,9 +253,9 @@ format.
             parser.error(f'Output file aready exists: {f}')
         if p.is_dir():
             parser.error(f'Output file is a directory: {f}')
-        p = p.absolute()
         if not p.parent or not p.parent.is_dir():
             parser.error(f'Output directory not found: {p.parent}')
+        p = p.absolute()
         stem, sufs = p.stem, p.suffixes
         if ( not stem or stem.startswith('.') or stem.startswith('-')
              or ( sufs[-2:]!=['.json','.gz'] and sufs[-1:] != ['.json'] ) ):
@@ -285,22 +282,33 @@ format.
     if args.decode:
         if args.dump:
             parser.error('Incompatible options: --decode and --dump')
+        if is_mode_doc:
+            parser.error('Incompatible options: --decode and --doc')
         if args.plot:
             parser.error('Incompatible options: --decode and --plot')
     if is_mode_input:
-        if is_mode_scenario:
-            parser.error('Do not specify SCENARIO string when using --input')
-        if is_mode_stdcfg:
-            parser.error('Do not specify --geomcfg, --srccfg, or --enginecfg'
-                         ' when using --input')
-        if args.CFGSTR:
+        if args.CFGSTR is not None:
             parser.error('Do not specify CFGSTR when using --input')
+        assert not is_mode_scenario#not possible unless CFGSTR is set
+        #parser.error('Do not specify SCENARIO string when using --input')
+        if is_mode_doc:
+            parser.error('Incompatible options: --doc and --input')
+        if is_mode_stdcfg:
+            parser.error('Do not specify --geomcfg or --srccfg'
+                         ' when using --input')
+        if args.enginecfg is not None:
+            parser.error('Do not specify --enginecfg'
+                         ' when using --input (use --tally instead if you'
+                         ' are trying to filter tallies).')
 
     n_modes = sum([is_mode_stdcfg,is_mode_scenario,is_mode_input,is_mode_doc])
     if n_modes==0 and args.CFGSTR is not None:
         #a lone CFGSTR => scenario mode:
         args.SCENARIO=''
         n_modes, is_mode_scenario = 1, True
+    if is_mode_scenario and is_mode_stdcfg:
+        parser.error('Do not supply --srccfg or --geomcfg if'
+                     ' also supplying a SCENARIO string')
     if n_modes!=1:
         parser.error(('%s arguments. Use -h, --help or --full-help for'
                       ' information about proper'
@@ -308,13 +316,10 @@ format.
 
     if ( is_mode_stdcfg or is_mode_scenario ) and args.CFGSTR is None:
         parser.error('Missing CFGSTR argument')
-    if is_mode_input and args.CFGSTR is not None:
-        parser.error('Do not supply CFGSTR argument with --input')
+    #already tested previously:
+    assert not ( is_mode_input and args.CFGSTR is not None )
     if is_mode_doc and args.CFGSTR is not None:
         parser.error('Do not supply CFGSTR argument with --doc')
-    if is_mode_scenario and is_mode_stdcfg:
-        parser.error('Do not supply any of --srccfg/--geomcfg/--enginecfg if'
-                     ' also supplying a SCENARIO string')
 
     if n_geomsrc == 1:
         parser.error('Options --srccfg and --geomcfg must always be supplied'
@@ -323,11 +328,8 @@ format.
     if ( is_mode_stdcfg or is_mode_scenario ) and args.enginecfg is None:
         args.enginecfg = ''
 
-    if is_mode_doc:
-        for v in ('decode','plot','dump'):
-            if getattr(args,v):
-                parser.error('Option --doc and '
-                             f'--{v} can not be used together.')
+    if is_mode_doc and args.outputfile:
+        parser.error('Option --doc and --output can not be used together.')
 
     if not any( e for e in (is_mode_doc,args.plot,args.dump,
                             args.decode,args.outputfile) ):
@@ -336,22 +338,6 @@ format.
 
     if not (args.tally or '').strip():
         args.tally=None
-    elif args.tally.strip()=='help':
-        h = set(tallylists['ALLHISTS'])
-        a = set(tallylists['ALL'])
-        hi = ncmmc.tally_info()['tallyhistinfo']
-        print("Available tally quantities:")
-        maxe = max(len(e) for e in h)
-        for e in sorted(h):
-            line = f'  {e.rjust(maxe)} : {hi[e]["short_descr"]}'
-            unit = hi[e]["unit"]
-            if unit:
-                line += f' ({unit})'
-            print(line)
-        print("Other tally flags (affects all histograms if set):")
-        for e in sorted(a-h):
-            print(f'  {e}')
-        raise SystemExit
     else:
         #At this point, merely test that all entries are valid TallyFlags:
         t = set([ e.strip() for e in args.tally.split(',')] )
@@ -375,6 +361,8 @@ def create_argparser_for_sphinx( progname ):
 def main( progname, arglist ):
     args = parseArgs( progname, arglist )
     do_quiet = ( args.quiet or args.outputfile == 'stdout' )
+    if args.doc:
+        do_quiet = False
     if do_quiet:
         from ._common import ( modify_ncrystal_print_fct_ctxmgr,
                                WarningSpy )
@@ -384,10 +372,29 @@ def main( progname, arglist ):
     else:
         _main_impl(progname,args)
 
+def print_tally_help():
+    from . import minimc as ncmmc
+    tallylists = ncmmc.tally_info()['tallylists']
+    h = set(tallylists['ALLHISTS'])
+    a = set(tallylists['ALL'])
+    hi = ncmmc.tally_info()['tallyhistinfo']
+    print("Available tally quantities:")
+    maxe = max(len(e) for e in h)
+    for e in sorted(h):
+        line = f'  {e.rjust(maxe)} : {hi[e]["short_descr"]}'
+        unit = hi[e]["unit"]
+        if unit:
+            line += f' ({unit})'
+        print(line)
+    print("Other tally flags (affects all histograms if set):")
+    for e in sorted(a-h):
+        print(f'  {e}')
+
 def _main_impl( progname, args ):
     from . import minimc as ncmmc
-    from ._common import print
-
+    if args.tally == 'help':
+        print_tally_help()
+        return
     if args.doc is not None:
         ncmmc.gen_doc(args.doc,'print')
         return

@@ -51,7 +51,7 @@ def run( *, resclass, unpack,
     check(geomcfg,'geomcfg')
     check(srccfg,'srccfg')
     check(scenario,'scenario')
-    check(enginecfg,'engiornecfg')
+    check(enginecfg,'enginecfg')
     check(callback_options,'callback_options')
     if unpack not in ('dict', 'json', 'dict_jsoncompat', 'object'):
         raise NCBadInput('Invalid value of unpack (must be "dict",'
@@ -60,20 +60,24 @@ def run( *, resclass, unpack,
     query = ['mmc','run', cfgstr]#, geomcfg, srccfg, enginecfg]
     n_geomsrc = ( ( 1 if geomcfg is not None else 0 )
                   + ( 1 if srccfg is not None else 0 ) )
+    assert n_geomsrc in (0,1,2)
     if n_geomsrc == 0 and scenario is None:
         raise NCBadInput('Missing required parameters for geometry and source'
                          '. Please supply either a scenario string,'
                          ' or both of geomcfg + srccfg strings.')
-    if n_geomsrc > 0 and scenario is not None:
+    if n_geomsrc and scenario is not None:
         raise NCBadInput('Inconsistent parameters. Do not supply geomcfg or'
                          ' srccfg when also supplying a scenario string.')
-    if n_geomsrc == 2 and scenario is None:
+    if n_geomsrc == 1:
+        missing='geom' if srccfg is not None else 'src'
+        raise NCBadInput(f'Missing {missing}cfg parameter.')
+    assert n_geomsrc in (0,2)
+    if n_geomsrc:
+        assert n_geomsrc == 2 and scenario is None
         query += [ geomcfg, srccfg ]
-    elif n_geomsrc == 0 and scenario is not None:
-        query += [ scenario ]
     else:
-        #Should have been caught above, but just as a safety we throw also here:
-        raise NCBadInput('Inconsistent parameters.')
+        assert n_geomsrc == 0 and scenario is not None
+        query += [ scenario ]
     query += [ enginecfg ]
     if callback:
         from ._chooks import _get_raw_cfcts
@@ -111,8 +115,8 @@ def results_check_compat_impl( _self, other, threshold, errfct ):
     ]
     volatile = set(volatile)
     def cmp(d1,d2,keylist):
-        k1=d1.keys()
-        if k1!=d2.keys():
+        k1 = d1.keys()
+        if k1 != d2.keys():
             return False
         for k in k1:
             keylist.append(k)
@@ -374,7 +378,7 @@ def _plot_tally( minimcresults_dict, tallyname,
     else:
         lbl = 'All outgoing %s'%_fractionval_fmt(nonabsfrac)
         label_order.append(lbl)
-        mainhist.plot_hist( plt=plt, do_show = False, label=lbl)
+        mainhist.plot( plt=plt, do_show = False, label=lbl)
         if do_title and not title and mainhist.title:
             axis.set_title(mainhist.title)
         if not logy:

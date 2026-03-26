@@ -171,3 +171,68 @@ The full list of available modules are:
 ================================================================================
 ==> Ended with no error
 ================================================================================
+==> Metadata for mode "cif2ncmat":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
+==> Metadata for mode "config":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
+==> Metadata for mode "endf2ncmat":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
+==> Metadata for mode "hfg2ncmat":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
+==> Metadata for mode "mcstasunion":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
+==> Metadata for mode "minimc":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
+==> Metadata for mode "ncmat2cpp":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
+==> Metadata for mode "ncmat2endf":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
+==> Metadata for mode "ncmat2hkl":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
+==> Metadata for mode "nctool":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
+==> Metadata for mode "query":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
+==> Metadata for mode "vdos2ncmat":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
+==> Metadata for mode "verifyatompos":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}

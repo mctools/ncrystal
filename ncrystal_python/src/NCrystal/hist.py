@@ -705,10 +705,6 @@ class Hist1D:
         d.update(kwargs)
         return d
 
-    def plot_hist( self, *args, **kwargs ):
-        """Alias for the .plot() method."""
-        return self.plot(*args,**kwargs)
-
     def plot( self, plt=None, axis=None, label=None,
               show_errors=True, do_show = True, set_xlim = True,
               logy = False, error_bands = None, alpha = None, color = None ):

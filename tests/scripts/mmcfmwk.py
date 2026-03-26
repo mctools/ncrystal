@@ -23,8 +23,13 @@
 # NEEDS: numpy
 
 import NCrystalDev.minimc as ncmmc
+from NCrystalDev.minimc_objects import MMCResults, MMCTallyView
+from NCrystalDev.hist import Hist1D
 from NCTestUtils.env import ncsetenv
 import NCTestUtils.dirs as dirs
+from NCrystalDev.exceptions import NCBadInput, NCCalcError
+from NCTestUtils.common import ensure_error
+import pprint
 
 def main(do_plot, do_update):
     mmc_run = ncmmc.run
@@ -54,6 +59,7 @@ def main(do_plot, do_update):
                     scenario = '2.0Aa on 0.1mfp 1e4 times',
                     enginecfg = (';nthreads=2;tally=theta'
                                  ';tallybins=theta:36:0:180') )
+    resB = MMCResults(resB)
 
     print("Basic serialisation/deserialisation check")
     j = resA.to_json()
@@ -119,7 +125,25 @@ def main(do_plot, do_update):
 
     print("Loading reference files")
     resA_ref = ncmmc.MMCResults(reffileA.read_text())
+    resA_ref2 = ncmmc.MMCResults(reffileA.read_text())
     resB_ref = ncmmc.MMCResults(reffileB)
+    print("Testing equality")
+    assert not (resA_ref==117)
+    assert (resA_ref==resA_ref)
+    assert (resA_ref==resA_ref2)
+    assert (resA_ref!=resB_ref)
+    assert not (resA_ref==resB_ref)
+    assert resA_ref.tally('theta')==resA_ref.tally('theta')
+    assert resA_ref.tally('theta')==resA_ref2.tally('theta')
+    assert resA_ref.tally('theta') is not None
+    assert resA_ref.tally('theta')!=117
+    assert resB_ref.tally('theta')!=resA_ref2.tally('theta')
+
+    #Fake ripout the breakdown hists:
+    assert resA_ref == resA_ref2
+    d=resA_ref2.tally('theta')._raw_data()
+    d['breakdown']=None
+    assert resA_ref != resA_ref2
 
     print("Test plotting code")
     def plotcmp( h, href, title ):
@@ -205,6 +229,129 @@ def main(do_plot, do_update):
     ncmmc.gen_doc( 'engine' )
     ncmmc.gen_doc( 'src' )
     ncmmc.gen_doc( 'geom' )
+
+
+    def pdc( cfgstr, cfgtype ):
+        print(f'==> Decoding {cfgtype} "{cfgstr}":')
+        d = ncmmc.decode_cfgstr( cfgstr, cfgtype )
+        pprint.pp(d)
+
+    pdc('circular;r=0.3;uy=2;uz=0;x=17;ekin=0.025+-0.001', 'src')
+    pdc('box;dx=1;dy=1e-3;dz=0.0123', 'geom')
+    pdc('tallybins=+;tally=q,de', 'engine')
+    with ensure_error(NCBadInput,'cfgstr parameter must be a string'):
+        pdc(0.025,'engine')
+    with ensure_error(NCBadInput,
+                      'cfgtype parameter must be "src", "geom", or "engine"'):
+        pdc('foo',0.025)
+    with ensure_error(NCBadInput,
+                      'cfgtype parameter must be "src", "geom", or "engine"'):
+        pdc('foo','bar')
+
+
+    with ensure_error(NCBadInput,'Data seems to be in an unsupported format'):
+        MMCResults(dict( datatype = 'NCrystalMiniMCResults_v17',
+                         input = {}, output={} ))
+    with ensure_error(NCBadInput,'Data seems to be in an unsupported format'):
+        MMCResults(dict( datatype = 'NCrystalMiniMCResults_v1',
+                         input = {}, output={}, somethingnew={} ))
+    with ensure_error(NCBadInput,'Unsupported data format'):
+        MMCResults([1,2,3])
+    resV3 = mmc_run( 'void.ncmat',scenario = '1eV on 1cm 1 times',
+                     enginecfg = 'nthreads=1;tally=q,de,mu' )
+    resV0 = mmc_run( 'void.ncmat',scenario = '1eV on 1cm 1 times',
+                     enginecfg = 'nthreads=1;tally=' )
+    with ensure_error(NCBadInput,'Tally not available in MiniMC dataset: "e"'
+                      ' (available tallies are "de", "mu", "q")'):
+        resV3.tally('e')
+    with ensure_error(NCBadInput,'Tally not available in MiniMC dataset: "e"'
+                      ' (no tallies were enabled!).'):
+        resV0.tally('e')
+    print('resA long title:')
+    print(repr(resA.long_title()))
+    print('resB long title:')
+    print(repr(resB.long_title()))
+    print('resV3 long title:')
+    print(repr(resV3.long_title()))
+    print('resV0 long title:')
+    print(repr(resV0.long_title()))
+    with ensure_error(NCCalcError,
+                      'Incompatible MMCResults (incompatible input'
+                      ' values for "material/cfgstr")'):
+        resA.check_compat( resB, check = True )
+
+    with ensure_error(TypeError,'Do not create MMCTallyView objects directly'):
+        MMCTallyView( {'foo':'bar'} )
+    assert resA.tally('theta').mother is resA
+    assert not ( resA == resB )
+    assert not ( resV0 == resV3 )
+    print("some tally units and short descriptions:")
+    for t in resV3.tallies:
+        print(repr(t.name),repr(t.unit),repr(t.short_description))
+
+    print("resV3 mu tally dump method:")
+    resV3.tally('mu').dump(contents=False)
+
+    from NCrystalDev._mmc_impl import _determine_rebin_factor as drf
+    assert drf( current_nbins=100, max_nbins= 200 ) == 1
+    assert drf( current_nbins=100, max_nbins= 20 ) == 5
+    assert drf( current_nbins=100 ) == 1
+    assert drf( current_nbins=100, rebin_factor=5 ) == 5
+    assert drf( current_nbins=100, max_nbins=100 ) == 1
+    with ensure_error(NCBadInput,
+                      'Invalid rebin factor 17 is not a divisor of nbins=100.'):
+        drf( current_nbins=100, rebin_factor=17 )
+    with ensure_error(NCBadInput,
+                      'Can not set both max_nbins and rebin_factor.'):
+        drf( current_nbins=100, max_nbins=20, rebin_factor=5 )
+
+    def runerr( errmsg, *a, **kw ):
+        with ensure_error(NCBadInput,errmsg):
+            mmc_run(*a,**kw)
+    runerr( 'Missing required parameter: cfgstr.', None )
+    runerr( 'The cfgstr parameter must be a string.',
+            1.8 )
+    runerr( 'The scenario parameter must be a string.',
+            'void.ncmat', scenario=1.8 )
+    runerr( 'Invalid enginecfg tallybins entry "e:5:0.0".',
+            'void.ncmat', scenario='', enginecfg='tallybins=e:5:0.0,0.02' )
+    runerr( 'The srccfg parameter must be a string.',
+            'void.ncmat', srccfg=b'1.8' )
+    runerr( 'The geomcfg parameter must be a string.',
+            'void.ncmat', geomcfg=1.8 )
+    runerr( 'The callback_options parameter must be a string.',
+            'void.ncmat', callback_options=1.8 )
+    runerr( 'Inconsistent parameters. Do not supply callback_options'
+            ' without a callback function.',
+            'void.ncmat', scenario='', callback_options='' )
+    runerr( 'Missing required parameters for geometry and source. Please'
+            ' supply either a scenario string, or both of geomcfg'
+            ' + srccfg strings.',
+            'void.ncmat' )
+    runerr( 'Inconsistent parameters. Do not supply geomcfg or'
+            ' srccfg when also supplying a scenario string.',
+            'void.ncmat', scenario='2Aa',srccfg='constant;wl=1.8')
+    #runerr( 'Missing geomcfg parameter.', 'void.ncmat',srccfg='constant;wl=1.8')
+    #runerr( 'Missing srccfg parameter.', 'void.ncmat',geomcfg='sphere;r=1')
+
+    kw = dict(cfgstr='void.ncmat',scenario = '0.01eV on 1cm 1 times',
+              enginecfg
+              = 'nthreads=1;tally=e;tallybins=e:5:0:02;tallybreakdown=0')
+    r = mmc_run( **kw, unpack='dict' )
+    h = r['output']['tally']['e']['total']
+    assert isinstance(h,Hist1D)
+    r['output']['tally']['e']['total'] = h.to_json()
+    pprint.pp(r)
+    r = mmc_run( **kw, unpack='dict_jsoncompat' )
+    pprint.pp(r)
+    r = mmc_run( **kw, unpack='json' )
+    print(r)
+    runerr( 'Invalid value of unpack (must be "dict", "json",'
+            ' "dict_jsoncompat", or "object"): '"'foobar'",
+            **kw, unpack='foobar' )
+    runerr( 'Missing geomcfg parameter.',
+            'void.ncmat', srccfg='constant;wl=1.8' )
+    assert not MMCResults(r).check_compat(resA)
 
 if __name__ == '__main__':
     import sys

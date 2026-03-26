@@ -29,10 +29,12 @@
 # other peoples code) should migrate to the modern API instead.
 
 #The obsolete functions are available in both _mmc.py and mmc.py:
+import NCTestUtils.reprint_escaped_warnings # noqa F401
 import NCrystalDev.mmc as ncmmc
 import NCrystalDev._mmc as ncmmc_alt
 from NCTestUtils.env import ncsetenv
-import NCTestUtils.reprint_escaped_warnings # noqa F401
+from NCTestUtils.common import ensure_error
+from NCrystalDev.exceptions import NCException
 
 def main(do_plot):
 
@@ -59,6 +61,32 @@ def main(do_plot):
                       nstat=1e3,
                       nthreads=1)
     pattern.plot_breakdown(rebin_factor=50)
+
+    with ensure_error(NCException,
+                      '".whatever" is not available on results from the'
+                      ' obsolete quick_diffraction_pattern function. Only'
+                      ' .plot_breakdown(..) is. Please migrate your code to'
+                      ' use the NCrystal.minimc.run(..) function instead'
+                      ' (more info at '
+                      'https://github.com/mctools/ncrystal/wiki/minimc).'):
+        pattern.whatever()
+
+    with ensure_error(NCException,
+                      'The runsim_diffraction_pattern(..) function is'
+                      ' obsolete. Please migrate your code to use the'
+                      ' NCrystal.minimc.run(..) function instead (more info'
+                      ' at https://github.com/mctools/ncrystal/wiki/minimc).'):
+        ncmmc.runsim_diffraction_pattern('anything','here',it='does not matter')
+
+    #NB: Using "comp=", nthreads=None, nstat=1e3 for reproducible reflogs
+    pattern2 = mmc_qdp('void.ncmat',
+                      neutron_energy = '1.8Aa',
+                      material_thickness = '1cm',
+                      nstat=None,
+                      nthreads=1)
+    nstat = pattern2._real_mmcresult().setup['src']['decoded']['n']
+    assert 10000 <= nstat <= 10000000
+    print("All ok")
 
 if __name__ == '__main__':
     import sys

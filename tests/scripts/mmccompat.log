@@ -1,4 +1,5 @@
-CAUGHT ESCAPED WARNING (NCrystalUserWarning): The quick_diffraction_pattern(..) function is obsolete. Please migrate your code to use the NCrystal.minimc.run(..) function instead (more info at https://github.com/mctools/ncrystal/wiki/minimc) [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The NCrystal._mmc module is obsolete. Please use the NCrystal.minimc module instead (more info at https://github.com/mctools/ncrystal/wiki/minimc). [warn#1]
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): The quick_diffraction_pattern(..) function is obsolete. Please migrate your code to use the NCrystal.minimc.run(..) function instead (more info at https://github.com/mctools/ncrystal/wiki/minimc). [warn#2]
 CALLING plt.figure()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['232.0', '232.0', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (23.2%)')
@@ -70,3 +71,6 @@ CALLING ResultOf[plt.gca(..)].set_title('$10^3$ 1eV neutrons through sphere with
 CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (20.7%)')
 CALLING plt.legend([FakeHandle, FakeHandle],['Transmitted (79.3%)', 'Absorbed (20.7%)'])
 CALLING plt.show()
+Caught expected NCException('".whatever" is not available on results from the obsolete quick_diffraction_pattern function. Only .plot_breakdown(..) is. Please migrate your code to use the NCrystal.minimc.run(..) function instead (more info at https://github.com/mctools/ncrystal/wiki/minimc).')
+Caught expected NCException('The runsim_diffraction_pattern(..) function is obsolete. Please migrate your code to use the NCrystal.minimc.run(..) function instead (more info at https://github.com/mctools/ncrystal/wiki/minimc).')
+All ok

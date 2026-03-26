@@ -22,6 +22,7 @@
 
 import NCrystalDev._clientry as ncclientry
 import shlex
+import pprint
 
 def ncrystalcmd(*args):
     argv = ['/some/where/ncrystal']+[str(e) for e in args]
@@ -50,6 +51,10 @@ def main():
     ncrystalcmd('-h')
     ncrystalcmd('--help')
     ncrystalcmd('nctool','--cfg','Al_sg225.ncmat ;temp=200K')
+
+    for mode in ncclientry.get_mode_list():
+        print(f'==> Metadata for mode "{mode}":')
+        pprint.pp( ncclientry.get_module_metadata('minimc') )
 
 if __name__ == '__main__':
     main()

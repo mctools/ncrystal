@@ -23,6 +23,11 @@
 
 __all__ = ['quick_diffraction_pattern','runsim_diffraction_pattern']
 
+from ._common import warn as _ncwarn
+_ncwarn('The NCrystal._mmc module is obsolete.'
+        ' Please use the NCrystal.minimc module instead (more info'
+        ' at https://github.com/mctools/ncrystal/wiki/minimc).')
+
 def runsim_diffraction_pattern( *a, **kwargs ):
     """Obsolete function. Calling it now will result in an error.
     More info at: https://github.com/mctools/ncrystal/wiki/minimc
@@ -31,7 +36,7 @@ def runsim_diffraction_pattern( *a, **kwargs ):
     raise NCException('The runsim_diffraction_pattern(..) function is'
                       ' obsolete. Please migrate your code to use the'
                       ' NCrystal.minimc.run(..) function instead (more info'
-                      ' at https://github.com/mctools/ncrystal/wiki/minimc)')
+                      ' at https://github.com/mctools/ncrystal/wiki/minimc).')
 
 __cache_qdpwarn=[True]
 def quick_diffraction_pattern( cfgstr, *,
@@ -45,7 +50,7 @@ def quick_diffraction_pattern( cfgstr, *,
     migratemsg = ('Please migrate your code to use the'
                   ' NCrystal.minimc.run(..) function instead'
                   ' (more info at'
-                  ' https://github.com/mctools/ncrystal/wiki/minimc)')
+                  ' https://github.com/mctools/ncrystal/wiki/minimc).')
     warnmsg = ('The quick_diffraction_pattern(..) function is obsolete.'
                f' {migratemsg}')
 
@@ -75,9 +80,7 @@ def quick_diffraction_pattern( cfgstr, *,
             t,res = simfct(nstat,cfgstr)
             #Usually, end within a second in total, but in worst cases, up to
             #10seconds:
-            if t>0.1 and nstat >= 1e6:
-                break
-            if t>1.0:
+            if ( t>0.1 and nstat >= 1e6 ) or t>1.0:
                 break
     else:
         t,res=simfct(nstat,cfgstr)
@@ -92,15 +95,19 @@ def quick_diffraction_pattern( cfgstr, *,
         def __init__(self,res):
             self.__res = res
 
+        def _real_mmcresult( self ):
+            return self.__res
+
         def plot_breakdown(self,rebin_factor=1,logy=False):
             self.__res.tally('theta').plot(rebin_factor=rebin_factor,
                                            logy=logy)
 
         def __getattr__(self, name):
             if not name.startswith('_'):
-                raise RuntimeError(f'"{name}" is not available on results from'
-                                   ' the obsolete quick_diffraction_pattern'
-                                   ' function. Only .plot_breakdown(..) is.'
-                                   f' {migratemsg}')
+                from .exceptions import NCException
+                raise NCException(f'".{name}" is not available on results from'
+                                  ' the obsolete quick_diffraction_pattern'
+                                  ' function. Only .plot_breakdown(..) is.'
+                                  f' {migratemsg}')
 
     return MiniMCObsoleteResult(res)

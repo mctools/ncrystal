@@ -406,7 +406,7 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_eoptsstr )
   using F = TallyFlags::Flags;
   if ( PMC::hasValue(tokens,"tally") ) {
     auto tallyflags_strlist =
-      PMC::getValue_str(tokens,"tally")
+      PMC::getValue_str_allowempty(tokens,"tally")
       .splitTrimmedNoEmpty<TallyFlags::strlist_type::nsmall>(',');
     auto tf = TallyFlags(tallyflags_strlist);
     constexpr auto tf_nonhist = F::ALL & (~F::ALLHISTS);
@@ -445,17 +445,16 @@ NCMMC::EngineOpts NCMMC::parseEngineOpts( StrView raw_eoptsstr )
         res.tallyFlags.add(bstr=='+'?F::highres:F::lowres);
         continue;
       }
-      TallyFlags::value_type v = 0;
-      Optional<std::int32_t> nbins;
-      Optional<double> xmin;
-      Optional<double> xmax;
       auto parts = bstr.splitTrimmedNoEmpty<4>(':');
-      if ( parts.size() == 4 ) {
-        v = TallyFlags::lookup(parts.at(0));
-        nbins = parts.at(1).toInt32();
-        xmin = parts.at(2).toDbl();
-        xmax = parts.at(3).toDbl();
+      if ( parts.size() != 4 ) {
+        NCRYSTAL_THROW2(BadInput,"Invalid enginecfg tallybins entry \""
+                        <<bstr <<"\".");
       }
+
+      TallyFlags::value_type v = TallyFlags::lookup(parts.at(0));
+      Optional<std::int32_t> nbins = parts.at(1).toInt32();
+      Optional<double> xmin = parts.at(2).toDbl();
+      Optional<double> xmax = parts.at(3).toDbl();
       if ( !v || !TallyFlags::isSingleFlag(v) || !( v & F::ALLHISTS ) )
         NCRYSTAL_THROW2(BadInput,"Invalid enginecfg tallybins tally name \""
                         <<parts.at(0) <<"\".");

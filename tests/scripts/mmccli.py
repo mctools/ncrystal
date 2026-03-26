@@ -20,8 +20,11 @@
 ##                                                                            ##
 ################################################################################
 
+# NEEDS: numpy
+
 import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev.cli as nc_cli
+from NCrystalDev.exceptions import NCBadInput
 import NCTestUtils.reprint_escaped_warnings # noqa F401
 import NCrystalDev._common as nc_common
 from NCTestUtils.common import ensure_error
@@ -100,9 +103,16 @@ def main():
                       ' (or --full-help for even more)'):
         test('help')
     test('--geomcfg','help')
+    test('','-t','help')
+    test('-t','help')
+    with ensure_error(ArgumentError,
+                      'Missing file: missing.json'):
+        test('solid::GdO3/1gcm3','-i','missing.json')
     test('solid::GdO3/1gcm3','-d')
+    test('solid::GdO3/1e-20gcm3','-d')
     test('solid::GdO3/1gcm3','help')
     test('solid::GdO3/1gcm3','2Aa on 2cm','-d')
+    test('solid::GdO3/1gcm3;comp=','2Aa','-d')
     test('solid::GdO3/1gcm3','2Aa on 2cm','-e','ignoremiss=1','-d')
     test('solid::GdO3/1gcm3','--decode')
     test('solid::GdO3/1gcm3','-g',"sphere;r=0.0102578",
@@ -115,6 +125,19 @@ def main():
     with ensure_error(ArgumentError,
                       'Do not specify CFGSTR when using --input'):
         test('solid::GdO3/1gcm3','-i','bla.json.gz','--dump')
+    with ensure_error(ArgumentError,
+                      'Incompatible options: --doc and --input'):
+        test('-i','bla.json.gz','--doc=engine')
+    with ensure_error(ArgumentError,
+                      'Do not specify --enginecfg when using --input (use'
+                      ' --tally instead if you are trying to filter tallies).'):
+        test('-i','bla.json.gz','-e','')
+    with ensure_error(ArgumentError,
+                      'Do not specify --geomcfg or --srccfg when using --input'):
+        test('-i','bla.json.gz','-s','')
+    with ensure_error(ArgumentError,
+                      'Do not specify --geomcfg or --srccfg when using --input'):
+        test('-i','bla.json.gz','-g','')
     test('-i','bla.json.gz','--dump')
     test('-i','bla.json.gz','--decode')
 
@@ -149,6 +172,84 @@ def main():
           '1kT on 1mfp',
          )
     test('solid::GdO3/1gcm3','1kT on 1mfp','--decode','--quiet')
+
+    with ensure_error(ArgumentError,
+                      'Output file aready exists: bla_qemu.json.gz'):
+        test('solid::GdO3/1gcm3','1e3 times','-o','bla_qemu.json.gz')
+    pathlib.Path('./bla_dummydir').mkdir()
+    with ensure_error(ArgumentError,
+                      'Output file is a directory: ./bla_dummydir'):
+        test('solid::GdO3/1gcm3','1e3 times','-o','./bla_dummydir')
+    with ensure_error(ArgumentError,
+                      'Output directory not found: bla_dummydir2'):
+        test('solid::GdO3/1gcm3','1e3 times','-o','./bla_dummydir2/bla.json')
+    with ensure_error(ArgumentError,
+                      'Invalid filename (must end with .json or .json.gz): bla_123.txt'):
+        test('solid::GdO3/1gcm3','1e3 times','-o','./bla_123.txt')
+
+    with ensure_error(ArgumentError,
+                      '--output=stdout is incompatible with --decode'):
+        test('solid::GdO3/1gcm3','1kT on 1mfp','--decode','--output=stdout')
+    with ensure_error(ArgumentError,
+                      '--output=stdout is incompatible with --dump'):
+        test('solid::GdO3/1gcm3','1kT on 1mfp','--dump','--output=stdout')
+    with ensure_error(ArgumentError,
+                      '--output=stdout is incompatible with --doc'):
+        test('solid::GdO3/1gcm3','1kT on 1mfp','--doc','engine',
+             '--output=stdout')
+    with ensure_error(ArgumentError,
+                      '--output=stdout is incompatible with --plot'):
+        test('solid::GdO3/1gcm3','1kT on 1mfp','--plot','--output=stdout')
+    with ensure_error(ArgumentError,
+                      'Incompatible options: --decode and --doc'):
+        test('solid::GdO3/1gcm3','1kT on 1mfp','--doc','engine','--decode')
+    #The magic "help" strings do not trigger the usual checking of other
+    #arguments being consistent, they are merely a handy shortcut which should
+    #always work:
+    test('solid::GdO3/1gcm3','help','--decode')
+    test('solid::GdO3/1gcm3','-t','help')
+
+    with ensure_error(ArgumentError,'Missing CFGSTR argument'):
+        test('-g','sphere;r=1','-s','constant;wl=1.8')
+    with ensure_error(ArgumentError,
+                      'Do not supply CFGSTR argument with --doc'):
+        test('void.ncmat','--doc=engine')
+    with ensure_error(ArgumentError,
+                      'Do not supply --srccfg or --geomcfg if also supplying'
+                      ' a SCENARIO string'):
+        test('void.ncmat','2Aa','-s','constant;wl=1.8')
+    with ensure_error(ArgumentError,
+                      'Do not supply --srccfg or --geomcfg if also supplying'
+                      ' a SCENARIO string'):
+        test('void.ncmat','2Aa','-g','sphere;r=1')
+
+    with ensure_error(ArgumentError,
+                      'Options --srccfg and --geomcfg must always be supplied'
+                      ' together (--enginecfg is optional and will default to'
+                      ' an empty string).'):
+        test('void.ncmat','-g','sphere;r=1')
+    with ensure_error(ArgumentError,
+                      'Option --doc and --output can not be used together.'):
+        test('--doc=engine','-o','foobla_qemu.json.gz')
+    with ensure_error(ArgumentError,
+                      'Unsupported tally flag: foo'):
+        test('void.ncmat','2Aa','-t','q,q,e,   foo, mu')
+
+    with ensure_error(ArgumentError,
+                      'Can not use --tally when the --enginecfg'
+                      ' also contains "tally=..."'):
+        test('void.ncmat','2Aa','-t','q','-e','   tally =   ;ddsfsdf')
+
+    with ensure_error(NCBadInput,
+                      'Invalid parameter for chosen engine: "sdftally"'):
+        test('void.ncmat','2Aa','-t','q','-e','   sdftally =   ')
+
+    test('void.ncmat','2Aa','-o','bla_hello.json')
+    with ensure_error(ArgumentError,
+                      'Output file aready exists: bla_hello.json'):
+        test('void.ncmat','2Aa','-o','bla_hello.json')
+    test('void.ncmat','2Aa','-o','bla_hello.json','--force')
+
 
 if __name__ == '__main__':
     main()
