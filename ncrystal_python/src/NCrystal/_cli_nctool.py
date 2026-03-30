@@ -391,7 +391,7 @@ def std_main( progname, arglist ):
             plot_2d_scatangle( cfgs[0], comp = args.comp, pdf=args.pdf, versus_energy=args.energy, xrange = args.xrange )
 
         if len(cfgs)==1 and not nccommon.ncgetenv_bool('TOOL_NOAUTOMCPLOT'):
-            plot_mmc( cfgs[0].cfgstr, '', logy=args.logy, do_pdf=args.pdf )
+            plot_mmc( cfgs[0].cfgstr, '1e5 times', logy=args.logy, do_pdf=args.pdf )
 
     if args.pdf:
         _,_,pdf = import_npplt(True)
