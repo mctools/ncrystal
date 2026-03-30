@@ -87,6 +87,15 @@ class MMCResults:
         """Get a list of names of all tallied quantities available."""
         return sorted(self.__data['output']['tally'].keys())
 
+    def __repr__( self ):
+        return str(self)
+
+    def __str__( self ):
+        s = self.setup['src']['cfgstr']
+        g = self.setup['geom']['cfgstr']
+        e = self.setup['engine']['cfgstr']
+        return f'MMCResults(srccfg="{s}",geomcfg="{g}",enginecfg="{e}")'
+
     @property
     def tallies( self ):
         """List of all available tallies, in the form of MMCTallyView
@@ -157,6 +166,34 @@ class MMCResults:
         n = self.output_metadata['tallied']['count']
         r = f'{r} ({n} fills)'
         return f'{r} ("{e}")' if e else r
+
+    def plot(self, **kwargs):
+        """Loops over all tallies and plots them, passing along any kwargs. The
+        same functionality can be obtained by (if the current results object is
+        "results"):
+
+        for t in results.tallies:
+            t.plot(**kwargs)
+
+        """
+        p = False
+        for t in self.tallies:
+            p = True
+            t.plot(**kwargs)
+        if not p:
+            from ._common import ncwarn
+            ncwarn('No tallies were enabled.')
+
+    def plot_xsect(self, **kwargs):
+        """Plots the material cross sections with the plot_xsect function from
+        the NCrystal.plot module (passing along any kwargs). This is the same
+        as (if the current results object is "results"):
+
+        from NCrystal.plot import plot_xsect
+        plot_xsect(results.setup['material']['cfgstr'],**kwargs)
+        """
+        from .plot import plot_xsect
+        return plot_xsect(self.setup['material']['cfgstr'])
 
     def dump( self, do_print = True, prefix = '',
               tally_filter_fct = None ):
@@ -279,7 +316,7 @@ class MMCTallyView:
         an empty string for unit-less quantities.
         """
         from ._mmc_impl import tally_info
-        return tally_info()['tallyhistinfo'][self.name]['unit']
+        return tally_info()['hists'][self.name]['unit']
 
     @property
     def short_description( self ):
@@ -287,7 +324,7 @@ class MMCTallyView:
         like "wavelength" or "cosine scattering angle".
         """
         from ._mmc_impl import tally_info
-        return tally_info()['tallyhistinfo'][self.name]['short_descr']
+        return tally_info()['hists'][self.name]['short_descr']
 
     def _raw_data( self ):
         return self.__data
@@ -395,7 +432,8 @@ class MMCTallyView:
         If title is None, "auto" or "short", a short title will be auto
         generated. If it is "long", a longer title with full configuration
         strings will be used. If title is "none" or False, no title will be
-        shown.
+        shown. Finally, any other non-empty string provided will simply become
+        the title.
 
         The max_nbins or rebin_factor parameters can be used to reduce the
         binning granularity. For instance, setting max_nbins=100 will ensure
@@ -414,13 +452,14 @@ class MMCTallyView:
 
         The return value of the function is the plt object actually used
         (normally matplotlib.pyplot).
+
         """
 
-        title = ( self.__mmcresults.short_title(latex=True)
-                  if title in (None,'auto','short')
-                  else ( self.__mmcresults.long_title(latex=True)
-                         if title=='long'
-                         else str(title) ) )
+        if title in (None,'auto','short'):
+            title = self.__mmcresults.short_title(latex=True)
+        elif title == 'long':
+            title = self.__mmcresults.long_title(latex=True)
+        title = (title or '').strip() or False
 
         from ._mmc_impl import _plot_tally
         _plot_tally( self.__mmcresults._raw_data(),

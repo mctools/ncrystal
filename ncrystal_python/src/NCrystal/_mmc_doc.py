@@ -117,8 +117,8 @@ def check_keys(d,*keys):
 
 def gendoc_engine( data, **kwargs ):
     doc = DocHelper('MiniMC engine cfg-strings', **kwargs)
-    check_keys( data,'intro_text','cfgparams','tallyhistinfo')
-    #fixme: 'examples' as well^^^ (+ use tallyhistinfo?)!!!
+    check_keys( data,'intro_text','cfgparams','tallyinfo')
+    #fixme: 'examples' as well^^^
     doc.add_wrap(data['intro_text'])
     d_params = data['cfgparams']
     pnames = sorted(data['cfgparams'].keys())
@@ -138,7 +138,31 @@ def gendoc_engine( data, **kwargs ):
                                   line_prefix = '  ' )
         doc.add_empty()
 
-
+    doc.add_title('Tally overview')
+    hi = data['tallyinfo']['hists']
+    h = set(hi.keys())
+    doc.add_wrap(' '.join(f"""Currently {len(h)} different quantities are
+    available for tallying in histograms as the neutron leaves the geometry
+    during a MiniMC simulation. The "tally" parameter is used to select which
+    such histograms to produce. Refer also to the parameters "tallybins",
+    "tallyref", and "tallybreakdown" which all affects the details of how
+    quantities are defined and histogrammed.""".split()))
+    doc.add_empty()
+    doc.add_line("The available tally quantities are:")
+    ll = []
+    maxe = 1 if doc.is_wiki else max(len(e) for e in h)
+    tt='`' if doc.is_wiki else ''
+    for e in sorted(h):
+        line = f'{tt}{e.rjust(maxe)}{tt} : {hi[e]["short_descr"]}'
+        unit = hi[e]["unit"]
+        if unit:
+            line += f' ({unit})'
+        ll.append(line)
+    if doc.is_wiki:
+        doc.add_simple_list(*ll)
+    else:
+        for e in ll:
+            doc.add_line(e)
     return doc
 
 def gendoc_geom( data, **kwargs ):
@@ -189,7 +213,7 @@ def gendoc_src( data, **kwargs ):
     doc.add_wrap(data['intro_text'])
 
     def print_example_list( list_ex_descr ):
-        for ex,descr in list_ex_descr:
+        for ex, descr in list_ex_descr:
             if doc.is_wiki:
                 doc.add_line( '* `"%s"`'%ex )
                 doc.add_empty()

@@ -763,8 +763,8 @@ void NCMMC::engineOptsDocsToJSON( std::ostream& os )
              " more details refer to the specific parameters below.");
   os << ",\"cfgparams\":";
   engineOptsDocsToJSON_OptionList(os);
-  os << ",\"tallyhistinfo\":";
-  tallyHistDescrToJSON(os);
+  os << ",\"tallyinfo\":";
+  tallyHistInfoToJSON(os);
   os << '}';
 }
 
@@ -785,9 +785,9 @@ NCMMC::TallyHistDescr NCMMC::getTallyHistDescr( TallyFlags f )
   return getTallyHistDescrImpl( idx );
 }
 
-void NCMMC::tallyHistDescrToJSON( std::ostream& os )
+void NCMMC::tallyHistInfoToJSON( std::ostream& os )
 {
-  os<<'{';
+  os << "{\"hists\":{";
   bool first = true;
   for ( int i = 0; i < TallyFlagsStrDB::n; ++i ) {
     if ( !( TallyFlagsStrDB::vals[i] & TallyFlags::Flags::ALLHISTS ) )
@@ -803,5 +803,15 @@ void NCMMC::tallyHistDescrToJSON( std::ostream& os )
     streamJSONDictEntry( os, "short_descr", info.shortDescription );
     streamJSONDictEntry( os, "unit", info.unit, JSONDictPos::LAST );
   }
-  os << '}';
+  os << "},\"flags\":";
+  using TF = TallyFlags;
+  streamJSONDictEntry( os, "ALL",
+                       TF(TF::Flags::ALL).toStringList(),
+                       JSONDictPos::FIRST );
+  streamJSONDictEntry( os, "DEFAULT",
+                       TF(TF::Flags::DEFAULT).toStringList() );
+  streamJSONDictEntry( os, "ALLHISTS",
+                       TF(TF::Flags::ALLHISTS).toStringList(),
+                       JSONDictPos::LAST );
+  os << "}";
 }

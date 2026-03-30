@@ -392,7 +392,10 @@ def _create_pyplot_inspector( pass_calls_to_real_plt ):
                                                              'set_xlabel',
                                                              'set_ylabel',
                                                              'set_ylim',
-                                                             'set_xlim'] ) ),
+                                                             'set_xlim',
+                                                             'legend',
+                                                             'semilogx',
+                                                             'semilogy'] ) ),
                                      ] )
 
 def _create_pdfpages_inspector( real_pdfpages ):

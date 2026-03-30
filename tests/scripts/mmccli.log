@@ -259,6 +259,26 @@ Parameter reference
                                rather than energy will be used where that makes
                                a difference.
                                Example values: "truth", "src"
+
+Tally overview
+--------------
+
+Currently 9 different quantities are available for tallying in histograms as the
+neutron leaves the geometry during a MiniMC simulation. The "tally" parameter is
+used to select which such histograms to produce. Refer also to the parameters
+"tallybins", "tallyref", and "tallybreakdown" which all affects the details of
+how quantities are defined and histogrammed.
+
+The available tally quantities are:
+      de : energy loss (eV)
+       e : energy (eV)
+       l : wavelength (Aa)
+      mu : cosine scattering angle
+   nscat : number of scatterings
+nscat_uw : unweighted number of scatterings
+       q : scattering vector (1/Aa)
+   theta : scattering angle (degree)
+       w : weight
 ===========================================
 ============= CLI >>--srccfg=help<< ====================
 MiniMC source cfg-strings

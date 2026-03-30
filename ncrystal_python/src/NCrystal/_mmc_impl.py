@@ -25,7 +25,8 @@ from .exceptions import NCBadInput
 _breakdown_colors = {
     'SINGLESCAT_ELAS' : 'blue',
     'SINGLESCAT_INELAS' : 'orangered',
-    'MULTISCAT_PUREELAS' : 'cornflowerblue',
+    #Used to be cornflowerblue, but was too hard to tell apart in some cases:
+    'MULTISCAT_PUREELAS' : 'lightblue',
     'MULTISCAT_OTHER' : 'orange',
     'NOSCAT' : 'green',
 }
@@ -62,9 +63,8 @@ def run( *, resclass, unpack,
                   + ( 1 if srccfg is not None else 0 ) )
     assert n_geomsrc in (0,1,2)
     if n_geomsrc == 0 and scenario is None:
-        raise NCBadInput('Missing required parameters for geometry and source'
-                         '. Please supply either a scenario string,'
-                         ' or both of geomcfg + srccfg strings.')
+        #Just a cfgstring => allow this and default to an empty scenario string.
+        scenario = ''
     if n_geomsrc and scenario is not None:
         raise NCBadInput('Inconsistent parameters. Do not supply geomcfg or'
                          ' srccfg when also supplying a scenario string.')
@@ -206,8 +206,7 @@ def _determine_rebin_factor( current_nbins,
 def _plot_tally( minimcresults_dict, tallyname,
                  do_legend, breakdown, max_nbins, rebin_factor,
                  do_show, do_newfig, do_grid, logy, title, plt, axis ):
-
-    from .plot import _import_matplotlib_plt, _plt_final
+    from .plot import _import_matplotlib_plt, _plot_final
     from .hist import Hist1D
     assert isinstance(minimcresults_dict,dict)
     assert minimcresults_dict.get('datatype') == 'NCrystalMiniMCResults_v1'
@@ -218,7 +217,13 @@ def _plot_tally( minimcresults_dict, tallyname,
     if not avail_tallies:
         raise NCBadInput('MiniMC results has no tallies!')
 
-    do_title = not ( not title or title=='none' )
+    #Handle title (end up as 0 (off), 1 (auto), or a non-empty string (the
+    #title):
+    if title and title!='none':
+        if not isinstance(title,str):
+            title = 1
+    else:
+        title = 0
 
     if tallyname not in avail_tallies:
         raise NCBadInput('Requested tally "%s" not available.'%tallyname)
@@ -378,14 +383,14 @@ def _plot_tally( minimcresults_dict, tallyname,
     else:
         lbl = 'All outgoing %s'%_fractionval_fmt(nonabsfrac)
         label_order.append(lbl)
-        mainhist.plot( plt=plt, do_show = False, label=lbl)
-        if do_title and not title and mainhist.title:
-            axis.set_title(mainhist.title)
+        mainhist.plot( plt=plt, do_show = False, label=lbl, title=False)
+        if title == 1:
+            title = mainhist.title or 0
         if not logy:
             axis.set_ylim(0.0)
 
     from ._mmc_impl import tally_info
-    t_info = tally_info()['tallyhistinfo'][tallyname]
+    t_info = tally_info()['hists'][tallyname]
     xlbl = t_info['short_descr'].capitalize()
     if t_info['unit']:
         xlbl += ' (%s)'%t_info['unit']
@@ -395,7 +400,7 @@ def _plot_tally( minimcresults_dict, tallyname,
         axis.set_xticks(_np_linspace(0.0,180.0,180//30+1))
         axis.set_xticks(_np_linspace(0.0,180.0,180//15+1),minor=True)
     axis.set_ylabel('Intensity (arbitrary units)')
-    if do_title:
+    if title and isinstance(title,str):
         axis.set_title(title)
 
     if absfrac > 0.0:
@@ -423,11 +428,12 @@ def _plot_tally( minimcresults_dict, tallyname,
         _ = sorted([hl for hl in zip(handles,labels)],
                    key = lambda hl : label_order.index(hl[1]))
         handles, labels = [hl[0] for hl in _], [hl[1] for hl in _]
-        plt.legend(handles,labels)
+        axis.legend(handles,labels)
 
-    return _plt_final(do_grid = do_grid,
-                      do_legend = False,#plt.legend was already called above
-                      do_show = do_show,
-                      logx = False,
-                      logy = logy,
-                      plt = plt )
+    return _plot_final(do_grid = do_grid,
+                       do_legend = False,#axis.legend was already called above
+                       do_show = do_show,
+                       logx = False,
+                       logy = logy,
+                       axis = axis,
+                       plt = plt )

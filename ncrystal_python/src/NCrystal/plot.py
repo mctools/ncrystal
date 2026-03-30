@@ -426,6 +426,36 @@ def _plt_final(do_grid,
         plt.show()
     return plt
 
+#Like plt_final, but axis-centric instead.  TODO: Move to always use this
+#instead?? Perhaps we should instead have an abstraction class, between our code
+#and matplotlib.
+def _plot_final(do_grid,
+                do_legend,
+                do_show, *,
+                logx=False,
+                logy=False,
+                axis=None,
+                plt=None,
+                extra_legend_kwargs = None ):
+    needs_plt = (do_show or axis is None)
+    if needs_plt and plt is None:
+        plt = _import_matplotlib_plt()
+    if axis is None:
+        axis = plt.gca()
+    if logx:
+        axis.semilogx()
+    if logy:
+        axis.semilogy()
+    if do_legend:
+        leg=axis.legend(**(extra_legend_kwargs or {}))
+        if do_legend=='draggable':
+            leg.set_draggable(True)
+    if do_grid:
+        axis.grid()
+    if do_show:
+        plt.show()
+    return plt
+
 _fakepyplot_mode_cache = [None]
 def _fakepyplot_mode():
     if _fakepyplot_mode_cache[0] is None:

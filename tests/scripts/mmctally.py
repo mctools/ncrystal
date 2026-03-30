@@ -31,7 +31,9 @@ def main():
 
     enableFactoryThreads(3)
     tallies = ('de', 'e', 'l', 'mu', 'nscat', 'nscat_uw', 'q', 'theta', 'w')
-    assert tallies == tally_info()['tallylists']['ALLHISTS']
+    import pprint
+    pprint.pp(tally_info())
+    assert tallies == tally_info()['flags']['ALLHISTS']
 
     #Test all tallies:
     for tally in tallies:

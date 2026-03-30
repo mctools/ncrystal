@@ -149,10 +149,11 @@ def main(do_plot, do_update):
     def plotcmp( h, href, title ):
         href.plot(
             do_show=False,error_bands=1.0,
-            alpha=0.3,color='blue',label='ref'
+            alpha=0.3,color='blue',label='ref',
+            title=False
         )
         plt=h.plot(
-            do_show=False,color='none',logy=True,label='new'
+            do_show=False,color='none',logy=True,label='new',title=False
         )
         plt.title(title)
         plt.legend()
@@ -324,10 +325,7 @@ def main(do_plot, do_update):
     runerr( 'Inconsistent parameters. Do not supply callback_options'
             ' without a callback function.',
             'void.ncmat', scenario='', callback_options='' )
-    runerr( 'Missing required parameters for geometry and source. Please'
-            ' supply either a scenario string, or both of geomcfg'
-            ' + srccfg strings.',
-            'void.ncmat' )
+    mmc_run('void.ncmat')#just a cfgstring => scenario string is an empty string
     runerr( 'Inconsistent parameters. Do not supply geomcfg or'
             ' srccfg when also supplying a scenario string.',
             'void.ncmat', scenario='2Aa',srccfg='constant;wl=1.8')
@@ -352,6 +350,13 @@ def main(do_plot, do_update):
     runerr( 'Missing geomcfg parameter.',
             'void.ncmat', srccfg='constant;wl=1.8' )
     assert not MMCResults(r).check_compat(resA)
+
+    #Test plot without breakdown:
+    assert 'tallybreakdown=0' in kw['enginecfg']
+    r = mmc_run(**kw)
+    r.tally('e').plot()
+    r.tally('e').plot(logy=None,title=False)
+    r.tally('e').plot(title='my title')
 
 if __name__ == '__main__':
     import sys

@@ -595,13 +595,15 @@ class Hist1D:
               contents = 'auto',
               highres = False,
               do_print = True, ):
-        """Returns an overview of the histogram in printable string form,
+        """Creates an overview of the histogram in printable string form,
         optionally prefixing each line with provided prefix. If do_print is
-        True, this will also be printed directly. By default, the contents of
-        the histogram will only be included in case of 50 or fewer bins. Setting
-        contents to True or False can be used to explicitly override this.  If
-        highres is True, all floating point numbers will be printed with full
+        True, this will be printed directly, and otherwise it will be
+        returned. By default, the contents of the histogram will only be
+        included in case of 50 or fewer bins. Setting contents to True or False
+        can be used to explicitly override this.  If highres is True, all
+        floating point numbers will be printed with full
         precision. Alternatively it can be a fmt string like '%.10g'.
+
         """
         if contents == 'auto':
             contents = self.nbins <= 50
@@ -656,7 +658,8 @@ class Hist1D:
         if do_print:
             from ._common import print as ncprint
             ncprint(result,end='')
-        return result
+        else:
+            return result
 
     def _hist_curve( self ):
         be = self.binedges
@@ -707,7 +710,8 @@ class Hist1D:
 
     def plot( self, plt=None, axis=None, label=None,
               show_errors=True, do_show = True, set_xlim = True,
-              logy = False, error_bands = None, alpha = None, color = None ):
+              logy = False, error_bands = None, alpha = None, color = None,
+              title = True ):
         """Produce a matplotlib plot of the histogram. If plt is None,
         matplotlib.pyplot is used. If axis is None, plt.gca() is used. Unless
         do_show is False, plt.show() wil be called ultimately. The show_errors,
@@ -717,7 +721,11 @@ class Hist1D:
         If error bands is set to a positive value, the curve and errors are
         instead shown as a coloured band spanning y_i +- error_bands*yerr_i.
 
+        The title parameter can be True, False, or a string. If not False, a
+        title will be added to the plot.
+
         Returns plt object used.
+
         """
         if not plt and not axis:
             from .plot import _import_matplotlib_plt
@@ -748,6 +756,10 @@ class Hist1D:
             axis.set_xlim(xmin-1e-6*binwidth,xmax+1e-6*binwidth)
         if logy:
             axis.semilogy()
+        if title:
+            t = title if isinstance(title,str) else self.title
+            if t:
+                axis.set_title(t)
         if do_show and plt:
             plt.show()
         return plt
@@ -959,6 +971,7 @@ class HistFiller1D:
         self.__bin_edges = _np_linspace(xmin, xmax, nbins+1)
         self.__sumw = _np.zeros(nbins, dtype=float)
         self.__sumw2 = _np.zeros(nbins, dtype=float)
+        self.__count = 0
 
     @property
     def binning( self ):
@@ -969,6 +982,11 @@ class HistFiller1D:
     def integral( self ):
         """Calculates total sum of weights filled within [xmin,xmax]."""
         return self.__sumw.sum()
+
+    @property
+    def count( self ):
+        """Total number of fills (an integer) done within the bin range."""
+        return self.__count
 
     def clone_empty( self, title = None ):
         """Create a new HistFiller1D object with the same binning. Unless a new
@@ -986,12 +1004,14 @@ class HistFiller1D:
         h = self.clone_empty(title=title)
         h.__sumw = self.__sumw.copy()
         h.__sumw2 = self.__sumw2.copy()
+        h.__count = self.__count
         return h
 
     def reset( self ):
         """Reset histogram contents, as if no data was never filled into it."""
         self.__sumw.fill(0.0)
         self.__sumw2.fill(0.0)
+        self.__count = 0
         return self
 
     def fill(self, values, weights = None):
@@ -1008,6 +1028,7 @@ class HistFiller1D:
         n = len(x)
         if n==0:
             return
+        self.__count += n
         #For fixed bins, _np.bincount is a lot faster than _np.histogram:
         idxs = ((x - self.__xmin)*self.__invbw).astype(int)
         idxs = _np.clip(idxs, 0, self.__nbins - 1)
@@ -1033,6 +1054,7 @@ class HistFiller1D:
             raise NCBadInput('Incompatible binnings')
         self.__sumw += other_hist.__sumw
         self.__sumw2 += other_hist.__sumw2
+        self.__count += other_hist.__count
         return self
 
     def bindata( self, json_compat = False ):
@@ -1055,7 +1077,8 @@ class HistFiller1D:
         dictionary will contain lists rather than numpy arrays.
         """
         return dict ( title = self.__title,
-                      bindata = self.bindata(json_compat=json_compat) )
+                      bindata = self.bindata(json_compat=json_compat),
+                      count = self.__count )
 
     def to_hist1d(self):
         """Initialise and return a Hist1D object representing this one."""

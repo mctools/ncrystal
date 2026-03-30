@@ -86,7 +86,7 @@ namespace NCRYSTAL_NAMESPACE {
     };
     TallyHistDescr getTallyHistDescr( TallyFlags );
     //Or for all histograms as JSON:
-    void tallyHistDescrToJSON( std::ostream& );
+    void tallyHistInfoToJSON( std::ostream& );
 
 
     class TallyBinningOverrides final {

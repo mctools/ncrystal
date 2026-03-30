@@ -147,19 +147,7 @@ void NCMMC::Query::JSONQuery_flexmmcrun( std::ostream& os,
     } else if ( arg(0) == "engine" ) {
       engineOptsDocsToJSON( os );
     } else if ( arg(0) == "tally" ) {
-      os << "{\"tallyhistinfo\":";
-      tallyHistDescrToJSON(os);
-      os << ",\"tallylists\":";
-      using TF = TallyFlags;
-      streamJSONDictEntry( os, "ALL",
-                           TF(TF::Flags::ALL).toStringList(),
-                           JSONDictPos::FIRST );
-      streamJSONDictEntry( os, "DEFAULT",
-                           TF(TF::Flags::DEFAULT).toStringList() );
-      streamJSONDictEntry( os, "ALLHISTS",
-                           TF(TF::Flags::ALLHISTS).toStringList(),
-                           JSONDictPos::LAST );
-      os << '}';
+      tallyHistInfoToJSON(os);
     } else {
       invalid(usage);
     }

@@ -41,7 +41,7 @@ def parseArgs( progname, arglist, return_parser=False ):
     import shlex
     import pathlib
 
-    tallylists = ncmmc.tally_info()['tallylists']
+    tallylists = ncmmc.tally_info()['flags']
     tallyhistavail_str = ', '.join(tallylists['ALLHISTS'])
     #--full-help keyword needs special workarounds:
     is_fullhelp = any( ( a.startswith('--fu')
@@ -374,10 +374,10 @@ def main( progname, arglist ):
 
 def print_tally_help():
     from . import minimc as ncmmc
-    tallylists = ncmmc.tally_info()['tallylists']
+    tallylists = ncmmc.tally_info()['flags']
     h = set(tallylists['ALLHISTS'])
     a = set(tallylists['ALL'])
-    hi = ncmmc.tally_info()['tallyhistinfo']
+    hi = ncmmc.tally_info()['hists']
     print("Available tally quantities:")
     maxe = max(len(e) for e in h)
     for e in sorted(h):
