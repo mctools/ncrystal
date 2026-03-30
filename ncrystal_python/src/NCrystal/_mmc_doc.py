@@ -118,7 +118,6 @@ def check_keys(d,*keys):
 def gendoc_engine( data, **kwargs ):
     doc = DocHelper('MiniMC engine cfg-strings', **kwargs)
     check_keys( data,'intro_text','cfgparams','tallyinfo')
-    #fixme: 'examples' as well^^^
     doc.add_wrap(data['intro_text'])
     d_params = data['cfgparams']
     pnames = sorted(data['cfgparams'].keys())
@@ -129,7 +128,7 @@ def gendoc_engine( data, **kwargs ):
         defval = pd['default_value']# '0'
         exvals = pd['example_values']# ['0', '1']
         descr_s = pd['descr_short']
-        assert len(descr_s)<80#fixme shorter?
+        assert len(descr_s)<=70
         descr_l = pd['descr_long']
         doc.add_param_list_entry( pn, descr_l,
                                   defval=defval,
@@ -167,10 +166,14 @@ def gendoc_engine( data, **kwargs ):
 
 def gendoc_geom( data, **kwargs ):
     doc = DocHelper('MiniMC geometry cfg-strings', **kwargs)
-    check_keys( data,'intro_text','geom_list' ) #fixme: 'examples'!!!
+    check_keys( data,'intro_text','geom_list','examples' )
     doc.add_wrap(data['intro_text'])
+    doc.add_title('Geometry examples')
+    doc.add_wrap('Here follows a few examples of how one can set the geometry using the geomcfg string parameter. Note that geometry length values are always to be specified in meters:')
+    doc.add_empty()
+    _print_example_list(doc,data['examples'])
     doc.add_title('Specific geometries available')
-    doc.add_wrap('The available geometries are:')
+    doc.add_wrap('The full list of available geometries and their parameters:')
     nmax = max(len(geom['name']) for geom in data['geom_list'])
     for geom in sorted( data['geom_list'],
                         key = lambda e : e['sort_key'] ):
@@ -199,6 +202,17 @@ def gendoc_geom( data, **kwargs ):
                                       line_prefix = f'{titlesp} ' )
     return doc
 
+def _print_example_list( doc, list_ex_descr ):
+    for ex, descr in list_ex_descr:
+        if doc.is_wiki:
+            doc.add_line( '* `"%s"`'%ex )
+            doc.add_empty()
+            doc.add_line(f'    {descr}')
+        else:
+            doc.add_line('  "%s":'%ex)
+            doc.add_wrap('      ',descr)
+        doc.add_empty()
+
 
 def gendoc_src( data, **kwargs ):
     doc = DocHelper('MiniMC source cfg-strings', **kwargs)
@@ -212,19 +226,9 @@ def gendoc_src( data, **kwargs ):
                 'commonpars_list' )
     doc.add_wrap(data['intro_text'])
 
-    def print_example_list( list_ex_descr ):
-        for ex, descr in list_ex_descr:
-            if doc.is_wiki:
-                doc.add_line( '* `"%s"`'%ex )
-                doc.add_empty()
-                doc.add_line(f'    {descr}')
-            else:
-                doc.add_line('  "%s":'%ex)
-                doc.add_wrap('      ',descr)
-            doc.add_empty()
 
     doc.add_title('Quick usage examples')
-    print_example_list(data['examples'])
+    _print_example_list(doc,data['examples'])
 
     doc.add_title('Parameters common to all sources')
     doc.add_wrap(data['commonpars_descr'])
@@ -233,7 +237,7 @@ def gendoc_src( data, **kwargs ):
     doc.add_wrap(data['commonpars_energy_descr'])
 
     doc.add_empty()
-    print_example_list(data['commonpars_energy_examples'])
+    _print_example_list(doc,data['commonpars_energy_examples'])
 
     doc.add_title('Specific sources available')
     doc.add_wrap('The available sources are:')

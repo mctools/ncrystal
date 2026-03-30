@@ -882,19 +882,19 @@ class Hist1D:
         c1,e1 = s.contents, s.errors
         c2,e2 = o.contents, o.errors
 
-        #use mask to avoid zero division warnings in bins with no content in
-        #either dataset (fixme: could this let something slip through??):
+        #use mask to avoid zero division warnings in bins where both datasets
+        #have no content.
         mask = (e1>0.0) | (e2>0.0)
         c1, e1, c2, e2 = c1[mask], e1[mask], c2[mask], e2[mask]
 
-        if len(c1) > 0:
+        n = len(c1)
+        if n > 0:
             c1sum = c1.sum()+(s.underflow or 0.0)+(s.overflow or 0.0)
             c2sum = c2.sum()+(o.underflow or 0.0)+(o.overflow or 0.0)
             assert (c1sum-c2sum)<1e-5*(c1sum+c2sum),"must be normalised"
             chi_squared = ( (c1-c2)**2 / (e1**2 + e2**2) ).sum()
         else:
             chi_squared = 0.0
-        n = len(c1)
         if s.has_flow:
             n += 2
             a, b = 0.0, 0.0

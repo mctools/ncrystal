@@ -27,13 +27,28 @@ import numpy # noqa F401 (before fpe)
 import NCTestUtils.enable_fpe # noqa F401
 from NCrystalDev.core import NCBadInput
 from NCTestUtils.common import ensure_error
+import pprint
 
 def test(*query):
     print()
     print(">>> Sending query: %s"%repr(list(e for e in query)))
     r = ncquery(query)
-    import pprint
-    pprint.pprint(r)
+    pprint.pp(r)
+
+def test_examples(subject):
+    assert subject in ('geom','src','srcenergy')
+    is_cpe = False
+    if subject=='srcenergy':
+        is_cpe = True
+        subject = 'src'
+
+
+    exlist = ncquery(['mmc','cfgdoc',subject])['commonpars_energy_examples'
+                                               if is_cpe else 'examples']
+    for exval, descr in exlist:
+        if is_cpe:
+            exval=f'constant;{exval}'
+        test('mmc','inspectcfg',subject,exval)
 
 def main():
 
@@ -181,6 +196,10 @@ def main():
     test('mmc','cfgdoc','src')
     test('mmc','cfgdoc','engine')
     test('mmc','cfgdoc','tally')
+
+    test_examples('geom')
+    test_examples('src')
+    test_examples('srcenergy')
 
 
 if __name__ == '__main__':

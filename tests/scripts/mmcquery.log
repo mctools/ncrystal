@@ -66,158 +66,158 @@ Caught expected NCBadInput('Invalid src cfg: ""')
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0']
 {'cfgstr': 'constant;n=1e6;z=-10;wl=2',
- 'decoded': {'ekin': None,
+ 'decoded': {'name': 'constant',
              'n': 1000000,
-             'name': 'constant',
-             'ux': 0.0,
-             'uy': 0.0,
-             'uz': 1.0,
-             'w': 1.0,
-             'wl': {'mode': 'fixed', 'value': 2.0},
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0},
- 'metadata': {'energy_description': '2Aa',
-              'fixed_dir': [0.0, 0.0, 1.0],
+             'z': -10.0,
+             'w': 1.0,
+             'wl': {'mode': 'fixed', 'value': 2.0},
+             'ekin': None,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
               'fixed_energy': 0.020451052401332725,
               'mean_dir': [0.0, 0.0, 1.0],
-              'mean_energy': 0.020451052401332725}}
+              'mean_energy': 0.020451052401332725,
+              'energy_description': '2Aa'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'isotropic; z=-10;ekin=0.025']
 {'cfgstr': 'isotropic;n=1e6;z=-10;ekin=0.025',
- 'decoded': {'ekin': {'mode': 'fixed', 'value': 0.025},
+ 'decoded': {'name': 'isotropic',
              'n': 1000000,
-             'name': 'isotropic',
-             'r': 0.0,
-             'w': 1.0,
-             'wl': None,
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0},
- 'metadata': {'energy_description': '0.025eV',
-              'fixed_dir': None,
+             'z': -10.0,
+             'w': 1.0,
+             'wl': None,
+             'ekin': {'mode': 'fixed', 'value': 0.025},
+             'r': 0.0},
+ 'metadata': {'fixed_dir': None,
               'fixed_energy': 0.025,
               'mean_dir': None,
-              'mean_energy': 0.025}}
+              'mean_energy': 0.025,
+              'energy_description': '0.025eV'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'circular; r=0.1;z=-1;wl=1.8;ux=1']
 {'cfgstr': 'circular;n=1e6;z=-1;wl=1.8;ux=0.70710678118654746;uy=0;uz=0.70710678118654746;r=0.1',
- 'decoded': {'ekin': None,
+ 'decoded': {'name': 'circular',
              'n': 1000000,
-             'name': 'circular',
-             'r': 0.1,
+             'x': 0.0,
+             'y': 0.0,
+             'z': -1.0,
+             'w': 1.0,
+             'wl': {'mode': 'fixed', 'value': 1.8},
+             'ekin': None,
              'ux': 0.7071067811865475,
              'uy': 0.0,
              'uz': 0.7071067811865475,
-             'w': 1.0,
-             'wl': {'mode': 'fixed', 'value': 1.8},
-             'x': 0.0,
-             'y': 0.0,
-             'z': -1.0},
- 'metadata': {'energy_description': '1.8Aa',
-              'fixed_dir': [0.7071067811865475, 0.0, 0.7071067811865475],
+             'r': 0.1},
+ 'metadata': {'fixed_dir': [0.7071067811865475, 0.0, 0.7071067811865475],
               'fixed_energy': 0.025248212841151512,
               'mean_dir': [0.7071067811865475, 0.0, 0.7071067811865475],
-              'mean_energy': 0.025248212841151512}}
+              'mean_energy': 0.025248212841151512,
+              'energy_description': '1.8Aa'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0-3.0']
 {'cfgstr': 'constant;n=1e6;z=-10;wl=2-3',
- 'decoded': {'ekin': None,
+ 'decoded': {'name': 'constant',
              'n': 1000000,
-             'name': 'constant',
-             'ux': 0.0,
-             'uy': 0.0,
-             'uz': 1.0,
-             'w': 1.0,
-             'wl': {'mode': 'uniformrange',
-                    'range_high': 3.0,
-                    'range_low': 2.0},
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0},
- 'metadata': {'energy_description': '(2-3)Aa',
-              'fixed_dir': [0.0, 0.0, 1.0],
+             'z': -10.0,
+             'w': 1.0,
+             'wl': {'mode': 'uniformrange',
+                    'range_low': 2.0,
+                    'range_high': 3.0},
+             'ekin': None,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
               'fixed_energy': None,
               'mean_dir': [0.0, 0.0, 1.0],
-              'mean_energy': 0.013088673536852944}}
+              'mean_energy': 0.013088673536852944,
+              'energy_description': '(2-3)Aa'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=0.025-1.0']
 {'cfgstr': 'constant;n=1e6;z=-10;ekin=0.025-1',
- 'decoded': {'ekin': {'mode': 'uniformrange',
-                      'range_high': 1.0,
-                      'range_low': 0.025},
+ 'decoded': {'name': 'constant',
              'n': 1000000,
-             'name': 'constant',
-             'ux': 0.0,
-             'uy': 0.0,
-             'uz': 1.0,
-             'w': 1.0,
-             'wl': None,
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0},
- 'metadata': {'energy_description': '(0.025-1)eV',
-              'fixed_dir': [0.0, 0.0, 1.0],
+             'z': -10.0,
+             'w': 1.0,
+             'wl': None,
+             'ekin': {'mode': 'uniformrange',
+                      'range_low': 0.025,
+                      'range_high': 1.0},
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
               'fixed_energy': None,
               'mean_dir': [0.0, 0.0, 1.0],
-              'mean_energy': 0.5125}}
+              'mean_energy': 0.5125,
+              'energy_description': '(0.025-1)eV'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;wl=2.0+-0.1']
 {'cfgstr': 'constant;n=1e6;z=-10;wl=2+-0.1',
- 'decoded': {'ekin': None,
+ 'decoded': {'name': 'constant',
              'n': 1000000,
-             'name': 'constant',
-             'ux': 0.0,
-             'uy': 0.0,
-             'uz': 1.0,
-             'w': 1.0,
-             'wl': {'mean': 2.0, 'mode': 'lognormal', 'rms': 0.1},
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0},
- 'metadata': {'energy_description': '(2+-0.1)Aa',
-              'fixed_dir': [0.0, 0.0, 1.0],
+             'z': -10.0,
+             'w': 1.0,
+             'wl': {'mode': 'lognormal', 'mean': 2.0, 'rms': 0.1},
+             'ekin': None,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
               'fixed_energy': None,
               'mean_dir': [0.0, 0.0, 1.0],
-              'mean_energy': 0.020451052401332725}}
+              'mean_energy': 0.020451052401332725,
+              'energy_description': '(2+-0.1)Aa'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=0.025+-0.001']
 {'cfgstr': 'constant;n=1e6;z=-10;ekin=0.025+-0.001',
- 'decoded': {'ekin': {'mean': 0.025, 'mode': 'lognormal', 'rms': 0.001},
+ 'decoded': {'name': 'constant',
              'n': 1000000,
-             'name': 'constant',
-             'ux': 0.0,
-             'uy': 0.0,
-             'uz': 1.0,
-             'w': 1.0,
-             'wl': None,
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0},
- 'metadata': {'energy_description': '(0.025+-0.001)eV',
-              'fixed_dir': [0.0, 0.0, 1.0],
+             'z': -10.0,
+             'w': 1.0,
+             'wl': None,
+             'ekin': {'mode': 'lognormal', 'mean': 0.025, 'rms': 0.001},
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
               'fixed_energy': None,
               'mean_dir': [0.0, 0.0, 1.0],
-              'mean_energy': 0.025}}
+              'mean_energy': 0.025,
+              'energy_description': '(0.025+-0.001)eV'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=thermal:50K']
 {'cfgstr': 'constant;n=1e6;z=-10;ekin=thermal:50K',
- 'decoded': {'ekin': {'mode': 'maxwell', 'temperature': 50.0},
+ 'decoded': {'name': 'constant',
              'n': 1000000,
-             'name': 'constant',
-             'ux': 0.0,
-             'uy': 0.0,
-             'uz': 1.0,
-             'w': 1.0,
-             'wl': None,
              'x': 0.0,
              'y': 0.0,
-             'z': -10.0},
- 'metadata': {'energy_description': 'Maxwell(50K)',
-              'fixed_dir': [0.0, 0.0, 1.0],
+             'z': -10.0,
+             'w': 1.0,
+             'wl': None,
+             'ekin': {'mode': 'maxwell', 'temperature': 50.0},
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
               'fixed_energy': None,
               'mean_dir': [0.0, 0.0, 1.0],
-              'mean_energy': 0.006462997725}}
+              'mean_energy': 0.006462997725,
+              'energy_description': 'Maxwell(50K)'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant; z=-10;ekin=1eV']
 Caught expected NCBadInput('Invalid value "1eV" for parameter "ekin". Examples for how to set: "ekin=0.025" (fixed in eV), "wl=1.8" (fixed in Aa), "ekin=0.025-0.05" (uniform range in eV), "wl=1.8-5" (uniform range in Aa), "ekin=0.025+-0.001" (log-normal of given mean and rms in eV), "wl=1.8+-0.01" (log-normal of given mean and rms in Aa), "ekin=thermal:77" (thermal Maxwell of given temperature in K).')
@@ -236,52 +236,52 @@ Caught expected NCBadInput('For a Maxwell distribution, do not use the "wl" para
 
 >>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=1e-10']
 {'cfgstr': 'slab;dz=1e-10',
- 'decoded': {'dz': 1e-10,
-             'name': 'slab',
+ 'decoded': {'name': 'slab',
+             'dz': 1e-10,
              'short_description': 'slab with thickness 0.2nm'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=2e-6']
 {'cfgstr': 'slab;dz=2e-06',
- 'decoded': {'dz': 2e-06,
-             'name': 'slab',
+ 'decoded': {'name': 'slab',
+             'dz': 2e-06,
              'short_description': 'slab with thickness 4micrometer'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=2e-3']
 {'cfgstr': 'slab;dz=0.002',
- 'decoded': {'dz': 0.002,
-             'name': 'slab',
+ 'decoded': {'name': 'slab',
+             'dz': 0.002,
              'short_description': 'slab with thickness 4mm'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=2e-2']
 {'cfgstr': 'slab;dz=0.02',
- 'decoded': {'dz': 0.02,
-             'name': 'slab',
+ 'decoded': {'name': 'slab',
+             'dz': 0.02,
              'short_description': 'slab with thickness 40mm'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=0.2']
 {'cfgstr': 'slab;dz=0.2',
- 'decoded': {'dz': 0.2,
-             'name': 'slab',
+ 'decoded': {'name': 'slab',
+             'dz': 0.2,
              'short_description': 'slab with thickness 40cm'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=10.2']
 {'cfgstr': 'slab;dz=10.2',
- 'decoded': {'dz': 10.2,
-             'name': 'slab',
+ 'decoded': {'name': 'slab',
+             'dz': 10.2,
              'short_description': 'slab with thickness 20.4m'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=2000']
 {'cfgstr': 'slab;dz=2000',
- 'decoded': {'dz': 2000.0,
-             'name': 'slab',
+ 'decoded': {'name': 'slab',
+             'dz': 2000.0,
              'short_description': 'slab with thickness 4km'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'geom', 'box;dx=1;dy=0.1;dz=0.001']
 {'cfgstr': 'box;dx=1;dy=0.1;dz=0.001',
- 'decoded': {'dx': 1.0,
+ 'decoded': {'name': 'box',
+             'dx': 1.0,
              'dy': 0.1,
              'dz': 0.001,
-             'name': 'box',
              'short_description': 'box with depth 2mm, width 2m, and height '
                                   '20cm'}}
 
@@ -293,16 +293,16 @@ Caught expected NCBadInput('For a Maxwell distribution, do not use the "wl" para
 
 >>> Sending query: ['mmc', 'inspectcfg', 'geom', 'cyl;r=0.5']
 {'cfgstr': 'cyl;r=0.5',
- 'decoded': {'dy': 0.0,
-             'name': 'cyl',
+ 'decoded': {'name': 'cyl',
              'r': 0.5,
+             'dy': 0.0,
              'short_description': 'cylinder with radius 50cm'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'geom', 'cyl;r=0.5;dy=12.0']
 {'cfgstr': 'cyl;r=0.5;dy=12',
- 'decoded': {'dy': 12.0,
-             'name': 'cyl',
+ 'decoded': {'name': 'cyl',
              'r': 0.5,
+             'dy': 12.0,
              'short_description': 'cylinder with radius 50cm and length 24m'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'whatever = 0']
@@ -312,18 +312,19 @@ Caught expected NCBadInput('Invalid parameter for chosen engine: "whatever"')
 Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" to disable breakdowns)')
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'tally=theta,theta;tallybreakdown=0']
-{'cfgstr': 'tallybreakdown=0',
- 'decoded': {'absorption': True,
+{'name': 'std',
+ 'cfgstr': 'tallybreakdown=0',
+ 'decoded': {'seed': 0,
+             'roulette': {'psurvival': 0.1,
+                          'weight_threshold': 0.01,
+                          'nscat_threshold': 2},
              'ignoremiss': False,
+             'absorption': True,
+             'tallyref': 'truth',
              'nscatlimit': None,
-             'nthreads': 'auto',
-             'roulette': {'nscat_threshold': 2,
-                          'psurvival': 0.1,
-                          'weight_threshold': 0.01},
-             'seed': 0,
              'tally': ['theta'],
-             'tallybins': {'autobin_flags': [],
-                           'overrides': {'de': None,
+             'tallybreakdown': False,
+             'tallybins': {'overrides': {'de': None,
                                          'e': None,
                                          'l': None,
                                          'mu': None,
@@ -331,24 +332,24 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'nscat_uw': None,
                                          'q': None,
                                          'theta': None,
-                                         'w': None}},
-             'tallybreakdown': False,
-             'tallyref': 'truth'},
- 'name': 'std'}
+                                         'w': None},
+                           'autobin_flags': []},
+             'nthreads': 'auto'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', '']
-{'cfgstr': '',
- 'decoded': {'absorption': True,
+{'name': 'std',
+ 'cfgstr': '',
+ 'decoded': {'seed': 0,
+             'roulette': {'psurvival': 0.1,
+                          'weight_threshold': 0.01,
+                          'nscat_threshold': 2},
              'ignoremiss': False,
+             'absorption': True,
+             'tallyref': 'truth',
              'nscatlimit': None,
-             'nthreads': 'auto',
-             'roulette': {'nscat_threshold': 2,
-                          'psurvival': 0.1,
-                          'weight_threshold': 0.01},
-             'seed': 0,
              'tally': ['theta'],
-             'tallybins': {'autobin_flags': [],
-                           'overrides': {'de': None,
+             'tallybreakdown': True,
+             'tallybins': {'overrides': {'de': None,
                                          'e': None,
                                          'l': None,
                                          'mu': None,
@@ -356,24 +357,24 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'nscat_uw': None,
                                          'q': None,
                                          'theta': None,
-                                         'w': None}},
-             'tallybreakdown': True,
-             'tallyref': 'truth'},
- 'name': 'std'}
+                                         'w': None},
+                           'autobin_flags': []},
+             'nthreads': 'auto'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'nthreads=4']
-{'cfgstr': 'nthreads=4',
- 'decoded': {'absorption': True,
+{'name': 'std',
+ 'cfgstr': 'nthreads=4',
+ 'decoded': {'seed': 0,
+             'roulette': {'psurvival': 0.1,
+                          'weight_threshold': 0.01,
+                          'nscat_threshold': 2},
              'ignoremiss': False,
+             'absorption': True,
+             'tallyref': 'truth',
              'nscatlimit': None,
-             'nthreads': 4,
-             'roulette': {'nscat_threshold': 2,
-                          'psurvival': 0.1,
-                          'weight_threshold': 0.01},
-             'seed': 0,
              'tally': ['theta'],
-             'tallybins': {'autobin_flags': [],
-                           'overrides': {'de': None,
+             'tallybreakdown': True,
+             'tallybins': {'overrides': {'de': None,
                                          'e': None,
                                          'l': None,
                                          'mu': None,
@@ -381,24 +382,24 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'nscat_uw': None,
                                          'q': None,
                                          'theta': None,
-                                         'w': None}},
-             'tallybreakdown': True,
-             'tallyref': 'truth'},
- 'name': 'std'}
+                                         'w': None},
+                           'autobin_flags': []},
+             'nthreads': 4}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'roulette=0.8,0.001,1']
-{'cfgstr': 'roulette=0.8,0.001,1',
- 'decoded': {'absorption': True,
+{'name': 'std',
+ 'cfgstr': 'roulette=0.8,0.001,1',
+ 'decoded': {'seed': 0,
+             'roulette': {'psurvival': 0.8,
+                          'weight_threshold': 0.001,
+                          'nscat_threshold': 1},
              'ignoremiss': False,
+             'absorption': True,
+             'tallyref': 'truth',
              'nscatlimit': None,
-             'nthreads': 'auto',
-             'roulette': {'nscat_threshold': 1,
-                          'psurvival': 0.8,
-                          'weight_threshold': 0.001},
-             'seed': 0,
              'tally': ['theta'],
-             'tallybins': {'autobin_flags': [],
-                           'overrides': {'de': None,
+             'tallybreakdown': True,
+             'tallybins': {'overrides': {'de': None,
                                          'e': None,
                                          'l': None,
                                          'mu': None,
@@ -406,24 +407,24 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'nscat_uw': None,
                                          'q': None,
                                          'theta': None,
-                                         'w': None}},
-             'tallybreakdown': True,
-             'tallyref': 'truth'},
- 'name': 'std'}
+                                         'w': None},
+                           'autobin_flags': []},
+             'nthreads': 'auto'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'nthreads=0 ;   ignoremiss =1']
-{'cfgstr': 'ignoremiss=1;nthreads=0',
- 'decoded': {'absorption': True,
+{'name': 'std',
+ 'cfgstr': 'ignoremiss=1;nthreads=0',
+ 'decoded': {'seed': 0,
+             'roulette': {'psurvival': 0.1,
+                          'weight_threshold': 0.01,
+                          'nscat_threshold': 2},
              'ignoremiss': True,
+             'absorption': True,
+             'tallyref': 'truth',
              'nscatlimit': None,
-             'nthreads': 0,
-             'roulette': {'nscat_threshold': 2,
-                          'psurvival': 0.1,
-                          'weight_threshold': 0.01},
-             'seed': 0,
              'tally': ['theta'],
-             'tallybins': {'autobin_flags': [],
-                           'overrides': {'de': None,
+             'tallybreakdown': True,
+             'tallybins': {'overrides': {'de': None,
                                          'e': None,
                                          'l': None,
                                          'mu': None,
@@ -431,24 +432,24 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'nscat_uw': None,
                                          'q': None,
                                          'theta': None,
-                                         'w': None}},
-             'tallybreakdown': True,
-             'tallyref': 'truth'},
- 'name': 'std'}
+                                         'w': None},
+                           'autobin_flags': []},
+             'nthreads': 0}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'std;nthreads=0;ignoremiss=1']
-{'cfgstr': 'ignoremiss=1;nthreads=0',
- 'decoded': {'absorption': True,
+{'name': 'std',
+ 'cfgstr': 'ignoremiss=1;nthreads=0',
+ 'decoded': {'seed': 0,
+             'roulette': {'psurvival': 0.1,
+                          'weight_threshold': 0.01,
+                          'nscat_threshold': 2},
              'ignoremiss': True,
+             'absorption': True,
+             'tallyref': 'truth',
              'nscatlimit': None,
-             'nthreads': 0,
-             'roulette': {'nscat_threshold': 2,
-                          'psurvival': 0.1,
-                          'weight_threshold': 0.01},
-             'seed': 0,
              'tally': ['theta'],
-             'tallybins': {'autobin_flags': [],
-                           'overrides': {'de': None,
+             'tallybreakdown': True,
+             'tallybins': {'overrides': {'de': None,
                                          'e': None,
                                          'l': None,
                                          'mu': None,
@@ -456,24 +457,24 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'nscat_uw': None,
                                          'q': None,
                                          'theta': None,
-                                         'w': None}},
-             'tallybreakdown': True,
-             'tallyref': 'truth'},
- 'name': 'std'}
+                                         'w': None},
+                           'autobin_flags': []},
+             'nthreads': 0}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', '\t  std ; nthreads=  auto  \t\n;ignoremiss= 0']
-{'cfgstr': '',
- 'decoded': {'absorption': True,
+{'name': 'std',
+ 'cfgstr': '',
+ 'decoded': {'seed': 0,
+             'roulette': {'psurvival': 0.1,
+                          'weight_threshold': 0.01,
+                          'nscat_threshold': 2},
              'ignoremiss': False,
+             'absorption': True,
+             'tallyref': 'truth',
              'nscatlimit': None,
-             'nthreads': 'auto',
-             'roulette': {'nscat_threshold': 2,
-                          'psurvival': 0.1,
-                          'weight_threshold': 0.01},
-             'seed': 0,
              'tally': ['theta'],
-             'tallybins': {'autobin_flags': [],
-                           'overrides': {'de': None,
+             'tallybreakdown': True,
+             'tallybins': {'overrides': {'de': None,
                                          'e': None,
                                          'l': None,
                                          'mu': None,
@@ -481,24 +482,24 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'nscat_uw': None,
                                          'q': None,
                                          'theta': None,
-                                         'w': None}},
-             'tallybreakdown': True,
-             'tallyref': 'truth'},
- 'name': 'std'}
+                                         'w': None},
+                           'autobin_flags': []},
+             'nthreads': 'auto'}}
 
 >>> Sending query: ['mmc', 'inspectcfg', 'engine', 'tally=q,theta;tallybins=+,;tallybreakdown=0']
-{'cfgstr': 'tally=q,theta;tallybreakdown=0;tallybins=+',
- 'decoded': {'absorption': True,
+{'name': 'std',
+ 'cfgstr': 'tally=q,theta;tallybreakdown=0;tallybins=+',
+ 'decoded': {'seed': 0,
+             'roulette': {'psurvival': 0.1,
+                          'weight_threshold': 0.01,
+                          'nscat_threshold': 2},
              'ignoremiss': False,
+             'absorption': True,
+             'tallyref': 'truth',
              'nscatlimit': None,
-             'nthreads': 'auto',
-             'roulette': {'nscat_threshold': 2,
-                          'psurvival': 0.1,
-                          'weight_threshold': 0.01},
-             'seed': 0,
              'tally': ['q', 'theta'],
-             'tallybins': {'autobin_flags': ['+'],
-                           'overrides': {'de': None,
+             'tallybreakdown': False,
+             'tallybins': {'overrides': {'de': None,
                                          'e': None,
                                          'l': None,
                                          'mu': None,
@@ -506,44 +507,106 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                          'nscat_uw': None,
                                          'q': None,
                                          'theta': None,
-                                         'w': None}},
-             'tallybreakdown': False,
-             'tallyref': 'truth'},
- 'name': 'std'}
+                                         'w': None},
+                           'autobin_flags': ['+']},
+             'nthreads': 'auto'}}
 
 >>> Sending query: ['mmc', 'cfgdoc', 'geom']
-{'geom_list': [{'descr': 'A spherical volume centered at (0,0,0).',
-                'name': 'sphere',
+{'intro_text': 'Four MiniMC simulation geometries are currently available, all '
+               'representing a single convex volume centered around the origin '
+               'and axis aligned where appropriate.',
+ 'geom_list': [{'name': 'sphere',
+                'descr': 'A spherical volume centered at (0,0,0).',
                 'params': [['r', '0.01', 'sphere radius [m].']],
                 'sort_key': 0},
-               {'descr': 'An axis-aligned box with corners at '
+               {'name': 'box',
+                'descr': 'An axis-aligned box with corners at '
                          '(+-dx,+-dy,+-dz).',
-                'name': 'box',
                 'params': [['dx', '0.01', 'half-width [m].'],
                            ['dy', '0.01', 'half-height [m].'],
                            ['dz', '0.01', 'half-depth [m].']],
                 'sort_key': 1},
-               {'descr': 'An unbounded slab bound by planes through (0,0,+-dz) '
+               {'name': 'slab',
+                'descr': 'An unbounded slab bound by planes through (0,0,+-dz) '
                          'and normals (0,0,1). This is essentially a box with '
                          'dx=dy=infinity.',
-                'name': 'slab',
                 'params': [['dz', '0.01', 'half-depth [m].']],
                 'sort_key': 2},
-               {'descr': 'A cylinder around the y-axis. If dy!=0 the cylinder '
+               {'name': 'cyl',
+                'descr': 'A cylinder around the y-axis. If dy!=0 the cylinder '
                          'has finite length, with ends at y=+-dy.',
-                'name': 'cyl',
                 'params': [['r', '0.01', 'cylinder radius radius [m].'],
                            ['dy',
                             '0',
                             'Half-length of cylinder (0 means infinitely long) '
                             '[m].']],
                 'sort_key': 3}],
- 'intro_text': 'Four MiniMC simulation geometries are currently available, all '
-               'representing a single convex volume centered around the origin '
-               'and axis aligned where appropriate.'}
+ 'examples': [['sphere;r=0.05',
+               'A sphere centered at (x,y,z)=(0,0,0) with a radius of 5cm.'],
+              ['cyl;r=0.001',
+               'An infinite cylinder around the y-axis with a radius of 1mm.'],
+              ['cyl;r=0.007;dy=0.03',
+               'A 6cm long cylinder around the y-axis with radius of 7mm. The '
+               'cylinder endcaps are located at y=+-10cm.'],
+              ['slab;dz=0.1',
+               'An infinite slab bounded by planes at z=+-10cm.'],
+              ['box;dx=0.1;dy=0.2;dz=0.3',
+               'An axis-aligned box centered at (x,y,z)=(0,0,0) with the 8 '
+               'corners located at (x,y,z)=(+-10cm,+-20cm,+-30cm).']]}
 
 >>> Sending query: ['mmc', 'cfgdoc', 'src']
-{'commonpars_descr': 'For all sources, the parameter "n" (default 1e6) is used '
+{'intro_text': 'Three MiniMC neutron source types are currently available, '
+               'differing only in the way they generate the initial position '
+               'and direction of the neutrons. Other parameters are common to '
+               'all sources, including those related to neutron energies or '
+               'how many neutrons to generate.',
+ 'src_list': [{'name': 'constant',
+               'descr': 'A source which always provide the same position and '
+                        'direction of the initial neutron.',
+               'specific_params': [['x', '0', 'x coordinate of position [m].'],
+                                   ['y', '0', 'y coordinate of position [m].'],
+                                   ['z', '0', 'z coordinate of position [m].'],
+                                   ['ux', '0', 'x coordinate of direction.'],
+                                   ['uy', '0', 'y coordinate of direction.'],
+                                   ['uz', '1', 'z coordinate of direction.']],
+               'sort_key': 0},
+              {'name': 'circular',
+               'descr': 'A source which allows modelling of a beam of uniform '
+                        'circular cross section. Specifically, all neutrons '
+                        'are generated with a fixed direction, and with a '
+                        'position sampled uniformly within a disk of radius r. '
+                        'The center of the disk is configurable, while its '
+                        'normal is always parallel to the direction of the '
+                        'neutrons.',
+               'specific_params': [['x',
+                                    '0',
+                                    'x coordinate of disk center [m].'],
+                                   ['y',
+                                    '0',
+                                    'y coordinate of disk center [m].'],
+                                   ['z',
+                                    '0',
+                                    'z coordinate of disk center [m].'],
+                                   ['ux', '0', 'x coordinate of direction.'],
+                                   ['uy', '0', 'y coordinate of direction.'],
+                                   ['uz', '1', 'z coordinate of direction.']],
+               'sort_key': 1},
+              {'name': 'isotropic',
+               'descr': 'A source which emits neutrons isotropically from a '
+                        'particular point or spherical surface.',
+               'specific_params': [['x', '0', 'x coordinate of position [m].'],
+                                   ['y', '0', 'y coordinate of position [m].'],
+                                   ['z', '0', 'z coordinate of position [m].'],
+                                   ['r',
+                                    '0',
+                                    'Signed radius of sphere. Neutrons are '
+                                    'always first placed on the point (x,y,z) '
+                                    'and assigned an isotropically sampled '
+                                    'direction. If r!=0, the position is then '
+                                    'translated a distance of -r along that '
+                                    'direction.']],
+               'sort_key': 2}],
+ 'commonpars_descr': 'For all sources, the parameter "n" (default 1e6) is used '
                      'to specify the number of neutrons to generate.',
  'commonpars_energy_descr': 'Parameters "ekin" and "wl" are also common to all '
                             'sources, and allow for a flexible specification '
@@ -559,7 +622,7 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                  'Neutron energies are sampled from a '
                                  'log-normal distribution with mean 0.025eV '
                                  'and RMS 0.001eV.'],
-                                ['ekin=thermal:77',
+                                ['ekin=thermal:77K',
                                  'Neutron energies are sampled from a thermal '
                                  '(Maxwell) distribution at 77K.'],
                                 ['wl=1.8',
@@ -580,7 +643,7 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                '1e6 neutrons are generated at (x,y,z)=(2m,0m,-0.1m) with '
                'direction (0,1,1) and wavelengths are sampled uniformly in the '
                'interval [0.001eV,0.1eV].'],
-              ['circular;wl=1.8;z=-0.1,r=0.1;n=1e8',
+              ['circular;wl=1.8;z=-0.1;r=0.1;n=1e8',
                '1e8 neutrons are generated with a wavelength of 1.8Aa with '
                'direction (0,0,1) and with a position sampled uniformly on the '
                'disk with center (0m,0m,-0.1m) and normal (0,0,1).'],
@@ -588,83 +651,94 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                '10000 neutrons are generated at the point (0m,0m,0m) with an '
                'isotropically sampled direction and an energy sampled from a '
                'log-normal distribution with mean 0.025eV and variance '
-               '(0.001eV)^2.']],
- 'intro_text': 'Three MiniMC neutron source types are currently available, '
-               'differing only in the way they generate the initial position '
-               'and direction of the neutrons. Other parameters are common to '
-               'all sources, including those related to neutron energies or '
-               'how many neutrons to generate.',
- 'src_list': [{'descr': 'A source which always provide the same position and '
-                        'direction of the initial neutron.',
-               'name': 'constant',
-               'sort_key': 0,
-               'specific_params': [['x', '0', 'x coordinate of position [m].'],
-                                   ['y', '0', 'y coordinate of position [m].'],
-                                   ['z', '0', 'z coordinate of position [m].'],
-                                   ['ux', '0', 'x coordinate of direction.'],
-                                   ['uy', '0', 'y coordinate of direction.'],
-                                   ['uz', '1', 'z coordinate of direction.']]},
-              {'descr': 'A source which allows modelling of a beam of uniform '
-                        'circular cross section. Specifically, all neutrons '
-                        'are generated with a fixed direction, and with a '
-                        'position sampled uniformly within a disk of radius r. '
-                        'The center of the disk is configurable, while its '
-                        'normal is always parallel to the direction of the '
-                        'neutrons.',
-               'name': 'circular',
-               'sort_key': 1,
-               'specific_params': [['x',
-                                    '0',
-                                    'x coordinate of disk center [m].'],
-                                   ['y',
-                                    '0',
-                                    'y coordinate of disk center [m].'],
-                                   ['z',
-                                    '0',
-                                    'z coordinate of disk center [m].'],
-                                   ['ux', '0', 'x coordinate of direction.'],
-                                   ['uy', '0', 'y coordinate of direction.'],
-                                   ['uz', '1', 'z coordinate of direction.']]},
-              {'descr': 'A source which emits neutrons isotropically from a '
-                        'particular point or spherical surface.',
-               'name': 'isotropic',
-               'sort_key': 2,
-               'specific_params': [['x', '0', 'x coordinate of position [m].'],
-                                   ['y', '0', 'y coordinate of position [m].'],
-                                   ['z', '0', 'z coordinate of position [m].'],
-                                   ['r',
-                                    '0',
-                                    'Signed radius of sphere. Neutrons are '
-                                    'always first placed on the point (x,y,z) '
-                                    'and assigned an isotropically sampled '
-                                    'direction. If r!=0, the position is then '
-                                    'translated a distance of -r along that '
-                                    'direction.']]}]}
+               '(0.001eV)^2.']]}
 
 >>> Sending query: ['mmc', 'cfgdoc', 'engine']
-{'cfgparams': {'absorption': {'default_value': '1',
+{'intro_text': 'Engine options control aspects of the simulation which are not '
+               'directly tied to source or geometry. Most importantly, this '
+               'includes control of which quantities to tally and with what '
+               'binning to do so. Most users are not really expected to change '
+               'anything else than this, but other parameters affects aspects '
+               'like how many threads to use for the simulation, or how to '
+               'account for multiple scatterings and absorption. For more '
+               'details refer to the specific parameters below.',
+ 'cfgparams': {'ignoremiss': {'name': 'ignoremiss',
+                              'default_value': '0',
+                              'example_values': ['0', '1'],
+                              'descr_short': 'Whether to exclude neutrons '
+                                             'missing the geometry from '
+                                             'tallies.',
+                              'descr_long': 'Whether to exclude neutrons '
+                                            'missing the geometry from '
+                                            'tallies. Set to 1 to exclude them '
+                                            'and 0 to include them.'},
+               'nthreads': {'name': 'nthreads',
+                            'default_value': 'auto',
+                            'example_values': ['auto', '1', '2', '20'],
+                            'descr_short': 'Number of threads to use for '
+                                           'simulation.',
+                            'descr_long': 'Number of threads to use for '
+                                          'simulation. Either accepts an '
+                                          'integer value >=0 or the special '
+                                          'keyword "auto".'},
+               'seed': {'name': 'seed',
+                        'default_value': '0',
+                        'example_values': ['1000', '123456789'],
+                        'descr_short': 'Seed value for the random number '
+                                       'stream used for the simulation.',
+                        'descr_long': 'Seed value for the random number stream '
+                                      'used for the simulation. Accepts any 64 '
+                                      'non-negative integral value that fits '
+                                      'into a 64bit unsigned integer. Note '
+                                      'that even with the same seed, results '
+                                      'are not expected to be reproducible '
+                                      'unless also using nthreads=1.'},
+               'tallyref': {'name': 'tallyref',
+                            'default_value': 'truth',
+                            'example_values': ['truth', 'src'],
+                            'descr_short': 'Definition of incoming quantities '
+                                           'in tallies.',
+                            'descr_long': 'Definition of incoming quantities '
+                                          'in tallies. This affects the '
+                                          'calculation of tally quantities '
+                                          'like "q", "theta", or "mu" which '
+                                          'needs parameters from the incoming '
+                                          'neutron state.  The default value '
+                                          'of "truth" implies that the actual '
+                                          'original quantity of each '
+                                          'individual neutron as it came from '
+                                          'the source is used. A value of '
+                                          '"src" implies that the reference '
+                                          'value will be taken as the mean '
+                                          'value provided by the source. In '
+                                          'the special case of energy '
+                                          'specified as a wavelength (via the '
+                                          '"wl" source parameter), the mean '
+                                          'wavelength rather than energy will '
+                                          'be used where that makes a '
+                                          'difference.'},
+               'absorption': {'name': 'absorption',
+                              'default_value': '1',
+                              'example_values': ['0', '1'],
+                              'descr_short': 'Whether to include absorption '
+                                             'effects.',
                               'descr_long': 'Whether to include absorption '
                                             'effects. If set to 1 (the '
                                             'default) they will be included '
                                             'implicitly through attenuation of '
                                             'neutrons weights. If set to 0, '
                                             'the absorption cross section will '
-                                            'be artificially set to 0barn.',
-                              'descr_short': 'Whether to include absorption '
-                                             'effects.',
-                              'example_values': ['0', '1'],
-                              'name': 'absorption'},
-               'ignoremiss': {'default_value': '0',
-                              'descr_long': 'Whether to exclude neutrons '
-                                            'missing the geometry from '
-                                            'tallies. Set to 1 to exclude them '
-                                            'and 0 to include them.',
-                              'descr_short': 'Whether to exclude neutrons '
-                                             'missing the geometry from '
-                                             'tallies.',
-                              'example_values': ['0', '1'],
-                              'name': 'ignoremiss'},
-               'nscatlimit': {'default_value': 'none',
+                                            'be artificially set to 0barn.'},
+               'nscatlimit': {'name': 'nscatlimit',
+                              'default_value': 'none',
+                              'example_values': ['none',
+                                                 '0',
+                                                 '1',
+                                                 '2',
+                                                 '10',
+                                                 '999'],
+                              'descr_short': 'Maximum number of scatterings to '
+                                             'allow for each neutron.',
                               'descr_long': 'Maximum number of scatterings to '
                                             'allow for each neutron. If set to '
                                             'none (the default), no limit will '
@@ -677,26 +751,12 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                             'scatterings. A typical usage '
                                             'might be to set this value to 1, '
                                             'in order to exclude multiple '
-                                            'scattering effects.',
-                              'descr_short': 'Maximum number of scatterings to '
-                                             'allow for each neutron.',
-                              'example_values': ['none',
-                                                 '0',
-                                                 '1',
-                                                 '2',
-                                                 '10',
-                                                 '999'],
-                              'name': 'nscatlimit'},
-               'nthreads': {'default_value': 'auto',
-                            'descr_long': 'Number of threads to use for '
-                                          'simulation. Either accepts an '
-                                          'integer value >=0 or the special '
-                                          'keyword "auto".',
-                            'descr_short': 'Number of threads to use for '
-                                           'simulation.',
-                            'example_values': ['auto', '1', '2', '20'],
-                            'name': 'nthreads'},
-               'roulette': {'default_value': '0.1,0.01,2',
+                                            'scattering effects.'},
+               'roulette': {'name': 'roulette',
+                            'default_value': '0.1,0.01,2',
+                            'example_values': ['0.5,1e-4,5'],
+                            'descr_short': 'Roulette parameters for the '
+                                           'neutron termination strategy.',
                             'descr_long': 'Roulette parameters for the neutron '
                                           'termination strategy. At each '
                                           'simulation step inside the '
@@ -722,24 +782,12 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                           'limit of large statistics. The '
                                           'roulette parameter thus needs three '
                                           'comma-separated values, encoded as '
-                                          '"P,W,N".',
-                            'descr_short': 'Roulette parameters for the '
-                                           'neutron termination strategy.',
-                            'example_values': ['0.5,1e-4,5'],
-                            'name': 'roulette'},
-               'seed': {'default_value': '0',
-                        'descr_long': 'Seed value for the random number stream '
-                                      'used for the simulation. Accepts any 64 '
-                                      'non-negative integral value that fits '
-                                      'into a 64bit unsigned integer. Note '
-                                      'that even with the same seed, results '
-                                      'are not expected to be reproducible '
-                                      'unless also using nthreads=1.',
-                        'descr_short': 'Seed value for the random number '
-                                       'stream used for the simulation.',
-                        'example_values': ['1000', '123456789'],
-                        'name': 'seed'},
-               'tally': {'default_value': 'theta',
+                                          '"P,W,N".'},
+               'tally': {'name': 'tally',
+                         'default_value': 'theta',
+                         'example_values': ['q', 'mu,q,e,l', 'q'],
+                         'descr_short': 'Quantities to tally (available: '
+                                        'de,e,l,mu,nscat,nscat_uw,q,theta,w).',
                          'descr_long': 'Comma separated list of quantities to '
                                        'tally. The quantities available for '
                                        'tally are: de (energy loss), e '
@@ -748,12 +796,17 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                        'scatterings), nscat_uw (unweighted '
                                        'number of scatterings), q (scattering '
                                        'vector), theta (scattering angle), w '
-                                       '(weight).',
-                         'descr_short': 'Quantities to tally (available: '
-                                        'de,e,l,mu,nscat,nscat_uw,q,theta,w).',
-                         'example_values': ['q', 'mu,q,e,l', 'q'],
-                         'name': 'tally'},
-               'tallybins': {'default_value': '',
+                                       '(weight).'},
+               'tallybins': {'name': 'tallybins',
+                             'default_value': '',
+                             'example_values': ['',
+                                                'q:1000:0.0:20.0',
+                                                'q:1000:0.0:20.0,l:200:3.0:5.0',
+                                                '+',
+                                                '-',
+                                                'q:1000:0.0,+'],
+                             'descr_short': 'Modify binning of tally '
+                                            'histograms.',
                              'descr_long': 'Modify binning of tally '
                                            'histograms. This is supplied as a '
                                            'comma separated list of '
@@ -766,17 +819,12 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                            'is made for the binning. Special '
                                            'entries "+" or "-" can be used to '
                                            'generally increase or decrease '
-                                           'binning in such cases.',
-                             'descr_short': 'Modify binning of tally '
-                                            'histograms.',
-                             'example_values': ['',
-                                                'q:1000:0.0:20.0',
-                                                'q:1000:0.0:20.0,l:200:3.0:5.0',
-                                                '+',
-                                                '-',
-                                                'q:1000:0.0,+'],
-                             'name': 'tallybins'},
-               'tallybreakdown': {'default_value': '1',
+                                           'binning in such cases.'},
+               'tallybreakdown': {'name': 'tallybreakdown',
+                                  'default_value': '1',
+                                  'example_values': ['0', '1'],
+                                  'descr_short': 'Whether to also tally '
+                                                 'per-component.',
                                   'descr_long': 'If set to 1 (the default), '
                                                 'tallies will also include '
                                                 'per-component breakdowns, '
@@ -785,66 +833,8 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                                 'number of scatterings (0, 1, '
                                                 '2+) and whether the '
                                                 'scatterings were elastic or '
-                                                'not.',
-                                  'descr_short': 'Whether to also tally '
-                                                 'per-component.',
-                                  'example_values': ['0', '1'],
-                                  'name': 'tallybreakdown'},
-               'tallyref': {'default_value': 'truth',
-                            'descr_long': 'Definition of incoming quantities '
-                                          'in tallies. This affects the '
-                                          'calculation of tally quantities '
-                                          'like "q", "theta", or "mu" which '
-                                          'needs parameters from the incoming '
-                                          'neutron state.  The default value '
-                                          'of "truth" implies that the actual '
-                                          'original quantity of each '
-                                          'individual neutron as it came from '
-                                          'the source is used. A value of '
-                                          '"src" implies that the reference '
-                                          'value will be taken as the mean '
-                                          'value provided by the source. In '
-                                          'the special case of energy '
-                                          'specified as a wavelength (via the '
-                                          '"wl" source parameter), the mean '
-                                          'wavelength rather than energy will '
-                                          'be used where that makes a '
-                                          'difference.',
-                            'descr_short': 'Definition of incoming quantities '
-                                           'in tallies.',
-                            'example_values': ['truth', 'src'],
-                            'name': 'tallyref'}},
- 'intro_text': 'Engine options control aspects of the simulation which are not '
-               'directly tied to source or geometry. Most importantly, this '
-               'includes control of which quantities to tally and with what '
-               'binning to do so. Most users are not really expected to change '
-               'anything else than this, but other parameters affects aspects '
-               'like how many threads to use for the simulation, or how to '
-               'account for multiple scatterings and absorption. For more '
-               'details refer to the specific parameters below.',
- 'tallyinfo': {'flags': {'ALL': ['de',
-                                 'e',
-                                 'highres',
-                                 'l',
-                                 'lowres',
-                                 'mu',
-                                 'nobreakdown',
-                                 'nscat',
-                                 'nscat_uw',
-                                 'q',
-                                 'theta',
-                                 'w'],
-                         'ALLHISTS': ['de',
-                                      'e',
-                                      'l',
-                                      'mu',
-                                      'nscat',
-                                      'nscat_uw',
-                                      'q',
-                                      'theta',
-                                      'w'],
-                         'DEFAULT': ['theta']},
-               'hists': {'de': {'name': 'de',
+                                                'not.'}},
+ 'tallyinfo': {'hists': {'de': {'name': 'de',
                                 'short_descr': 'energy loss',
                                 'unit': 'eV'},
                          'e': {'name': 'e',
@@ -871,32 +861,32 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
                                    'unit': 'degree'},
                          'w': {'name': 'w',
                                'short_descr': 'weight',
-                               'unit': ''}}}}
+                               'unit': ''}},
+               'flags': {'ALL': ['de',
+                                 'e',
+                                 'highres',
+                                 'l',
+                                 'lowres',
+                                 'mu',
+                                 'nobreakdown',
+                                 'nscat',
+                                 'nscat_uw',
+                                 'q',
+                                 'theta',
+                                 'w'],
+                         'DEFAULT': ['theta'],
+                         'ALLHISTS': ['de',
+                                      'e',
+                                      'l',
+                                      'mu',
+                                      'nscat',
+                                      'nscat_uw',
+                                      'q',
+                                      'theta',
+                                      'w']}}}
 
 >>> Sending query: ['mmc', 'cfgdoc', 'tally']
-{'flags': {'ALL': ['de',
-                   'e',
-                   'highres',
-                   'l',
-                   'lowres',
-                   'mu',
-                   'nobreakdown',
-                   'nscat',
-                   'nscat_uw',
-                   'q',
-                   'theta',
-                   'w'],
-           'ALLHISTS': ['de',
-                        'e',
-                        'l',
-                        'mu',
-                        'nscat',
-                        'nscat_uw',
-                        'q',
-                        'theta',
-                        'w'],
-           'DEFAULT': ['theta']},
- 'hists': {'de': {'name': 'de', 'short_descr': 'energy loss', 'unit': 'eV'},
+{'hists': {'de': {'name': 'de', 'short_descr': 'energy loss', 'unit': 'eV'},
            'e': {'name': 'e', 'short_descr': 'energy', 'unit': 'eV'},
            'l': {'name': 'l', 'short_descr': 'wavelength', 'unit': 'Aa'},
            'mu': {'name': 'mu',
@@ -914,4 +904,275 @@ Caught expected NCBadInput('Invalid tally "nobreakdown" (use "tallybreakdown=0" 
            'theta': {'name': 'theta',
                      'short_descr': 'scattering angle',
                      'unit': 'degree'},
-           'w': {'name': 'w', 'short_descr': 'weight', 'unit': ''}}}
+           'w': {'name': 'w', 'short_descr': 'weight', 'unit': ''}},
+ 'flags': {'ALL': ['de',
+                   'e',
+                   'highres',
+                   'l',
+                   'lowres',
+                   'mu',
+                   'nobreakdown',
+                   'nscat',
+                   'nscat_uw',
+                   'q',
+                   'theta',
+                   'w'],
+           'DEFAULT': ['theta'],
+           'ALLHISTS': ['de',
+                        'e',
+                        'l',
+                        'mu',
+                        'nscat',
+                        'nscat_uw',
+                        'q',
+                        'theta',
+                        'w']}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'sphere;r=0.05']
+{'cfgstr': 'sphere;r=0.05',
+ 'decoded': {'name': 'sphere',
+             'r': 0.05,
+             'short_description': 'sphere with radius 50mm'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'cyl;r=0.001']
+{'cfgstr': 'cyl;r=0.001',
+ 'decoded': {'name': 'cyl',
+             'r': 0.001,
+             'dy': 0.0,
+             'short_description': 'cylinder with radius 1mm'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'cyl;r=0.007;dy=0.03']
+{'cfgstr': 'cyl;r=0.007;dy=0.03',
+ 'decoded': {'name': 'cyl',
+             'r': 0.007,
+             'dy': 0.03,
+             'short_description': 'cylinder with radius 7mm and length 60mm'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'slab;dz=0.1']
+{'cfgstr': 'slab;dz=0.1',
+ 'decoded': {'name': 'slab',
+             'dz': 0.1,
+             'short_description': 'slab with thickness 20cm'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'geom', 'box;dx=0.1;dy=0.2;dz=0.3']
+{'cfgstr': 'box;dx=0.1;dy=0.2;dz=0.3',
+ 'decoded': {'name': 'box',
+             'dx': 0.1,
+             'dy': 0.2,
+             'dz': 0.3,
+             'short_description': 'box with depth 60cm, width 20cm, and height '
+                                  '40cm'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant;wl=1.8;z=-0.1']
+{'cfgstr': 'constant;n=1e6;z=-0.1;wl=1.8',
+ 'decoded': {'name': 'constant',
+             'n': 1000000,
+             'x': 0.0,
+             'y': 0.0,
+             'z': -0.1,
+             'w': 1.0,
+             'wl': {'mode': 'fixed', 'value': 1.8},
+             'ekin': None,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': 0.025248212841151512,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.025248212841151512,
+              'energy_description': '1.8Aa'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant;ekin=0.001-0.1;x=2;z=-0.1;ux=0;uy=1;uz=1']
+{'cfgstr': 'constant;n=1e6;x=2;z=-0.1;ekin=0.001-0.1;ux=0;uy=0.70710678118654746;uz=0.70710678118654746',
+ 'decoded': {'name': 'constant',
+             'n': 1000000,
+             'x': 2.0,
+             'y': 0.0,
+             'z': -0.1,
+             'w': 1.0,
+             'wl': None,
+             'ekin': {'mode': 'uniformrange',
+                      'range_low': 0.001,
+                      'range_high': 0.1},
+             'ux': 0.0,
+             'uy': 0.7071067811865475,
+             'uz': 0.7071067811865475},
+ 'metadata': {'fixed_dir': [0.0, 0.7071067811865475, 0.7071067811865475],
+              'fixed_energy': None,
+              'mean_dir': [0.0, 0.7071067811865475, 0.7071067811865475],
+              'mean_energy': 0.0505,
+              'energy_description': '(0.001-0.1)eV'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'circular;wl=1.8;z=-0.1;r=0.1;n=1e8']
+{'cfgstr': 'circular;n=1e8;z=-0.1;wl=1.8;r=0.1',
+ 'decoded': {'name': 'circular',
+             'n': 100000000,
+             'x': 0.0,
+             'y': 0.0,
+             'z': -0.1,
+             'w': 1.0,
+             'wl': {'mode': 'fixed', 'value': 1.8},
+             'ekin': None,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0,
+             'r': 0.1},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': 0.025248212841151512,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.025248212841151512,
+              'energy_description': '1.8Aa'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'isotropic;ekin=0.025+-0.001;n=10000']
+{'cfgstr': 'isotropic;n=1e4;ekin=0.025+-0.001',
+ 'decoded': {'name': 'isotropic',
+             'n': 10000,
+             'x': 0.0,
+             'y': 0.0,
+             'z': 0.0,
+             'w': 1.0,
+             'wl': None,
+             'ekin': {'mode': 'lognormal', 'mean': 0.025, 'rms': 0.001},
+             'r': 0.0},
+ 'metadata': {'fixed_dir': None,
+              'fixed_energy': None,
+              'mean_dir': None,
+              'mean_energy': 0.025,
+              'energy_description': '(0.025+-0.001)eV'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant;ekin=0.025']
+{'cfgstr': 'constant;n=1e6;ekin=0.025',
+ 'decoded': {'name': 'constant',
+             'n': 1000000,
+             'x': 0.0,
+             'y': 0.0,
+             'z': 0.0,
+             'w': 1.0,
+             'wl': None,
+             'ekin': {'mode': 'fixed', 'value': 0.025},
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': 0.025,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.025,
+              'energy_description': '0.025eV'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant;ekin=0.025-0.05']
+{'cfgstr': 'constant;n=1e6;ekin=0.025-0.05',
+ 'decoded': {'name': 'constant',
+             'n': 1000000,
+             'x': 0.0,
+             'y': 0.0,
+             'z': 0.0,
+             'w': 1.0,
+             'wl': None,
+             'ekin': {'mode': 'uniformrange',
+                      'range_low': 0.025,
+                      'range_high': 0.05},
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': None,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.037500000000000006,
+              'energy_description': '(0.025-0.05)eV'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant;ekin=0.025+-0.001']
+{'cfgstr': 'constant;n=1e6;ekin=0.025+-0.001',
+ 'decoded': {'name': 'constant',
+             'n': 1000000,
+             'x': 0.0,
+             'y': 0.0,
+             'z': 0.0,
+             'w': 1.0,
+             'wl': None,
+             'ekin': {'mode': 'lognormal', 'mean': 0.025, 'rms': 0.001},
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': None,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.025,
+              'energy_description': '(0.025+-0.001)eV'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant;ekin=thermal:77K']
+{'cfgstr': 'constant;n=1e6;ekin=thermal:77K',
+ 'decoded': {'name': 'constant',
+             'n': 1000000,
+             'x': 0.0,
+             'y': 0.0,
+             'z': 0.0,
+             'w': 1.0,
+             'wl': None,
+             'ekin': {'mode': 'maxwell', 'temperature': 77.0},
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': None,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.0099530164965,
+              'energy_description': 'Maxwell(77K)'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant;wl=1.8']
+{'cfgstr': 'constant;n=1e6;wl=1.8',
+ 'decoded': {'name': 'constant',
+             'n': 1000000,
+             'x': 0.0,
+             'y': 0.0,
+             'z': 0.0,
+             'w': 1.0,
+             'wl': {'mode': 'fixed', 'value': 1.8},
+             'ekin': None,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': 0.025248212841151512,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.025248212841151512,
+              'energy_description': '1.8Aa'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant;wl=1.8-5']
+{'cfgstr': 'constant;n=1e6;wl=1.8-5',
+ 'decoded': {'name': 'constant',
+             'n': 1000000,
+             'x': 0.0,
+             'y': 0.0,
+             'z': 0.0,
+             'w': 1.0,
+             'wl': {'mode': 'uniformrange',
+                    'range_low': 1.8,
+                    'range_high': 5.0},
+             'ekin': None,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': None,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.007076488720184335,
+              'energy_description': '(1.8-5)Aa'}}
+
+>>> Sending query: ['mmc', 'inspectcfg', 'src', 'constant;wl=1.8+-0.01']
+{'cfgstr': 'constant;n=1e6;wl=1.8+-0.01',
+ 'decoded': {'name': 'constant',
+             'n': 1000000,
+             'x': 0.0,
+             'y': 0.0,
+             'z': 0.0,
+             'w': 1.0,
+             'wl': {'mode': 'lognormal', 'mean': 1.8, 'rms': 0.01},
+             'ekin': None,
+             'ux': 0.0,
+             'uy': 0.0,
+             'uz': 1.0},
+ 'metadata': {'fixed_dir': [0.0, 0.0, 1.0],
+              'fixed_energy': None,
+              'mean_dir': [0.0, 0.0, 1.0],
+              'mean_energy': 0.025248212841151512,
+              'energy_description': '(1.8+-0.01)Aa'}}

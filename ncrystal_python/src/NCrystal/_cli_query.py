@@ -76,7 +76,7 @@ def main( progname, args ):
     if to_stdout:
         if unpack_json:
             import pprint
-            pprint.pp(res)
+            pprint.pp(res)#NB: .pprint sorts dicts, .pp does not
         else:
             print(res)
     else:

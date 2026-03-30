@@ -967,7 +967,7 @@ void NCMMC::sourceOptsDocsToJSON( std::ostream& os )
     v.emplace_back("ekin=0.025+-0.001",
                    "Neutron energies are sampled from a log-normal"
                    " distribution with mean 0.025eV and RMS 0.001eV.");
-    v.emplace_back("ekin=thermal:77",
+    v.emplace_back("ekin=thermal:77K",
                    "Neutron energies are sampled from a thermal"
                    " (Maxwell) distribution at 77K.");
     v.emplace_back("wl=1.8",
@@ -993,7 +993,7 @@ void NCMMC::sourceOptsDocsToJSON( std::ostream& os )
                    "1e6 neutrons are generated at (x,y,z)=(2m,0m,-0.1m) with"
                    " direction (0,1,1) and wavelengths are sampled"
                    " uniformly in the interval [0.001eV,0.1eV].");
-    v.emplace_back("circular;wl=1.8;z=-0.1,r=0.1;n=1e8",
+    v.emplace_back("circular;wl=1.8;z=-0.1;r=0.1;n=1e8",
                    "1e8 neutrons are generated with a wavelength of 1.8Aa"
                    " with direction (0,0,1) and with a position sampled"
                    " uniformly on the disk with center (0m,0m,-0.1m) "

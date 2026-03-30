@@ -202,6 +202,28 @@ void NCMMC::geometryOptsDocsToJSON( std::ostream& os )
     addGeom("cyl",v,
             "A cylinder around the y-axis. If dy!=0 the cylinder has finite length, with ends at y=+-dy.");
   }
-  os << "]}";
+  os << ']';
 
+  int iexample = 0;
+  auto addExample = [&iexample,&os]( const char * ex, const char * txt )
+  {
+    if (iexample++)
+      os <<',';
+    std::array<StrView,2> v = {ex,txt};
+    streamJSON(os,v);
+  };
+  os << ",\"examples\":[";
+  addExample("sphere;r=0.05",
+             "A sphere centered at (x,y,z)=(0,0,0) with a radius of 5cm.");
+  addExample("cyl;r=0.001",
+             "An infinite cylinder around the y-axis with a radius of 1mm.");
+  addExample("cyl;r=0.007;dy=0.03",
+             "A 6cm long cylinder around the y-axis with radius of 7mm."
+             " The cylinder endcaps are located at y=+-10cm.");
+  addExample("slab;dz=0.1",
+             "An infinite slab bounded by planes at z=+-10cm.");
+  addExample("box;dx=0.1;dy=0.2;dz=0.3",
+             "An axis-aligned box centered at (x,y,z)=(0,0,0) with the 8"
+             " corners located at (x,y,z)=(+-10cm,+-20cm,+-30cm).");
+  os <<"]}";
 }
