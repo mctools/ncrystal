@@ -113,6 +113,7 @@ v4.2.13 (work-in-progress)
        values is not guaranteed by the C/C++ standard.
      * Migrate to use custom ncmake_unique and ncmake_unique_array functions
        everywhere.
+     * Fix cfgstring normalisation with internal whitespace.
      * ...
 
 v4.2.12 2026-01-05

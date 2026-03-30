@@ -605,3 +605,7 @@ Test loading of :>>>phases<0.1*unicodedir_test䔀abc{{NATIVEPATHSEP}}Al_sg225.nc
                                  'sub-phase tree.',
                   'name': 'phasechoice',
                   'type': 'special'}]}]
+normalise('  stdlib \\t\\t ::  \\t \\n Al_sg225.ncmat  ; temp = 30 K')='stdlib::Al_sg225.ncmat;temp=30'
+normalise('  stdlib \\t\\t ::  \\t \\n Al_sg225.ncmat  ; ;\\t\\t\\n;;temp =  30.000\\n')='stdlib::Al_sg225.ncmat;temp=30'
+normalise('  \\t\\t   \\t \\n Al_sg225.ncmat  ; ;\\t\\t\\n;;temp =  30.000\\n')='Al_sg225.ncmat;temp=30'
+normalise('  phases<1.0*\\t\\t   \\t \\n Al_sg225.ncmat  ;; temp=20;\\t\\t\\n>;;temp =  30.000\\n')='Al_sg225.ncmat;temp=30'

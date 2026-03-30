@@ -311,3 +311,10 @@ assert isinstance( get_par_doc('mosprec')['default_value_str'], str )
 assert isinstance( get_par_doc('dcutoff')['default_value_str'], str )
 assert isinstance( get_par_doc('dcutoffup')['default_value_str'], str )
 assert isinstance( get_par_doc('vdoslux')['default_value_str'], str )
+
+for c in ['  stdlib \t\t ::  \t \n Al_sg225.ncmat  ; temp = 30 K',
+          '  stdlib \t\t ::  \t \n Al_sg225.ncmat  ; ;\t\t\n;;temp =  30.000\n',
+          '  \t\t   \t \n Al_sg225.ncmat  ; ;\t\t\n;;temp =  30.000\n',
+          '  phases<1.0*\t\t   \t \n Al_sg225.ncmat  ;; temp=20;\t\t\n>;;temp =  30.000\n']:
+    print('normalise(%s)=%s'%(repr(c.replace('\t','\\t').replace('\n','\\n')),
+                              repr(NC.normaliseCfg(c))))

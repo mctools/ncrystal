@@ -824,9 +824,13 @@ NC::MatCfg::MatCfg( constructor_args&& args )
     mod->m_textDataType = textData.dataType();
     const auto& textDataType = mod->m_textDataType;
 
-    //Original file name (if any) is needed for more consistent re-serialisation:
+    //Original file name (if any) is needed for more consistent
+    //re-serialisation:
     if ( spcfg.dataname.has_value() ) {
-      mod->m_dataSourceName = spcfg.dataname.to_string();
+      //Through TextDataPath ensures normalisation:
+      //   "stdlib:: Al_sg225.ncmat" -> "stdlib::Al_sg225.ncmat"
+      mod->m_dataSourceName
+        = TextDataPath(spcfg.dataname.to_string()).toString();
     } else {
       if ( textDataType.empty() || textDataType == "unknown" ) {
         static DataSourceName s_anon("<anonymous>");
