@@ -25,12 +25,13 @@
 import NCrystalDev.minimc as ncmmc
 from NCrystalDev.minimc_objects import MMCResults, MMCTallyView
 from NCrystalDev.hist import Hist1D
+from NCrystalDev.exceptions import NCBadInput, NCCalcError
 from NCTestUtils.env import ncsetenv
 import NCTestUtils.dirs as dirs
-from NCrystalDev.exceptions import NCBadInput, NCCalcError
 from NCTestUtils.common import ensure_error
+import NCTestUtils.reprint_escaped_warnings # noqa F401
 import pprint
-
+import math
 def main(do_plot, do_update):
     mmc_run = ncmmc.run
 
@@ -55,6 +56,8 @@ def main(do_plot, do_update):
         geomcfg = 'sphere;r=0.1',
         enginecfg='nthreads=1;tally=theta;tallybins=theta:36:0:180'
     )
+    print('strA:',str(resA))
+    print('reprA:',repr(resA))
     resB = mmc_run( 'Al_sg225.ncmat;comp=inelas',
                     scenario = '2.0Aa on 0.1mfp 1e4 times',
                     enginecfg = (';nthreads=2;tally=theta'
@@ -294,6 +297,20 @@ def main(do_plot, do_update):
     resV3.tally('mu').dump(contents=False)
 
     from NCrystalDev._mmc_impl import _determine_rebin_factor as drf
+    def check_rebin( current, max_nbins, result ):
+        f = drf( current_nbins = current, max_nbins=max_nbins)
+        assert current%f == 0
+        assert current//f == result, (f"rebin({current},max={max_nbins}) "
+                                      f"gave {current//f}" )
+    check_rebin( 200, 100, 100 )
+    check_rebin( 150, 100, 75 )
+    check_rebin( 113, 100, 1 )
+    check_rebin( 20, 4, 4 )
+    #5*3*3*2*2 = 180
+    check_rebin( 180, 15, 15 )
+    check_rebin( 180, 17, 15 )
+    check_rebin( 180, 13, 12 )
+
     assert drf( current_nbins=100, max_nbins= 200 ) == 1
     assert drf( current_nbins=100, max_nbins= 20 ) == 5
     assert drf( current_nbins=100 ) == 1
@@ -357,6 +374,92 @@ def main(do_plot, do_update):
     r.tally('e').plot()
     r.tally('e').plot(logy=None,title=False)
     r.tally('e').plot(title='my title')
+
+    r = mmc_run('void.ncmat',scenario='2Aa on 1cm')
+    r.plot(title='long')
+    r = mmc_run('void.ncmat',scenario='2Aa on 1cm',enginecfg='tally=')
+    r.plot()
+    r.plot_xsect()
+    test_results_compat()
+    kw['enginecfg'] += ';absorption=0'
+    r = mmc_run(**kw)
+    r.tally('e').plot()
+
+    with ensure_error(NCCalcError,'All (or almost all) source'
+                      ' particles seem to miss the geometry.'):
+        r = mmc_run('void.ncmat',srccfg='constant;z=-10;uz=-1;wl=1.8',
+                    geomcfg='sphere;r=0.1',
+                    enginecfg='nthreads=1;ignoremiss=1;tallybins=theta:10:0:180')
+
+    r = mmc_run('void.ncmat',srccfg='circular;z=-10;r=0.3;wl=1.8',
+                geomcfg='sphere;r=0.1',
+                enginecfg='nthreads=1;ignoremiss=0;tallybins=theta:10:0:180')
+    r.tally('theta').plot()
+    r = mmc_run('void.ncmat',srccfg='circular;z=-10;r=0.3;wl=1.8',
+                geomcfg='sphere;r=0.1',
+                enginecfg='nthreads=1;ignoremiss=1;tallybins=theta:10:0:180')
+    r.tally('theta').plot()
+
+
+def test_results_compat():
+    from NCrystalDev._mmc_impl import results_check_compat_impl as rcc
+    def testrcc( dict1, dict2, threshold=None, expect_fail = False,
+                 shuffle = True ):
+        if threshold is None:
+            threshold = 1e-20
+        rv = rcc(dict1,dict2,threshold,errfct = lambda x : x)
+        is_fail = True
+        if rv is None:
+            print("==> Compat check ended ok (compatible)")
+            is_fail = False
+        else:
+            assert isinstance(rv,str)
+            print("==> Compat check ended in ERROR: >>%s<<"%rv)
+        assert is_fail == expect_fail
+        if shuffle:
+            testrcc(dict2,dict1,threshold=threshold,expect_fail=expect_fail,
+                    shuffle=False)
+    def testrcc_bad( dict1, dict2, threshold=None ):
+        return testrcc(dict1,dict2,threshold=None,expect_fail=True)
+
+    from copy import deepcopy as cp
+    def run(ec=''):
+        return ncmmc.run('void.ncmat',
+                         scenario='2Aa on 1cm 1 times',
+                         enginecfg=f'nthreads=2;{ec}')._raw_data()
+    d0 = run()
+    d1 = run('tally=q,mu')
+    d0_2 = cp(d0)
+    d0_2['input']['foo']=[1,2,3]
+    testrcc_bad(d0,d0_2)
+    testrcc_bad(d0,d1)
+    del d0_2['input']
+    with ensure_error(NCBadInput,'Invalid input data for results checking'):
+        testrcc(d0,d0_2)
+    d0_3 = cp(d0)
+    d0['output']['tally']['theta']=None
+    with ensure_error(NCBadInput,'Invalid data for constructing MMCTallyView'):
+        testrcc(d0,d0_3)
+    d1_2 = cp(d1)
+    del d1_2['output']['tally']['mu']['breakdown']
+    testrcc_bad(d1,d1_2)
+
+    denorm_min = math.nextafter(0.0, 1.0)
+    assert denorm_min > 0.0
+    assert denorm_min < 1e-322
+    testrcc(d1,cp(d1),threshold=denorm_min)
+    d1_3 = cp(d1)
+    h = d1_3['output']['tally']['mu']['breakdown']['SINGLESCAT_ELAS']
+    h = h.to_dict(json_compat=1)
+    h['bindata']['content'][5] += 10.0
+    h['bindata']['errorsq'][5] += 0.1
+    #Assume no under/overflow and leave other stats inconsistent. But at least
+    #update the integral:
+    h['stats']['integral'] = sum(h['bindata']['content'])
+    from NCrystalDev.hist import Hist1D
+    d1_3['output']['tally']['mu']['breakdown']['SINGLESCAT_ELAS'] = Hist1D(h)
+    #( _self, other, threshold, errfct ):
+    testrcc_bad(d1,d1_3)
 
 if __name__ == '__main__':
     import sys

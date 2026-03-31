@@ -22,17 +22,22 @@
 
 # NEEDS: numpy
 
-import NCTestUtils.enable_fpe # noqa F401
+import sys
+if '--plot' not in sys.argv[1:]:
+    import NCTestUtils.enable_fpe # noqa F401
+
 import NCrystalDev.cli as nc_cli
-from NCrystalDev.exceptions import NCBadInput
-import NCTestUtils.reprint_escaped_warnings # noqa F401
 import NCrystalDev._common as nc_common
+from NCrystalDev.exceptions import NCBadInput
+
+import NCTestUtils.reprint_escaped_warnings # noqa F401
+from NCTestUtils.env import ncsetenv
 from NCTestUtils.common import ensure_error
+
 from argparse import ArgumentError
 import shlex
 import re
 import pathlib
-import sys
 import io
 import json
 
@@ -88,7 +93,11 @@ def test( *args, test_catch_stdout = False ):
     print("===========================================")
     return retval
 
-def main():
+def main(do_plot):
+    if not do_plot:
+        ncsetenv('FAKEPYPLOT','1')
+
+
     with ensure_error(ArgumentError,
                       'Missing arguments. Use -h, --help or --full-help'
                       ' for information about proper usage.'):
@@ -251,5 +260,14 @@ def main():
     test('void.ncmat','2Aa','-o','bla_hello.json','--force')
 
 
+    test('void.ncmat','2Aa')#should auto plot
+    test('void.ncmat','2Aa','-e','tally=')#should auto plot NO tallies
+    test('void.ncmat','2Aa','-e','tallybreakdown=0','--plot')
+
+    test('void.ncmat','2Aa','-t','q,mu,e','-o','bla17.json.gz')
+    test('-i','bla17.json.gz','--plot')
+    test('-i','bla17.json.gz','-t','mu,q','--plot')#skips e
+
+
 if __name__ == '__main__':
-    main()
+    main(do_plot = '--plot' in sys.argv[1:])

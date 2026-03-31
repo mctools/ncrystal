@@ -169,10 +169,9 @@ class MMCResults:
 
     def plot(self, **kwargs):
         """Loops over all tallies and plots them, passing along any kwargs. The
-        same functionality can be obtained by (if the current results object is
-        "results"):
+        same functionality can be obtained by:
 
-        for t in results.tallies:
+        for t in mmcresults.tallies:
             t.plot(**kwargs)
 
         """
@@ -181,16 +180,16 @@ class MMCResults:
             p = True
             t.plot(**kwargs)
         if not p:
-            from ._common import ncwarn
+            from ._common import warn as ncwarn
             ncwarn('No tallies were enabled.')
 
     def plot_xsect(self, **kwargs):
         """Plots the material cross sections with the plot_xsect function from
         the NCrystal.plot module (passing along any kwargs). This is the same
-        as (if the current results object is "results"):
+        as:
 
         from NCrystal.plot import plot_xsect
-        plot_xsect(results.setup['material']['cfgstr'],**kwargs)
+        plot_xsect(mmcresults.setup['material']['cfgstr'],**kwargs)
         """
         from .plot import plot_xsect
         return plot_xsect(self.setup['material']['cfgstr'])
@@ -297,10 +296,14 @@ class MMCTallyView:
 
     @classmethod
     def _internal_create( cls, mmcresults, td ):
-        assert td['datatype']=='NCrystalMiniMCTallyHistBreakdown_v1'
+        if not ( isinstance(td,dict)
+                 and td['datatype']=='NCrystalMiniMCTallyHistBreakdown_v1' ):
+            raise NCBadInput('Invalid data for constructing MMCTallyView')
         o = super().__new__(cls)
         #Keeps ref to MMCResult mother object, so mother should never keep refs
         #to MMCTallyView objects!
+        #NB: Allow None mmcresults object for unit tests
+        assert mmcresults is None or isinstance(mmcresults,MMCResults)
         o.__mmcresults = mmcresults
         o.__data = td
         return o
@@ -455,10 +458,12 @@ class MMCTallyView:
 
         """
 
+        assert self.__mmcresults is not None, ("MMCTallyView.plot requires pro"
+                                               "per MMCResults mother object")
         if title in (None,'auto','short'):
             title = self.__mmcresults.short_title(latex=True)
         elif title == 'long':
-            title = self.__mmcresults.long_title(latex=True)
+            title = self.__mmcresults.long_title()
         title = (title or '').strip() or False
 
         from ._mmc_impl import _plot_tally

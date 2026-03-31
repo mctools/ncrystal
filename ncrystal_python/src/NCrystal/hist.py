@@ -891,7 +891,9 @@ class Hist1D:
         if n > 0:
             c1sum = c1.sum()+(s.underflow or 0.0)+(s.overflow or 0.0)
             c2sum = c2.sum()+(o.underflow or 0.0)+(o.overflow or 0.0)
-            assert (c1sum-c2sum)<1e-5*(c1sum+c2sum),"must be normalised"
+            assert ( c1sum==0.0
+                     or c2sum==0.0
+                     or (c1sum-c2sum)<1e-5*(c1sum+c2sum) ),"must be normalised"
             chi_squared = ( (c1-c2)**2 / (e1**2 + e2**2) ).sum()
         else:
             chi_squared = 0.0

@@ -103,8 +103,31 @@ def run( *, resclass, unpack,
     return resclass( res )
 
 def results_check_compat_impl( _self, other, threshold, errfct ):
-    if _self is other:
+    if isinstance(_self,dict) and isinstance(other,dict):
+        #Raw dicts already (needed for easy unit testing):
+        data_s, data_o = _self, other
+    else:
+        #standard mode
+        data_s = _self._raw_data()
+        data_o = other._raw_data()
+    if _self is other or data_s is data_o:
         return
+    del _self, other
+
+    data_s_input = data_s.get('input')
+    data_o_input = data_o.get('input')
+    data_s_output = data_s.get('output')
+    data_o_output = data_o.get('output')
+    if ( data_s_input is None or data_o_input is None
+         or data_s_output is None or data_o_output is None ):
+        raise NCBadInput('Invalid input data for results checking')
+    data_s_tally = data_s_output.get('tally',{})
+    data_o_tally = data_o_output.get('tally',{})
+    tally_names = sorted( data_s_tally.keys() )
+    tally_names_o = sorted( data_o_tally.keys() )
+    if tally_names != tally_names_o:
+        return errfct('incompatible tally list')
+
     #Allow things like seed, nthreads, and size of statistics to fluctuate:
     volatile=[
         ('engine','cfgstr'),
@@ -134,33 +157,30 @@ def results_check_compat_impl( _self, other, threshold, errfct ):
             keylist.pop()
         return True
     keylist=[]
-    if not cmp( _self._raw_data()['input'],
-                other._raw_data()['input'],
-                keylist ):
-        k='/'.join(keylist)
-        return errfct(f'incompatible input values for "{k}"')
+    if not cmp( data_s_input, data_o_input, keylist ):
+        if keylist:
+            k='/'.join(keylist)
+            return errfct(f'incompatible input values for "{k}"')
+        else:
+            return errfct('incompatible input values (inconsistent dict keys)')
 
-    tallies_s = dict( (t.name, t) for t in _self.tallies )
-    tallies_o = dict( (t.name, t) for t in other.tallies )
-    tally_names = sorted(tallies_s.keys())
+    from .minimc_objects import MMCTallyView
 
-    if ( tally_names != sorted(tallies_o.keys())
-         or len(tally_names)!=len(tallies_s)
-         or len(tally_names)!=len(tallies_o) ):
-        #should already have been caught unless data format changed
-        return errfct('incompatible tally list')
+    def prep_tally_dict( data_tally ):
+        fake_mother=None
+        return dict( (tn,MMCTallyView._internal_create( fake_mother,
+                                                        data_tally[tn] ))
+                     for tn in tally_names )
+    tallies_s = prep_tally_dict( data_s_tally )
+    tallies_o = prep_tally_dict( data_o_tally )
 
     nhists=sum( t._nhists for t in tallies_s.values() )
-    actual_threshold = ( 0.0 if threshold is None else threshold ) / nhists
-
-    if actual_threshold <= 0.0:
-        return
+    actual_threshold = ( ( 0.0 if threshold is None else threshold )
+                         / ( nhists or 1 ) )
 
     for tn in tally_names:
-        t_s = tallies_s.get( tn )
-        t_o = tallies_o.get( tn )
-        if not t_s or not t_o:
-            return errfct(f'unexpectedly tally missing: {tn}')
+        t_s = tallies_s[ tn ]
+        t_o = tallies_o[ tn ]
         hists_s = t_s.histograms
         hists_o = t_o.histograms
         hk = hists_s.keys()
@@ -169,11 +189,12 @@ def results_check_compat_impl( _self, other, threshold, errfct ):
         for hname in hk:
             h_s = hists_s[hname]
             h_o = hists_o[hname]
+            if actual_threshold <= 0.0:
+                continue
             if not h_s.check_compat( h_o,
                                      threshold = actual_threshold,
                                      force_norm = True ):
-                return (f'incompatible histograms: {tn}/{hk}')
-    return
+                return (f'incompatible histograms: {tn}/{hname}')
 
 def _validate_mmcresults_dict(data):
     #Very brief high-level validation:
@@ -198,10 +219,11 @@ def _determine_rebin_factor( current_nbins,
     assert max_nbins >= 1
     if max_nbins >= current_nbins:
         return 1
-    for n in list(range(max_nbins,0,-1)):
+    for n in list(range(max_nbins,1,-1)):
+        assert n>1
         if current_nbins % n == 0:
             return current_nbins//n
-    return 1
+    return current_nbins
 
 def _plot_tally( minimcresults_dict, tallyname,
                  do_legend, breakdown, max_nbins, rebin_factor,
@@ -241,8 +263,7 @@ def _plot_tally( minimcresults_dict, tallyname,
         raise NCBadInput('breakdown=True but provided tally does not'
                          ' have breakdown histograms')
     def ensure_hist( e ):
-        if not isinstance(e,Hist1D):
-            e = Hist1D.objectify_data(e)
+        e = e if isinstance(e,Hist1D) else Hist1D.objectify_data(e)
         if not isinstance(e,Hist1D):
             raise NCBadInput('Invalid input data: not a histogram')
         return e
@@ -309,6 +330,8 @@ def _plot_tally( minimcresults_dict, tallyname,
     if eopts['decoded']['ignoremiss']:
         tot_weight_incoming -= out_md['miss']['weight']
         nrays_incoming -= out_md['miss']['count']
+
+    assert tot_weight_incoming > 0.0
 
     def find_nonabsfrac():
         #TODO: move logic to MMCResults method

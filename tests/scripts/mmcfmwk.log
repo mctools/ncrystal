@@ -1,4 +1,6 @@
 Run two MiniMC scenarios
+strA: MMCResults(srccfg="constant;n=1e4;z=-0.009999999;wl=1.8",geomcfg="sphere;r=0.1",enginecfg="nthreads=1;tallybins=theta:36:0:180")
+reprA: MMCResults(srccfg="constant;n=1e4;z=-0.009999999;wl=1.8",geomcfg="sphere;r=0.1",enginecfg="nthreads=1;tallybins=theta:36:0:180")
 Basic serialisation/deserialisation check
 Loading reference files
 Testing equality
@@ -731,5 +733,106 @@ CALLING ResultOf[plt.gca(..)].set_xlim(-4e-07,2.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Energy (eV)')
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
 CALLING ResultOf[plt.gca(..)].set_title('my title')
+CALLING ResultOf[plt.gca(..)].semilogy()
+CALLING plt.show()
+CALLING plt.figure()
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['1e+06', '1e+06', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['0.5', '1.5', '2.5', '...', '178.0', '178.0', '180.0'],xerr=0.5,y=['1e+06', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],yerr=array([1000.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.]))
+CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
+CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
+CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
+CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150.,
+       165., 180.]),minor=True)
+CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
+CALLING ResultOf[plt.gca(..)].set_title('"circular;n=1e6;z=-0.005;wl=2;r=0.005" on "sphere;r=0.005" (1000000 fills)')
+CALLING ResultOf[plt.gca(..)].legend([FakeHandle],['Transmitted (100%)'])
+CALLING ResultOf[plt.gca(..)].semilogy()
+CALLING plt.show()
+CAUGHT ESCAPED WARNING (NCrystalUserWarning): No tallies were enabled. [warn#1]
+CALLING plt.figure()
+CALLING plt.plot(['0.0', '0.003', '0.006', '...', '15.0', '15.0', '15.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],color='#5DA5DA',label='Scattering')
+CALLING plt.plot(['0.0', '0.003', '0.006', '...', '15.0', '15.0', '15.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],color='#B276B2',label='Absorption')
+CALLING plt.plot(['0.0', '0.003', '0.006', '...', '15.0', '15.0', '15.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],color='#F15854',label='Total')
+CALLING plt.xlabel('Neutron wavelength (angstrom)')
+CALLING plt.ylabel('Cross section per atom (barn)')
+CALLING plt.ylim(0.0,1.0)
+CALLING plt.xlim(0.0,15.0)
+CALLING plt.title('void.ncmat')
+CALLING plt.legend()
+CALLING plt.grid()
+CALLING plt.show()
+==> Compat check ended in ERROR: >>incompatible input values (inconsistent dict keys)<<
+==> Compat check ended in ERROR: >>incompatible input values (inconsistent dict keys)<<
+==> Compat check ended in ERROR: >>incompatible tally list<<
+==> Compat check ended in ERROR: >>incompatible tally list<<
+Caught expected NCBadInput('Invalid input data for results checking')
+Caught expected NCBadInput('Invalid data for constructing MMCTallyView')
+==> Compat check ended in ERROR: >>incompatible histograms available for tally mu<<
+==> Compat check ended in ERROR: >>incompatible histograms available for tally mu<<
+==> Compat check ended ok (compatible)
+==> Compat check ended ok (compatible)
+==> Compat check ended in ERROR: >>incompatible histograms: mu/SINGLESCAT_ELAS<<
+==> Compat check ended in ERROR: >>incompatible histograms: mu/SINGLESCAT_ELAS<<
+CALLING plt.figure()
+CALLING plt.gca()
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1., 0., 0., 0., 0.]),label='All outgoing (100%)',width=0.4,x=['0.0', '0.4', '0.8', '1.2', '1.6'])
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([1., 0., 0., 0., 0.]))
+CALLING ResultOf[plt.gca(..)].set_xlim(-4e-07,2.0)
+CALLING ResultOf[plt.gca(..)].set_xlabel('Energy (eV)')
+CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
+CALLING ResultOf[plt.gca(..)].set_title('$10^0$ 0.01eV neutrons through sphere with radius 5mm')
+CALLING ResultOf[plt.gca(..)].semilogy()
+CALLING plt.show()
+Caught expected NCCalcError('All (or almost all) source particles seem to miss the geometry.')
+CALLING plt.figure()
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '18.0', '18.0', '...', '162.0', '162.0', '180.0'],['1e+06', '1e+06', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['9.0', '27.0', '45.0', '63.0', '81.0', '99.0', '117.0', '135.0', '153.0', '171.0'],xerr=9.0,y=['1e+06', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([1000.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
+          0.]))
+CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
+CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
+CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
+CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150.,
+       165., 180.]),minor=True)
+CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
+CALLING ResultOf[plt.gca(..)].set_title('$10^6$ 1.8Aa neutrons through sphere with radius 100mm')
+CALLING ResultOf[plt.gca(..)].legend([FakeHandle],['Transmitted (100%)'])
+CALLING ResultOf[plt.gca(..)].semilogy()
+CALLING plt.show()
+CALLING plt.figure()
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '18.0', '18.0', '...', '162.0', '162.0', '180.0'],['1.11e+05', '1.11e+05', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['9.0', '27.0', '45.0', '63.0', '81.0', '99.0', '117.0', '135.0', '153.0', '171.0'],xerr=9.0,y=['1.11e+05', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([333.01651611,   0.        ,   0.        ,   0.        ,
+         0.        ,   0.        ,   0.        ,   0.        ,
+         0.        ,   0.        ]))
+CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
+CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
+CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
+CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150.,
+       165., 180.]),minor=True)
+CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
+CALLING ResultOf[plt.gca(..)].set_title('$10^6$ 1.8Aa neutrons through sphere with radius 100mm')
+CALLING ResultOf[plt.gca(..)].legend([FakeHandle],['Transmitted (100%)'])
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
