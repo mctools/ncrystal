@@ -708,10 +708,9 @@ class Hist1D:
         d.update(kwargs)
         return d
 
-    def plot( self, plt=None, axis=None, label=None,
-              show_errors=True, do_show = True, set_xlim = True,
+    def plot( self, label=None, show_errors=True, set_xlim = True,
               logy = False, error_bands = None, alpha = None, color = None,
-              title = True ):
+              title = True, do_grid = True, do_legend=False, **kw_plot ):
         """Produce a matplotlib plot of the histogram. If plt is None,
         matplotlib.pyplot is used. If axis is None, plt.gca() is used. Unless
         do_show is False, plt.show() wil be called ultimately. The show_errors,
@@ -723,15 +722,9 @@ class Hist1D:
 
         The title parameter can be True, False, or a string. If not False, a
         title will be added to the plot.
-
-        Returns plt object used.
-
         """
-        if not plt and not axis:
-            from .plot import _import_matplotlib_plt
-            plt = _import_matplotlib_plt()
-        if not axis:
-            axis = plt.gca()
+        from .plot import PlotContext
+        pctx = PlotContext(**kw_plot).check_unused()
         if error_bands:
             #need to repeat last entry for proper error band visualisation of
             #the last bin:
@@ -742,27 +735,25 @@ class Hist1D:
             ee = repeat_last(self.errors)*error_bands
             fill_between_args = dict( x = self.binedges, step = 'post',
                                       y1 = cc - ee, y2 = cc + ee )
-            axis.fill_between(**fill_between_args,alpha=alpha,color=color,
-                              label=label)
+            pctx.axis.fill_between(**fill_between_args,alpha=alpha,color=color,
+                                   label=label)
         else:
             if color != 'none':
-                axis.bar( **self.bar_args( label = label ),
-                          alpha=alpha, color=color )
+                pctx.axis.bar( **self.bar_args( label = label ),
+                               alpha=alpha, color=color )
             if show_errors:
-                axis.errorbar(**self.errorbar_args(),alpha=alpha,
-                              label = label if color=='none' else None)
+                pctx.axis.errorbar(**self.errorbar_args(),alpha=alpha,
+                                   label = label if color=='none' else None)
         xmin,xmax,binwidth = self.xmin, self.xmax, self.binwidth
         if set_xlim:
-            axis.set_xlim(xmin-1e-6*binwidth,xmax+1e-6*binwidth)
+            pctx.axis.set_xlim(xmin-1e-6*binwidth,xmax+1e-6*binwidth)
         if logy:
-            axis.semilogy()
+            pctx.axis.semilogy()
         if title:
             t = title if isinstance(title,str) else self.title
             if t:
-                axis.set_title(t)
-        if do_show and plt:
-            plt.show()
-        return plt
+                pctx.axis.set_title(t)
+        return pctx.finalise(do_grid=do_grid,do_legend=do_legend)
 
     def scale( self, factor ):
         """Scale contents by a positive factor and return self. This also

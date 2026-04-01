@@ -524,23 +524,32 @@ class NCMATComposerImpl:
         self.__params['fallback_debye_temp'] = dt
 
     def set_dyninfo_vdosdebye( self, label, debye_temp, *, comment, fraction ):
-        self.__add_dyninfo( label, fraction, dict( ditype='vdosdebye',
-                                                       debye_temp = float(debye_temp),
-                                                       comment = None if not comment else self.__prunecomment(comment) ) )
+        self.__add_dyninfo( label, fraction,
+                            dict( ditype='vdosdebye',
+                                  debye_temp = float(debye_temp),
+                                  comment = ( None if not comment
+                                              else self.__prunecomment(comment) ) ) )
 
     def set_dyninfo_freegas( self, label, *, comment, fraction ):
-        self.__add_dyninfo( label, fraction, dict( ditype='freegas',
-                                                       comment = None if not comment else self.__prunecomment(comment) ) )
+        self.__add_dyninfo( label, fraction,
+                            dict( ditype='freegas',
+                                  comment = ( None
+                                              if not comment
+                                              else self.__prunecomment(comment) ) ) )
 
     def set_dyninfo_sterile( self, label, *, comment, fraction ):
-        self.__add_dyninfo( label, fraction, dict( ditype='sterile',
-                                                       comment = None if not comment else self.__prunecomment(comment) ) )
+        self.__add_dyninfo( label, fraction,
+                            dict( ditype='sterile',
+                                  comment = ( None if not comment
+                                              else self.__prunecomment(comment) ) ) )
 
     def set_dyninfo_vdos( self, label, vdos_egrid, vdos, *, comment, fraction ):
-        self.__add_dyninfo( label, fraction, dict( ditype='vdos',
-                                                       vdos_egrid = _copyarray_or_None(vdos_egrid),
-                                                       vdos = _copyarray_or_None(vdos),
-                                                       comment = None if not comment else self.__prunecomment(comment) ) )
+        self.__add_dyninfo( label, fraction,
+                            dict( ditype='vdos',
+                                  vdos_egrid = _copyarray_or_None(vdos_egrid),
+                                  vdos = _copyarray_or_None(vdos),
+                                  comment = ( None if not comment
+                                              else self.__prunecomment(comment) ) ) )
 
     def set_dyninfo_scatknl( self, label, *, alphagrid, betagrid, temperature,
                              sab = None, sab_scaled = None, egrid = None,

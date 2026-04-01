@@ -1065,7 +1065,15 @@ class Info(RCBase):
             return analyseVDOS(*self.vdos_egrid,self.vdos_density,
                                self.temperature,self.atomData.averageMassAMU())
 
-        plot_knl = _impl.divdos_methods._plot_knl()
+        def plot_knl( self, vdoslux=3, **kwargs ):
+            """Converts VDOS to S(alpha,beta) kernel with a luxury level given
+            by the vdoslux parameter, and subsequently plots it with the
+            NCrystal.plot.plot_knl function. Any kwargs are simply passed along
+            to the plot_knl call.
+            """
+            from .plot import plot_knl
+            plot_knl( self.loadKernel(vdoslux=vdoslux), **kwargs )
+
         plot_vdos = _impl.divdos_methods._plot_vdos()
         plot_Gn = _impl.divdos_methods._plot_Gn()
         extract_Gn = _impl.divdos_methods._extract_Gn()
@@ -1146,8 +1154,17 @@ class Info(RCBase):
             return analyseVDOS(*self.vdos_egrid,self.vdos_density,
                                self.temperature,self.atomData.averageMassAMU())
 
+        def plot_knl( self, vdoslux=3, **kwargs ):
+            """Converts VDOS to S(alpha,beta) kernel with a luxury level given
+            by the vdoslux parameter (but see the description of the .loadKernel
+            method for important details).
 
-        plot_knl = _impl.divdos_methods._plot_knl()
+            Subsequently the kernel is plotted with the NCrystal.plot.plot_knl
+            function. Any kwargs are simply passed along to the plot_knl call.
+            """
+            from .plot import plot_knl
+            plot_knl( self.loadKernel(vdoslux=vdoslux), **kwargs )
+
         plot_vdos = _impl.divdos_methods._plot_vdos()
         plot_Gn = _impl.divdos_methods._plot_Gn()
         extract_Gn = _impl.divdos_methods._extract_Gn()
@@ -1742,7 +1759,9 @@ def directLoad( data, cfg_params='', *, dtype='',
        proper caching behind the scenes, and is intended for scenarios where the
        same data should not be used repeatedly.
     """
-    if not dtype and hasattr(data,'dataSourceName') and hasattr(data,'rawData') and hasattr(data,'dataType'):
+    if ( not dtype and hasattr(data,'dataSourceName')
+         and hasattr(data,'rawData')
+         and hasattr(data,'dataType') ):
         #TextData might carry the dtype:
         dtype = data.dataType
 

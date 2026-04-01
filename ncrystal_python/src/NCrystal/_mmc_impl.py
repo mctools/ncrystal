@@ -227,8 +227,9 @@ def _determine_rebin_factor( current_nbins,
 
 def _plot_tally( minimcresults_dict, tallyname,
                  do_legend, breakdown, max_nbins, rebin_factor,
-                 do_show, do_newfig, do_grid, logy, title, plt, axis ):
-    from .plot import _import_matplotlib_plt, _plot_final
+                 do_grid, logy, title, kw_plot ):
+    from .plot import PlotContext
+
     from .hist import Hist1D
     assert isinstance(minimcresults_dict,dict)
     assert minimcresults_dict.get('datatype') == 'NCrystalMiniMCResults_v1'
@@ -297,30 +298,11 @@ def _plot_tally( minimcresults_dict, tallyname,
             breakdown = dict( (k,v.clone(rebin_factor=rebin_factor))
                               for k,v in breakdown.items() )
 
-    assert bool(axis) == (axis is not None)
-    if do_newfig == 'auto':
-        do_newfig = not axis
-    if do_newfig and axis:
-        raise NCBadInput('incompatible: axis is not '
-                         'None and do_newfig=True')
-    if not plt and not axis:
-        from .plot import _import_matplotlib_plt
-        plt = _import_matplotlib_plt()
-    if do_newfig:
-        if not plt:
-            raise NCBadInput('unsupported combination: '
-                             'axis=None, do_newfig=True, plt=None')
-        plt.figure()
-        assert axis is None
-        axis = plt.gca()
-    if not axis:
-        assert plt is not None
-        axis = plt.gca()
-
+    pctx = PlotContext(**kw_plot).check_unused()
     if not mainhist.integral:
         from ._common import warn
         warn('Aborting plotting of empty histogram!')
-        return plt
+        return pctx.finalise()
 
     #Look at config to determine total weights:
     out_md = minimcresults_dict['output']['metadata']
@@ -382,10 +364,10 @@ def _plot_tally( minimcresults_dict, tallyname,
             if fraction is not None:
                 lbl = f'{lbl} {_fractionval_fmt(fraction)}'
             label_order.append(lbl)
-            axis.fill_between(*curve,y2,
-                              label=lbl,
-                              edgecolor="none",
-                              facecolor=_breakdown_colors[ptitle])
+            pctx.axis.fill_between(*curve,y2,
+                                   label=lbl,
+                                   edgecolor="none",
+                                   facecolor=_breakdown_colors[ptitle])
 
         def calcfrac(hh):
             return hh.integral / tot_weight_incoming
@@ -401,43 +383,46 @@ def _plot_tally( minimcresults_dict, tallyname,
                      fraction = calcfrac(hi))
             curve = newcurve
 
-        axis.errorbar(**mainhist.errorbar_args())
-        axis.set_xlim(mainhist.xmin,mainhist.xmax)
+        pctx.axis.errorbar(**mainhist.errorbar_args())
+        pctx.axis.set_xlim(mainhist.xmin,mainhist.xmax)
     else:
         lbl = 'All outgoing %s'%_fractionval_fmt(nonabsfrac)
         label_order.append(lbl)
-        mainhist.plot( plt=plt, do_show = False, label=lbl, title=False)
+        mainhist.plot( label=lbl,
+                       do_grid=False,
+                       do_legend=False,
+                       title=False, **pctx.kwargs_subcontext())
         if title == 1:
             title = mainhist.title or 0
         if not logy:
-            axis.set_ylim(0.0)
+            pctx.axis.set_ylim(0.0)
 
     from ._mmc_impl import tally_info
     t_info = tally_info()['hists'][tallyname]
     xlbl = t_info['short_descr'].capitalize()
     if t_info['unit']:
         xlbl += ' (%s)'%t_info['unit']
-    axis.set_xlabel(xlbl)
+    pctx.axis.set_xlabel(xlbl)
 
     if tallyname=='theta' and mainhist.xmin==0 and mainhist.xmax==180:
-        axis.set_xticks(_np_linspace(0.0,180.0,180//30+1))
-        axis.set_xticks(_np_linspace(0.0,180.0,180//15+1),minor=True)
-    axis.set_ylabel('Intensity (arbitrary units)')
+        pctx.axis.set_xticks(_np_linspace(0.0,180.0,180//30+1))
+        pctx.axis.set_xticks(_np_linspace(0.0,180.0,180//15+1),minor=True)
+    pctx.axis.set_ylabel('Intensity (arbitrary units)')
     if title and isinstance(title,str):
-        axis.set_title(title)
+        pctx.axis.set_title(title)
 
     if absfrac > 0.0:
         lbl="Absorbed %s"%_fractionval_fmt(absfrac)
         label_order.append(lbl)
-        axis.plot([], [], ' ', label=lbl)
+        pctx.axis.plot([], [], ' ', label=lbl)
 
     if do_legend:
         #Enforce ordering!
 
         #Instead of handles, labels = axis.get_legend_handles_labels(), we do
         #the following because of our unit tests:
-        is_fake_plt = hasattr(axis,'the_real_inspected_object')
-        if is_fake_plt:
+        is_fake = hasattr(pctx.axis,'the_real_inspected_object')
+        if is_fake:
             #Not real calls, just fake it.
             class FakeHandle:
                 def __repr__(self):
@@ -446,17 +431,14 @@ def _plot_tally( minimcresults_dict, tallyname,
             handles = [FakeHandle() for lbl in label_order]
             labels = [lbl for lbl in label_order]
         else:
-            handles,labels = axis.get_legend_handles_labels()
+            handles,labels = pctx.axis.get_legend_handles_labels()
 
         _ = sorted([hl for hl in zip(handles,labels)],
                    key = lambda hl : label_order.index(hl[1]))
         handles, labels = [hl[0] for hl in _], [hl[1] for hl in _]
-        axis.legend(handles,labels)
+        pctx.axis.legend(handles,labels)
 
-    return _plot_final(do_grid = do_grid,
-                       do_legend = False,#axis.legend was already called above
-                       do_show = do_show,
-                       logx = False,
-                       logy = logy,
-                       axis = axis,
-                       plt = plt )
+    return pctx.finalise(do_grid = do_grid,
+                         do_legend = False,#axis.legend was already called above
+                         logx = False,
+                         logy = logy )

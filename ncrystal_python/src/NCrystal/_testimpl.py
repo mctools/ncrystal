@@ -372,31 +372,18 @@ def _create_pyplot_inspector( pass_calls_to_real_plt ):
     plot = ( 'plot', dict( fmtcall=csf(2,('x','y'))) )
     bar = ( 'bar', dict( fmtcall=csf(1,('x',))) )
     errorbar = ( 'errorbar', dict( fmtcall=csf(3,('x','y','yerr',))) )
-    pltaxisfcts = [fill_between, plot, bar, errorbar,'semilogx','semilogy' ]
-    get_figure = ( 'get_figure',dict( subfcts=['suptitle'] ) )
+    get_figure = ( 'get_figure',dict( subfcts=['suptitle','colorbar'] ) )
+    pcolormesh = ( 'pcolormesh',dict( subfcts=['set_clim'], fmtcall=csf(3)) )
+    axisfcts = [ pcolormesh,fill_between, plot, bar, errorbar,
+                 'semilogx','semilogy',get_figure,
+                 'set_title','set_xticks','set_xlabel','set_ylabel',
+                 'set_ylim','set_xlim','legend','semilogx',
+                 'semilogy', 'grid' ]
 
-    return CallInspector( name = 'plt',
-                          realobj = realplt,
-                          subfcts = [ 'title','xlabel','ylabel',
-                                      'legend','grid','show','figure',
-                                      'savefig','ylim','xlim','colorbar',
-                                      'xticks','suptitle','tight_layout',
-                                      'close',
-                                      *pltaxisfcts,
-                                      ( 'pcolormesh',dict( subfcts=['set_clim'],
-                                                           fmtcall=csf(3)) ),
-                                      ( 'gca',dict( subfcts=[*pltaxisfcts,
-                                                             get_figure,
-                                                             'set_title',
-                                                             'set_xticks',
-                                                             'set_xlabel',
-                                                             'set_ylabel',
-                                                             'set_ylim',
-                                                             'set_xlim',
-                                                             'legend',
-                                                             'semilogx',
-                                                             'semilogy'] ) ),
-                                     ] )
+    return CallInspector( name = 'plt', realobj = realplt,
+                          subfcts = [ 'show','subplots','savefig',
+                                      'suptitle','tight_layout','close',
+                                      ( 'gca',dict( subfcts=axisfcts ) ) ] )
 
 def _create_pdfpages_inspector( real_pdfpages ):
     return CallInspector( name = 'PdfPages',

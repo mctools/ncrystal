@@ -243,11 +243,14 @@ def _anyvdos_detect_fmt( class_AnyVDOS, data ):
         return 'debyetemperature'
     if hasattr(data,'__len__') and len(data)==2:
         eg,dens = data
-        if hasattr(eg,'__len__') and len(eg) >= 2 and hasattr(dens,'__len__') and len(dens)>=2 and ( len(eg)==len(dens) or len(eg)==2 ):
+        if ( hasattr(eg,'__len__') and len(eg) >= 2
+             and hasattr(dens,'__len__') and len(dens)>=2
+             and ( len(eg)==len(dens) or len(eg)==2 ) ):
             return 'arrays'
 
 def _anyvdos_preinit( data, fmt ):
-    allfmts = ('NCrystal.Info.DI_VDOS','NCrystal.Info.DI_VDOSDebye','debyetemperature','arrays','NCrystal.AnyVDOS')
+    allfmts = ('NCrystal.Info.DI_VDOS','NCrystal.Info.DI_VDOSDebye',
+               'debyetemperature','arrays','NCrystal.AnyVDOS')
     from ._numpy import _ensure_numpy, _np
     _ensure_numpy()
 

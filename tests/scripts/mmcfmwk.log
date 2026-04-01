@@ -5,6 +5,7 @@ Basic serialisation/deserialisation check
 Loading reference files
 Testing equality
 Test plotting code
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(alpha=0.3,color='blue',label='ref',step='post',x=array([  0.,   5.,  10.,  15.,  20.,  25.,  30.,  35.,  40.,  45.,  50.,
         55.,  60.,  65.,  70.,  75.,  80.,  85.,  90.,  95., 100., 105.,
@@ -29,7 +30,7 @@ CALLING ResultOf[plt.gca(..)].fill_between(alpha=0.3,color='blue',label='ref',st
        2.29256678e+01, 2.31121498e+02, 8.43454555e+00, 3.23208898e+00,
        3.23208898e+00]))
 CALLING ResultOf[plt.gca(..)].set_xlim(-5e-06,180.0)
-CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].grid()
 CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label='new',mec='black',mfc='black',x=['2.5', '7.5', '12.5', '...', '168.0', '172.0', '178.0'],xerr=2.5,y=['3.86e+03', '18.5', '22.6', '...', '225.0', '7.71', '2.76'],yerr=array([38.48584774,  1.45697873,  1.57368966,  2.14346842,  2.06686603,
         2.15746247,  2.36072679,  2.54432035,  2.51987107, 12.92189926,
         9.95212386,  3.01128037,  2.62691545,  2.66535438,  3.10528075,
@@ -40,16 +41,16 @@ CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,
         0.47503652]))
 CALLING ResultOf[plt.gca(..)].set_xlim(-5e-06,180.0)
 CALLING ResultOf[plt.gca(..)].semilogy()
-CALLING plt.title('A')
-CALLING plt.legend()
-CALLING plt.grid()
+CALLING ResultOf[plt.gca(..)].grid()
+CALLING ResultOf[plt.gca(..)].set_title('A')
+CALLING ResultOf[plt.gca(..)].legend()
 CALLING plt.show()
 Verifying resA conversion stability.
 Verifying resB conversion stability.
 Verifying extreme check_compat.
 Proceed with ref data only.
 More plotting code test
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.3', '29.3', '62.8', '...', '36.2', '10.5', '10.5'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='lightblue',label='MULTISCAT_PUREELAS (20.2%)')
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.3', '29.3', '62.8', '...', '246.0', '10.5', '10.5'],['29.3', '29.3', '62.8', '...', '36.2', '10.5', '10.5'],edgecolor='none',facecolor='blue',label='SINGLESCAT_ELAS (23.7%)')
@@ -69,7 +70,7 @@ CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (17.7%)')
 CALLING ResultOf[plt.gca(..)].legend([FakeHandle, FakeHandle, FakeHandle, FakeHandle],['MULTISCAT_PUREELAS (20.2%)', 'SINGLESCAT_ELAS (23.7%)', 'Transmitted (38.5%)', 'Absorbed (17.7%)'])
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.3', '29.3', '62.8', '...', '36.2', '10.5', '10.5'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='lightblue',label='MULTISCAT_PUREELAS (20.2%)')
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.3', '29.3', '62.8', '...', '246.0', '10.5', '10.5'],['29.3', '29.3', '62.8', '...', '36.2', '10.5', '10.5'],edgecolor='none',facecolor='blue',label='SINGLESCAT_ELAS (23.7%)')
@@ -119,6 +120,7 @@ Hist1D(nbins=18,xmin=0,xmax=180):
 resA.tally('theta').hist_total.title='theta'
 ['theta']
 Sum test
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([3876.07215052,   62.75250774,   84.5862355 ,  111.71542614,
         129.37001153,  156.87857064,  149.93172003,  185.36564548,
@@ -132,6 +134,7 @@ CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,
 CALLING ResultOf[plt.gca(..)].set_xlim(-1e-05,180.0)
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING ResultOf[plt.gca(..)].set_title('MULTISCAT_PUREELAS')
+CALLING ResultOf[plt.gca(..)].grid()
 CALLING plt.show()
 ['MULTISCAT_OTHER', 'MULTISCAT_PUREELAS', 'NOSCAT', 'SINGLESCAT_ELAS', 'SINGLESCAT_INELAS']
 MiniMC engine cfg-strings
@@ -703,8 +706,7 @@ Caught expected NCBadInput('Inconsistent parameters. Do not supply geomcfg or sr
 {"datatype":"NCrystalMiniMCResults_v1","input":{"material":{"cfgstr":"void.ncmat","decoded":{"format":"NCrystal-MatCfg-v1", "ismultiphase":false,"data_name":"void.ncmat","textdata_uid": "16","textdata_type":"ncmat","pars":[],"phasechoices":[],"density":{"type":"scalefactor","value":1.0}}},"geom":{"cfgstr":"sphere;r=0.005","decoded":{"name":"sphere","r":0.005,"short_description":"sphere with radius 5mm"}},"src":{"cfgstr":"circular;n=1;z=-0.005;ekin=0.01;r=0.005","decoded":{"name":"circular","n":1,"x":0.0,"y":0.0,"z":-0.005,"w":1.0,"wl":null,"ekin":{"mode":"fixed","value":0.01},"ux":0.0,"uy":0.0,"uz":1.0,"r":0.005},"metadata":{"fixed_dir":[0.0,0.0,1.0],"fixed_energy":0.01,"mean_dir":[0.0,0.0,1.0],"mean_energy":0.01,"energy_description":"0.01eV"}},"engine":{"name":"std","cfgstr":"nthreads=1;tally=e;tallybreakdown=0;tallybins=e:5:0:2","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"tallyref":"truth","nscatlimit":null,"tally":["e"],"tallybreakdown":false,"tallybins":{"overrides":{"de":null,"e":[5,0.0,2.0],"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":1}}},"output":{"tally":{"e":{"datatype":"NCrystalMiniMCTallyHistBreakdown_v1","tallyname":"e","total":{"datatype":"NCrystalHist1D_v1","title":"e","stats":{"integral":1.0,"rms":0.0,"mean":0.01,"minfilled":0.01,"maxfilled":0.01},"bindata":{"xmin":0.0,"xmax":2.0,"nbins":5,"content":[1.0,0.0,0.0,0.0,0.0],"errorsq":[1.0,0.0,0.0,0.0,0.0],"underflow":0.0,"overflow":0.0,"underflow_errorsq":0.0,"overflow_errorsq":0.0}},"breakdown":{} }},"metadata":{"provided":{"count":1,"weight":1.0},"miss":{"count":0,"weight":0.0},"tallied":{"count":1,"weight":1.0}}}}
 Caught expected NCBadInput('Invalid value of unpack (must be "dict", "json", "dict_jsoncompat", or "object"): \'foobar\'')
 Caught expected NCBadInput('Missing geomcfg parameter.')
-CALLING plt.figure()
-CALLING plt.gca()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1., 0., 0., 0., 0.]),label='All outgoing (100%)',width=0.4,x=['0.0', '0.4', '0.8', '1.2', '1.6'])
 CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([1., 0., 0., 0., 0.]))
@@ -714,8 +716,7 @@ CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
 CALLING ResultOf[plt.gca(..)].set_title('$10^0$ 0.01eV neutrons through sphere with radius 5mm')
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
-CALLING plt.figure()
-CALLING plt.gca()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1., 0., 0., 0., 0.]),label='All outgoing (100%)',width=0.4,x=['0.0', '0.4', '0.8', '1.2', '1.6'])
 CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([1., 0., 0., 0., 0.]))
@@ -724,8 +725,7 @@ CALLING ResultOf[plt.gca(..)].set_ylim(0.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Energy (eV)')
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
 CALLING plt.show()
-CALLING plt.figure()
-CALLING plt.gca()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1., 0., 0., 0., 0.]),label='All outgoing (100%)',width=0.4,x=['0.0', '0.4', '0.8', '1.2', '1.6'])
 CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([1., 0., 0., 0., 0.]))
@@ -735,7 +735,7 @@ CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
 CALLING ResultOf[plt.gca(..)].set_title('my title')
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['1e+06', '1e+06', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
 CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['0.5', '1.5', '2.5', '...', '178.0', '178.0', '180.0'],xerr=0.5,y=['1e+06', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],yerr=array([1000.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
@@ -769,17 +769,18 @@ CALLING ResultOf[plt.gca(..)].legend([FakeHandle],['Transmitted (100%)'])
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): No tallies were enabled. [warn#1]
-CALLING plt.figure()
-CALLING plt.plot(['0.0', '0.003', '0.006', '...', '15.0', '15.0', '15.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],color='#5DA5DA',label='Scattering')
-CALLING plt.plot(['0.0', '0.003', '0.006', '...', '15.0', '15.0', '15.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],color='#B276B2',label='Absorption')
-CALLING plt.plot(['0.0', '0.003', '0.006', '...', '15.0', '15.0', '15.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],color='#F15854',label='Total')
-CALLING plt.xlabel('Neutron wavelength (angstrom)')
-CALLING plt.ylabel('Cross section per atom (barn)')
-CALLING plt.ylim(0.0,1.0)
-CALLING plt.xlim(0.0,15.0)
-CALLING plt.title('void.ncmat')
-CALLING plt.legend()
-CALLING plt.grid()
+CALLING plt.subplots()
+CALLING plt.gca()
+CALLING ResultOf[plt.gca(..)].plot(['0.0', '0.003', '0.006', '...', '15.0', '15.0', '15.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],color='#5DA5DA',label='Scattering')
+CALLING ResultOf[plt.gca(..)].plot(['0.0', '0.003', '0.006', '...', '15.0', '15.0', '15.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],color='#B276B2',label='Absorption')
+CALLING ResultOf[plt.gca(..)].plot(['0.0', '0.003', '0.006', '...', '15.0', '15.0', '15.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],color='#F15854',label='Total')
+CALLING ResultOf[plt.gca(..)].set_xlabel('Neutron wavelength (angstrom)')
+CALLING ResultOf[plt.gca(..)].set_ylabel('Cross section per atom (barn)')
+CALLING ResultOf[plt.gca(..)].set_ylim(0.0,1.0)
+CALLING ResultOf[plt.gca(..)].set_xlim(0.0,15.0)
+CALLING ResultOf[plt.gca(..)].set_title('void.ncmat')
+CALLING ResultOf[plt.gca(..)].legend()
+CALLING ResultOf[plt.gca(..)].grid()
 CALLING plt.show()
 ==> Compat check ended in ERROR: >>incompatible input values (inconsistent dict keys)<<
 ==> Compat check ended in ERROR: >>incompatible input values (inconsistent dict keys)<<
@@ -793,8 +794,7 @@ Caught expected NCBadInput('Invalid data for constructing MMCTallyView')
 ==> Compat check ended ok (compatible)
 ==> Compat check ended in ERROR: >>incompatible histograms: mu/SINGLESCAT_ELAS<<
 ==> Compat check ended in ERROR: >>incompatible histograms: mu/SINGLESCAT_ELAS<<
-CALLING plt.figure()
-CALLING plt.gca()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1., 0., 0., 0., 0.]),label='All outgoing (100%)',width=0.4,x=['0.0', '0.4', '0.8', '1.2', '1.6'])
 CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([1., 0., 0., 0., 0.]))
@@ -804,8 +804,7 @@ CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
 CALLING ResultOf[plt.gca(..)].set_title('$10^0$ 0.01eV neutrons through sphere with radius 5mm')
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
-Caught expected NCCalcError('All (or almost all) source particles seem to miss the geometry.')
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '18.0', '18.0', '...', '162.0', '162.0', '180.0'],['1e+06', '1e+06', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
 CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['9.0', '27.0', '45.0', '63.0', '81.0', '99.0', '117.0', '135.0', '153.0', '171.0'],xerr=9.0,y=['1e+06', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([1000.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
@@ -820,7 +819,7 @@ CALLING ResultOf[plt.gca(..)].set_title('$10^6$ 1.8Aa neutrons through sphere wi
 CALLING ResultOf[plt.gca(..)].legend([FakeHandle],['Transmitted (100%)'])
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '18.0', '18.0', '...', '162.0', '162.0', '180.0'],['1.11e+05', '1.11e+05', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
 CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['9.0', '27.0', '45.0', '63.0', '81.0', '99.0', '117.0', '135.0', '153.0', '171.0'],xerr=9.0,y=['1.11e+05', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([333.01651611,   0.        ,   0.        ,   0.        ,

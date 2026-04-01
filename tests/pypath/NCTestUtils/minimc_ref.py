@@ -203,12 +203,12 @@ def minimc_unittest( *,
         print( "Pvalue for comp. with ref"
                f" (higher is more compatible): {pval:g}" )
     if do_plot:
-        h_ref.plot(do_show=False,error_bands=1.0,
-                   alpha=0.3,color='blue',label='ref')
-        plt=h.plot(do_show=False,color='none',logy=True,label='new')
-        plt.legend()
-        plt.grid()
-        plt.show()
+        from NCrystalDev.plot import PlotContext
+        pctx=PlotContext()
+        h_ref.plot(error_bands=1.0, alpha=0.3,color='blue',label='ref',
+                   **pctx.kwargs_subcontext())
+        h.plot(color='none',logy=True,label='new',**pctx.kwargs_subcontext())
+        pctx.finalise(do_legend=True,do_grid=True)
     if pval < 0.001:
         raise SystemExit("ERROR: Possible compatibility issues detected!")
     return res

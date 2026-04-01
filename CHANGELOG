@@ -66,7 +66,8 @@ v4.2.13 (work-in-progress)
        duplication.
      * Add small unscientific but completely reproducible RNG for Python unit
        tests.
-     * Add comprehensive (>99% coverage) unit test for python histograms.
+     * Add comprehensive (>99% coverage) unit test for python histograms and
+       improve coverage testing of various plotting methods.
      * NCRandUtils.hh: Add randPointInUnitCircle utility.
      * Add testing utilities for easy monitoring that MiniMC output for a
        particular cfg-string does not change in a statistically significant
@@ -116,6 +117,10 @@ v4.2.13 (work-in-progress)
      * Fix cfgstring normalisation with internal whitespace.
      * Add loadInfo, loadScatter, and loadAbsorption convenience methods to the
        NCMATComposer.
+     * Introduce PlotContext infrastructure for more reliable and flexible
+       plottings behaviour in all contexts (interactive, scripts, CLI,
+       notebooks, Qt canvas, ...). One side-effect is that various plotting
+       methods no longer returns a .plt object.
      * ...
 
 v4.2.12 2026-01-05

@@ -27,6 +27,7 @@ import NCrystalDev.core as nccore
 from NCrystalDev.constants import ekin2wl
 from NCTestUtils.dirs import get_named_test_data_dir
 from NCrystalDev.hist import Hist1D
+from NCrystalDev.plot import PlotContext
 
 def main(do_plot, do_update):
     from NCrystalDev.hist import HistFiller1D
@@ -125,31 +126,31 @@ def main(do_plot, do_update):
     if not do_plot:
         return result()
 
-    common = dict( error_bands=2.0, alpha = 0.5, do_show=False)
+    common = dict( error_bands=2.0, alpha = 0.5)
 
     def pl( hfwd_key, hback_key ):
         hfwd = hists[hfwd_key]
         hback = hists[hback_key]
-        hfwd.plot(label=hfwd.title,**common,color='red')
-        plt = hback.plot(label=hback.title,**common,color='green')
-        plt.gca().legend()
-        plt.gca().semilogy()
-        plt.grid()
-        plt.show()
+        pctx=PlotContext()
+        hfwd.plot(label=hfwd.title,**common,color='red',
+                  **pctx.kwargs_subcontext())
+        hback.plot(label=hback.title,**common,color='green',
+                   **pctx.kwargs_subcontext())
+        pctx.axis.semilogy()
+        pctx.finalise(do_legend=True,do_grid=True)
     pl('wl0_fwd','wl0_back')
     pl('e_fwd','e_back')
     pl('nscat_fwd','nscat_back')
 
     for key in sorted(hists.keys()):
         h, h_ref = hists[key], hists_ref[key]
-        h_ref.plot(do_show=False,error_bands=1.0,
-                   alpha=0.3,color='blue',label='ref')
-        plt=h.plot(do_show=False,color='none',logy=True,label='new')
-        plt.legend()
-        plt.title(key)
-        plt.grid()
-        plt.show()
-
+        pctx=PlotContext()
+        h_ref.plot(error_bands=1.0,alpha=0.3,color='blue',label='ref',
+                   **pctx.kwargs_subcontext())
+        h.plot(color='none',logy=True,label='new',
+               **pctx.kwargs_subcontext())
+        pctx.axis.set_title(key)
+        pctx.finalise(do_legend=True,do_grid=True)
 
 if __name__ == '__main__':
     import sys

@@ -571,7 +571,6 @@ def comp2cfgpars(comp):
              'sans' : 'coh_elas=0;incoh_elas=0;inelas=0',
              'all' : '' }[comp]
 
-
 def plot_mmc(cfgstr,scenario_cfg,logy,do_pdf):
     from . import minimc as mmc
     assert logy in (True,False,'auto')

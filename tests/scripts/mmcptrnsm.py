@@ -26,6 +26,7 @@ from NCrystalDev.minimc import run as mmcrun
 from NCTestUtils.dirs import get_named_test_data_dir
 import NCrystalDev.core as nccore
 from NCrystalDev.hist import Hist1D
+from NCrystalDev.plot import PlotContext
 import math
 import numpy as np
 
@@ -106,32 +107,34 @@ def main(do_plot, do_update):
     if not do_plot:
         return result()
 
-    h_ref.plot(do_show=False,error_bands=1.0,
-               alpha=0.3,color='blue',label='ref')
-    plt=h.plot(do_show=False,color='none',logy=True,label='new')
-    plt.legend()
-    plt.grid()
-    plt.show()
-
-
-    plt = h.plot(error_bands=1.0,do_show=False,label='MiniMC (includes rescattering)',color='blue',alpha=0.5)
-    h_ref.plot(error_bands=1.0,do_show=False,label='Reference',color='green',alpha=0.5)
+    pctx=PlotContext()
+    h_ref.plot(error_bands=1.0,alpha=0.3,color='blue',label='ref',
+               **pctx.kwargs_subcontext())
+    h.plot(color='none',logy=True,label='new',**pctx.kwargs_subcontext())
+    pctx.finalise(do_legend=True,do_grid=True)
+    pctx=PlotContext()
+    h.plot(error_bands=1.0,label='MiniMC (includes rescattering)',
+           color='blue',alpha=0.5,**pctx.kwargs_subcontext())
+    h_ref.plot(error_bands=1.0,label='Reference',color='green',
+               alpha=0.5,**pctx.kwargs_subcontext())
     e = np.linspace(elow,ehigh,2000)
     m = nccore.load(cfgstr)
     def ptransm(xs):
         return 100.0*np.exp(-thickness_cm*m.info.factor_macroscopic_xs*xs)
     xs_abs =  m.absorption.xsect(e)
     xs_scat = m.scatter.xsect(e)
-    plt.plot(e,ptransm(xs_abs),label='Theory (no rescattering, absorption only)',color='orange')
-    plt.plot(e,ptransm(xs_abs+xs_scat),label='Theory (no rescattering)',color='red')
-    plt.plot(e,ptransm(xs_scat),label='Theory (no rescattering, scattering only)',color='brown')
-    plt.title(f'Ptransmission (theta_scat<{transm_def_degree}degree)')
-    plt.ylabel('(%)')
-    plt.xlabel('E (eV)')
-    plt.ylim(0,100.0)
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
+    pctx.finalise(do_legend=True,do_grid=True)
+
+
+    pctx.axis.plot(e,ptransm(xs_abs),label='Theory (no rescattering, absorption only)',color='orange')
+    pctx.axis.plot(e,ptransm(xs_abs+xs_scat),label='Theory (no rescattering)',color='red')
+    pctx.axis.plot(e,ptransm(xs_scat),label='Theory (no rescattering, scattering only)',color='brown')
+    pctx.axis.set_title(f'Ptransmission (theta_scat<{transm_def_degree}degree)')
+    pctx.axis.set_ylabel('(%)')
+    pctx.axis.set_xlabel('E (eV)')
+    pctx.axis.set_ylim(0,100.0)
+    pctx.axis.get_figure().tight_layout()
+    pctx.finalise(do_legend=True,do_grid=True)
 
     res.tally('nscat').plot(logy=False)
     res.tally('nscat_uw').plot(logy=False)

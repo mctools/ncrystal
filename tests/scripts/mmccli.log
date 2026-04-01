@@ -1139,7 +1139,7 @@ Wrote: bla_hello.json
 ===========================================
 ============= CLI >>void.ncmat 2Aa<< ====================
 Plotting tally: theta
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['1e+06', '1e+06', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
 CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['0.5', '1.5', '2.5', '...', '178.0', '178.0', '180.0'],xerr=0.5,y=['1e+06', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],yerr=array([1000.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
@@ -1178,8 +1178,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): No tallies are available to plot. 
 ===========================================
 ============= CLI >>void.ncmat 2Aa -e tallybreakdown=0 --plot<< ====================
 Plotting tally: theta
-CALLING plt.figure()
-CALLING plt.gca()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1000000.,       0.,       0.,       0.,       0.,       0.,
              0.,       0.,       0.,       0.,       0.,       0.,
@@ -1246,7 +1245,7 @@ Wrote: bla17.json.gz
 ===========================================
 ============= CLI >>-i bla17.json.gz --plot<< ====================
 Plotting tally: e
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '0.00207', '0.00207', '...', '0.412', '0.412', '0.415'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
 CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['0.00104', '0.00311', '0.00518', '...', '0.409', '0.411', '0.414'],xerr=0.00104,y=['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],yerr=array([   0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
@@ -1280,7 +1279,7 @@ CALLING ResultOf[plt.gca(..)].legend([FakeHandle],['Transmitted (100%)'])
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
 Plotting tally: mu
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['-1.0', '-0.99', '-0.99', '...', '0.99', '0.99', '1.0'],['0.0', '0.0', '0.0', '...', '0.0', '1e+06', '1e+06'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
 CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['-0.995', '-0.985', '-0.975', '...', '0.975', '0.985', '0.995'],xerr=0.005,y=['0.0', '0.0', '0.0', '...', '0.0', '0.0', '1e+06'],yerr=array([   0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
@@ -1314,7 +1313,7 @@ CALLING ResultOf[plt.gca(..)].legend([FakeHandle],['Transmitted (100%)'])
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
 Plotting tally: q
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '0.14', '0.14', '...', '27.8', '27.8', '27.9'],['1e+06', '1e+06', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
 CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['0.0698', '0.209', '0.349', '...', '27.6', '27.7', '27.8'],xerr=0.0698,y=['1e+06', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],yerr=array([1000.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
@@ -1351,7 +1350,7 @@ CALLING plt.show()
 ============= CLI >>-i bla17.json.gz -t mu,q --plot<< ====================
 Skipping tally: e
 Plotting tally: mu
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['-1.0', '-0.99', '-0.99', '...', '0.99', '0.99', '1.0'],['0.0', '0.0', '0.0', '...', '0.0', '1e+06', '1e+06'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
 CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['-0.995', '-0.985', '-0.975', '...', '0.975', '0.985', '0.995'],xerr=0.005,y=['0.0', '0.0', '0.0', '...', '0.0', '0.0', '1e+06'],yerr=array([   0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
@@ -1385,7 +1384,7 @@ CALLING ResultOf[plt.gca(..)].legend([FakeHandle],['Transmitted (100%)'])
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
 Plotting tally: q
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '0.14', '0.14', '...', '27.8', '27.8', '27.9'],['1e+06', '1e+06', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
 CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['0.0698', '0.209', '0.349', '...', '27.6', '27.7', '27.8'],xerr=0.0698,y=['1e+06', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],yerr=array([1000.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,

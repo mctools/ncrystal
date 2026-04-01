@@ -379,6 +379,7 @@ Integrate (expects 8 +- 2.82843): 8 +- 2.82843
 Integrate (expects 9 +- 3): 9 +- 3
 Integrate (expects 9 +- 3): 9 +- 3
 Integrate (expects 5 +- 2.23607): 5 +- 2.23607
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1., 0., 0., 0., 1., 0., 0., 0., 0., 2., 0., 0., 0., 1., 1., 0., 0.,
        0., 1., 1.]),label=None,width=1.0,x=['-10.0', '-9.0', '-8.0', '...', '7.0', '8.0', '9.0'])
@@ -387,6 +388,7 @@ CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,
        0.        , 0.        , 0.        , 1.        , 1.        ,
        0.        , 0.        , 0.        , 1.        , 1.        ]))
 CALLING ResultOf[plt.gca(..)].set_xlim(-10.0,10.0)
+CALLING ResultOf[plt.gca(..)].grid()
 CALLING plt.show()
 Hist1D(nbins=6,xmin=-3,xmax=3):
   title     : <none>

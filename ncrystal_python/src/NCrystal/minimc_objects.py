@@ -167,21 +167,36 @@ class MMCResults:
         r = f'{r} ({n} fills)'
         return f'{r} ("{e}")' if e else r
 
-    def plot(self, **kwargs):
-        """Loops over all tallies and plots them, passing along any kwargs. The
-        same functionality can be obtained by:
+    def plot(self, *,
+             breakdown = 'auto',
+             max_nbins = None,
+             rebin_factor = None,
+             do_grid = False,
+             do_legend = 'auto',
+             logy = True,
+             title = None ):
+        """Loops over all tallies and plots them, passing along any arguments. The
+        same functionality can essentially be obtained by:
 
         for t in mmcresults.tallies:
-            t.plot(**kwargs)
+            t.plot(<arguments>)
 
+        This is a multi-plot function, so fine-grained control of the
+        PlotContext is not possible.
         """
-        p = False
-        for t in self.tallies:
-            p = True
-            t.plot(**kwargs)
-        if not p:
+        tallies = self.tallies
+        if not tallies:
             from ._common import warn as ncwarn
             ncwarn('No tallies were enabled.')
+        else:
+            for t in self.tallies:
+                t.plot( breakdown = breakdown,
+                        max_nbins = max_nbins,
+                        rebin_factor = rebin_factor,
+                        do_grid = do_grid,
+                        do_legend = do_legend,
+                        logy = logy,
+                        title = title )
 
     def plot_xsect(self, **kwargs):
         """Plots the material cross sections with the plot_xsect function from
@@ -192,7 +207,7 @@ class MMCResults:
         plot_xsect(mmcresults.setup['material']['cfgstr'],**kwargs)
         """
         from .plot import plot_xsect
-        return plot_xsect(self.setup['material']['cfgstr'])
+        return plot_xsect(self.setup['material']['cfgstr'],**kwargs)
 
     def dump( self, do_print = True, prefix = '',
               tally_filter_fct = None ):
@@ -412,18 +427,15 @@ class MMCTallyView:
         """Shorthand for .hist_total.dump(*args,**kwargs)."""
         return self.hist_total.dump(*args,**kwargs)
 
-    def plot( self,
+    def plot( self, *,
               breakdown = 'auto',
               max_nbins = None,
               rebin_factor = None,
-              do_show = True,
-              do_newfig = 'auto',
               do_grid = False,
               do_legend = 'auto',
               logy = True,
               title = None,
-              plt = None,
-              axis = None ):
+              **kw_plot ):
         """Launch a plot (via matplotlib) of a histogram of the tallied
         quantity.
 
@@ -445,19 +457,10 @@ class MMCTallyView:
         The parameters do_grid, do_legend, and logy are hopefully
         self-explanatory.
 
-        Finally, for advanced users, follows a series of parameters which can be
-        used by advanced users who wish to customise the plotting further: If
-        plt is None, matplotlib.pyplot will be used, and if do_newfig is True, a
-        call to plt.figure() then follows. Setting do_newfig='auto' will cause a
-        new figure to be created, unless axis is provided. Finally, if axis is
-        None, it will default to plt.gca(). After all plotting calls have been
-        done, plt.show() will be called unless do_show is False.
-
-        The return value of the function is the plt object actually used
-        (normally matplotlib.pyplot).
-
+        Any excess arguments are passed along to the PlotContext.
         """
 
+        from ._mmc_impl import _plot_tally
         assert self.__mmcresults is not None, ("MMCTallyView.plot requires pro"
                                                "per MMCResults mother object")
         if title in (None,'auto','short'):
@@ -465,19 +468,14 @@ class MMCTallyView:
         elif title == 'long':
             title = self.__mmcresults.long_title()
         title = (title or '').strip() or False
-
-        from ._mmc_impl import _plot_tally
-        _plot_tally( self.__mmcresults._raw_data(),
-                     tallyname = self.name,
-                     breakdown = breakdown,
-                     max_nbins = max_nbins,
-                     rebin_factor = rebin_factor,
-                     do_show = do_show,
-                     do_newfig = do_newfig,
-                     do_grid = do_grid,
-                     do_legend = do_legend,
-                     logy = logy,
-                     title = title,
-                     plt = plt,
-                     axis = axis )
+        return _plot_tally( self.__mmcresults._raw_data(),
+                            tallyname = self.name,
+                            breakdown = breakdown,
+                            max_nbins = max_nbins,
+                            rebin_factor = rebin_factor,
+                            do_grid = do_grid,
+                            do_legend = do_legend,
+                            logy = logy,
+                            title = title,
+                            kw_plot = kw_plot )
 

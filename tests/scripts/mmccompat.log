@@ -1,6 +1,6 @@
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The NCrystal._mmc module is obsolete. Please use the NCrystal.minimc module instead (more info at https://github.com/mctools/ncrystal/wiki/minimc). [warn#1]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The quick_diffraction_pattern(..) function is obsolete. Please migrate your code to use the NCrystal.minimc.run(..) function instead (more info at https://github.com/mctools/ncrystal/wiki/minimc). [warn#2]
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['232.0', '232.0', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (23.2%)')
 CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['0.5', '1.5', '2.5', '...', '178.0', '178.0', '180.0'],xerr=0.5,y=['232.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],yerr=array([7.34552955, 0.        , 0.        , 0.        , 0.        ,
@@ -50,7 +50,7 @@ CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (76.8%)')
 CALLING ResultOf[plt.gca(..)].legend([FakeHandle, FakeHandle],['Transmitted (23.2%)', 'Absorbed (76.8%)'])
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
-CALLING plt.figure()
+CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '5.0', '5.0', '...', '175.0', '175.0', '180.0'],['793.0', '793.0', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (79.3%)')
 CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['2.5', '7.5', '12.5', '...', '168.0', '172.0', '178.0'],xerr=2.5,y=['793.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],yerr=array([25.07627717,  0.        ,  0.        ,  0.        ,  0.        ,

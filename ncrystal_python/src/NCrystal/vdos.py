@@ -222,13 +222,17 @@ class PhononDOSAnalyser:
             from .misc import AnyVDOS
             from .core import Info
             def _is_anyvdos(x):
-                return any( isinstance(data,e)
-                            for e in (AnyVDOS,Info.DI_VDOS,Info.DI_VDOSDebye) )
+                return ( isinstance(x,AnyVDOS)
+                         or isinstance(x,Info.DI_VDOS)
+                         or isinstance(x,Info.DI_VDOSDebye) )
             if _is_anyvdos( data ):
                 fmt = 'anyvdos'
-            elif data and hasattr(data,'__len__') and all( _is_anyvdos(e) for e in data ):
+            elif ( data and hasattr(data,'__len__')
+                   and all( _is_anyvdos(e) for e in data ) ):
                 fmt = 'anyvdos_list'
-            elif data and hasattr(data,'__len__') and all( ( hasattr(e,'__len__') and len(e)==3 ) for e in data ):
+            elif ( data and hasattr(data,'__len__')
+                   and all( ( hasattr(e,'__len__')
+                              and len(e)==3 ) for e in data ) ):
                 fmt = 'raw'
             else:
                 fmt = 'quantumespresso'
@@ -465,8 +469,6 @@ class PhononDOSAnalyser:
         return o
 
     def plot( self, *dos_labels_or_indices,
-              do_newfig = True,
-              do_show = True,
               do_legend = True,
               logy=None,
               unit = 'eV',
@@ -474,37 +476,38 @@ class PhononDOSAnalyser:
               ymax = None,
               xmin = None,
               xmax = None,
+              **kw_plot
              ):
         """Plot contained DOS curves for the selected DOS labels (or indices),
-        defaulting to all curves. Set do_show to false to avoid plt.show(), logy
-        to default to a semilogy plot, ymin to set a minimum plotrange of the
-        y-axis, and finally the unit argument can be used to show the DOS in
-        other units (e.g. "THz", "1/cm", "meV", etc.
+        defaulting to all curves. Set logy to default to a semilogy plot, ymin
+        to set a minimum plotrange of the y-axis, and finally the unit argument
+        can be used to show the DOS in other units (e.g. "THz", "1/cm", "meV",
+        etc.
+
+        Any excess arguments are passed along to the PlotContext.
         """
-        self.__plot( *dos_labels_or_indices, do_newfig = do_newfig,
-                     do_show = do_show, logy=logy, unit = unit,
-                     do_legend=do_legend,
-                     ymin = ymin, ymax = ymax,
-                     xmin = xmin, xmax = xmax )
+        self.__plot( *dos_labels_or_indices,  logy=logy, unit = unit,
+                     do_legend=do_legend, ymin = ymin, ymax = ymax,
+                     xmin = xmin, xmax = xmax, kw_plot=kw_plot )
 
     def plot_gn( self, *dos_labels_or_indices, n=1,
                  temperature = 293.15, masses = None,
-                 do_newfig = True, do_show = True, do_legend = True,
-                 logy=None, unit = 'eV' ):
+                 do_legend = True, logy=None, unit = 'eV', **kw_plot ):
         """Similar to .plot() but showing the Sjolander Gn function instead. If
            labels are not elements or isotopes, masses must be provided in a
            list (in daltons). It is an error to try to plot a Gn function for a
            vdos curve whose first egrid point is not positive (i.e. you must
            first .apply_cutoff(..)).
+
+           Any excess arguments are passed along to the PlotContext.
         """
         selected = self.__dosidxlist( *dos_labels_or_indices, default_is_all = True )
-        self.__plot( *selected, do_newfig = do_newfig,
-                     do_show = do_show, logy=logy, unit = unit,
-                     do_legend=do_legend,
+        self.__plot( *selected, logy=logy, unit = unit, do_legend=do_legend,
                      sjolanderGn = self.__sjolanderGn_args( selected = selected,
                                                             n=n,
                                                             masses=masses,
-                                                            temperature=temperature) )
+                                                            temperature=temperature),
+                     kw_plot = kw_plot )
 
     def plot_cutoff_effects( self, thresholds, *dos_labels_or_indices, gn = None,
                              temperature = 293.15, masses = None,
@@ -520,6 +523,10 @@ class PhononDOSAnalyser:
         """
         selected = self.__dosidxlist( *dos_labels_or_indices, default_is_all = True )
 
+        from .plot import PlotContext
+        pctx = PlotContext( **plot_kwargs )
+        plot_kwargs = pctx.kwargs_unused
+
         if gn is not None:
             sjolanderGn = self.__sjolanderGn_args( selected = selected,
                                                    n=gn,
@@ -528,20 +535,11 @@ class PhononDOSAnalyser:
             plot_kwargs['sjolanderGn'] = sjolanderGn
 
         unitname,unitfactor = _parsevdosunit( plot_kwargs.get('unit','eV') )
-        do_show = plot_kwargs.get('do_show',True)
-        do_newfig = plot_kwargs.get('do_newfig',True)
         color_offset = plot_kwargs.get('color_offset',0)
-        plot_kwargs['do_show'] = False
-        plot_kwargs['do_newfig'] = False
         do_legend = plot_kwargs.get('do_legend',True)
         do_grid = plot_kwargs.get('do_grid',True)
         plot_kwargs['do_grid'] = False
         plot_kwargs['do_legend'] = False
-
-        from .plot import _import_matplotlib_plt
-        plt = _import_matplotlib_plt()
-        if do_newfig:
-            plt.figure()
 
         plot_thresholds = [e for e in thresholds]
         if gn is None:
@@ -571,10 +569,9 @@ class PhononDOSAnalyser:
                         if not all( self.dos(idx)[0][0]>0.0 for idx in selected ):
                             continue
                     o = o.apply_regularisation( regn, *selected )
-                o.__plot(*selected,**plot_kwargs)
+                o.__plot(*selected,**plot_kwargs,kw_plot=pctx.kwargs_subcontext())
 
-        from .plot import _plt_final
-        _plt_final(do_grid,do_legend,do_show)
+        return pctx.finalise(do_grid=do_grid,do_legend=do_legend)
 
     def plot_cutoff_effects_on_xsects( self, ncmatcomposer, thresholds, cfg_params = None,
                                        *dos_labels_or_indices, lblmap = None, **plot_kwargs ):
@@ -582,16 +579,16 @@ class PhononDOSAnalyser:
         assert isinstance(ncmatcomposer,NCMATComposer), ( "First argument in call to .plot_cutoff_"
                                                           "effects_on_xsects(..) must be an NCMATComposer object" )
         selected = self.__dosidxlist( *dos_labels_or_indices, default_is_all = True )
+
+        from .plot import PlotContext
+        pctx = PlotContext( **plot_kwargs )
+        plot_kwargs = pctx.kwargs_unused
         unitname,unitfactor = _parsevdosunit( plot_kwargs.get('unit','eV') )
-        do_show = plot_kwargs.get('do_show',True)
-        do_newfig = plot_kwargs.get('do_newfig',True)
         do_grid = plot_kwargs.get('do_grid',True)
         do_legend = plot_kwargs.get('do_legend',True)
         plot_kwargs['scatter_breakdown'] = False
         plot_kwargs['show_scattering'] = True
         plot_kwargs['show_absorption'] = False
-        plot_kwargs['do_newfig'] = False
-        plot_kwargs['do_show'] = False
         plot_kwargs['do_grid'] = False
         plot_kwargs['do_legend'] = False
         plot_kwargs['cfg_params'] = cfg_params
@@ -600,10 +597,6 @@ class PhononDOSAnalyser:
         lbls = list(sorted(lblmap.keys()))
         if not lbls:
             return
-        from .plot import _import_matplotlib_plt
-        plt = _import_matplotlib_plt()
-        if do_newfig:
-            plt.figure()
         colorder = self.__colorder()
         for iplot, t in enumerate([e for e in thresholds]):
             t = self._parse_threshold( t )
@@ -619,18 +612,13 @@ class PhononDOSAnalyser:
             if not color:
                 plot_kwargs['color'] = colorder[iplot%len(colorder)]
             plot_kwargs['labelfct'] = lambda x : thr_description
-            c.plot_xsect( **plot_kwargs )
+            c.plot_xsect( **plot_kwargs, **pctx.kwargs_subcontext() )
 
-        if do_legend:
-            plt.legend()
-        if do_grid:
-            plt.grid()
         t = 'DOS cutoff effect'
         if cfg_params:
             t += ' (%s)'%cfg_params.strip()
-        plt.title(t)
-        if do_show:
-            plt.show()
+        pctx.axis.set_title(t)
+        return pctx.finalise(do_grid=do_grid,do_legend=do_legend)
 
     def apply_to( self, ncmatcomposer, *dos_labels_or_indices, lblmap = None, warn = True, cutoff = None ):
         """Apply DOS curves to NCMATComposer objects, resulting in updates to
@@ -788,7 +776,7 @@ class PhononDOSAnalyser:
                 lbl = self.__d['doslist'][idx][0]
                 ad = atomDB(lbl,throwOnErrors=False)
                 if not ad:
-                    raise NCBadInput( 'Can not plot Gn function for label "lbl" which does'
+                    raise NCBadInput( f'Can not plot Gn function for label "{lbl}" which does'
                                       ' not correspond to a known element or isotope. Either'
                                       ' change the label with .update_label(..), or directly'
                                       ' provide masses using the "masses" parameter' )
@@ -809,8 +797,9 @@ class PhononDOSAnalyser:
                                        'gray',
                                        ]]
 
-    def __plot( self, *dos_labels_or_indices, do_newfig = True, do_show = True, logy=None, unit = 'eV',
-                color_offset = 0, labelfct = None, do_legend=True,do_grid=True, sjolanderGn = None,
+    def __plot( self, *dos_labels_or_indices, kw_plot, logy=None, unit = 'eV',
+                color_offset = 0, labelfct = None, do_legend=True, do_grid=True,
+                sjolanderGn = None,
                 ymin=None, ymax = None, xmin=None, xmax=None ):
 
         selected = self.__dosidxlist( *dos_labels_or_indices, default_is_all = True )
@@ -830,10 +819,8 @@ class PhononDOSAnalyser:
 
 
         unitname,unitfactor = _parsevdosunit( unit )
-        from .plot import _import_matplotlib_plt
-        plt = _import_matplotlib_plt()
-        if do_newfig:
-            plt.figure()
+        from .plot import PlotContext
+        pctx = PlotContext( **kw_plot ).check_unused()
         from ._numpy import _ensure_numpy, _np_linspace
 
         colorder = self.__colorder()
@@ -852,30 +839,32 @@ class PhononDOSAnalyser:
                         assert y.min() >= 0.0
                         return _np.clip(y,y.max()*1e-13,None)
                     _y = _fixup_y(_y)#discard tiny values
-                plt.plot( _x,_y,
-                          label = actual_lbl,
-                          color = color )
+                pctx.axis.plot( _x,_y,
+                                label = actual_lbl,
+                                color = color )
             else:
-                plt.plot( egrid/unitfactor, dos,
-                          label = actual_lbl,
-                          color = color )
+                pctx.axis.plot( egrid/unitfactor, dos,
+                                label = actual_lbl,
+                                color = color )
                 if egrid[0]>0.0:
                     _k = dos[0] / egrid[0]**2
                     _ensure_numpy()
                     _x = _np_linspace(0.0, egrid[0], 2000+2)[1:-1]
-                    plt.plot( _x/unitfactor, _k*(_x**2),ls=':',color=color)
+                    pctx.axis.plot( _x/unitfactor, _k*(_x**2),ls=':',
+                                    color=color)
 
-        plt.xlabel('Frequency (%s)'%unitname)
+        pctx.axis.set_xlabel('Frequency (%s)'%unitname)
         if sjolanderGn is not None:
-            plt.ylabel('G%i (arbitrary scale)'%sjolanderGn['n'])
+            pctx.axis.set_ylabel('G%i (arbitrary scale)'%sjolanderGn['n'])
         else:
-            plt.ylabel('DOS (arbitrary scale)')
+            pctx.axis.set_ylabel('DOS (arbitrary scale)')
         if ymin is not None or ymax is not None:
-            plt.ylim(ymin,ymax)
+            pctx.axis.set_ylim(ymin,ymax)
         if xmin is not None or xmax is not None:
-            plt.xlim(xmin,xmax)
-        from .plot import _plt_final
-        _plt_final(do_grid,do_legend,do_show,logy=logy)
+            pctx.axis.set_xlim(xmin,xmax)
+        if logy:
+            pctx.axis.semilogy()
+        return pctx.finalise(do_grid=do_grid,do_legend=do_legend)
 
     def __clone( self ):
         return PhononDOSAnalyser( ('__internal_state__',self.__d) )

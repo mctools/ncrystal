@@ -103,12 +103,3 @@ class divdos_methods:
             from .plot import plot_vdos
             plot_vdos( _self, **kwargs )
         return plot_vdos
-
-    @staticmethod
-    def _plot_knl():
-        def plot_knl( self, vdoslux = 3, **kwargs ):
-            """Plot the scattering kernel using the NCrystal.plot.plot_knl
-               function. Any kwargs are simply passed along."""
-            from .plot import plot_knl
-            plot_knl( self._loadKernel( vdoslux=vdoslux ), **( kwargs or {}) )
-        return plot_knl

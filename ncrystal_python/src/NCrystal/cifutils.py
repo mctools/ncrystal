@@ -512,7 +512,7 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
     from .plot import _import_matplotlib_plt
     plt = _import_matplotlib_plt()
     if do_newfig:
-        plt.figure()
+        plt.subplots()
 
     def multcreate( data ):
         return _nc_core.directMultiCreate(data,cfg_params='comp=bragg')
