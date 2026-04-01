@@ -114,6 +114,8 @@ v4.2.13 (work-in-progress)
      * Migrate to use custom ncmake_unique and ncmake_unique_array functions
        everywhere.
      * Fix cfgstring normalisation with internal whitespace.
+     * Add loadInfo, loadScatter, and loadAbsorption convenience methods to the
+       NCMATComposer.
      * ...
 
 v4.2.12 2026-01-05

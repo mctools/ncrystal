@@ -369,7 +369,8 @@ class NCMATComposer:
         """
         return self.__impl.allow_fallback_dyninfo( debye_temp = debye_temp )
 
-    def set_dyninfo_vdos( self, label, vdos_egrid, vdos, *, fraction = None, comment = None ):
+    def set_dyninfo_vdos( self, label, vdos_egrid, vdos,
+                          *, fraction = None, comment = None ):
         """Set dynamics of component to be modelled by a 1D phonon density of
         state (DOS) curve (VDOS="Vibrational DOS"). This is the preferred way to
         provide dynamics for components of solid materials, as it not only
@@ -677,6 +678,36 @@ class NCMATComposer:
                                  doInfo = doInfo,
                                  doScatter = doScatter,
                                  doAbsorption = doAbsorption )
+
+    def loadInfo( self, cfg_params = None, *, force = False ):
+        """Convenience alias which calls .load with doScatter=doAbsorption=False
+        and returns the Info object.
+
+        Note that if you need more than just the Info object, calling .load(..)
+        is more efficient.
+        """
+        return self.load(cfg_params=cfg_params, force=force,
+                         doScatter=False,doAbsorption=False).info
+
+    def loadScatter( self, cfg_params = None, *, force = False ):
+        """Convenience alias which calls .load with doInfo=doAbsorption=False
+        and returns the Scatter object.
+
+        Note that if you need more than just the Scatter object, calling
+        .load(..)  is more efficient.
+        """
+        return self.load(cfg_params=cfg_params, force=force,
+                         doInfo=False,doAbsorption=False).scatter
+
+    def loadAbsorption( self, cfg_params = None, *, force = False ):
+        """Convenience alias which calls .load with doScatter=doAbsorption=False
+        and returns the Absorption object.
+
+        Note that if you need more than just the Absorption object, calling
+        .load(..)  is more efficient.
+        """
+        return self.load(cfg_params=cfg_params, force=force,
+                         doInfo=False,doAbsorption=False).absorption
 
     def plot_xsect( self, cfg_params = None, **kwargs_plot_xsect ):
         """
