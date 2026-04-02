@@ -41,7 +41,7 @@ class HKLEntry:
                  f'N={self.mult} )' )
 
     def __init__(self,hh,kk,ll,mult,dsp,fsq,hklinfotype,issymeqv):
-        """For internal usage only, do not create therse objects manually."""
+        """For internal usage only, do not create these objects manually."""
         self.__h = hh
         self.__k = kk
         self.__l = ll

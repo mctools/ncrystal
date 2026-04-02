@@ -75,7 +75,6 @@ jobs:
 
     - name: Test notebooks
       env:
-        #TODO: Remove after NCrystal 4 is out and notebooks are updated:
-        NCNOTEBOOKS_FORCE_SKIP_PLUGIN_NB: '1'
+        NCNOTEBOOKS_USE_NCRYSTAL_REPO:  ${{ github.workspace }}/src_ncrystal
       run: ./src_notebooks/.github/resources/run_notebooks.x
 
