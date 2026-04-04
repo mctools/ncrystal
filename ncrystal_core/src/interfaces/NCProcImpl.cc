@@ -129,7 +129,7 @@ namespace NCRYSTAL_NAMESPACE {
         tot_xs = -1.0;
         componentCache.clear();
         componentCache.reserve_hint(comps.size());
-        for ( auto e : comps )
+        for ( const auto& e : comps )
           componentCache.push_back({{nullptr},e.process->domain()});
         componentXSectCommul.clear();
         componentXSectCommul.resize(comps.size(),0.0);
@@ -139,6 +139,14 @@ namespace NCRYSTAL_NAMESPACE {
 
     class ProcComposition::Impl {
     public:
+      static ComponentList compListClone( const ComponentList& cl )
+      {
+        ComponentList r;
+        for ( auto& e : cl )
+          r.emplace_back( e.clone() );
+        return r;
+      }
+
       static CacheProcComp& initAndAccessCache( const ProcComposition* THIS,
                                                 CachePtr& cacheptr )
       {
@@ -182,7 +190,7 @@ namespace NCRYSTAL_NAMESPACE {
         unsigned ncomp = THIS->m_components.size();
         cache.tot_xs = 0.0;
         for ( unsigned i = 0; i < ncomp; ++ i ) {
-          auto comp = THIS->m_components[i];
+          auto& comp = THIS->m_components[i];
           auto& compCache = cache.componentCache[i];
           CrossSect xs = ( compCache.domain.contains(ekin)
                            ? comp.process->crossSectionIsotropic(compCache.cachePtr,ekin)
@@ -226,7 +234,7 @@ namespace NCRYSTAL_NAMESPACE {
         unsigned ncomp = THIS->m_components.size();
         cache.tot_xs = 0.0;
         for ( unsigned i = 0; i < ncomp; ++ i ) {
-          auto comp = THIS->m_components[i];
+          auto& comp = THIS->m_components[i];
           auto& compCache = cache.componentCache[i];
           CrossSect xs = ( compCache.domain.contains(ekin)
                            ? comp.process->crossSection(compCache.cachePtr,ekin,dir)
@@ -270,8 +278,7 @@ void NCPI::ProcComposition::addComponent( NCPI::ProcPtr process, double scale )
   if (asproccomp) {
     if ( asproccomp == this )
       NCRYSTAL_THROW(BadInput,"It is not allowed to add a ProcComposition object as a component of itself");
-    addComponents( {SVAllowCopy,asproccomp->components()}, scale );
-
+    addComponents( Impl::compListClone(asproccomp->components()), scale );
     return;
   }
   ++m_nHistory;//record changes to m_components.
@@ -384,7 +391,8 @@ NC::ScatterOutcomeIsotropic NCPI::ProcComposition::sampleScatterIsotropic( Cache
 NCPI::ProcPtr NCPI::ProcComposition::combine( const ComponentList& components,
                                               ProcessType processType )
 {
-  return consumeAndCombine({SVAllowCopy,components},processType);
+
+  return consumeAndCombine(Impl::compListClone(components),processType);
 }
 
 NCPI::ProcPtr NCPI::getGlobalNullScatter()
@@ -679,7 +687,7 @@ void NCPI::ProcComposition::evalManyXS( CachePtr& cachePtr, const double* ekin,
   while ( N > 0 ) {
     std::size_t nstep = std::min<std::size_t>(N,nbuf);
     for ( auto icomp : ncrange(m_components.size()) ) {
-      auto& comp = m_components[icomp];
+      const auto& comp = m_components[icomp];
       comp.process->evalManyXS( cache.componentCache[icomp].cachePtr,
                                 ekin, ux, uy, uz, nstep, buf );
       double scale = comp.scale;
@@ -720,7 +728,7 @@ void NCPI::ProcComposition::evalManyXSIsotropic( CachePtr& cachePtr,
   while ( N > 0 ) {
     std::size_t nstep = std::min<std::size_t>(N,nbuf);
     for ( auto icomp : ncrange(m_components.size()) ) {
-      auto& comp = m_components[icomp];
+      const auto& comp = m_components[icomp];
       comp.process->evalManyXSIsotropic( cache.componentCache[icomp].cachePtr,
                                          ekin, nstep, buf );
       double scale = comp.scale;

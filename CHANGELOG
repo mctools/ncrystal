@@ -121,6 +121,10 @@ v4.2.13 (work-in-progress)
        plottings behaviour in all contexts (interactive, scripts, CLI,
        notebooks, Qt canvas, ...). One side-effect is that various plotting
        methods no longer returns a .plt object.
+     * Fix general performance bug where a loop over process components accessed
+       components by value rather than reference. This bug caused significant
+       performance degradations (for instance, it ruined the scaling behaviour
+       in multi-threaded MiniMC runs).
      * ...
 
 v4.2.12 2026-01-05

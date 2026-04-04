@@ -314,11 +314,12 @@ namespace NCRYSTAL_NAMESPACE {
       ProcessType processType() const noexcept final  { return m_processType; }
       MaterialType materialType() const noexcept final { return m_materialType; }
 
-      struct NCRYSTAL_API Component {
+      struct NCRYSTAL_API Component final : public MoveOnly {
         double scale;
         ProcPtr process;
         Component( double sc, ProcPtr pp ) : scale(sc), process(std::move(pp)) {}
         Component( ProcPtr pp ) : scale(1.0), process(std::move(pp)) {}
+        Component clone() const { return Component( scale, process ); }
       };
       using ComponentList = SmallVector<Component,6>;
 
