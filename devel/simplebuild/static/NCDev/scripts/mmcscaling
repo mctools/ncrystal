@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2026 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+# Small script which runs the same MiniMC simulation again and again with
+# different number of threads, in order to collect data for how simulation time
+# depends on number of threads. Results are saved as JSON and should be plotted
+# with the sibling mmcscalingplot script.
+
+def _run( nthreads, src_cfgstr, geom_cfgstr, mat_cfgstr ):
+    assert nthreads>=1
+    import subprocess
+    import time
+    import shlex
+    cmd = ['sb_ncdev_minimcbench',
+           str(nthreads),
+           src_cfgstr, geom_cfgstr, mat_cfgstr ]
+    cmdstr = ' '.join(shlex.quote(e) for e in cmd)
+    print(f"Launching: {cmdstr}")
+    t0 = time.time()
+    p = subprocess.run(cmd,capture_output=True,check=True)
+    t1 = time.time()
+    pattern='Number of tallied particles: '
+    out = p.stdout.decode()
+    n_stat_seen = None
+    for line in out.splitlines():
+        if line.startswith(pattern):
+            n_stat_seen = float( line[len(pattern):].strip() )
+    assert n_stat_seen is not None
+    return t1-t0,n_stat_seen
+
+def run_test_jobs( nthreads_max,
+                   src_cfgstr, geom_cfgstr, mat_cfgstr,
+                   nvals = None, nsamples = 2 ):
+    nthreads = list(i for i in range(1,nthreads_max+1) if (i<=15 or i%5==0))
+    nvals = nvals or [1e7]
+
+    def runfct( nthreads,nstat):
+        return _run( nthreads, f'{src_cfgstr};n={nstat}',
+                     geom_cfgstr, mat_cfgstr )
+    overhead = float('inf')
+    def sample_overhead(n=1):
+        return min(runfct(1,1)[0] for i in range(n))
+    overhead = min(overhead,sample_overhead(2))
+    results={}
+    for i in range(nsamples):
+        overhead = min(overhead,sample_overhead(2))
+        for nv in nvals:
+            if str(nv) not in results:
+                results[str(nv)]={}
+            for nt in nthreads:
+                t,nseen = runfct(nt,nv)
+                if nt not in results[str(nv)]:
+                    results[str(nv)][nt] = []
+                results[str(nv)][nt]+=[ (t,nseen) ]
+    overhead = min(overhead,sample_overhead(2))
+    return {'src_cfg':src_cfgstr,'results':results,'overhead':overhead}
+
+if __name__=='__main__':
+    import argparse
+    import pathlib
+    import json
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-n', type=float,
+                        help='Statistics in each job (e.g. -n 1e7)',
+                        required=True)
+    parser.add_argument('--nthreads', type=int,
+                        help='Maximum number of threads in each job',
+                        required=True)
+    parser.add_argument('--nsamples', type=int,
+                        help='How many times to rerun each job (defaults to the minimum allowed which is 2)',
+                        default=2)
+    parser.add_argument('-o',
+                        help='Output file name (defaults to automatic name)',
+                        default=None)
+    parser.add_argument('-f','--force', default=False, action='store_true',
+                        help='Allow overwriting existing output file')
+
+    src_cfgstr_def = 'constant;wl=2'
+    parser.add_argument('--src',default=src_cfgstr_def,
+                        help=f'srccfg (default: "{src_cfgstr_def}")')
+    geom_cfgstr_def = 'sphere;r=0.0128'
+    parser.add_argument('--geom',default=geom_cfgstr_def,
+                        help=f'geomcfg (default: "{geom_cfgstr_def}")')
+    mat_cfgstr_def = 'stdlib::Be3N2_sg206_BerylliumNitride.ncmat'
+    parser.add_argument('--mat',default=mat_cfgstr_def,
+                        help=f'matcfg (default: "{mat_cfgstr_def}")')
+
+    args = parser.parse_args()
+    args.n = int(args.n)
+    if args.o is None:
+        args.o = f'scaling_results_nsamples{args.nsamples}_nthreads{args.nthreads}_nparticles{args.n}.json'
+    outfile = pathlib.Path(args.o)
+    def test_outfile():
+        if outfile.exists() and not args.force:
+            raise SystemExit('Error: output file exists and --force was not specified')
+    test_outfile()
+    res = run_test_jobs( args.nthreads, args.src, args.geom, args.mat,
+                         nvals= [args.n], nsamples = args.nsamples )
+    test_outfile()
+    outfile.write_text(json.dumps(res))
+    print(f"Wrote {outfile}")

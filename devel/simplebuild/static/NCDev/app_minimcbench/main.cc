@@ -49,14 +49,20 @@ int the_main_fct( int argc, char ** argv ) {
 
   const char * mat_cfgstr = ( argc > 4
                                ? argv[4]
-                               : "Be3N2_sg206_BerylliumNitride.ncmat" );//unit r is meter
+                               : "Be3N2_sg206_BerylliumNitride.ncmat" );
 
-  NC::FactoryThreadPool::enable( nthreads );
+  //Note: Do NOT enable the threadpool if we need the mmcscaling script to be
+  //able to figure out the overhead and the Amdahl's p value for just the MiniMC
+  //part.
+
+  if ( false ) {
+    NC::FactoryThreadPool::enable( nthreads );
+  }
 
   std::string enginecfg;
   {
     std::ostringstream ss;
-    ss << "tally=mu;tallybins=mu:1800:0:180;nthreads="<<nthreads.get();
+    ss << "tally=mu;nthreads="<<nthreads.get();
     enginecfg = ss.str();
   }
 
@@ -68,7 +74,6 @@ int the_main_fct( int argc, char ** argv ) {
   auto tally = NC::makeSO<NCMMC::TallyStdHists>( eopts,
                                                  src->metaData(),
                                                  matdef.matTemp );
-
   nc_assert_always( nthreads.get() > 0 );
 
   std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
@@ -101,7 +106,7 @@ int the_main_fct( int argc, char ** argv ) {
 }
 
 int main( int argc, char ** argv ) {
-  const unsigned nrepeat_for_profiling = 10;
+  const unsigned nrepeat_for_profiling = 1;
   for (unsigned i = 0; i < nrepeat_for_profiling; ++i) {
     int ec = the_main_fct(argc,argv);
     if (ec!=0)
