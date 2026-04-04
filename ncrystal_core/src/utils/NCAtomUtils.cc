@@ -149,7 +149,7 @@ void NC::validateAtomDBLine(const VectS& words, unsigned ncmat_version )
 
   static const std::string allowed_special_chars="+-."_s;
   static const std::string allowed_chars = s_upperabc+s_lowerabc+"0123456789+-%*"_s+allowed_special_chars;
-  for ( auto w : words ) {
+  for ( const auto& w : words ) {
     if (w.empty())
       NCRYSTAL_THROW(BadInput,"Invalid specification (empty part)");
     if (!isSimpleASCII(w,AllowTabs::No,AllowNewLine::No))

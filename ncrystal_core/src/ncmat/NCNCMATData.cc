@@ -264,7 +264,7 @@ void NC::NCMATData::validateOtherPhases() const
   if ( version < 6 )
     NCRYSTAL_THROW2(BadInput,sourceDescription<<" otherPhases sections are not allowed in NCMAT data in version v1..v5.");
   StableSum sum;
-  for ( auto ph : otherPhases ) {
+  for ( const auto& ph : otherPhases ) {
     if ( !(ph.first>0.0) || !(ph.first<1.0) )
       NCRYSTAL_THROW2(BadInput,sourceDescription<<": invalid volume fraction "<<ph.first<<"\" in @OTHERPHASES section"
                       " (must be a floating point number greater than 0.0 and less than 1.0)");
@@ -697,7 +697,7 @@ void NC::NCMATData::toJSON( std::ostream& ss ) const
       streamJSONDictEntry( ss, "fraction", di.fraction );
       ss << ",\"fields\":{";
       bool first_fe(true);
-      for ( auto fe : di.fields ) {
+      for ( const auto& fe : di.fields ) {
         if (!first_fe)
           ss<<',';
         first_fe = false;

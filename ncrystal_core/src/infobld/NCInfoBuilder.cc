@@ -1200,7 +1200,7 @@ NC::InfoPtr NC::InfoBuilder::recordCfgDataOnInfoObject( InfoPtr orig, const Cfg:
     auto new_phases = makeSO<Info::PhaseList>();
     auto& phases = orig->getPhases();
     new_phases->reserve(phases.size());
-    for ( auto ph : phases )
+    for ( const auto& ph : phases )
       new_phases->emplace_back( ph.first,
                                 recordCfgDataOnInfoObject( ph.second, data ) );
     if ( detail_phaseListsIdentical( phases, new_phases ) )
@@ -1226,7 +1226,7 @@ NC::InfoPtr NC::InfoBuilder::buildInfoPtrWithScaledDensity( InfoPtr orig, double
     auto new_phases = makeSO<Info::PhaseList>();
     auto& phases = orig->getPhases();
     new_phases->reserve(phases.size());
-    for ( auto ph : phases )
+    for ( const auto& ph : phases )
       new_phases->emplace_back( ph.first,
                                 buildInfoPtrWithScaledDensity( ph.second, scaleFactor ) );
     if ( detail_phaseListsIdentical( phases, new_phases ) )

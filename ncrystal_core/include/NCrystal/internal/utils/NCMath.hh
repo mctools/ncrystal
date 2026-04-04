@@ -645,7 +645,7 @@ inline TVector NCrystal::vectorTrf(const TVector& input, const Func& f)
 {
   TVector out;
   out.reserve(input.size());
-  for ( auto e : input )
+  for ( const auto& e : input )
     out.emplace_back( f(e) );
   return out;
 }
@@ -690,7 +690,7 @@ namespace NCRYSTAL_NAMESPACE {
   inline HashValue hashContainer(const TContainer& v)
   {
     HashValue seed(0);
-    for ( auto e : v )
+    for ( const auto& e : v )
       hash_combine(seed,e);
     return seed;
   }
