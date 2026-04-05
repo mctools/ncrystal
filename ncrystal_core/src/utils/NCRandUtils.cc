@@ -32,48 +32,64 @@ NC::Vector NC::randIsotropicDirection( RNG& rng )
   //           doi:10.1214/aoms/1177692644
   //Available at https://projecteuclid.org/euclid.aoms/1177692644
 
+  // NOTE1: We could speed up by allowing RNGs to generate two values in one.
+  //        call. Also note that if NCRYSTAL_ALLOW_ABI_BREAKAGE we already have:
+  //        rng.generateMany( std::size_t n, double* tgt );
+  // NOTE2: This algorithm code is replicated in randDirectionGivenScatterMu,
+  //        since it is such a hotspot.
+
   double x0,x1,s;
   do {
     x0 = 2.0*rng.generate()-1.0;
     x1 = 2.0*rng.generate()-1.0;
     s = x0*x0 + x1*x1;
-  } while (!s||s>=1);
-  double t = 2.0*std::sqrt(1-s);
+  } while ( s >= 1.0 );
+  double t = 2.0*std::sqrt(1.0-s);
   return { x0*t, x1*t, 1.0-2.0*s };
 }
 
-NC::Vector NC::randDirectionGivenScatterMu( RNG& rng, double mu, const Vector& indir )
+NC::Vector NC::randDirectionGivenScatterMu( RNG& rng,
+                                            double mu,
+                                            const Vector& indir )
 {
-  nc_assert(ncabs(mu)<=1.);
+  nc_assert(ncabs(mu)<=1.0);
 
-  double m2 = indir.mag2();
-  double invm = ( ncabs(m2-1.0)<1e-12 ? 1.0 : 1.0/std::sqrt(m2) );
+  const double m2 = indir.mag2();
+  const double invm = ( ncabs(m2-1.0)<1e-14 ? 1.0 : 1.0/std::sqrt(m2) );
   Vector u = indir * invm;
 
-  //1) Create random unit-vector which is not parallel to indir:
+  //First create a random unit-vector which is not parallel to indir. Note that
+  //as long as we do the discrimination cut against being parallel in a way
+  //which is symmetric around indir, we do not ruin the final
+  //phi-angle-flatness.
   Vector tmpdir{ no_init };
+  double tmpdir_mag2 = 0.0;
 
-  while (true) {
-    tmpdir = randIsotropicDirection(rng);
-    double dotp = tmpdir.dot(u);
-    double costh2 = dotp*dotp;//tmpdir is normalised vector
-    //This cut is symmetric in the parallel plane => does not ruin final
-    //phi-angle-flatness:
-    if (costh2<0.99)
-      break;
-  }
-  //2) Find ortogonal vector (the randomness thus tracing a circle on the
-  //unit-sphere, once normalised)
-  double xx = tmpdir[1]*u.z() - tmpdir[2]*u.y();
-  double yy = tmpdir[2]*u.x() - tmpdir[0]*u.z();
-  double zz = tmpdir[0]*u.y() - tmpdir[1]*u.x();
-  double rm2 = xx*xx+yy*yy+zz*zz;
+  do {
+    //Note: We absorb the code from randIsotropicDirection here, since the
+    //present function is very much a hot spot (especially in PowderBragg
+    //dominated simulations).
+    double x0,x1,s;
+    x0 = 2.0*rng.generate()-1.0;
+    x1 = 2.0*rng.generate()-1.0;
+    s = x0*x0 + x1*x1;
+    if ( s < 1.0 ) {
+      //Note: We test against parallel by doing the cross product which we are
+      //anyway going to need below (we are only very rarely going to find a
+      //parallel vector here):
+      double t = 2.0*std::sqrt(1.0-s);
+      tmpdir.set( x0*t, x1*t, 1.0-2.0*s );
+      tmpdir.cross_inplace(u);
+      tmpdir_mag2 = tmpdir.mag2();
+    }
+  } while ( tmpdir_mag2 < 0.001 );
 
-  //3) Use these two vectors to easily find the final direction (the
-  //randomness above provides uniformly distributed azimuthal angle):
-  double k = std::sqrt((1-mu*mu)/rm2);
+  //Now use these two vectors to easily find the final direction (the randomness
+  //of the procedure above provides uniformly distributed azimuthal angle):
   u *= mu;
-  return { u.x()+k*xx, u.y()+k*yy, u.z()+k*zz };
+  tmpdir *= std::sqrt((1-mu*mu)/tmpdir_mag2);
+  u += tmpdir;
+  return u;
 }
 
 NC::PairDD NC::randPointOnUnitCircle( RNG& rng )

@@ -125,6 +125,9 @@ v4.2.13 (work-in-progress)
        components by value rather than reference. This bug caused significant
        performance degradations (for instance, it ruined the scaling behaviour
        in multi-threaded MiniMC runs).
+     * Speed up randDirectionGivenScatterMu by careful rewriting, including
+       inlining, avoidance of a dot product, and better RVO usage. Also add
+       dedicated unit test to monitor the correctness.
      * ...
 
 v4.2.12 2026-01-05
