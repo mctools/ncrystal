@@ -360,7 +360,7 @@ def _create_pyplot_inspector( pass_calls_to_real_plt ):
                 plot_args = [ shorten(e) for e in args[0:nargs_to_shorten] ] + list(args[nargs_to_shorten:])
             if any( e in kwargs for e in (kwargs_to_shorten or [])):
                 plot_kwargs = copy.deepcopy(kwargs)
-                for xy in ('x','y'):
+                for xy in ('x','y','yerr'):
                     if xy in plot_kwargs:
                         plot_kwargs[xy] = shorten(plot_kwargs[xy])
             return _fmtcall(name, plot_args,plot_kwargs)

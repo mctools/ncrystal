@@ -383,10 +383,7 @@ CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1., 0., 0., 0., 1., 0., 0., 0., 0., 2., 0., 0., 0., 1., 1., 0., 0.,
        0., 1., 1.]),label=None,width=1.0,x=['-10.0', '-9.0', '-8.0', '...', '7.0', '8.0', '9.0'])
-CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['-9.5', '-8.5', '-7.5', '...', '7.5', '8.5', '9.5'],xerr=0.5,y=['1.0', '0.0', '0.0', '...', '0.0', '1.0', '1.0'],yerr=array([1.        , 0.        , 0.        , 0.        , 1.        ,
-       0.        , 0.        , 0.        , 0.        , 1.41421356,
-       0.        , 0.        , 0.        , 1.        , 1.        ,
-       0.        , 0.        , 0.        , 1.        , 1.        ]))
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['-9.5', '-8.5', '-7.5', '...', '7.5', '8.5', '9.5'],xerr=0.5,y=['1.0', '0.0', '0.0', '...', '0.0', '1.0', '1.0'],yerr=['1.0', '0.0', '0.0', '...', '0.0', '1.0', '1.0'])
 CALLING ResultOf[plt.gca(..)].set_xlim(-10.0,10.0)
 CALLING ResultOf[plt.gca(..)].grid()
 CALLING plt.show()

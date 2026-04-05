@@ -31,14 +31,7 @@ CALLING ResultOf[plt.gca(..)].fill_between(alpha=0.3,color='blue',label='ref',st
        3.23208898e+00]))
 CALLING ResultOf[plt.gca(..)].set_xlim(-5e-06,180.0)
 CALLING ResultOf[plt.gca(..)].grid()
-CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label='new',mec='black',mfc='black',x=['2.5', '7.5', '12.5', '...', '168.0', '172.0', '178.0'],xerr=2.5,y=['3.86e+03', '18.5', '22.6', '...', '225.0', '7.71', '2.76'],yerr=array([38.48584774,  1.45697873,  1.57368966,  2.14346842,  2.06686603,
-        2.15746247,  2.36072679,  2.54432035,  2.51987107, 12.92189926,
-        9.95212386,  3.01128037,  2.62691545,  2.66535438,  3.10528075,
-       10.37016203,  2.8672989 ,  2.91461861, 11.61237695,  2.86984399,
-        6.57662226,  2.81082976,  2.68697598,  2.4048101 ,  2.63451289,
-        4.63309498,  2.28964823,  2.35118525,  2.0483975 ,  1.85663414,
-        6.69636044,  1.34400381,  1.33398644,  6.21712422,  0.72663254,
-        0.47503652]))
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label='new',mec='black',mfc='black',x=['2.5', '7.5', '12.5', '...', '168.0', '172.0', '178.0'],xerr=2.5,y=['3.86e+03', '18.9', '19.9', '...', '224.0', '7.95', '2.34'],yerr=['38.5', '1.52', '1.47', '...', '6.2', '0.728', '0.381'])
 CALLING ResultOf[plt.gca(..)].set_xlim(-5e-06,180.0)
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING ResultOf[plt.gca(..)].grid()
@@ -55,10 +48,7 @@ CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.3', '29.3', '62.8', '...', '36.2', '10.5', '10.5'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='lightblue',label='MULTISCAT_PUREELAS (20.2%)')
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.3', '29.3', '62.8', '...', '246.0', '10.5', '10.5'],['29.3', '29.3', '62.8', '...', '36.2', '10.5', '10.5'],edgecolor='none',facecolor='blue',label='SINGLESCAT_ELAS (23.7%)')
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['3.88e+03', '3.88e+03', '62.8', '...', '246.0', '10.5', '10.5'],['29.3', '29.3', '62.8', '...', '246.0', '10.5', '10.5'],edgecolor='none',facecolor='green',label='Transmitted (38.5%)')
-CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '62.8', '84.6', '...', '290.0', '246.0', '10.5'],yerr=array([38.51341667,  2.65912693,  2.9877382 ,  3.4708208 , 13.16530404,
-       10.39771989,  3.74229859, 10.82511105,  4.08857   , 11.96174331,
-        7.15211327,  3.60596056,  5.32974927,  3.2818533 ,  2.76460172,
-        6.82990405,  6.35862826,  0.86813279]))
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '62.8', '84.6', '...', '290.0', '246.0', '10.5'],yerr=['38.5', '2.66', '2.99', '...', '6.83', '6.36', '0.868'])
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
@@ -75,10 +65,7 @@ CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.3', '29.3', '62.8', '...', '36.2', '10.5', '10.5'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='lightblue',label='MULTISCAT_PUREELAS (20.2%)')
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.3', '29.3', '62.8', '...', '246.0', '10.5', '10.5'],['29.3', '29.3', '62.8', '...', '36.2', '10.5', '10.5'],edgecolor='none',facecolor='blue',label='SINGLESCAT_ELAS (23.7%)')
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['3.88e+03', '3.88e+03', '62.8', '...', '246.0', '10.5', '10.5'],['29.3', '29.3', '62.8', '...', '246.0', '10.5', '10.5'],edgecolor='none',facecolor='green',label='Transmitted (38.5%)')
-CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '62.8', '84.6', '...', '290.0', '246.0', '10.5'],yerr=array([38.51341667,  2.65912693,  2.9877382 ,  3.4708208 , 13.16530404,
-       10.39771989,  3.74229859, 10.82511105,  4.08857   , 11.96174331,
-        7.15211327,  3.60596056,  5.32974927,  3.2818533 ,  2.76460172,
-        6.82990405,  6.35862826,  0.86813279]))
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '62.8', '84.6', '...', '290.0', '246.0', '10.5'],yerr=['38.5', '2.66', '2.99', '...', '6.83', '6.36', '0.868'])
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
@@ -127,10 +114,7 @@ CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=arra
         175.96684865,  184.6705862 ,  158.25598268,  146.70189798,
         141.15598451,  117.83278931,   85.90224251,   51.22638043,
          36.23112347,   10.46496547]),label=None,width=10.0,x=['0.0', '10.0', '20.0', '...', '150.0', '160.0', '170.0'])
-CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '62.8', '84.6', '...', '51.2', '36.2', '10.5'],yerr=array([38.51341667,  2.65912693,  2.9877382 ,  3.4708208 ,  3.63835942,
-        4.03920891,  3.74229859,  4.29880452,  4.08857   ,  4.18672517,
-        3.80567378,  3.60596056,  3.61651032,  3.2818533 ,  2.76460172,
-        1.94585311,  1.69233615,  0.86813279]))
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '62.8', '84.6', '...', '51.2', '36.2', '10.5'],yerr=['38.5', '2.66', '2.99', '...', '1.95', '1.69', '0.868'])
 CALLING ResultOf[plt.gca(..)].set_xlim(-1e-05,180.0)
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING ResultOf[plt.gca(..)].set_title('MULTISCAT_PUREELAS')
@@ -709,7 +693,7 @@ Caught expected NCBadInput('Missing geomcfg parameter.')
 CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1., 0., 0., 0., 0.]),label='All outgoing (100%)',width=0.4,x=['0.0', '0.4', '0.8', '1.2', '1.6'])
-CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([1., 0., 0., 0., 0.]))
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=['1.0', '0.0', '0.0', '0.0', '0.0'])
 CALLING ResultOf[plt.gca(..)].set_xlim(-4e-07,2.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Energy (eV)')
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
@@ -719,7 +703,7 @@ CALLING plt.show()
 CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1., 0., 0., 0., 0.]),label='All outgoing (100%)',width=0.4,x=['0.0', '0.4', '0.8', '1.2', '1.6'])
-CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([1., 0., 0., 0., 0.]))
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=['1.0', '0.0', '0.0', '0.0', '0.0'])
 CALLING ResultOf[plt.gca(..)].set_xlim(-4e-07,2.0)
 CALLING ResultOf[plt.gca(..)].set_ylim(0.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Energy (eV)')
@@ -728,7 +712,7 @@ CALLING plt.show()
 CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1., 0., 0., 0., 0.]),label='All outgoing (100%)',width=0.4,x=['0.0', '0.4', '0.8', '1.2', '1.6'])
-CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([1., 0., 0., 0., 0.]))
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=['1.0', '0.0', '0.0', '0.0', '0.0'])
 CALLING ResultOf[plt.gca(..)].set_xlim(-4e-07,2.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Energy (eV)')
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
@@ -738,26 +722,7 @@ CALLING plt.show()
 CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '1.0', '1.0', '...', '179.0', '179.0', '180.0'],['1e+06', '1e+06', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
-CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['0.5', '1.5', '2.5', '...', '178.0', '178.0', '180.0'],xerr=0.5,y=['1e+06', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],yerr=array([1000.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.]))
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['0.5', '1.5', '2.5', '...', '178.0', '178.0', '180.0'],xerr=0.5,y=['1e+06', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],yerr=['1e+03', '0.0', '0.0', '...', '0.0', '0.0', '0.0'])
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
@@ -797,7 +762,7 @@ Caught expected NCBadInput('Invalid data for constructing MMCTallyView')
 CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([1., 0., 0., 0., 0.]),label='All outgoing (100%)',width=0.4,x=['0.0', '0.4', '0.8', '1.2', '1.6'])
-CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([1., 0., 0., 0., 0.]))
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['0.2', '0.6', '1.0', '1.4', '1.8'],xerr=0.2,y=['1.0', '0.0', '0.0', '0.0', '0.0'],yerr=['1.0', '0.0', '0.0', '0.0', '0.0'])
 CALLING ResultOf[plt.gca(..)].set_xlim(-4e-07,2.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Energy (eV)')
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
@@ -807,8 +772,7 @@ CALLING plt.show()
 CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '18.0', '18.0', '...', '162.0', '162.0', '180.0'],['1e+06', '1e+06', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
-CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['9.0', '27.0', '45.0', '63.0', '81.0', '99.0', '117.0', '135.0', '153.0', '171.0'],xerr=9.0,y=['1e+06', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([1000.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-          0.]))
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['9.0', '27.0', '45.0', '63.0', '81.0', '99.0', '117.0', '135.0', '153.0', '171.0'],xerr=9.0,y=['1e+06', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0'],yerr=['1e+03', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0'])
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
@@ -822,9 +786,7 @@ CALLING plt.show()
 CALLING plt.subplots()
 CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '18.0', '18.0', '...', '162.0', '162.0', '180.0'],['1.11e+05', '1.11e+05', '0.0', '...', '0.0', '0.0', '0.0'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='green',label='Transmitted (100%)')
-CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['9.0', '27.0', '45.0', '63.0', '81.0', '99.0', '117.0', '135.0', '153.0', '171.0'],xerr=9.0,y=['1.11e+05', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0'],yerr=array([333.01651611,   0.        ,   0.        ,   0.        ,
-         0.        ,   0.        ,   0.        ,   0.        ,
-         0.        ,   0.        ]))
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['9.0', '27.0', '45.0', '63.0', '81.0', '99.0', '117.0', '135.0', '153.0', '171.0'],xerr=9.0,y=['1.11e+05', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0'],yerr=['333.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '0.0'])
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
