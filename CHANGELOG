@@ -1,4 +1,16 @@
 v4.2.13 (work-in-progress)
+     * The most significant deliverable of this release is that the built-in
+       "MiniMC" framework, is finally growing up. This framework, a small "toy"
+       preview of which has been available since release 3.9.0, allows doing
+       simple simulations in which neutrons are propagated through a single
+       convex volume and recorded as they come out. This tool is now included
+       with NCrystal itself, and is intended to be accessed from either Python
+       or via the new command-line tool `ncrystal_minimc`. It is intended as a
+       light-weight alternative to using NCrystal in fully-fledged applications,
+       and can be used to investigate properties of neutrons scattered in a
+       particular material, including the effects of geometry and multiple
+       scattering. The following items will describe these, and other features,
+       in more detail.
      * Add generic framework for sending queries to the NCrystal C++ layer and
        getting information back in JSON format. This is for now mostly used by
        the MiniMC framework, but going forward it gives a very convenient and
@@ -17,6 +29,19 @@ v4.2.13 (work-in-progress)
        primarily refer to commands using the ncrystal_xxx syntax.
      * Drop support for 32bit systems.
      * All obsolete functions in the C-API now emit warning messages if called.
+     * Introduce PlotContext infrastructure for more reliable and flexible
+       plottings behaviour in all contexts (interactive, scripts, CLI,
+       notebooks, Qt canvas, ...). One side-effect is that various plotting
+       methods no longer returns a .plt object.
+     * Add loadInfo, loadScatter, and loadAbsorption convenience methods to the
+       NCMATComposer.
+     * Fix general performance bug where a loop over process components accessed
+       components by value rather than reference. This bug caused significant
+       performance degradations (for instance, it ruined the scaling behaviour
+       in multi-threaded MiniMC runs).
+     * Speed up randDirectionGivenScatterMu by careful rewriting, including
+       inlining, avoidance of a dot product, and better RVO usage. Also add
+       dedicated unit test to monitor the correctness.
      * The MiniMC should now be accessed in the C-API via the new
        ncrystal_jsonquery function, which interacts solely via cfg-strings (like
        for material, source, geometry, engine) and returns results via
@@ -115,19 +140,6 @@ v4.2.13 (work-in-progress)
      * Migrate to use custom ncmake_unique and ncmake_unique_array functions
        everywhere.
      * Fix cfgstring normalisation with internal whitespace.
-     * Add loadInfo, loadScatter, and loadAbsorption convenience methods to the
-       NCMATComposer.
-     * Introduce PlotContext infrastructure for more reliable and flexible
-       plottings behaviour in all contexts (interactive, scripts, CLI,
-       notebooks, Qt canvas, ...). One side-effect is that various plotting
-       methods no longer returns a .plt object.
-     * Fix general performance bug where a loop over process components accessed
-       components by value rather than reference. This bug caused significant
-       performance degradations (for instance, it ruined the scaling behaviour
-       in multi-threaded MiniMC runs).
-     * Speed up randDirectionGivenScatterMu by careful rewriting, including
-       inlining, avoidance of a dot product, and better RVO usage. Also add
-       dedicated unit test to monitor the correctness.
      * ...
 
 v4.2.12 2026-01-05
