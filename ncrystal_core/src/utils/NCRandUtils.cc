@@ -62,7 +62,10 @@ NC::Vector NC::randDirectionGivenScatterMu( RNG& rng,
   //as long as we do the discrimination cut against being parallel in a way
   //which is symmetric around indir, we do not ruin the final
   //phi-angle-flatness.
-  Vector tmpdir{ no_init };
+  //TODO: We should have next line as:
+  //  Vector tmpdir{ no_init };
+  //But GCC10 gave false positives on "unused variables", so for now we do:
+  Vector tmpdir;
   double tmpdir_mag2 = 0.0;
 
   do {
