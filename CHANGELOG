@@ -1,4 +1,7 @@
 v4.3.1 (work in progress)
+     * Add missing dependency (spglib) to tests/scripts/plot.py. This makes
+       ncrystal-verify skip the plot test in environments where spglib has not
+       been installed, rather than getting a spurious test failure.
      * ...
 
 v4.3.0 2026-04-06
