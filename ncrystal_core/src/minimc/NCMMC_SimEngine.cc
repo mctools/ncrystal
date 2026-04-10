@@ -28,12 +28,42 @@
 #    include <thread>
 #  endif
 #endif
+//Uncomment to work with mmcvis script:
+//#define NCMMC_PRINTSTEPS
+#ifdef NCMMC_PRINTSTEPS
+#  include "NCrystal/internal/utils/NCString.hh"
+#endif
+
 namespace NC = NCrystal;
 namespace NCMMC = NCrystal::MiniMC;
 
 namespace NCRYSTAL_NAMESPACE {
   namespace MiniMC {
     namespace {
+#ifdef NCMMC_PRINTSTEPS
+      void printsteps( const char * state, const Basket& bb ) {
+        nc_assert_always( bb.neutrons && bb.nscat && bb.nscat_inelas );
+        const auto& b = *(bb.neutrons);
+        const auto& bf = b.fields;;
+        for ( auto i : ncrange( b.size() ) ) {
+          std::ostringstream ss;
+          streamJSONDictEntry(ss,"step_state",state,JSONDictPos::FIRST);
+          streamJSONDictEntry(ss,"x",bf.x[i]);
+          streamJSONDictEntry(ss,"y",bf.y[i]);
+          streamJSONDictEntry(ss,"z",bf.z[i]);
+          streamJSONDictEntry(ss,"ux",bf.ux[i]);
+          streamJSONDictEntry(ss,"uy",bf.uy[i]);
+          streamJSONDictEntry(ss,"uz",bf.uz[i]);
+          streamJSONDictEntry(ss,"ekin",bf.ekin[i]);
+          streamJSONDictEntry(ss,"w",bf.w[i]);
+          streamJSONDictEntry(ss,"nscat",bb.nscat->data[i]);
+          streamJSONDictEntry(ss,"nscat_inelas",bb.nscat_inelas->data[i],
+                              JSONDictPos::LAST);
+          NCRYSTAL_MSG("NCMMCPRINTSTEP:: "<<ss.str());
+        }
+      }
+#endif
+
       class StdSimEngine final : public SimEngine {
         //The input:
         EngineOpts m_opt;
@@ -168,6 +198,10 @@ namespace NCRYSTAL_NAMESPACE {
           const bool absorption_is_isotropic = !(has_abs&&m_mat.absorption->isOriented());
           const bool geom_is_unbounded = m_geom->hasUnboundedDistToVolExit();
 
+#ifdef NCMMC_PRINTSTEPS
+          printsteps("stepinput",inbasket);
+#endif
+
           //Get distances out for all the particles (note, if geom_is_unbounded,
           //this might include infinities):
           m_geom->distToVolumeExit( *inbasket.neutrons, m_buf_disttoexit );
@@ -202,6 +236,9 @@ namespace NCRYSTAL_NAMESPACE {
                                                   m_buf_disttoexit.data,
                                                   values_abs_xs_or_nullptr );
 
+#ifdef NCMMC_PRINTSTEPS
+            printsteps("tally",inbasket);
+#endif
             tallyfct( inbasket );
             deallocateBasket( std::move(inbasket) );
             return result_basket;
@@ -297,7 +334,6 @@ namespace NCRYSTAL_NAMESPACE {
                 nc_assert( buf_scatxsval(inbasket)[i] < 1e-20 );
                 continue;
               }
-
 
               const double macro_scat_xs = buf_scatxsval(inbasket)[i];
 
@@ -403,6 +439,9 @@ namespace NCRYSTAL_NAMESPACE {
             for ( auto i : ncrange(outb.size()) )
               outb.neutrons->fields.w.data[i] *= m_buf_ptransm[i];
 
+#ifdef NCMMC_PRINTSTEPS
+            printsteps("tally",outb);
+#endif
             tallyfct( outb );
             deallocateBasket( std::move(inbasket) );
           }

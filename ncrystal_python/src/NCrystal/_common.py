@@ -126,6 +126,28 @@ class modify_ncrystal_print_fct_ctxmgr:
         self.__fct = None
 
 
+class capture_print_ctxmgr:
+    """Context manager for capturing printouts"""
+    def __init__(self ):
+        log = []
+        def printlog(*args, sep=' ', end='\n', file=None, flush=False):
+            log.append( sep.join(str(a) for a in args)
+                        + ('' if end is None else end) )
+        self.__log = log
+        self.__fct = printlog
+    def __enter__(self):
+        self.__orig = get_ncrystal_print_fct()
+        set_ncrystal_print_fct( self.__fct )
+        return self
+    def __exit__(self,*args,**kwargs):
+        set_ncrystal_print_fct( self.__orig )
+        self.__orig = None
+        self.__fct = None
+        return False
+    @property
+    def data(self):
+        return self.__log
+
 def warn(msg):
     """Emit NCrystalUserWarning via standard warnings.warn function"""
     from .exceptions import NCrystalUserWarning

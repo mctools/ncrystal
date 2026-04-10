@@ -1,0 +1,197 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2026 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+# Small script which visualises a 2D project of a few new neutrons going through
+# a MiniMC simulation. It does so by simulating a single neutron at a time and
+# using a build where the "#define NCMMC_PRINTSTEPS" has been uncommented in
+# NCMMC_SimEngine.cc. This causes special printouts of neutron states which are
+# collected and parsed.
+
+import math
+
+def parse_printouts( lines ):
+    import json
+    c = 'NCMMCPRINTSTEP::'
+    out = []
+    for line in lines:
+        if c not in line:
+            continue
+        line=line.split(c)[-1].strip()
+        out.append(json.loads(line))
+    if not out:
+        raise RuntimeError('No data collected. Did you define NCMMC_PRINTOUTS?')
+    return out
+
+def collect( n, seed0, cfgstr, geomcfg, srccfg ):
+    from NCrystalDev.minimc import run
+    from NCrystalDev._common import capture_print_ctxmgr
+    results = []
+    for irun in range(n):
+        seed = seed0 + irun*117#not strictly OK, but good enough for
+                               #visualisation
+        with capture_print_ctxmgr() as cpc:
+            run( cfgstr, srccfg = f'{srccfg};n=1', geomcfg=geomcfg,
+                 enginecfg = f'nthreads=1;seed={seed}' )
+        results.append( (seed, parse_printouts(cpc.data)) )
+    return results
+
+def reorder_neutron_data( n ):
+    stepin = {}
+    tally = {}
+    seed, n = n
+    for step in n:
+        nscat = step['nscat']
+        assert step['step_state'] in ('stepinput','tally')
+        dst = stepin if step['step_state']=='stepinput' else tally
+        assert nscat not in dst, 'multiple steps of same nscat and type seen!'
+        dst[nscat] = step
+    for d in stepin, tally:
+        assert min(d.keys())==0
+        assert ( sorted(d.keys())
+                 == list(range(max(d.keys())+1)) ), "incomplete data"
+    return seed, stepin, tally
+
+def plot_xz( *, geom_r, neutrons, colmode, do_pdf ):
+    assert colmode in ('track','step')
+    import matplotlib.pyplot as plt
+    fig,ax = plt.subplots()
+    #ax.set_facecolor('grey')
+    import matplotlib.patches as patches
+    geom = patches.Circle((0.0, 0.0),
+                          radius=geom_r,
+                          edgecolor='black',
+                          facecolor=(0.8,0.8,0.8), lw=2)
+    ax.add_patch(geom)
+    r_margin = 0.1*geom_r
+    r_edge = geom_r + r_margin
+    ax.set_xlim(-r_edge,r_edge)
+    ax.set_ylim(-r_edge,r_edge)
+
+    neutrons_reordered = [reorder_neutron_data(n) for n in neutrons]
+
+    if colmode == 'track':
+        ncol = len(neutrons_reordered)
+    else:
+        assert colmode=='step'
+        ncol = sum(len(stepin) for seed, stepin, tally in neutrons_reordered)
+    cmap = plt.get_cmap('jet')
+    _color_list = ( [ cmap(i/(ncol-1)) for i in range(ncol) ]
+                    if ncol>1 else [cmap(0.5)] )
+    import random
+    random.seed(12345)
+    random.shuffle(_color_list)
+
+    def color_i(i):
+        return _color_list[i]
+
+    if colmode == 'track':
+        def stepcol( ineutron, istep ):
+            assert ineutron<ncol
+            return color_i(ineutron)
+        def tallycol( ineutron, istep ):
+            return 'red'
+        def alpha(step):
+            return math.sqrt(step['w'])
+        tally_ls = '-'
+    else:
+        assert colmode=='step'
+        _sc = [0]
+        def stepcol( ineutron, istep ):
+            _sc[0]+=1
+            return color_i(_sc[0]-1)
+        _sc2 = [0]
+        def tallycol( ineutron, istep ):
+            _sc2[0]+=1
+            return color_i(_sc2[0]-1)
+        def alpha(step):
+            return 1.0
+        tally_ls = '-'
+
+    sglseed = None
+    if len(neutrons_reordered)==1:
+        sglseed = neutrons_reordered[0][0]
+        print("Showing a single neutron from seed: %i"%sglseed)
+
+    common=dict(lw=1.5)
+    for ineutron, (seed, stepin, tally) in enumerate(neutrons_reordered):
+        s0 = stepin[0]
+        assert (s0['ux'],s0['uy'],s0['uz'])==(0,0,1)
+        ax.plot((s0['x'],s0['x']),(-r_edge,s0['z']),'-',
+                alpha=0.5,color='blue',**common)
+        for istep in range(max(stepin.keys())):
+            prestep, poststep = stepin[istep], stepin[istep+1]
+            ax.plot((prestep['x'],poststep['x']),
+                    (prestep['z'],poststep['z']),
+                    '-',alpha=alpha(prestep),
+                    color=stepcol(ineutron,istep),**common)
+        for istep in range(max(tally.keys())):
+            s = tally[istep]
+            td = [ s['ux'], s['uz'] ]
+            tdn = math.sqrt(td[0]**2+td[1]**2)
+            if tdn:
+                td[0] *= r_margin/tdn
+                td[1] *= r_margin/tdn
+            ax.plot((s['x'],s['x']+td[0]),
+                    (s['z'],s['z']+td[1]),
+                    alpha=alpha(s),
+                    **common,
+                    ls = tally_ls,
+                    color=tallycol(ineutron,istep),
+                    )
+    ax.set_xlabel('x [m]')
+    ax.set_ylabel('z [m]')
+    ax.set_aspect('equal', adjustable='box')
+
+    if do_pdf:
+        fn = ''
+        if sglseed is None:
+            fn = 'mmcvis_many.pdf'
+        else:
+            fn = f'mmcvis_seed{sglseed}.pdf'
+        assert fn not in _pdf_written
+        _pdf_written.append(fn)
+        print(f"Writing {fn}")
+        plt.savefig(fn,bbox_inches="tight", dpi=300)
+        plt.cla()
+    else:
+        plt.show()
+_pdf_written = []
+
+def main(do_pdf):
+    cyl_r = 0.08
+    src_r = 0.08
+    neutrons = collect(n=100,seed0=473,
+                       cfgstr='ZnO_sg186_ZincOxide.ncmat;temp=200K',
+                       geomcfg=f'cyl;r={cyl_r}',
+                       srccfg=f'circular;z=-{cyl_r};r={src_r};wl=5+-0.01')
+    if do_pdf:
+        import matplotlib
+        matplotlib.use('agg')
+    for i in range(1):
+        plot_xz( geom_r = cyl_r, neutrons = neutrons[i:i+1], colmode='step',
+                 do_pdf=do_pdf )
+    plot_xz( geom_r = cyl_r, neutrons = neutrons, colmode='track', do_pdf=do_pdf )
+
+
+if __name__=='__main__':
+    import sys
+    main(do_pdf = '--pdf' in sys.argv[1:])
