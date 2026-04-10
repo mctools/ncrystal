@@ -30,26 +30,12 @@ from NCrystalDev.plot import PlotContext
 import math
 import numpy as np
 
-def get_Al_noabs():
-    from NCrystalDev.ncmat import NCMATComposer
-    from NCrystalDev.atomdata import atomDB
-    c, a = NCMATComposer('stdlib::Al_sg225.ncmat'), atomDB('Al')
-    c.update_atomdb( 'Al',
-                     mass = a.averageMassAMU(),
-                     coh_scat_len = a.coherentScatLenFM(),
-                     incoh_xs = a.incoherentXS(),
-                     abs_xs = 0.0 )
-    n = 'Al_noabsn.ncmat'
-    c.register_as(n)
-    return f'virtual::{n}'
-
 def main(do_plot, do_update):
     from NCrystalDev.hist import HistFiller1D as Hist
     nccore.enableFactoryThreads(2)
 
     #Define parameters and histograms:
     cfgstr = 'Al_sg225.ncmat'
-    #cfgstr = get_Al_noabs() #uncomment to investigate Al with no absorption
     transm_def_degree = 20
     thickness_cm = 10
     elow, ehigh = 0.003, 0.0055
@@ -123,8 +109,6 @@ def main(do_plot, do_update):
         return 100.0*np.exp(-thickness_cm*m.info.factor_macroscopic_xs*xs)
     xs_abs =  m.absorption.xsect(e)
     xs_scat = m.scatter.xsect(e)
-    pctx.finalise(do_legend=True,do_grid=True)
-
 
     pctx.axis.plot(e,ptransm(xs_abs),label='Theory (no rescattering, absorption only)',color='orange')
     pctx.axis.plot(e,ptransm(xs_abs+xs_scat),label='Theory (no rescattering)',color='red')
