@@ -39,13 +39,18 @@ def _run( nthreads, src_cfgstr, geom_cfgstr, mat_cfgstr ):
     p = subprocess.run(cmd,capture_output=True,check=True)
     t1 = time.time()
     pattern='Number of tallied particles: '
+    pattern_tini = 'Initialisation time (s): '
     out = p.stdout.decode()
     n_stat_seen = None
+    tini_seen = None
     for line in out.splitlines():
-        if line.startswith(pattern):
+        if line.startswith(pattern_tini):
+            tini_seen = float( line[len(pattern_tini):].strip() )
+        elif line.startswith(pattern):
             n_stat_seen = float( line[len(pattern):].strip() )
     assert n_stat_seen is not None
-    return t1-t0,n_stat_seen
+    assert tini_seen is not None
+    return t1-t0-tini_seen,n_stat_seen,tini_seen
 
 def run_test_jobs( nthreads_max,
                    src_cfgstr, geom_cfgstr, mat_cfgstr,
@@ -67,12 +72,16 @@ def run_test_jobs( nthreads_max,
             if str(nv) not in results:
                 results[str(nv)]={}
             for nt in nthreads:
-                t,nseen = runfct(nt,nv)
+                t,nseen,tini = runfct(nt,nv)
                 if nt not in results[str(nv)]:
                     results[str(nv)][nt] = []
-                results[str(nv)][nt]+=[ (t,nseen) ]
+                results[str(nv)][nt]+=[ (t,nseen,tini) ]
     overhead = min(overhead,sample_overhead(2))
-    return {'src_cfg':src_cfgstr,'results':results,'overhead':overhead}
+    return { 'src_cfg':src_cfgstr,
+             'geom_cfgstr':geom_cfgstr,
+             'mat_cfgstr':mat_cfgstr,
+             'results':results,
+             'overhead':overhead }
 
 if __name__=='__main__':
     import argparse

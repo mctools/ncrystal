@@ -55,7 +55,7 @@ int the_main_fct( int argc, char ** argv ) {
   //able to figure out the overhead and the Amdahl's p value for just the MiniMC
   //part.
 
-  if ( false ) {
+  if ( true ) {
     NC::FactoryThreadPool::enable( nthreads );
   }
 
@@ -65,6 +65,9 @@ int the_main_fct( int argc, char ** argv ) {
     ss << "tally=mu;nthreads="<<nthreads.get();
     enginecfg = ss.str();
   }
+
+  std::chrono::steady_clock::time_point t00 = std::chrono::steady_clock::now();
+
 
   auto matdef = NCMMC::MatDef{ mat_cfgstr };
   auto geom = NCMMC::createGeometry(geom_cfgstr);
@@ -88,8 +91,10 @@ int the_main_fct( int argc, char ** argv ) {
   nc_assert_always( resmd.tallied.weight < resmd.provided.weight );//attenuation
 
   std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+  const double dtinit = (std::chrono::duration_cast<std::chrono::microseconds>(t0-t00).count()) * 1e-6;
   const double dt = (std::chrono::duration_cast<std::chrono::microseconds>(t1-t0).count()) * 1e-6;
   std::cout << "    Number of threads used:  "<<nthreads<<std::endl;
+  std::cout << "Initialisation time (s): "<<dtinit<<std::endl;
   std::cout << "Number of source particles:  "<<resmd.provided.count<<std::endl;
   const double count_tallied = resmd.tallied.count;
   std::cout << "Number of tallied particles: "<<count_tallied<<std::endl;
@@ -106,7 +111,8 @@ int the_main_fct( int argc, char ** argv ) {
 }
 
 int main( int argc, char ** argv ) {
-  const unsigned nrepeat_for_profiling = 1;
+  const unsigned nrepeat_for_profiling = 1;//NB: Leave at 1 for mmcscaling
+                                           //script to work!
   for (unsigned i = 0; i < nrepeat_for_profiling; ++i) {
     int ec = the_main_fct(argc,argv);
     if (ec!=0)

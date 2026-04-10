@@ -43,12 +43,28 @@ def fit_amdahl( nthreads, throughput, throughput_stddev ):
     xx = np.linspace(x[0],x[-1],1000)
     return xx, yscale * fit_func(xx,res_params[0]),res_params[0]
 
+def prettyfmt(x):
+    from NCrystalDev._common import _frexp10
+    b,e = _frexp10(x)
+    if b==1 and e>3:
+        return f'1e{e}'
+    return repr(x)
+
+def _res2title(results):
+    n = [ nvals for nvals, nthreads2times in results['results'].items() ]
+    sc = results['src_cfg']
+    if len(set(n))==1 and ';n=' not in (';'+sc):
+        sc += ';n=%s'%prettyfmt(int(n[0]))
+    return'"%s", src="%s", geom="%s"'%(results['mat_cfgstr'],
+                                       sc,
+                                       results['geom_cfgstr'])
+
 def plot_results(results, use_seen_rates = True):
     import matplotlib.pyplot as plt
     import numpy as np
     max_rate = 0.0
 
-    overhead = results['overhead']
+    #overhead = results['overhead']
     overhead = 0.0#ignore, not reliable with threading
     for nvals, nthreads2times in sorted(results['results'].items()):
         vals_nthread = []
@@ -61,9 +77,9 @@ def plot_results(results, use_seen_rates = True):
         for nthread,raw_times_and_nseen in sorted((int(n),d) for n,d in nthreads2times.items()):
             vals_nthread.append( nthread )
             if use_seen_rates:
-                _rates_mhz = [ ( nseen*1e-6 / (t-overhead))  for t,nseen in raw_times_and_nseen ]
+                _rates_mhz = [ ( nseen*1e-6 / (t-overhead))  for t,nseen,tini in raw_times_and_nseen ]
             else:
-                _rates_mhz = [ ( float(nvals)*1e-6 / (t-overhead))  for t,nseen in raw_times_and_nseen ]
+                _rates_mhz = [ ( float(nvals)*1e-6 / (t-overhead))  for t,nseen,tini in raw_times_and_nseen ]
             vals_ratemin.append( min(_rates_mhz) )
             vals_ratemax.append( max(_rates_mhz) )
             vals_stddev.append( np.std(_rates_mhz) )
@@ -86,9 +102,11 @@ def plot_results(results, use_seen_rates = True):
 
     xa,ya,fa = fit_amdahl(vals_nthread[:],vals_rate[:],vals_stddev[:])
     plt.plot(xa,ya,label='Amdahl (p=%g)'%fa)
+
     plt.legend()
     #plt.title('src="%s", job overhead: %g seconds'%(results['src_cfg'],overhead))
-    plt.title('src="%s"'%results['src_cfg'])
+
+    plt.title(_res2title(results))
     plt.ylim(0.0,1.2*max_rate )
     if use_seen_rates:
         plt.ylabel('MHz (tallied particles)')
@@ -102,27 +120,57 @@ def plot_results_jobtime(results):
     import matplotlib.pyplot as plt
     #max_rate = 0.0
 
-    #overhead = results['overhead']
+    overhead = results['overhead']
+    overhead = 0.0#ignore??
     #overhead = 0.0#ignore, not reliable with threading
     for nvals, nthreads2times in sorted(results['results'].items()):
         vals_nthread = []
         vals_tmin = []
         vals_tmax = []
+        vals_tinimin = []
+        vals_tinimax = []
         vals_t = []
-        label = f'n={float(nvals):g}'
+        vals_tini = []
+        #label = f'n={float(nvals):g}'
         for nthread,raw_times_and_nseen in sorted((int(n),d) for n,d in nthreads2times.items()):
             vals_nthread.append( nthread )
-            tvals = [ t  for t,nseen in raw_times_and_nseen ]
+            tvals = [ t  for t,nseen,tini in raw_times_and_nseen ]
+            tinivals = [ tini  for t,nseen,tini in raw_times_and_nseen ]
             vals_tmin.append( min(tvals) )
             vals_tmax.append( max(tvals) )
+            vals_tinimin.append( min(tinivals) )
+            vals_tinimax.append( max(tinivals) )
             vals_t.append( sum(tvals)/len(tvals) )
-        _=plt.plot(vals_nthread, vals_t, '-', label = label)
-        color=_[0].get_color()
+            vals_tini.append( sum(tinivals)/len(tinivals) )
+        _t=plt.plot(vals_nthread, vals_t, '-', label = 'MiniMC simulation')
+        _tini=plt.plot(vals_nthread, vals_tini, '-', color='tab:orange',label = 'Material initialisation')
+        color=_t[0].get_color()
         plt.fill_between(vals_nthread, vals_tmin, vals_tmax, color=color,alpha=0.2)
+        color=_tini[0].get_color()
+        plt.fill_between(vals_nthread, vals_tinimin, vals_tinimax, color=color,alpha=0.2)
+
+    if overhead:
+        obj = plt.fill_between( [ 1.0, vals_nthread[-1] ],
+                                [0.0,0.0],
+                                [ overhead, overhead ],
+                                color = 'tab:orange', ls = ':',
+                                alpha=0.3,
+                                label='Other overhead' )
+
+        obj.set_hatch("///")        # apply hatch
+        #obj.set_edgecolor("black")  # hatch uses edge color
+        obj.set_linewidth(0.5)      # hatch line width
+
+#        plt.plot( [ 0.0, vals_nthread[-1] ],
+#                  [ overhead, overhead ],
+#                  color = 'red', ls = ':',
+#                  label='material initialisation' )
+#                  #alpha = 0.5 )
 
     plt.legend()
     #plt.title('src="%s", job overhead: %g seconds'%(results['src_cfg'],overhead))
-    plt.title('src="%s"'%results['src_cfg'])
+    plt.title(_res2title(results))
+    #plt.title('src="%s"'%results['src_cfg'])
     plt.ylim(0.0)
     plt.ylabel('Job time (seconds)')
     plt.xlabel('Number of threads')
