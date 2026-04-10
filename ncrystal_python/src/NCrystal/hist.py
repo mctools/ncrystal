@@ -959,7 +959,7 @@ class HistFiller1D:
         assert xmin < xmax
         self.__nbins = nbins
         self.__xmin, self.__xmax = float(xmin), float(xmax)
-        self.__title = str(title) or None
+        self.__title = None if title is None else str(title)
         self.__invbw = nbins/(xmax-xmin)
         self.__bin_edges = _np_linspace(xmin, xmax, nbins+1)
         self.__sumw = _np.zeros(nbins, dtype=float)
