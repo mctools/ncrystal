@@ -21,7 +21,7 @@
 
 #include "TestLib_fpe/FPE.hh"
 
-#if defined(__APPLE__) || defined(_WIN32) || defined(WIN32) || defined(__arm) || defined(__arm64) || defined(__aarch64__) || defined(__arm__) || defined(_M_ARM64) || defined(__amd64) || defined(__amd64__) || defined(__FreeBSD__)
+#if ! ( defined(__linux__) || defined(__linux) )
 void NCTests::catch_fpe(){}
 #else
 
