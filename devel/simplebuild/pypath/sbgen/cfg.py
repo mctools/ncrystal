@@ -52,7 +52,7 @@ class Cfg:
 
     @property
     def sbpkgname_lib(self):
-        return self.sbpkgname_comp('cinterface')
+        return 'NCShLib'
 
     @property
     def sbpkgname_data(self):

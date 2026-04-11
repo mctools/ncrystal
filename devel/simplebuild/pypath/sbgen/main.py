@@ -70,6 +70,37 @@ def create_pkg_extratestscripts(pkgname):
         n = sf.stem[len('_testscript_'):]
         add_file( f'pkgs/{pkgname}/scripts/test{n}', link_target = sf )
 
+def create_pkg_virtualapiproject(pkgname,srcdir):
+    create_pkginfo( pkgname, pkg_deps = ['TestLib_fpe'] )
+    #handle all except main and ncrystal_load.cc:
+    main = srcdir.joinpath('main.cc')
+    ncload = srcdir.joinpath('ncrystal_load.cc')
+    for sf in pglob(srcdir,'*.cc','*.hh'):
+        if sf.name in (main.name, ncload.name):
+            continue
+        add_file( f'pkgs/{pkgname}/app_test/{sf.name}', link_target = sf )
+    #handle ncrystal_load.cc:
+    ncload_content = ''
+    for line in ncload.read_text().splitlines(keepends=True):
+        ncload_content += line.replace('ncrystal-config','sb_nccmd_config')
+
+    #handle main:
+    mainfct_count = 0
+    main_content = ''
+    for line in main.read_text().splitlines(keepends=True):
+        if 'int main(' in ' '.join(line.split()):
+            assert line.count('main')==1
+            line = line.replace('main','the_real_main')
+            mainfct_count += 1
+        main_content += line
+    assert mainfct_count==1
+
+    main_content += ( '\n#include "TestLib_fpe/FPE.hh"\n'
+                      '\nint main() { NCTests::catch_fpe();'
+                      ' return the_real_main(); }\n' )
+    add_file( f'pkgs/{pkgname}/app_test/{main.name}', content=main_content )
+    add_file( f'pkgs/{pkgname}/app_test/{ncload.name}', content=ncload_content )
+
 def create_pkginfo_pytestpkg( pkgname,
                               pydeps ):
     create_pkginfo( pkgname,
@@ -329,7 +360,7 @@ def define_files():
                   link_target = dirs.srcroot.joinpath(f'include/NCrystal/{fn}') )
 
     #NCrystalDev package (python module):
-    assert cfg.sbpkgname_lib in all_ncsbpkgs
+    #assert cfg.sbpkgname_lib in all_ncsbpkgs
     create_pkginfo( 'NCrystalDev', pkg_deps=all_ncsbpkgs + ['NCData'] )
     for sf in pglob(dirs.pysrcroot/'src/NCrystal','*.py'):
         add_file( f'pkgs/NCrystalDev/python/{sf.name}', link_target = sf )
@@ -409,6 +440,12 @@ mod.main()
                     pkg_deps = [cfg.sbpkgname_lib] )
     add_compiled_examples(example_src,cfg.sbpkgname_examples)
 
+
+    #Virtual API. Add in pkg with no dependency on NCrystal:
+    create_pkg_virtualapiproject('NCVirtualapiProject',
+                                 dirs.exsrcroot.joinpath('virtualapi_project',
+                                                         'src'))
+
     #Test libs:
     all_test_pkgs = []
     #all_test_pkgs_needing_ncrystal = []
@@ -419,7 +456,11 @@ mod.main()
         testlib_pkgnames.append(pkgname)
         incdir = testlibdir.joinpath('include',f'TestLib_{tlname}')
         all_test_pkgs.append(pkgname)
-        create_pkginfo(pkgname,pkg_deps=[cfg.sbpkgname_ncrystalhh])
+        deps = [cfg.sbpkgname_ncrystalhh]
+        if tlname=='fpe':
+            deps=[]#TestLib_fpe should not have any NCrystal deps, for the
+                   #NCVirtualapiProject test to make sense.
+        create_pkginfo(pkgname,pkg_deps=deps)
         sfs_cpp = pglob(testlibdir,'*.cc')
         sfs_c = pglob(testlibdir,'*.c')
         sfs_priv_h = pglob(testlibdir,'*.hh' if sfs_cpp else '*.h')
@@ -436,7 +477,8 @@ mod.main()
     #Test apps:
     all_test_pkgs.append('NCTestApps')
     create_pkginfo( 'NCTestApps',
-                    pkg_deps = ['NCTestUtils'] + testlib_pkgnames )
+                    pkg_deps = [ cfg.sbpkgname_ncrystalhh,
+                                 'NCTestUtils' ] + testlib_pkgnames )
     for testappdir in pglob(dirs.testroot.joinpath('src'),'app_*'):
         appname = testappdir.name[4:]
         for sf in pglob( testappdir, '*.h','*.hh','*.c','*.cc','test.log'):
@@ -549,6 +591,13 @@ mod.main()
 
     #For --require:
     create_pkginfo( 'NCTestAll', pkg_deps = all_test_pkgs )
+
+    #For fake ncrystal-config shlibpath:
+    create_pkginfo( 'NCShLib',
+                    pkg_deps = ['NCCInterface','NCVirtualapi'] )
+    add_file( 'pkgs/NCShLib/libsrc/dummy.cc',
+              content='int dummy_fct_unused() { return 0; }\n' )
+
 
 def main():
     define_files()

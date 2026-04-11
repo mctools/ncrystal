@@ -20,6 +20,7 @@
 
 #include "NCrystal/virtualapi/NCVirtAPIFactory.hh"
 #include "NCrystal/virtualapi/NCVirtAPI_Type1_v1.hh"
+#include "TestLib_fpe/FPE.hh"
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -27,6 +28,8 @@
 #include <iomanip>
 
 int main() {
+  NCTests::catch_fpe();
+
   auto virtapi = NCrystal::createVirtAPI<NCrystalVirtualAPI::VirtAPI_Type1_v1>();
   nc_assert_always( virtapi != nullptr );
 
