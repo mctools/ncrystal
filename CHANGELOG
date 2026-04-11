@@ -1,4 +1,10 @@
 v4.3.1 (work in progress)
+     * Avoid double counting S(alpha,beta) values at beta=0 (fixes github issue
+       #334). This was a clear error, but note that since most kernels have beta
+       values extremely near 0 (typically at beta=+-1e-50), the integral error
+       introduced by this mistake was negligible and no impact was observed in any
+       of our tests due to this change (except for a few tests which compared the
+       printouts of the actual S(alpha,beta) values).
      * Add missing dependency (spglib) to tests/scripts/plot.py. This makes
        ncrystal-verify skip the plot test in environments where spglib has not
        been installed, rather than getting a spurious test failure.

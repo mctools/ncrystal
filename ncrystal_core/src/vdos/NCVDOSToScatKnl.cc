@@ -193,7 +193,9 @@ namespace NCRYSTAL_NAMESPACE {
 
             double expMbeta(0.0);
             std::size_t posbeta_idx(0);
-            if ( beta.idx >= idx_firstflip ) {
+            if ( beta.idx >= idx_firstflip && beta.val != 0.0 ) {
+              //Note: including beta=0 here would give double counting at beta=0
+              //(see https://github.com/mctools/ncrystal/issues/344).
               posbeta_idx = idx_zero + ( idx_zero - beta.idx );
               expMbeta = vectAt(expbeta_vals_nonposbeta,beta.idx);
             }
