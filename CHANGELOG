@@ -3,7 +3,7 @@ v4.3.3 (work in progress)
 
 v4.3.2 2026-04-12
      * Avoid double counting S(alpha,beta) values at beta=0 (fixes github issue
-       #334). This was a clear error, but note that since most kernels have beta
+       #344). This was a clear error, but note that since most kernels have beta
        values extremely near 0 (typically at beta=+-1e-50), the integral error
        introduced by this mistake was negligible and no impact was observed in any
        of our tests due to this change (except for a few tests which compared the

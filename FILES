@@ -13,8 +13,9 @@ ncrystal_core/......: ncrystal-core package with C++ code, CMake code for
                       building it, and the ncrystal-config cmdline application.
 ncrystal_python/....: ncrystal-python package with NCrystal python modules.
 ncrystal_metapkg/...: NCrystal metapackage "ncrystal"
-ncrystal_pypluginmgr: Source the ncrystal-pypluginmgr package, needed by dynamic
+ncrystal_pypluginmgr: The ncrystal-pypluginmgr package, needed by dynamic
                       plugins.
+ncrystal_verify.....: The ncrystal-verify package.
 CMakeLists.txt......: Configuration file for building and installing via CMake
                       (but see instructions in INSTALL first).
 pyproject.toml......: Support building and installing via standard Python
