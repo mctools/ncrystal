@@ -1,4 +1,4 @@
-v4.3.1 (work in progress)
+v4.3.2 2026-04-12
      * Avoid double counting S(alpha,beta) values at beta=0 (fixes github issue
        #334). This was a clear error, but note that since most kernels have beta
        values extremely near 0 (typically at beta=+-1e-50), the integral error
@@ -10,7 +10,6 @@ v4.3.1 (work in progress)
        been installed, rather than getting a spurious test failure.
      * Make sure Hist1D.plot does not add a title of "None" if no title is
        provided.
-     * ...
 
 v4.3.0 2026-04-06
      * The most significant deliverable of this release is that the built-in
