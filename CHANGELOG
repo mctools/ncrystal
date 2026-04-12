@@ -1,3 +1,6 @@
+v4.3.3 (work in progress)
+     * ...
+
 v4.3.2 2026-04-12
      * Avoid double counting S(alpha,beta) values at beta=0 (fixes github issue
        #334). This was a clear error, but note that since most kernels have beta
