@@ -28,8 +28,6 @@
 #include "NCrystal/internal/minimc/NCMMC_CBMgr.hh"
 #include "NCrystal/factories/NCMatCfg.hh"
 
-// High level interface for a diffraction-pattern MMC application.
-
 namespace NCRYSTAL_NAMESPACE {
 
   namespace MiniMC {
