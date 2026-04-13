@@ -419,9 +419,11 @@ inline bool NCrystal::intervalsDisjoint(double a0, double b0, double a1, double 
 
 inline bool NCrystal::valueInInterval(double a, double b, double x)
 {
+  nc_assert( !ncisnan(a) );
+  nc_assert( !ncisnan(b) );
+  nc_assert( !ncisnan(x) );
   nc_assert(b>=a);
-  nc_assert(bool((x-a)*(x-b) <= 0.0) == bool(x>=a&&x<=b));
-  return (x-a)*(x-b) <= 0.0;
+  return (a<=x) & (x<=b);
 }
 
 inline bool NCrystal::valueInInterval( const NCrystal::PairDD& ab, double x)

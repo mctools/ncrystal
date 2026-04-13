@@ -1,4 +1,8 @@
 v4.3.3 (work in progress)
+     * Change to valueInInterval implementation which avoids triggering
+       FE_OVERFLOW when upper interval edge is at a large number like DBL_MAX
+       (see github issue #343). The new implementation is most likely also more
+       efficient in some scenarios.
      * ...
 
 v4.3.2 2026-04-12
