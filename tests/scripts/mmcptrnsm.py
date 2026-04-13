@@ -22,6 +22,7 @@
 
 # NEEDS: numpy
 
+import NCTestUtils.enable_fpe # noqa F401
 from NCrystalDev.minimc import run as mmcrun
 from NCTestUtils.dirs import get_named_test_data_dir
 import NCrystalDev.core as nccore

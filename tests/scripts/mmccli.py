@@ -22,9 +22,7 @@
 
 # NEEDS: numpy
 
-import sys
-if '--plot' not in sys.argv[1:]:
-    import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.enable_fpe # noqa F401
 
 import NCrystalDev.cli as nc_cli
 import NCrystalDev._common as nc_common
@@ -40,6 +38,7 @@ import re
 import pathlib
 import io
 import json
+import sys
 
 _re_find_values = re.compile(r'(-)?\d+(\.\d+)?([eE][+-]?\d+)?')
 

@@ -22,9 +22,8 @@
 
 # NEEDS: numpy
 
-from NCrystalDev.misc import evaluate_query as ncquery
-import numpy # noqa F401 (before fpe)
 import NCTestUtils.enable_fpe # noqa F401
+from NCrystalDev.misc import evaluate_query as ncquery
 from NCrystalDev.core import NCBadInput
 from NCTestUtils.common import ensure_error
 import pprint

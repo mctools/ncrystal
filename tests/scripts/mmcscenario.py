@@ -22,10 +22,7 @@
 
 # NEEDS: numpy
 
-import numpy # noqa F401 (before fpe)
-import sys
-if '--plot' not in sys.argv[1:]:
-    import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.enable_fpe # noqa F401
 
 import NCrystalDev.minimc as ncmmc
 from NCrystalDev.core import NCBadInput

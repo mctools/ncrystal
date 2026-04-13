@@ -29,8 +29,14 @@ NCTEST_CTYPE_DICTIONARY
     ;
 }
 
-//todo: try to enable on osx/windows?
-#if defined(__APPLE__) || defined(_WIN32) || defined(WIN32) || defined(__arm) || defined(__arm64) || defined(__aarch64__) || defined(__arm__) || defined(_M_ARM64) || defined(__FreeBSD__)
+//NOTE: Code duplicated below between:
+// tests/modules/lib_fpe/fpe.cc
+// tests/libs/lib_fpe/FPE.cc
+
+
+#if ! ( defined(__linux__) || defined(__linux) ) || !defined(__GNUC__)
+#  define NCTEST_SKIP_FPE
+#elif defined(__aarch64__) || defined(_M_ARM64)
 #  define NCTEST_SKIP_FPE
 #endif
 
@@ -39,6 +45,11 @@ NCTEST_CTYPES void nctest_catch_fpe(){}
 NCTEST_CTYPES int nctest_can_catch_fpe(){ return 0; }
 #else
 
+
+#  ifndef _GNU_SOURCE
+#    define _GNU_SOURCE//should be defined before fenv.h inclusion.
+#  endif
+
 #  include <cassert>
 #  include <cfenv>
 #  include <cstring>
@@ -46,6 +57,8 @@ NCTEST_CTYPES int nctest_can_catch_fpe(){ return 0; }
 #  include <cstdio>
 #  include <execinfo.h>
 #  include <atomic>
+#  include <cstdlib>
+#  include <iostream>
 
 namespace {
   void nctest_custom_sigfpe_handler( int sig, siginfo_t *info, void* ) {

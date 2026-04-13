@@ -22,6 +22,8 @@
 
 # NEEDS: numpy
 
+import NCTestUtils.enable_fpe # noqa F401
+
 def main():
     #Try to test all tallies:
     from NCrystalDev.core import enableFactoryThreads

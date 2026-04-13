@@ -21,9 +21,25 @@
 
 #include "TestLib_fpe/FPE.hh"
 
-#if ! ( defined(__linux__) || defined(__linux) )
+
+//NOTE: Code duplicated below between:
+// tests/modules/lib_fpe/fpe.cc
+// tests/libs/lib_fpe/FPE.cc
+
+#if ! ( defined(__linux__) || defined(__linux) ) || !defined(__GNUC__)
+#  define NCTEST_SKIP_FPE
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#  define NCTEST_SKIP_FPE
+#endif
+
+#ifdef NCTEST_SKIP_FPE
 void NCTests::catch_fpe(){}
 #else
+
+#ifndef _GNU_SOURCE
+#  define _GNU_SOURCE//should be defined before fenv.h inclusion.
+#endif
+#include <fenv.h>
 
 #include <cassert>
 #include <cfenv>

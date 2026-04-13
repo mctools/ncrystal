@@ -22,6 +22,7 @@
 
 # NEEDS: numpy
 
+import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev.minimc as ncmmc
 from NCrystalDev.minimc_objects import MMCResults, MMCTallyView
 from NCrystalDev.hist import Hist1D
@@ -465,6 +466,13 @@ def test_results_compat():
     d1_3['output']['tally']['mu']['breakdown']['SINGLESCAT_ELAS'] = Hist1D(h)
     #( _self, other, threshold, errfct ):
     testrcc_bad(d1,d1_3)
+
+    #Try to trigger some difficult situations with 0/inf:
+    ncmmc.run('void.ncmat',
+              geomcfg = "slab;dz=0.005",
+              srccfg = " constant;n=1e3;z=0;wl=1;uz=0;ux=1;uy=0",
+              enginecfg = 'nthreads=1')
+
 
 if __name__ == '__main__':
     import sys

@@ -31,6 +31,15 @@ def is_catching_fpe():
     return _can_catch[0]
 
 def _enable_fpe():
+    try:
+        #import numpy (if present) before fpe's are enabled
+        import numpy # noqa F401
+    except ImportError:
+        pass
+    import sys
+    if '--plot' in sys.argv[1:]:
+        print('Not enabling FPE due to "--plot" seen in sys.argv')
+        return
     from .loadlib import Lib
     lib = Lib('fpe')
     lib.nctest_catch_fpe()

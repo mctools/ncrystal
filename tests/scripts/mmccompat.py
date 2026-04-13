@@ -29,6 +29,7 @@
 # other peoples code) should migrate to the modern API instead.
 
 #The obsolete functions are available in both _mmc.py and mmc.py:
+import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.reprint_escaped_warnings # noqa F401
 import NCrystalDev.mmc as ncmmc
 import NCrystalDev._mmc as ncmmc_alt

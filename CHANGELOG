@@ -7,6 +7,7 @@ v4.3.3 (work in progress)
        code might by design still trigger FE_OVERFLOW and FE_UNDERFLOW in many
        places, since such overflows are not always a problem and guarding
        against them would slow down several hot code paths.
+     * Update FPE test infrastructure and enable FPE checking in more tests.
      * ...
 
 v4.3.2 2026-04-12

@@ -22,6 +22,8 @@
 
 # NEEDS: numpy spglib
 
+import NCTestUtils.enable_fpe # noqa F401
+
 def main():
     import NCrystalDev as NC
     #Prepare Aluminium without absorption (NB: we could also use the MiniMC

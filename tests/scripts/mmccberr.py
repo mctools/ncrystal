@@ -22,6 +22,7 @@
 
 # NEEDS: numpy
 
+import NCTestUtils.enable_fpe # noqa F401
 from NCrystalDev.minimc import run as mmcrun
 from NCTestUtils.common import ensure_error
 

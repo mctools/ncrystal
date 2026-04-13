@@ -21,6 +21,7 @@
 
 # Utilities for detecting changes in given MiniMC output, and making it easy to
 # inspect differences and update reference histograms in case of changes.
+import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev.minimc as ncminimc
 from NCrystalDev.hist import Hist1D
 from NCrystalDev.core import load as ncload
