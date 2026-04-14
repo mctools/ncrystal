@@ -2,7 +2,11 @@ v4.3.3 (work in progress)
      * Change to valueInInterval implementation which avoids triggering
        FE_OVERFLOW when upper interval edge is at a large number like DBL_MAX
        (see github issue #343). The new implementation is most likely also more
-       efficient in some scenarios.
+       efficient in some scenarios. Additionally, some VDOS integral evaluations
+       were also modified to avoid FE_OVERFLOW. Note that in general, NCrystal
+       code might by design still trigger FE_OVERFLOW and FE_UNDERFLOW in many
+       places, since such overflows are not always a problem and guarding
+       against them would slow down several hot code paths.
      * ...
 
 v4.3.2 2026-04-12

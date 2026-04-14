@@ -57,7 +57,17 @@ namespace NCRYSTAL_NAMESPACE {
         double x2=x*x;
         return 1-x*0.5+x2*0.08333333333333333333333333333333-x2*x2*0.00138888888888888888888888888888888889;
       }
-      return x / std::expm1(x);
+      //The function x/(exp(x)-1) (x not near 0 of course!). Implemented so we
+      //do not trigger  FE_OVERFLOW for large x during 1/expm1(x) = 1/inf = 0
+      if ( x <= 700 ) {
+        const double em1 = std::expm1(x);
+        nc_assert(em1!=0.0);
+        return x/em1;
+      } else {
+        //x/(exp(x)-1) = x*exp(-x)/(1-exp(-x)) But exp-log the expression to
+        //avoid being 0 when exp(-x) is 0 between ~708 and ~750.
+        return ( x > 760 ? 0.0 : std::exp(-x+std::log(-x/std::expm1(-x))) );
+       }
     }
     virtual bool accept(unsigned lvl, double prev_estimate, double estimate,double,double) const
     {

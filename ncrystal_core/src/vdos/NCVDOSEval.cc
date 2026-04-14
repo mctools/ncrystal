@@ -32,6 +32,20 @@ namespace NCRYSTAL_NAMESPACE {
 
     constexpr double detail_xcothx_taylor_threshold = 0.1;
 
+    double safe_rec_expm1(double x) {
+      //The function 1/(exp(x)-1) (x not near 0 of course!). Implemented so we
+      //do not trigger  FE_OVERFLOW for large x during 1/expm1(x) = 1/inf = 0
+      if ( x <= 700 ) {
+        const double em1 = std::expm1(x);
+        nc_assert(em1!=0.0);
+        return 1.0/em1;
+      } else {
+        //1/(exp(x)-1) = exp(-x)/(1-exp(-x))
+        const double emx = std::exp(-x);
+        return emx/(1.0-emx);
+      }
+    }
+
     double safe_xcothx( double x )
     {
       // The function x*coth(x) = x/tanh(x) must be evaluated with a Taylor expansion near x=0.
@@ -384,8 +398,11 @@ NC::PairDD NC::VDOSEval::evalG1AsymmetricAtEPair( double energy, double gamma0 )
     const double kkk = eval( energy ) * m_emax / ( energy * gamma0 );
     if ( !kkk )
       return { 0.0, 0.0 };
-    return { -kkk / std::expm1( -energy / m_kT ),//-energy (absorb sign on kkk as well)
-             kkk / std::expm1( +energy / m_kT ) };
+
+
+    const double eDivKT = energy / m_kT;
+    return { -kkk / std::expm1( -eDivKT ),//-energy (absorb sign on kkk as well)
+             kkk*safe_rec_expm1( +eDivKT ) };
   }
 }
 
@@ -402,7 +419,7 @@ double NC::VDOSEval::evalG1Asymmetric( double energy, double gamma0 ) const
     const double kkk = eval( absE ) * m_emax / ( energy * gamma0 );
     if ( !kkk )
       return 0.0;
-    return kkk / std::expm1( energy / m_kT );
+    return kkk*safe_rec_expm1( energy / m_kT );
   }
   double G1sym = evalG1Symmetric(absE,gamma0);
   return G1sym ? G1sym * std::exp( -energy / (2*kT()) ) : 0.0;
