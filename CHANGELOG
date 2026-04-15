@@ -8,6 +8,8 @@ v4.3.3 (work in progress)
        places, since such overflows are not always a problem and guarding
        against them would slow down several hot code paths.
      * Update FPE test infrastructure and enable FPE checking in more tests.
+     * Fix CMake tests in case of unusual libNCrystal.so naming (github issue
+       #348).
      * ...
 
 v4.3.2 2026-04-12

@@ -65,6 +65,7 @@ list(
 list(
   APPEND nctest_pyenvmod
   "NCRYSTAL_LIB=set:$<TARGET_FILE:${nctests_ncrystallib_target}>"
+  "NCRYSTAL_LIB_NAMESPACE_PROTECTION=set:test"
 )
 
 if ( NOT NCRYSTAL_ENABLE_DATA STREQUAL "EMBED" )
