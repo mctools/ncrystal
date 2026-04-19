@@ -214,6 +214,7 @@ Base parameters:
   dcutoff
   dcutoffup
   infofactory
+  strain
   temp
 Basic parameters related to scattering processes:
   coh_elas
@@ -291,6 +292,14 @@ Base parameters:
                  can be selected by providing its name, or excluded by prefixing
                  the name with "!". Multiple entries must be separated by an "@"
                  sign (obviously at most one non-excluded entry can appear).
+
+  strain:
+    Type: floating point number
+    Default value: 0
+    Description: Isotropic strain for a uniform expansion or contraction of
+                 crystal lattice vectors. If nonzero, crystal unit cell
+                 dimensions will be scaled with a factor of (1+strain), while
+                 keeping angles and relative atomic positions fixed.
 
   temp:
     Type: floating point number

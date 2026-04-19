@@ -29,7 +29,7 @@ namespace NCRYSTAL_NAMESPACE {
   class SCOrientation;
   class MatInfoCfg;
 
-  class NCRYSTAL_API MatCfg {
+  class NCRYSTAL_API MatCfg final {
   public:
 
     //////////////////////////////////////////////////////////////////////////////
@@ -212,6 +212,7 @@ namespace NCRYSTAL_NAMESPACE {
     void set_mosprec( double );
     void set_sccutoff( double );
     void set_dirtol( double );
+    void set_strain( double );
     void set_coh_elas( bool );
     void set_incoh_elas( bool );
     void set_sans( bool );
@@ -262,6 +263,7 @@ namespace NCRYSTAL_NAMESPACE {
     Temperature get_temp() const;
     double get_dcutoff() const;
     double get_dcutoffup() const;
+    double get_strain() const;
     MosaicityFWHM get_mos() const;
     double get_mosprec() const;
     double get_sccutoff() const;

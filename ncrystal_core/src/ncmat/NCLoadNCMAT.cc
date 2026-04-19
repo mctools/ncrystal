@@ -157,6 +157,7 @@ NC::Info NC::loadNCMAT( const FactImpl::InfoRequest& cfg )
   ncmatcfgvars.temp      = cfg.get_temp();
   ncmatcfgvars.dcutoff   = cfg.get_dcutoff();
   ncmatcfgvars.dcutoffup = cfg.get_dcutoffup();
+  ncmatcfgvars.strain = cfg.get_strain();
   ncmatcfgvars.atomdb    = cfg.get_atomdb_parsed();
   ncmatcfgvars.dataSourceName = cfg.dataSourceName();
   ncmatcfgvars.originalInfoRequest = &cfg;
@@ -175,6 +176,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       <<", temp="<<cfgvars.temp
       <<", dcutoff="<<cfgvars.dcutoff
       <<", dcutoffup="<<cfgvars.dcutoffup
+      <<", strain="<<cfgvars.strain
       <<", atomdb=";
     if (cfgvars.atomdb.empty()) {
       ss<<"<none>";
@@ -563,6 +565,11 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
     si.lattice_a = data.cell.lengths[0];
     si.lattice_b = data.cell.lengths[1];
     si.lattice_c = data.cell.lengths[2];
+    if ( cfgvars.strain ) {
+      si.lattice_a *= ( 1.0 + cfgvars.strain );
+      si.lattice_b *= ( 1.0 + cfgvars.strain );
+      si.lattice_c *= ( 1.0 + cfgvars.strain );
+    }
     si.alpha = data.cell.angles[0];
     si.beta = data.cell.angles[1];
     si.gamma = data.cell.angles[2];
@@ -756,6 +763,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
       CfgManip::set_temp( top_request_cfgdata_dummy, cfgvars.temp );
       CfgManip::set_dcutoff( top_request_cfgdata_dummy, cfgvars.dcutoff );
       CfgManip::set_dcutoffup( top_request_cfgdata_dummy, cfgvars.dcutoffup );
+      CfgManip::set_strain( top_request_cfgdata_dummy, cfgvars.strain );
       CfgManip::set_atomdb_parsed( top_request_cfgdata_dummy, cfgvars.atomdb );
       top_request_cfgdata = &top_request_cfgdata_dummy;
     } else {

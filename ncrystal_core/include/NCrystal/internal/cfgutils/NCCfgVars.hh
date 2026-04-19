@@ -277,6 +277,24 @@ namespace NCRYSTAL_NAMESPACE {
       }
     };
 
+    struct vardef_strain final : public ValDbl<vardef_strain> {
+      static constexpr auto name = "strain";
+      static constexpr auto group = VarGroupId::Info;
+      static constexpr auto description =
+        "Isotropic strain for a uniform expansion or contraction of crystal"
+        " lattice vectors. If nonzero, crystal unit cell dimensions will be"
+        " scaled with a factor of (1+strain), while keeping angles and"
+        " relative atomic positions fixed.";
+      static constexpr value_type default_value() { return 0.0; }
+      using units = units_purenumberonly;
+      static double value_validate( double value )
+      {
+        if ( !(value>=-0.5 && value <= 0.5) )
+          NCRYSTAL_THROW2(BadInput,name<<" must be in the interval [-0.5,0.5]");
+        return value ? value : 0.0;//no signed 0
+      }
+    };
+
     struct vardef_incoh_elas final : public ValBool<vardef_incoh_elas> {
       static constexpr auto name = "incoh_elas";
       static constexpr auto group = VarGroupId::ScatterBase;
@@ -667,6 +685,7 @@ namespace NCRYSTAL_NAMESPACE {
       make_varinfo<vardef_sans>(),
       make_varinfo<vardef_scatfactory>(),
       make_varinfo<vardef_sccutoff>(),
+      make_varinfo<vardef_strain>(),
       make_varinfo<vardef_temp>(),
       make_varinfo<vardef_ucnmode>(),
       make_varinfo<vardef_vdoslux>()
@@ -691,6 +710,7 @@ namespace NCRYSTAL_NAMESPACE {
       mos = constexpr_varName2Idx("mos"),
       dir1 = constexpr_varName2Idx("dir1"),
       dir2 = constexpr_varName2Idx("dir2"),
+      strain = constexpr_varName2Idx("strain"),
       sans = constexpr_varName2Idx("sans"),
       incoh_elas = constexpr_varName2Idx("incoh_elas"),
       inelas = constexpr_varName2Idx("inelas"),

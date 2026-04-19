@@ -915,6 +915,7 @@ NC::MatCfg::~MatCfg() = default;
 NC::Temperature NC::MatCfg::get_temp() const { return CfgManip::get_temp( m_impl->readVar(Cfg::VarId::temp) ); }
 double NC::MatCfg::get_dcutoff() const { return CfgManip::get_dcutoff( m_impl->readVar(Cfg::VarId::dcutoff) ); }
 double NC::MatCfg::get_dcutoffup() const { return CfgManip::get_dcutoffup( m_impl->readVar(Cfg::VarId::dcutoffup) ); }
+double NC::MatCfg::get_strain() const { return CfgManip::get_strain( m_impl->readVar(Cfg::VarId::strain) ); }
 NC::MosaicityFWHM NC::MatCfg::get_mos() const { return CfgManip::get_mos( m_impl->readVar(Cfg::VarId::mos) ); }
 double NC::MatCfg::get_mosprec() const { return CfgManip::get_mosprec( m_impl->readVar(Cfg::VarId::mosprec) ); }
 double NC::MatCfg::get_sccutoff() const { return CfgManip::get_sccutoff( m_impl->readVar(Cfg::VarId::sccutoff) ); }
@@ -932,6 +933,7 @@ const NC::LCAxis& NC::MatCfg::get_lcaxis() const { return CfgManip::get_lcaxis( 
 void NC::MatCfg::set_temp( Temperature v ) { m_impl.modify()->setVar( v, &CfgManip::set_temp ); }
 void NC::MatCfg::set_dcutoff( double v ) { m_impl.modify()->setVar( v, &CfgManip::set_dcutoff ); }
 void NC::MatCfg::set_dcutoffup( double v ) { m_impl.modify()->setVar( v, &CfgManip::set_dcutoffup ); }
+void NC::MatCfg::set_strain( double v ) { m_impl.modify()->setVar( v, &CfgManip::set_strain ); }
 void NC::MatCfg::set_mos( MosaicityFWHM v ) { m_impl.modify()->setVar( v, &CfgManip::set_mos ); }
 void NC::MatCfg::set_mosprec( double v ) { m_impl.modify()->setVar( v, &CfgManip::set_mosprec ); }
 void NC::MatCfg::set_sccutoff( double v ) { m_impl.modify()->setVar( v, &CfgManip::set_sccutoff ); }

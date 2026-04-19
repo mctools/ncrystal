@@ -45,6 +45,7 @@ namespace NCRYSTAL_NAMESPACE {
       Temperature get_temp() const;
       double get_dcutoff() const;
       double get_dcutoffup() const;
+      double get_strain() const;
       std::string get_atomdb() const;
       std::vector<VectS> get_atomdb_parsed() const;
       std::string get_infofactory() const;

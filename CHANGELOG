@@ -1,4 +1,12 @@
 v4.3.5 (work in progress)
+     * Support new strain parameter in cfg-strings which allows for an isotropic
+       scaling of lattice vectors. So for instance,
+       "stdlib::Be_sg194.ncmat;strain=0.01" will cause the values of all lattice
+       parameters (a, b, and c) to be increased by 1%. This in turn means that
+       d-spacings of crystal reflections will also increase by 1%, but also
+       structure factors (F^2) will be affected - although in a less regular
+       fashion. Note that in the current implementation, only Bragg diffraction
+       components are affected by the application of strain.
      * ...
 
 v4.3.4 2026-04-15

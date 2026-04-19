@@ -195,6 +195,9 @@ namespace NCRYSTAL_NAMESPACE {
       static const LCAxis& get_lcaxis(const CfgData& data) { return getValue<vardef_lcaxis>(data).as<LCAxis>(); }
       static void set_lcaxis( CfgData& data, const LCAxis& val ) { setValue<vardef_lcaxis>(data, val.as<Vector>()); }
 
+      static double get_strain(const CfgData& data) { return getValue<vardef_strain>(data); }
+      static void set_strain( CfgData& data, double val ) { setValue<vardef_strain>(data,val); }
+
       static StrView get_infofactory(const CfgData& data) { return getValue<vardef_infofactory>(data); }
       static void set_infofactory( CfgData& data, StrView val ) { setValue<vardef_infofactory>(data,val); }
       static void set_infofactory_stdstr( CfgData& data, const std::string& val ) { setValue<vardef_infofactory,std::string>(data,val); }

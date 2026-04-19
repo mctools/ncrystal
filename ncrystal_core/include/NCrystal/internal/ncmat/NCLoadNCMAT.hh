@@ -36,9 +36,9 @@ namespace NCRYSTAL_NAMESPACE {
   // (it will have a reference count of 0 when returned).
   //
   // Parameters must be set via a NCMATCfgVars struct.  Parameters "temp",
-  // "dcutoff", "dcutoffup", and "atomdb" have the same meaning as the
-  // corresponding parameters described in NCMatCfg.hh (although atomdb must
-  // here be already be split into "lines" and "words").
+  // "dcutoff", "dcutoffup", "strain", and "atomdb" have the same meaning as the
+  // corresponding cfg-string parameters (although atomdb must here be already
+  // be split into "lines" and "words").
   //
   // Setting "temp" to -1.0 will result in a temperature of 293.15K unless
   // something in the input indicates another value (i.e. if a scatterkernel is
@@ -49,6 +49,7 @@ namespace NCRYSTAL_NAMESPACE {
     Temperature temp = Temperature{-1.0};//kelvin
     double dcutoff = 0.0;//angstrom
     double dcutoffup = kInfinity;//angstrom
+    double strain = 0.0;
     std::vector<VectS> atomdb;
     DataSourceName dataSourceName;
 

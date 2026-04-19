@@ -263,6 +263,17 @@ Test loading of :>>>phases<0.1*unicodedir_test䔀abc{{NATIVEPATHSEP}}Al_sg225.nc
                                  'can appear).',
                   'name': 'infofactory',
                   'type': 'string'},
+                 {'allowed_input_units': None,
+                  'default_value': 0.0,
+                  'default_value_str': '0',
+                  'description': 'Isotropic strain for a uniform expansion or '
+                                 'contraction of crystal lattice vectors. If '
+                                 'nonzero, crystal unit cell dimensions will '
+                                 'be scaled with a factor of (1+strain), while '
+                                 'keeping angles and relative atomic positions '
+                                 'fixed.',
+                  'name': 'strain',
+                  'type': 'floating point number'},
                  {'allowed_input_units': 'K [default], C, F',
                   'default_value': -1.0,
                   'default_value_str': '-1',
