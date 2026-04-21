@@ -25,7 +25,7 @@
 
 namespace NCRYSTAL_NAMESPACE {
 
-  class NCRYSTAL_API SABData : public UniqueID {
+  class NCRYSTAL_API SABData final : public UniqueID {
   public:
 
     //Immutable data structure defining an S(alpha,beta) scattering kernel.
@@ -62,7 +62,7 @@ namespace NCRYSTAL_NAMESPACE {
     SigmaBound m_bxs;
   };
 
-  class NCRYSTAL_API VDOSData : public UniqueID {
+  class NCRYSTAL_API VDOSData final : public UniqueID {
   public:
 
     //Immutable data structure defining a VDOS (phonon density spectrum).
@@ -84,6 +84,8 @@ namespace NCRYSTAL_NAMESPACE {
     VDOSData () = delete;
     ~VDOSData () = default;
 
+    bool operator<( const VDOSData& o ) const;
+    bool operator==( const VDOSData& o ) const;
   private:
     PairDD m_e;
     VectD m_d;
@@ -91,6 +93,40 @@ namespace NCRYSTAL_NAMESPACE {
     AtomMass m_m;
     SigmaBound m_bxs;
   };
+
+}
+
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+namespace NCRYSTAL_NAMESPACE {
+  inline bool VDOSData::operator<( const VDOSData& o ) const
+  {
+    if ( this == &o )
+      return false;
+    if ( m_m != o.m_m )
+      return m_m < o.m_m;
+    if ( m_t != o.m_t )
+      return m_t < o.m_t;
+    if ( m_bxs != o.m_bxs )
+      return m_bxs < o.m_bxs;
+    if ( m_e != o.m_e )
+      return m_e < o.m_e;
+    if ( m_d.size() != o.m_d.size() )
+      return m_d.size() < o.m_d.size();
+    return m_d < o.m_d;
+  }
+
+  inline bool VDOSData::operator==( const VDOSData& o ) const
+  {
+    return this == &o || ( m_m == o.m_m
+                           && m_t == o.m_t
+                           && m_bxs == o.m_bxs
+                           && m_e == o.m_e
+                           && m_d.size() == o.m_d.size()
+                           && m_d == o.m_d );
+  }
 
 }
 
