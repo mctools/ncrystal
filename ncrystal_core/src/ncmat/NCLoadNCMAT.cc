@@ -23,6 +23,7 @@
 #include "NCrystal/internal/ncmat/NCNCMATData.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/internal/infobld/NCInfoBuilder.hh"
+#include "NCrystal/internal/vdos/NCVDOSCache.hh"
 #include "NCrystal/internal/atomdb/NCAtomDBExtender.hh"
 #include "NCrystal/internal/extd_utils/NCFillHKL.hh"
 #include "NCrystal/internal/utils/NCRotMatrix.hh"
@@ -77,34 +78,35 @@ namespace NCRYSTAL_NAMESPACE {
     std::shared_ptr<const VectD> m_egrid;
   };
 
-  class DI_VDOSImpl final : public DI_VDOS {
+  class DI_VDOSImpl final : public DI_VDOSShPtr {
   public:
     virtual ~DI_VDOSImpl() = default;
     DI_VDOSImpl( double fraction,
                  IndexedAtomData atom,
                  Temperature temperature,
                  VectD&& egrid,
-                 VDOSData&& data,
+                 VDOSData&& vdata,
                  VectD&& orig_vdos_egrid,
                  VectD&& orig_vdos_density)
-      : DI_VDOS(fraction,std::move(atom),temperature),
-        m_vdosdata(std::move(data)),
+      : DI_VDOSShPtr(fraction,std::move(atom),temperature),
+        m_vdosdata(getCachedVDOSDataHashPtr(std::move(vdata))),
+        m_egrid(getCachedEnergyGridHashPtr(std::move(egrid))),
         m_vdosOrigEgrid(orig_vdos_egrid),
         m_vdosOrigDensity(orig_vdos_density)
     {
-      if (!egrid.empty())
-        m_egrid = std::make_shared<const VectD>(std::move(egrid));
     }
 
-    std::shared_ptr<const VectD> energyGrid() const final {return m_egrid;}
-    const VDOSData& vdosData() const final { return m_vdosdata; }
+    std::shared_ptr<const VectD> energyGrid() const override {return m_egrid.dataShPtr();}
+    const VDOSData& vdosData() const override { return m_vdosdata.data(); }
+    const VectD& vdosOrigEgrid() const override { return m_vdosOrigEgrid; }
+    const VectD& vdosOrigDensity() const override { return m_vdosOrigDensity; }
 
-    const VectD& vdosOrigEgrid() const final { return m_vdosOrigEgrid; }
-    const VectD& vdosOrigDensity() const final { return m_vdosOrigDensity; }
+    const VDOSDataHashPtr& vdosDataHashPtr() const override { return m_vdosdata; }
+    const EnergyGridHashPtr& energyGridHashPtr() const override { return m_egrid; }
 
   private:
-    VDOSData m_vdosdata;
-    std::shared_ptr<const VectD> m_egrid;
+    VDOSDataHashPtr m_vdosdata;
+    EnergyGridHashPtr m_egrid;
     VectD m_vdosOrigEgrid;
     VectD m_vdosOrigDensity;
   };
