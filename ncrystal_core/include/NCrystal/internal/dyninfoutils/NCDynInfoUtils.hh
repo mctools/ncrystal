@@ -56,7 +56,6 @@ namespace NCRYSTAL_NAMESPACE {
 
   shared_obj<const SABData> extractSABDataFromVDOSDebyeModel( DebyeTemperature, Temperature, SigmaBound, AtomMass,
                                                               unsigned vdoslux = 3, bool useCache = true );
-  void clearSABDataFromDynInfoCaches();
 
   //Idealised VDOS based only on Debye temperature:
   VDOSData createVDOSDebye( DebyeTemperature, Temperature, SigmaBound, AtomMass);
