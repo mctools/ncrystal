@@ -107,8 +107,8 @@ namespace NCRYSTAL_NAMESPACE {
       //is not possible, which is why we return std::shared_ptr and not
       //shared_obj):
       virtual std::shared_ptr<Process> createMerged( const Process& other,
-                                                     double scale_other,
-                                                     double scale_self ) const;
+                                                     double scale_self,
+                                                     double scale_other ) const;
 
       //The next four functions implement cross section calculations and
       //scattering samplings. Depending on material and process type, some of

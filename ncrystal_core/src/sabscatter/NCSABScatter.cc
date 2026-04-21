@@ -71,24 +71,26 @@ NC::SABScatter::SABScatter( SABData && sabdata_, const VectD& energyGrid )
                   std::shared_ptr<const VectD> egrid_shptr;
                   if (!energyGrid.empty())
                     egrid_shptr = std::make_shared<const VectD>(energyGrid);
-                  return SAB::createScatterHelper( std::move(sabdata_shptr),
-                                                   std::move(egrid_shptr) );
+                  return SAB::createScatterHelperWithCache( std::move(sabdata_shptr),
+                                                            std::move(egrid_shptr) );
                 }(std::move(sabdata_)) )
 {
 }
 NC::SABScatter::SABScatter( shared_obj<const SABData> sabdata_shptr,
                             std::shared_ptr<const VectD> egrid_shptr )
-  : SABScatter( SAB::createScatterHelper( std::move(sabdata_shptr),
-                                          std::move(egrid_shptr) ) )
+  : SABScatter( SAB::createScatterHelperWithCache( std::move(sabdata_shptr),
+                                                   std::move(egrid_shptr) ) )
 {
 }
 
 NC::CrossSect NC::SABScatter::crossSectionIsotropic( CachePtr&, NeutronEnergy ekin ) const
 {
-  return CrossSect{ m_sh->xsprovider.crossSection(ekin) };
+  return CrossSect{ m_sh->xsprovider.crossSection(ekin).dbl() * m_scale };
 }
 
-NC::ScatterOutcomeIsotropic NC::SABScatter::sampleScatterIsotropic( CachePtr&, RNG& rng, NeutronEnergy ekin ) const
+NC::ScatterOutcomeIsotropic
+NC::SABScatter::sampleScatterIsotropic( CachePtr&, RNG& rng,
+                                        NeutronEnergy ekin ) const
 {
   double delta_e, mu;
   std::tie(delta_e,mu) = m_sh->sampler.sampleDeltaEMu(ekin, rng);
@@ -99,4 +101,24 @@ NC::ScatterOutcomeIsotropic NC::SABScatter::sampleScatterIsotropic( CachePtr&, R
 NC::Optional<std::string> NC::SABScatter::specificJSONDescription() const
 {
   return m_sh->specificJSONDescription;
+}
+
+std::shared_ptr<NC::ProcImpl::Process>
+NC::SABScatter::createMerged( const Process& oraw,
+                              double scale_self,
+                              double scale_other ) const
+{
+  nc_assert(scale_other>0.0);
+  nc_assert(scale_self>0.0);
+  auto optr = dynamic_cast<const SABScatter*>(&oraw);
+  if (!optr)
+    return nullptr;
+  auto& o = *optr;
+
+  if ( m_sh != o.m_sh )
+    return nullptr;
+
+  auto result = std::make_shared<SABScatter>( m_impl->m_scathelper_shptr );
+  result->m_scale = scale_self*m_scale + scale_other*o.m_scale;
+  return result;
 }

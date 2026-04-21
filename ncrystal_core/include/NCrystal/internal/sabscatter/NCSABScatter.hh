@@ -37,7 +37,7 @@ namespace NCRYSTAL_NAMESPACE {
     //Provides cross-sections and samplings based on an S(alpha,beta) scattering
     //kernel.
 
-    const char * name() const noexcept final { return "SABScatter"; }
+    const char * name() const noexcept override { return "SABScatter"; }
 
     //Construct from SABData and (optionally) an energy grid. The first
     //constructor takes a DI_ScatKnl object from the DynamicInfo list on an an
@@ -64,14 +64,20 @@ namespace NCRYSTAL_NAMESPACE {
 
     virtual ~SABScatter();
 
-    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const final;
-    ScatterOutcomeIsotropic sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const final;
+    CrossSect crossSectionIsotropic(CachePtr&, NeutronEnergy ) const override;
+    ScatterOutcomeIsotropic
+    sampleScatterIsotropic(CachePtr&, RNG&, NeutronEnergy ) const override;
+
+    std::shared_ptr<Process> createMerged( const Process& other,
+                                           double scale_self,
+                                           double scale_other ) const override;
 
   protected:
     Optional<std::string> specificJSONDescription() const override;
     struct Impl;
     Pimpl<Impl> m_impl;
     const SAB::SABScatterHelper * m_sh;
+    double m_scale = 1.0;
   };
 
 }

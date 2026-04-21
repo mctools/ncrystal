@@ -33,7 +33,10 @@ namespace NCRYSTAL_NAMESPACE {
     //shared_obj<const NC::SABData>* pointers!
     typedef std::tuple<UniqueIDValue,UniqueIDValue,shared_obj<const NC::SABData>*> ScatHelperCacheKey;
 
-    class ScatterHelperFactory : public NC::CachedFactoryBase<ScatHelperCacheKey,SABScatterHelper> {
+    class ScatterHelperFactory
+      : public NC::CachedFactoryBase<ScatHelperCacheKey,
+                                     SABScatterHelper,
+                                     20/*NStrongRefsKept*/> {
     public:
       const char* factoryName() const final { return "ScatterHelperFactory"; }
       std::string keyToString( const ScatHelperCacheKey& key ) const final
@@ -139,3 +142,4 @@ std::shared_ptr<const NC::VectD> NC::SAB::egridFromUniqueID( NC::UniqueIDValue u
   return *it->second;
 
 }
+//fixme: we have now duplicated the egridFromUniqueID feature!

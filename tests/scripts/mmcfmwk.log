@@ -530,7 +530,7 @@ Caught expected NCBadInput('Inconsistent parameters. Do not supply geomcfg or sr
                         'decoded': {'format': 'NCrystal-MatCfg-v1',
                                     'ismultiphase': False,
                                     'data_name': 'void.ncmat',
-                                    'textdata_uid': '16',
+                                    'textdata_uid': '18',
                                     'textdata_type': 'ncmat',
                                     'pars': [],
                                     'phasechoices': [],
@@ -604,7 +604,7 @@ Caught expected NCBadInput('Inconsistent parameters. Do not supply geomcfg or sr
                         'decoded': {'format': 'NCrystal-MatCfg-v1',
                                     'ismultiphase': False,
                                     'data_name': 'void.ncmat',
-                                    'textdata_uid': '16',
+                                    'textdata_uid': '18',
                                     'textdata_type': 'ncmat',
                                     'pars': [],
                                     'phasechoices': [],
@@ -687,7 +687,7 @@ Caught expected NCBadInput('Inconsistent parameters. Do not supply geomcfg or sr
             'metadata': {'provided': {'count': 1, 'weight': 1.0},
                          'miss': {'count': 0, 'weight': 0.0},
                          'tallied': {'count': 1, 'weight': 1.0}}}}
-{"datatype":"NCrystalMiniMCResults_v1","input":{"material":{"cfgstr":"void.ncmat","decoded":{"format":"NCrystal-MatCfg-v1", "ismultiphase":false,"data_name":"void.ncmat","textdata_uid": "16","textdata_type":"ncmat","pars":[],"phasechoices":[],"density":{"type":"scalefactor","value":1.0}}},"geom":{"cfgstr":"sphere;r=0.005","decoded":{"name":"sphere","r":0.005,"short_description":"sphere with radius 5mm"}},"src":{"cfgstr":"circular;n=1;z=-0.005;ekin=0.01;r=0.005","decoded":{"name":"circular","n":1,"x":0.0,"y":0.0,"z":-0.005,"w":1.0,"wl":null,"ekin":{"mode":"fixed","value":0.01},"ux":0.0,"uy":0.0,"uz":1.0,"r":0.005},"metadata":{"fixed_dir":[0.0,0.0,1.0],"fixed_energy":0.01,"mean_dir":[0.0,0.0,1.0],"mean_energy":0.01,"energy_description":"0.01eV"}},"engine":{"name":"std","cfgstr":"nthreads=1;tally=e;tallybreakdown=0;tallybins=e:5:0:2","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"tallyref":"truth","nscatlimit":null,"tally":["e"],"tallybreakdown":false,"tallybins":{"overrides":{"de":null,"e":[5,0.0,2.0],"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":1}}},"output":{"tally":{"e":{"datatype":"NCrystalMiniMCTallyHistBreakdown_v1","tallyname":"e","total":{"datatype":"NCrystalHist1D_v1","title":"e","stats":{"integral":1.0,"rms":0.0,"mean":0.01,"minfilled":0.01,"maxfilled":0.01},"bindata":{"xmin":0.0,"xmax":2.0,"nbins":5,"content":[1.0,0.0,0.0,0.0,0.0],"errorsq":[1.0,0.0,0.0,0.0,0.0],"underflow":0.0,"overflow":0.0,"underflow_errorsq":0.0,"overflow_errorsq":0.0}},"breakdown":{} }},"metadata":{"provided":{"count":1,"weight":1.0},"miss":{"count":0,"weight":0.0},"tallied":{"count":1,"weight":1.0}}}}
+{"datatype":"NCrystalMiniMCResults_v1","input":{"material":{"cfgstr":"void.ncmat","decoded":{"format":"NCrystal-MatCfg-v1", "ismultiphase":false,"data_name":"void.ncmat","textdata_uid": "18","textdata_type":"ncmat","pars":[],"phasechoices":[],"density":{"type":"scalefactor","value":1.0}}},"geom":{"cfgstr":"sphere;r=0.005","decoded":{"name":"sphere","r":0.005,"short_description":"sphere with radius 5mm"}},"src":{"cfgstr":"circular;n=1;z=-0.005;ekin=0.01;r=0.005","decoded":{"name":"circular","n":1,"x":0.0,"y":0.0,"z":-0.005,"w":1.0,"wl":null,"ekin":{"mode":"fixed","value":0.01},"ux":0.0,"uy":0.0,"uz":1.0,"r":0.005},"metadata":{"fixed_dir":[0.0,0.0,1.0],"fixed_energy":0.01,"mean_dir":[0.0,0.0,1.0],"mean_energy":0.01,"energy_description":"0.01eV"}},"engine":{"name":"std","cfgstr":"nthreads=1;tally=e;tallybreakdown=0;tallybins=e:5:0:2","decoded":{"seed":0,"roulette":{"psurvival":0.1,"weight_threshold":0.01,"nscat_threshold":2},"ignoremiss":false,"absorption":true,"tallyref":"truth","nscatlimit":null,"tally":["e"],"tallybreakdown":false,"tallybins":{"overrides":{"de":null,"e":[5,0.0,2.0],"l":null,"mu":null,"nscat":null,"nscat_uw":null,"q":null,"theta":null,"w":null},"autobin_flags":[]},"nthreads":1}}},"output":{"tally":{"e":{"datatype":"NCrystalMiniMCTallyHistBreakdown_v1","tallyname":"e","total":{"datatype":"NCrystalHist1D_v1","title":"e","stats":{"integral":1.0,"rms":0.0,"mean":0.01,"minfilled":0.01,"maxfilled":0.01},"bindata":{"xmin":0.0,"xmax":2.0,"nbins":5,"content":[1.0,0.0,0.0,0.0,0.0],"errorsq":[1.0,0.0,0.0,0.0,0.0],"underflow":0.0,"overflow":0.0,"underflow_errorsq":0.0,"overflow_errorsq":0.0}},"breakdown":{} }},"metadata":{"provided":{"count":1,"weight":1.0},"miss":{"count":0,"weight":0.0},"tallied":{"count":1,"weight":1.0}}}}
 Caught expected NCBadInput('Invalid value of unpack (must be "dict", "json", "dict_jsoncompat", or "object"): \'foobar\'')
 Caught expected NCBadInput('Missing geomcfg parameter.')
 CALLING plt.subplots()

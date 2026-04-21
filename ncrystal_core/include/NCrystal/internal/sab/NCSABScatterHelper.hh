@@ -35,7 +35,7 @@ namespace NCRYSTAL_NAMESPACE {
     //For reference it can optionally hold a JSON descriptive dictionary (in a
     //format suitable for ProcImpl::specificJSONDescription).
 
-    class SABScatterHelper : private MoveOnly {
+    class SABScatterHelper final : private MoveOnly {
     public:
       SABScatterHelper( SABXSProvider&& xp,
                         SABSampler&&sp,

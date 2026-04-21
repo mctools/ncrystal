@@ -7,6 +7,14 @@ v4.3.5 (work in progress)
        structure factors (F^2) will be affected - although in a less regular
        fashion. Note that in the current implementation, only Bragg diffraction
        components are affected by the application of strain.
+     * Improve caching and merging during the pipeline taking a VDOS to a
+       SABScatter process. This potentially saves both material initialisation
+       time, but also leads to faster cross section evaluations and scattering
+       event sampling. Notably, these improvements require VDOS and elements to
+       be identical in either different materials or different phases of a given
+       material. These improvements affects cases where the same VDOS and
+       element is provided more than once, which could either be in different
+       materials or different phases of the same material.
      * ...
 
 v4.3.4 2026-04-15
