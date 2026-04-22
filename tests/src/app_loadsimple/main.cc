@@ -41,10 +41,15 @@ void testcfg( const char * cfgstr )
   (void)absn;
 }
 
-int main()
+int main(int argc, char** argv)
 {
   //Loading a few simple materials in this non-Python test is useful for various
   //debugging scenarios:
+  if ( argc > 1 ) {
+    for ( int i = 1; i<argc;++i )
+      testcfg(argv[i]);
+    return 0;
+  }
   testcfg("stdlib::Al_sg225.ncmat");
   testcfg("stdlib::Al_sg225.ncmat;dcutoff=0.6;vdoslux=2");
   testcfg("stdlib::Ni_sg225.ncmat");
