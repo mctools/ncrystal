@@ -235,7 +235,7 @@ namespace NCRYSTAL_NAMESPACE {
             NCRYSTAL_THROW(BadInput,"inelas=dyninfo does not work for input without specific dynamic information. It is possible that"
                            " other modes might work (try e.g. inelas=auto instead).");
 
-          uint32_t vdos2sabExcludeFlag = 0;
+          std::uint32_t vdos2sabExcludeFlag = 0;
           auto specialIgnoreContribs = getUnofficialHack("vdos2sab_ignorecontrib");
           if ( specialIgnoreContribs.has_value() ) {
             //Parse syntax:  vdos2sab_ignorecontrib low [high] [coherent|incoherent]
@@ -256,13 +256,17 @@ namespace NCRYSTAL_NAMESPACE {
 
           for (auto& di : info.getDynamicInfoList()) {
             const DI_ScatKnl* di_scatknl = dynamic_cast<const DI_ScatKnl*>(di.get());
+            if ( di->atomData().scatteringXS().dbl() == 0.0 )
+              continue;//just ignore components with no scattering cross section
             if (di_scatknl) {
               components.addfct_cl([di_scatknl,vdoslux,vdos2sabExcludeFlag,ucnmode]()
               {
                 ProcImpl::ProcComposition::ComponentList complist;
                 const double scale = di_scatknl->fraction();
 
-                auto sabdata = extractSABDataFromDynInfo( di_scatknl, vdoslux, true/*use cache*/, vdos2sabExcludeFlag );
+                auto sabdata = extractSABDataFromDynInfo( di_scatknl, vdoslux,
+                                                          true/*use cache*/,
+                                                          vdos2sabExcludeFlag );
                 if ( !sabdata->boundXS() )
                   return complist;
 
