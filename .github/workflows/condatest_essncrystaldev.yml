@@ -51,7 +51,7 @@ jobs:
           git clone --depth=1 'https://usernamedoesnotmatter:'"${THEACCESSTOKEN}"'@git.esss.dk/ncrystal/ncrystaldev.git' ./src_ncrystaldev
 
       - name: Set up conda env
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v4
         with:
           activate-environment: ncrystal_all_combined
           environment-file: ./src/devel/reqs/conda_all_and_devel.yml

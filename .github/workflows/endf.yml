@@ -80,7 +80,7 @@ jobs:
           ))
 
       - name: Set up conda env
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v4
         with:
           activate-environment: theenv
           environment-file: ./theenv.yml
