@@ -15,6 +15,9 @@ v4.3.5 (work in progress)
        material. These improvements affects cases where the same VDOS and
        element is provided more than once, which could either be in different
        materials or different phases of the same material.
+     * Add SABRefEval C++ class for slow but extremely trustworthy reference
+       evaluations of S(alpha,beta) tables for cross sections and scatter event
+       samplings.
      * ...
 
 v4.3.4 2026-04-15
