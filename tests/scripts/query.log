@@ -82,11 +82,11 @@ Caught expected RuntimeError('File already exists (use --force to overwrite): tm
 Wrote: tmp_test_file.json
 ===========================================
 Contents of tmp_test_file.json: ========================================
-["version", "util", "mmc"]
+["version", "util", "mmc", "sab"]
 ============= CLI >>foo<< ====================
 Caught expected NCBadInput('Invalid JSON query key: "foo"')
 ============= CLI >>list<< ====================
-['version', 'util', 'mmc']
+['version', 'util', 'mmc', 'sab']
 ===========================================
 ============= CLI >>mmc list<< ====================
 ['run', 'scenario', 'inspectcfg', 'cfgdoc']
@@ -122,3 +122,24 @@ Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query
 Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
 ============= CLI >>foo '\x07bar'<< ====================
 Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query strings')
+============= CLI >>sab refeval 0.025 stdlib::Al2O3_sg167_Corundum.ncmat 3 Al<< ====================
+{'neutron_energy': 0.025,
+ 'temperature': 293.15,
+ 'kT': 0.025261703774449997,
+ 'sab_phasespace_integral': 0.1675743489000099,
+ 'cross_section': 0.06362711784259172,
+ 'sampling_acceptance_rate': 0.9461674239567756,
+ 'samples_format': ['alpha', 'beta', 'deltaE', 'mu'],
+ 'samples': [[6.183749204144627,
+              2.531172449556258,
+              0.06394172862273917,
+              -0.4482111646418449],
+             [0.399074068358244,
+              0.2194567640715058,
+              0.005543851765273741,
+              0.8226062290964994],
+             [6.98008817777072,
+              3.130092386878518,
+              0.07907146666398626,
+              -0.4632383173318475]]}
+===========================================
