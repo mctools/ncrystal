@@ -21,6 +21,7 @@
 #include "NCrystal/internal/query/NCQuery.hh"
 #include "NCrystal/internal/minimc/NCMMC_Query.hh"
 #include "NCrystal/internal/cfgutils/NCCfgTypes.hh"
+#include "NCSABQuery.hh"
 #include "NCUtilQuery.hh"
 
 namespace NC = NCrystal;
@@ -50,6 +51,7 @@ void NC::JSONQuery( std::ostream& os, const Query& query )
   constexpr auto sv_list = StrView::make("list");
   constexpr auto sv_mmc = StrView::make("mmc");
   constexpr auto sv_util = StrView::make("util");
+  constexpr auto sv_sab = StrView::make("sab");
 
   if ( key == sv_mmc ) {
     MiniMC::Query::JSONQuery( os, query );
@@ -57,11 +59,13 @@ void NC::JSONQuery( std::ostream& os, const Query& query )
     if ( query.size() != 1 )
       NCRYSTAL_THROW2(BadInput, "Invalid JSON query (no arguments"
                       " should follow key \"list\")");
-    os << "[\"version\", \"util\", \"mmc\"]";
+    os << "[\"version\", \"util\", \"mmc\", \"sab\"]";
   } else if ( key == sv_version ) {
     queryimpl_version( os, query );
   } else if ( key == sv_util ) {
     queryimpl_util( os, query );
+  } else if ( key == sv_sab ) {
+    SABUtils::JSONQuery( os, query );
   } else {
     NCRYSTAL_THROW2(BadInput, "Invalid JSON query key: \""<<key<<'"');
   }

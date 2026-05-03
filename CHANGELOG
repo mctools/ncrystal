@@ -18,6 +18,12 @@ v4.3.5 (work in progress)
      * Add SABRefEval C++ class for slow but extremely trustworthy reference
        evaluations of S(alpha,beta) tables for cross sections and scatter event
        samplings.
+     * Expose the new SABRefEval feature through the JSON query system, so now a
+       query like
+       ["sab","refeval","0.025","Al2O3_sg167_Corundum.ncmat;temp=200K","1000","Al"]
+       can be used to find the inelastic cross section for incoherent scattering
+       on the aluminium atoms in Al2O3, and also sample 1000 scatter events for
+       (alpha,beta,deltaE,mu) values.
      * ...
 
 v4.3.4 2026-04-15
