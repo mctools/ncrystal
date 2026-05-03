@@ -84,13 +84,13 @@ namespace NCRYSTAL_NAMESPACE {
     DI_VDOSImpl( double fraction,
                  IndexedAtomData atom,
                  Temperature temperature,
-                 VectD&& egrid,
+                 const VectD& egrid,
                  VDOSData&& vdata,
                  VectD&& orig_vdos_egrid,
                  VectD&& orig_vdos_density)
       : DI_VDOSShPtr(fraction,std::move(atom),temperature),
         m_vdosdata(getCachedVDOSDataHashPtr(std::move(vdata))),
-        m_egrid(getCachedEnergyGridHashPtr(std::move(egrid))),
+        m_egrid(egrid),
         m_vdosOrigEgrid(orig_vdos_egrid),
         m_vdosOrigDensity(orig_vdos_density)
     {
@@ -102,11 +102,11 @@ namespace NCRYSTAL_NAMESPACE {
     const VectD& vdosOrigDensity() const override { return m_vdosOrigDensity; }
 
     const VDOSDataHashPtr& vdosDataHashPtr() const override { return m_vdosdata; }
-    const EnergyGridHashPtr& energyGridHashPtr() const override { return m_egrid; }
+    const EnergyGridPtr& energyGridPtr() const override { return m_egrid; }
 
   private:
     VDOSDataHashPtr m_vdosdata;
-    EnergyGridHashPtr m_egrid;
+    EnergyGridPtr m_egrid;
     VectD m_vdosOrigEgrid;
     VectD m_vdosOrigDensity;
   };
@@ -458,8 +458,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
           nc_assert_always(vdos_egrid_reg.size()==2);
           PairDD vdos_egrid_pair(vdos_egrid_reg.front(),vdos_egrid_reg.back());
 
-          di = ncmake_unique<DI_VDOSImpl>( e.fraction, iad, cfgvars.temp,
-                                           std::move(egrid),
+          di = ncmake_unique<DI_VDOSImpl>( e.fraction, iad, cfgvars.temp, egrid,
                                            VDOSData(vdos_egrid_pair,
                                                     std::move(vdos_density_reg),
                                                     cfgvars.temp,

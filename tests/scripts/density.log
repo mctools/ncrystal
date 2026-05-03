@@ -2,8 +2,8 @@
 7
 6
 6
-18
-18
+17
+17
 ProcComposition(3 components, isotropic)
    |-- ElIncScatter(nelements=1;max_contrib=0.0082barn)
    |-- PowderBragg(nplanes=493;2dmax=4.67605Aa;max_contrib=1.76263barn)

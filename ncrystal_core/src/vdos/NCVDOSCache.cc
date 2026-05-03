@@ -21,6 +21,7 @@
 #include "NCrystal/internal/vdos/NCVDOSCache.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/fact_utils/NCFactoryUtils.hh"
+#include "NCrystal/internal/sab/NCSABFactory.hh"
 
 namespace NC = NCrystal;
 
@@ -118,74 +119,30 @@ NC::VDOSDataHashPtr NC::getCachedVDOSDataHashPtr( VDOSData&& data )
                { return a.last_accessed > b.last_accessed; });
     while ( db.cache.size() > 900 )
       db.cache.pop_back();
-    //FIXME: Test code with very small limit, and also test cache clearing!
   }
   db.cache.emplace_back( newobj, db.call_count );
   std::sort( db.cache.begin(), db.cache.end() );
   return newobj;
 }
 
-namespace NCRYSTAL_NAMESPACE {
-  namespace {
-    struct EGCacheDB {
-      std::mutex mtx;
-      std::vector<EnergyGridHashPtr> cache;
-    };
-    EGCacheDB& getEGCacheDB()
-    {
-      static EGCacheDB db;
-      static const bool dummy = []()
-      {
-        registerCacheCleanupFunction([](){
-          auto& db2 = getEGCacheDB();
-          NCRYSTAL_LOCK_GUARD(db2.mtx);
-          db2.cache.clear();
-        });
-        return false;
-      }();
-      (void) dummy;
-      return db;
-    }
-
+NC::EnergyGridPtr::EnergyGridPtr( std::shared_ptr<const VectD> v )
+{
+  if ( !v || v->empty() ) {
+    static const UniqueIDValue empty_uid = SAB::egridToUniqueID(nullptr);
+    m_uid = empty_uid;
+  } else {
+    m_uid = SAB::egridToUniqueID(v);
+    m_data = SAB::egridFromUniqueID(m_uid);
   }
-  class EnergyGridHashPtrFact {
-  public:
-    static EnergyGridHashPtr create( std::shared_ptr<const VectD> v,
-                                     std::size_t hash )
-    {
-      return { std::move(v), hash, UniqueID().getUniqueID() };
-    }
-  };
 }
 
-NC::EnergyGridHashPtr NC::getCachedEnergyGridHashPtr( VectD&& v )
+NC::EnergyGridPtr::EnergyGridPtr( const VectD& v )
 {
   if ( v.empty() ) {
-    //special case the empty (or null) grid (hash = 0). Always return same
-    //instance with same UID:
-    static auto egridnull = EnergyGridHashPtrFact::create( nullptr, 0 );
-    return egridnull.clone();
+    static const UniqueIDValue empty_uid = SAB::egridToUniqueID(nullptr);
+    m_uid = empty_uid;
+  } else {
+    m_uid = SAB::egridToUniqueID(v);
+    m_data = SAB::egridFromUniqueID(m_uid);
   }
-  //calc hash:
-  nc_assert_always(v.size()>=3);
-  HashValue hash = calcHash( v[0] );
-  hash_combine( hash, v[1] );
-  hash_combine( hash, v.back() );
-  hash_combine( hash, v.size() );
-  if (!hash)
-    hash = 1;//make sure hash=0 <=> empty
-  //Access DB under lock:
-  auto& db = getEGCacheDB();
-  NCRYSTAL_LOCK_GUARD(db.mtx);
-
-  //FIXME: VERY Simplistic and unsorted linear search for now!
-  for ( auto& e : db.cache ) {
-    if ( hash == e.hash() && v == *e.dataShPtr() )
-      return e.clone();
-  }
-  auto enew
-    = EnergyGridHashPtrFact::create( std::make_shared<VectD>(std::move(v)),
-                                     hash );
-  db.cache.push_back(enew.clone());
-  return enew;
 }

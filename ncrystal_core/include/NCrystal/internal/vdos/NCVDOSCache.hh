@@ -50,30 +50,30 @@ namespace NCRYSTAL_NAMESPACE {
     std::size_t m_hash;
   };
 
-  class EnergyGridHashPtr final {
+  class EnergyGridPtr final : public MoveOnly {
     //Class which keeps an energy grid vector in a shared pointer, as well as a
-    //hash of it for fast comparisons, and a UID. The energy grid can be unset
-    //(nullptr), or have a length >=3 (3 with the special meaning of
-    //(emin,emax,npoints).
-    EnergyGridHashPtr( std::shared_ptr<const VectD> v,
-                       std::size_t hash,
-                       UniqueIDValue uid )
-      : m_data(std::move(v)), m_hash(hash), m_uid(uid) {}
-    friend class EnergyGridHashPtrFact;
+    //a UID. Both of these are created based on the egrid caches in NCSABFactory.hh.
+    //
+    //The energy grid can be empty or unset (always kept as a nullptr), or have
+    //a length >=3 (3 with the special meaning of (emin,emax,npoints).
   public:
-    //NB: Empty initial vector -> null shared ptr:
+    EnergyGridPtr( std::shared_ptr<const VectD> );
+    EnergyGridPtr( const VectD& );
+    EnergyGridPtr( NullOptType ) {}
+
     const std::shared_ptr<const VectD>& dataShPtr() const { return m_data; }
-    std::size_t hash() const { return m_hash; }
-
-    EnergyGridHashPtr clone() const { return { m_data, m_hash, m_uid }; }
-
     ncconstexpr17 UniqueIDValue getUniqueID() const noexcept { return m_uid; }
 
+    EnergyGridPtr clone() const {
+      EnergyGridPtr v( NullOpt );
+      v.m_data = m_data;
+      v.m_uid = m_uid;
+      return v;
+    }
 
   private:
-    std::shared_ptr<const VectD> m_data;
-    std::size_t m_hash = 0;
-    UniqueIDValue m_uid;
+    std::shared_ptr<const VectD> m_data = nullptr;
+    UniqueIDValue m_uid = {0};
   };
 
   //Returns a VDOSDataHashPtr based on the provided VDOSData. Crucially, the
@@ -85,15 +85,12 @@ namespace NCRYSTAL_NAMESPACE {
   //derived objects. This might fail if the internal cache size is exceeded.
   VDOSDataHashPtr getCachedVDOSDataHashPtr( VDOSData&& );
 
-  //Same for energy grid:
-  EnergyGridHashPtr getCachedEnergyGridHashPtr( VectD&& );
-
   //Specialisation of DI_VDOS which supports keeping and accessing the VDOSData
-  //as a VDOSDataHashPtr, and the energy grid as an EnergyGridHashPtr:
+  //as a VDOSDataHashPtr, and the energy grid as an EnergyGridPtr:
   class DI_VDOSShPtr : public DI_VDOS {
   public:
     virtual const VDOSDataHashPtr& vdosDataHashPtr() const = 0;
-    virtual const EnergyGridHashPtr& energyGridHashPtr() const = 0;
+    virtual const EnergyGridPtr& energyGridPtr() const = 0;
     using DI_VDOS::DI_VDOS;
     virtual ~DI_VDOSShPtr();
   };
