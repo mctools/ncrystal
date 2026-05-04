@@ -639,3 +639,11 @@ def create_read_only_view(data):
         return tuple(create_read_only_view(v) for v in data)
     else:
         return data
+
+def ncpprint(obj, *, do_sort=False):
+    import pprint
+    #NB: pprint.pprint sorts dicts, while pprint.pp does not
+    if do_sort:
+        pprint.print(obj)
+    else:
+        pprint.pp(obj)

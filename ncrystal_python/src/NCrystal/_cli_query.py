@@ -75,8 +75,8 @@ def main( progname, args ):
                           unpack = unpack_json )
     if to_stdout:
         if unpack_json:
-            import pprint
-            pprint.pp(res)#NB: .pprint sorts dicts, .pp does not
+            from ._common import ncpprint
+            ncpprint(res,do_sort=False)
         else:
             print(res)
     else:

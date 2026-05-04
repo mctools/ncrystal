@@ -47,7 +47,26 @@ def test_cli( *args ):
     nc_cli.run('query',*args)
     print("===========================================")
 
+def clip_floats(obj):
+    #Pass all floats in data structure (assumed loaded from JSON) through
+    #'%.12g' to reduce FP fluctuations.
+    if isinstance(obj, float):
+        return float('%.12g'%obj)
+    if isinstance(obj, dict):
+        return {k: clip_floats(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [clip_floats(v) for v in obj]
+    return obj
+
 def main():
+    #Avoid FP fluctuations in json to spoil unit tests. This is done by
+    #monkey-patching the NC._common.ncpprint function:
+    import NCrystalDev._common as _c
+    _ncpprint_orig = _c.ncpprint
+    def ncpprint_stablefp( obj, **kwargs ):
+        _ncpprint_orig(clip_floats(obj),**kwargs)
+    _c.ncpprint = ncpprint_stablefp
+
     from NCrystalDev._common import print
     ncsetenv('FIX_QUERY_VERSION_FOR_TESTS','1')
 

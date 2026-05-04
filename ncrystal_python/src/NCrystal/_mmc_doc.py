@@ -469,5 +469,5 @@ if __name__=='__main__':
     r=gen_doc_impl( subject=sys.argv[1],
                     mode = mode )
     if mode == 'dict':
-        import pprint
-        pprint.pp(r)
+        from ._common import ncpprint
+        ncpprint(r,do_sort=False)
