@@ -1,3 +1,6 @@
+v4.4.1 (work in progress)
+     * ...
+
 v4.4.0 2026-05-04
      * Support new strain parameter in cfg-strings which allows for an isotropic
        scaling of lattice vectors. So for instance,
