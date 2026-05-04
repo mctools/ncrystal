@@ -15,6 +15,11 @@ v4.3.5 (work in progress)
        material. These improvements affects cases where the same VDOS and
        element is provided more than once, which could either be in different
        materials or different phases of the same material.
+     * Fix a long-standing a caching bug in NCSABFactory.cc by moving to common
+       key-thinning infrastructure. This bug might have affected some cases of
+       caches which should have worked previously, but certainly became apparent
+       now that the SAB caching was improved in general.
+     * A dedicated unit test for monitoring the SAB factory caching was added.
      * Add SABRefEval C++ class for slow but extremely trustworthy reference
        evaluations of S(alpha,beta) tables for cross sections and scatter event
        samplings.

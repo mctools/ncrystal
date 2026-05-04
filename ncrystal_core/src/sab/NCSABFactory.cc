@@ -35,34 +35,53 @@ namespace NCRYSTAL_NAMESPACE {
         return uid_empty.getUniqueID();
       }
 
-      //Cache key is (sabdata uid, egrid uid, sabdata ptr):
-      //TODO: we should use new thin-key support instead of these
-      //shared_obj<const NC::SABData>* pointers!
-      typedef std::tuple<UniqueIDValue,
-                         UniqueIDValue,
-                         shared_obj<const NC::SABData>*> ScatHelperCacheKey;
+      //Cache key is (sabdata uid, egrid uid). The thick key also carries a
+      //reference to the SAB data.
+
+      using ScatHelperCacheKey_Thin = std::pair<UniqueIDValue,UniqueIDValue>;
+
+      struct ScatHelperCacheKey {
+        ScatHelperCacheKey_Thin thin_key;
+        std::shared_ptr<const SABData> sabdata_ptr;
+      };
+
+      struct ScatHelperCache_KeyThinner {
+        using key_type = ScatHelperCacheKey;
+        using thinned_key_type = ScatHelperCacheKey_Thin;
+        template <class TMap>
+        static typename TMap::mapped_type&
+        cacheMapLookup( TMap& map, const key_type& key,
+                        Optional<thinned_key_type>& tkey )
+        {
+          if ( !tkey.has_value() )
+            tkey = key.thin_key;
+          return map[tkey.value()];
+        }
+      };
+
+      constexpr auto scathelperfact_nstrongrefskept = 20;
 
       class ScatterHelperFactory
         : public NC::CachedFactoryBase<ScatHelperCacheKey,
                                        SABScatterHelper,
-                                       20/*NStrongRefsKept*/> {
+                                       scathelperfact_nstrongrefskept,
+                                       ScatHelperCache_KeyThinner> {
       public:
         const char* factoryName() const final { return "ScatterHelperFactory"; }
         std::string keyToString( const ScatHelperCacheKey& key ) const final
         {
           std::ostringstream ss;
-          ss<<"(SABData id="<<std::get<0>(key).value
-            <<";egrid id="<<std::get<1>(key).value<<")";
+          ss<<"(SABData id="<<key.thin_key.first.value
+            <<";egrid id="<<key.thin_key.second.value<<")";
           return ss.str();
         }
       protected:
         virtual ShPtr actualCreate( const ScatHelperCacheKey& key ) const final
         {
-          auto sabdata_shptr = *std::get<2>(key);
-          nc_assert( sabdata_shptr->getUniqueID() == std::get<0>(key) );
-          auto egrid_shptr = egridFromUniqueID(std::get<1>(key));
-          return createScatterHelper(std::move(sabdata_shptr),
-                                     std::move(egrid_shptr));
+          nc_assert( key.sabdata_ptr != nullptr );
+          nc_assert( key.sabdata_ptr->getUniqueID() == key.thin_key.first );
+          return createScatterHelper( key.sabdata_ptr,
+                                      egridFromUniqueID(key.thin_key.second) );
         }
       };
 
@@ -107,15 +126,13 @@ void NC::SAB::clearScatterHelperCache() {
 }
 
 NC::shared_obj<const NC::SAB::SABScatterHelper>
-NC::SAB::createScatterHelperWithCache( shared_obj<const NC::SABData> dataptr,
+NC::SAB::createScatterHelperWithCache( shared_obj<const NC::SABData> sabdataptr,
                                        std::shared_ptr<const VectD> egrid )
 {
-  nc_assert_always(!!dataptr);
-
-  ScatHelperCacheKey key( dataptr->getUniqueID(),
-                          egridToUniqueID( egrid ),
-                          &dataptr );
-
+  ScatHelperCacheKey key;
+  key.thin_key.first = sabdataptr->getUniqueID();
+  key.thin_key.second = egridToUniqueID(egrid);
+  key.sabdata_ptr = std::move(sabdataptr);
   return getScatterHelperFactory().create(key);
 }
 
@@ -130,7 +147,8 @@ NC::UniqueIDValue NC::SAB::egridToUniqueID(const NC::VectD& egrid)
   auto hash = hashContainer(egrid);
   auto& db = getEgridUIDCacheDB();
   NCRYSTAL_LOCK_GUARD(db.mtx);
-  auto& v = db.egridHashCache[hash];//In absence of hash collisions, v will have length 0 or 1.
+  auto& v = db.egridHashCache[hash];//In absence of hash collisions,
+                                    //v will have length 0 or 1.
   for (auto& e : v) {
     if ( *e.first == egrid )
       return e.second.getUniqueID();//exists in cache already
@@ -142,7 +160,8 @@ NC::UniqueIDValue NC::SAB::egridToUniqueID(const NC::VectD& egrid)
   return uidval;
 }
 
-NC::UniqueIDValue NC::SAB::egridToUniqueID(const std::shared_ptr<const NC::VectD>& egrid)
+NC::UniqueIDValue
+NC::SAB::egridToUniqueID(const std::shared_ptr<const NC::VectD>& egrid)
 {
   if ( !egrid || egrid->empty() ) {
     //Treat nullptr as empty grid and handle specially.
@@ -153,7 +172,8 @@ NC::UniqueIDValue NC::SAB::egridToUniqueID(const std::shared_ptr<const NC::VectD
   auto hash = hashContainer(*egrid);
   auto& db = getEgridUIDCacheDB();
   NCRYSTAL_LOCK_GUARD(db.mtx);
-  auto& v = db.egridHashCache[hash];//In absence of hash collisions, v will have length 0 or 1.
+  auto& v = db.egridHashCache[hash];//In absence of hash collisions,
+                                    //v will have length 0 or 1.
   for (auto& e : v) {
     if ( *e.first == *egrid )
       return e.second.getUniqueID();//exists in cache already
