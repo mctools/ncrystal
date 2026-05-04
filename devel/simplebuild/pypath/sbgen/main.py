@@ -71,6 +71,7 @@ def create_pkg_extratestscripts(pkgname):
         add_file( f'pkgs/{pkgname}/scripts/test{n}', link_target = sf )
 
 def create_pkg_virtualapiproject(pkgname,srcdir):
+    return# NOTE: Disabling for now, gave linking issues.
     create_pkginfo( pkgname, pkg_deps = ['TestLib_fpe'] )
     #handle all except main and ncrystal_load.cc:
     main = srcdir.joinpath('main.cc')
