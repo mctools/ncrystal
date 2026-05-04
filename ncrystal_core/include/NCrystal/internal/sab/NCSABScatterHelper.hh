@@ -33,16 +33,17 @@ namespace NCRYSTAL_NAMESPACE {
     //by using either the SABFactory functions or a SABIntegrator.
     //
     //For reference it can optionally hold a JSON descriptive dictionary (in a
-    //format suitable for ProcImpl::specificJSONDescription).
+    //format suitable for ProcImpl::specificJSONDescription, but not closed with
+    //final '}').
 
-    class SABScatterHelper final : private MoveOnly {
+    class SABScatterHelper final : public UniqueID {
     public:
       SABScatterHelper( SABXSProvider&& xp,
                         SABSampler&&sp,
                         Optional<std::string> json = NullOpt )
         : xsprovider(std::move(xp)),
           sampler(std::move(sp)),
-          specificJSONDescription(std::move(json))
+          specificJSONDescriptionOpen(std::move(json))
       {
       }
       SABScatterHelper() = default;//incomplete
@@ -50,7 +51,7 @@ namespace NCRYSTAL_NAMESPACE {
       SABScatterHelper& operator=( SABScatterHelper&& ) = default;
       SABXSProvider xsprovider;
       SABSampler sampler;
-      Optional<std::string> specificJSONDescription;
+      Optional<std::string> specificJSONDescriptionOpen;
 
     };
 

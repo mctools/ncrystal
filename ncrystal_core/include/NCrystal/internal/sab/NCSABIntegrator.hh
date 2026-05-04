@@ -54,19 +54,31 @@ namespace NCRYSTAL_NAMESPACE {
                      const VectD* egrid = nullptr,
                      std::shared_ptr<const SABExtender> sabextender = nullptr );
 
-      SABXSProvider createXSProvider() { SABXSProvider o; doit(&o,nullptr); return o; }
-      SABSampler createSampler() { SABSampler o; doit(nullptr,&o); return o; }
+      SABXSProvider createXSProvider()
+      {
+        SABXSProvider o;
+        doit(&o,nullptr,UniqueIDValue{0});
+        return o;
+      }
+      SABSampler createSampler()
+      {
+        SABSampler o;
+        doit(nullptr,&o,UniqueIDValue{0});
+        return o;
+      }
       SABScatterHelper createScatterHelper()
       {
         SABScatterHelper o;
-        doit(&o.xsprovider,&o.sampler,&o.specificJSONDescription);
+        doit( &o.xsprovider, &o.sampler, o.getUniqueID(),
+              &o.specificJSONDescriptionOpen );
         return o;
       }
 
     private:
       struct Impl;
       Pimpl<Impl> m_impl;
-      void doit(SABXSProvider *, SABSampler*, Optional<std::string>* json = nullptr);
+      void doit(SABXSProvider *, SABSampler*, UniqueIDValue,
+                Optional<std::string>* json = nullptr);
     };
   }
 }

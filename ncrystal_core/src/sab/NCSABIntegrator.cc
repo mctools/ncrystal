@@ -34,7 +34,7 @@ struct NC::SAB::SABIntegrator::Impl : private NoCopyMove {
   Impl( shared_obj<const SABData>,
         const VectD* egrid,
         std::shared_ptr<const SABExtender> );
-  void doit(SABXSProvider *, SABSampler*, Optional<std::string>*);
+  void doit(SABXSProvider *, SABSampler*, UniqueIDValue, Optional<std::string>*);
   double determineEMax( const double ) const;
   double determineEMin( const double ) const;
   void setupEnergyGrid();
@@ -69,9 +69,12 @@ NS::SABIntegrator::SABIntegrator( shared_obj<const SABData> data,
 {
 }
 
-void NS::SABIntegrator::doit(SABXSProvider * out_xs, SABSampler* out_sampler, Optional<std::string>* json)
+void NS::SABIntegrator::doit(SABXSProvider * out_xs,
+                             SABSampler* out_sampler,
+                             UniqueIDValue uid,
+                             Optional<std::string>* json)
 {
-  m_impl->doit(out_xs,out_sampler,json);
+  m_impl->doit(out_xs,out_sampler,uid,json);
 }
 
 NS::SABIntegrator::Impl::Impl( shared_obj<const SABData> data,
@@ -277,7 +280,10 @@ void NS::SABIntegrator::Impl::setupEnergyGrid()
 
 }
 
-void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs, SABSampler* out_sampler, Optional<std::string>* json)
+void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs,
+                                   SABSampler* out_sampler,
+                                   UniqueIDValue uid,
+                                   Optional<std::string>* json)
 {
   nc_assert_always( out_xs || out_sampler );
   if ( !m_derivedData )
@@ -333,7 +339,11 @@ void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs, SABSampler* out_sampl
     streamJSONDictEntry( ss, "sigma_bound", m_data->boundXS().dbl()  );
     streamJSONDictEntry( ss, "sigma_free", m_data->boundXS().free(m_data->elementMassAMU()).dbl()  );
     streamJSONDictEntry( ss, "nbeta", m_data->betaGrid().size()  );
-    streamJSONDictEntry( ss, "nalpha", m_data->alphaGrid().size(), JSONDictPos::LAST  );
+    streamJSONDictEntry( ss, "nalpha", m_data->alphaGrid().size()  );
+    streamJSONDictEntry( ss, "sabhelper_uid", uid.value );
+
+    //NOTE: We do NOT end with JSONDictPos::LAST, since we want to be able to
+    //append a few more items.
     *json = ss.str();
   }
 

@@ -23,6 +23,7 @@
 #include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
 #include "NCrystal/internal/sab/NCSABFactory.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/vdos/NCVDOSToScatKnl.hh"
 namespace NC = NCrystal;
 
@@ -100,7 +101,12 @@ NC::SABScatter::sampleScatterIsotropic( CachePtr&, RNG& rng,
 
 NC::Optional<std::string> NC::SABScatter::specificJSONDescription() const
 {
-  return m_sh->specificJSONDescription;
+  if ( !m_sh->specificJSONDescriptionOpen.has_value() )
+    return NullOpt;
+  std::ostringstream ss;
+  ss << m_sh->specificJSONDescriptionOpen.value();
+  streamJSONDictEntry( ss, "scale_factor", m_scale, JSONDictPos::LAST );
+  return ss.str();
 }
 
 std::shared_ptr<NC::ProcImpl::Process>
