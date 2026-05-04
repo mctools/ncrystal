@@ -1,4 +1,4 @@
-v4.3.5 (work in progress)
+v4.4.0 2026-05-04
      * Support new strain parameter in cfg-strings which allows for an isotropic
        scaling of lattice vectors. So for instance,
        "stdlib::Be_sg194.ncmat;strain=0.01" will cause the values of all lattice
@@ -30,7 +30,6 @@ v4.3.5 (work in progress)
        on the aluminium atoms in Al2O3, and also sample 1000 scatter events for
        (alpha,beta,deltaE,mu) values.
      * Require scikit-build-core 0.12 or later.
-     * ...
 
 v4.3.4 2026-04-15
      * Change to valueInInterval implementation which avoids triggering
