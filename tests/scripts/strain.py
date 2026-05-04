@@ -26,12 +26,15 @@ import NCrystalDev.core as nccore
 from NCTestUtils.common import ensure_error
 from NCrystalDev.exceptions import NCBadInput
 
+from NCTestUtils.sab import extract_scathelper_uids
+
 def test( cfgstr ):
     print('\n'*3)
     print('-------------- Testing %s --------------'%repr(cfgstr))
     m = nccore.load(cfgstr)
     m_bragg = nccore.load(cfgstr+';comp=bragg')
     m_nonbragg = nccore.load(cfgstr+';bragg=0')
+
     print("--> scat uid = %i"%m.scatter.uid)
     print("--> nonbragg scat uid = %i"%m_nonbragg.scatter.uid)
     print("--> bragg scat uid = %i"%m_bragg.scatter.uid)
@@ -43,10 +46,19 @@ def test( cfgstr ):
     for wl in wls:
         print('  NonBragg XS(%3gAa) = %g barn'%
               (wl,m_nonbragg.scatter.xsect( wl=wl )))
+    scathelper_uids_base = extract_scathelper_uids( m.scatter )
+    scathelper_uids_nonbragg = extract_scathelper_uids( m_nonbragg.scatter )
+    scathelper_uids_bragg = extract_scathelper_uids( m_bragg.scatter )
+    assert len(scathelper_uids_base) == 1
+    assert len(scathelper_uids_nonbragg) == 1
+    assert len(scathelper_uids_bragg) == 0
+    assert scathelper_uids_base[0] == scathelper_uids_nonbragg[0]
+
     return dict( numdens = m.info.numberdensity,
                  braggthr = m.info.braggthreshold,
                  scat_uid_bragg = m_bragg.scatter.uid,
                  scat_uid_nonbragg = m_nonbragg.scatter.uid,
+                 scathelper_uid = scathelper_uids_base[0],
                  nonbragg_xsvals = [ m_nonbragg.scatter.xsect( wl=wl )
                                      for wl in wls ] )
 
@@ -74,13 +86,15 @@ def main():
     #print('B',strainp['nonbragg_xsvals'])
     assert_equal_lists(base['nonbragg_xsvals'],strainp['nonbragg_xsvals'])
     assert_equal_lists(base['nonbragg_xsvals'],strainm['nonbragg_xsvals'])
-    #assert base['nonbragg_xsvals'] == strainp['nonbragg_xsvals']
-    #assert base['nonbragg_xsvals'] == strainm['nonbragg_xsvals']
+    assert base['nonbragg_xsvals'] == strainp['nonbragg_xsvals']
+    assert base['nonbragg_xsvals'] == strainm['nonbragg_xsvals']
     #assert base['scat_uid_nonbragg'] == strainp['scat_uid_nonbragg']
     #assert base['scat_uid_nonbragg'] == strainm['scat_uid_nonbragg']
     assert base['scat_uid_bragg'] != strainp['scat_uid_bragg']
     assert base['scat_uid_bragg'] != strainm['scat_uid_bragg']
     assert strainp['scat_uid_bragg'] != strainm['scat_uid_bragg']
+    assert base['scathelper_uid'] == strainp['scathelper_uid']
+    assert base['scathelper_uid'] == strainm['scathelper_uid']
 
     with ensure_error(NCBadInput,
                       'strain must be in the interval [-0.5,0.5]'):
