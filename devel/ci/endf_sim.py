@@ -117,8 +117,8 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
     92000: "92000 92234 92235 92238"}
 
     def create_dummy_endf_file(filename):
-        parser = endf_parserpy.EndfParser( print_cache_info=False,
-                                           cache_dir=False )
+        parser = endf_parserpy.EndfParserPy( print_cache_info=False,
+                                             cache_dir=False )
         endf_dict = endf_parserpy.EndfDict()
         endf_dict['1/451'] = {}
         p = endf_dict['1/451']
@@ -194,7 +194,7 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
             except OSError:
                 pass
 
-    parser = endf_parserpy.EndfParser(print_cache_info=False, cache_dir=False)
+    parser = endf_parserpy.EndfParserPy(print_cache_info=False, cache_dir=False)
     endf_dic = parser.parsefile(endf_tsl)
     temperatures = endf_dic[7][4]['teff0_table']['Tint']
     assert ( (len(suffix) == 3
