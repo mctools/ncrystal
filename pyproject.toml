@@ -43,7 +43,7 @@ classifiers = [
 "Bug Tracker" = "https://github.com/mctools/ncrystal/issues"
 
 [build-system]
-requires = ["scikit-build-core>=0.10"]
+requires = ["scikit-build-core>=0.12"]
 build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]

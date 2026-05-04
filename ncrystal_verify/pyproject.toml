@@ -46,7 +46,7 @@ classifiers = [
 ncrystal-verify = "_ncrystal_verify._cli:main"
 
 [build-system]
-requires = ["scikit-build-core>=0.10"]
+requires = ["scikit-build-core>=0.12"]
 build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]

@@ -42,11 +42,12 @@ classifiers = [
 ncrystal-config = "_ncrystal_core.info:_ncrystal_config_cli_wrapper"
 
 [build-system]
-requires = ["scikit-build-core>=0.10"]
+requires = ["scikit-build-core>=0.12"]
 build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
-#cmake.verbose = true
+#build.verbose = true
+#cmake.build-type = "Debug"
 logging.level = "INFO"
 minimum-version = "build-system.requires"
 wheel.packages = ['skbld_autogen/_ncrystal_core']

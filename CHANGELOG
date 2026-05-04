@@ -29,6 +29,7 @@ v4.3.5 (work in progress)
        can be used to find the inelastic cross section for incoherent scattering
        on the aluminium atoms in Al2O3, and also sample 1000 scatter events for
        (alpha,beta,deltaE,mu) values.
+     * Require scikit-build-core 0.12 or later.
      * ...
 
 v4.3.4 2026-04-15
