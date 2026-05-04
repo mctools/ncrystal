@@ -68,6 +68,19 @@ def main():
     uids_al2o3_special_O = list(set(uids_al2o3_special)-set(uids_al))
     assert len(uids_al2o3_special_O) == 1
     assert uids_al2o3_special_O[0] in uids_al2o3
+    mat_al300k_v2 = nccore.load("stdlib::Al_sg225.ncmat   ;  temp=300K")
+    assert su(mat_al300k_v2)==uids_al300k
+    nccore.clearCaches()
+    mat_al300k_v3 = nccore.load("stdlib::Al_sg225.ncmat   ;  temp=300K")
+    assert su(mat_al300k_v3)!=uids_al300k
+    mat_al300k_v4 = nccore.load("stdlib::Al_sg225.ncmat   ;  temp=300K")
+    assert su(mat_al300k_v3)==su(mat_al300k_v4)
+
+    mat_al300k_noxs = nccore.load("stdlib::Al_sg225.ncmat;temp=300K;atomdb="
+                                  "Al:26.981538408u:0fm:0b:0.231b")
+
+    assert len(su(mat_al300k_noxs))==0
+
     print("All OK")
 
 if __name__ == '__main__':
