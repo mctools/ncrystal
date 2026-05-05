@@ -72,9 +72,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     virtual ~Process() = default;
 
-#ifdef NCRYSTAL_ALLOW_ABI_BREAKAGE
     CachePtr& underlyingCachePtr() { return m_cachePtr; }
-#endif
 
   protected:
     //Allow move semantics only on derived classes (no slicing):
