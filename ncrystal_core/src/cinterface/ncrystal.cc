@@ -331,6 +331,18 @@ namespace NCRYSTAL_NAMESPACE {
         }
       }
     };
+
+    class RNGCWrapper final : public RNGStream {
+      double (*m_rngfct)(void*);
+      void * m_rngfctstate;
+    public:
+      constexpr RNGCWrapper(double (*rngfct)(void*),
+                            void* rngfctstate) noexcept
+        : m_rngfct(rngfct), m_rngfctstate(rngfctstate) {}
+    protected:
+      double actualGenerate() override { return m_rngfct(m_rngfctstate); }
+    };
+
   }
   }
 }
@@ -1161,6 +1173,30 @@ void ncrystal_samplescatter( ncrystal_scatter_t o,
   (*direction_final)[0] = (*direction_final)[1] = (*direction_final)[2] = 0.0;
 }
 
+void ncrystal_samplescatter_rs( double (*rngfct)(void*),
+                                void* rngfctstate,
+                                ncrystal_scatter_t o,
+                                double ekin,
+                                const double (*direction)[3],
+                                double* ekin_final,
+                                double (*direction_final)[3] )
+{
+  try {
+    auto& sc_o = ncc::extract(o);
+    const auto& sc = sc_o.underlying();
+    auto& cacheptr = sc_o.underlyingCachePtr();
+    ncc::RNGCWrapper rngwrap( rngfct, rngfctstate );
+    auto outcome = sc.sampleScatter( cacheptr,
+                                     rngwrap,
+                                     NC::NeutronEnergy{ekin},
+                                     NC::NeutronDirection{*direction} );
+    *ekin_final = outcome.ekin.dbl();
+    outcome.direction.applyTo(*direction_final);
+    return;
+  } NCCATCH;
+  *ekin_final = -1.0;
+  (*direction_final)[0] = (*direction_final)[1] = (*direction_final)[2] = 0.0;
+}
 
 void ncrystal_samplescatterisotropic_many( ncrystal_scatter_t o,
                                            const double * ekin,

@@ -1,4 +1,14 @@
 v4.4.1 (work in progress)
+     * Add new ncrystal_samplescatter_rs function in the C API, which is
+       functionally similar to ncrystal_samplescatter except that the caller
+       must also pass in a random number stream via the arguments. This thus
+       ignores any RNG stream otherwise associated with the scatter process. For
+       full flexibility, and to avoid forcing the caller to rely on global
+       variables in their C code, the RNG stream is passed via a function
+       pointer as well as a void-pointer to the RNG state. This function is in
+       particular intended to enable proper sampling in McStas where each
+       particle carries along its own specific RNG state. This fixes github
+       issue #354.
      * ...
 
 v4.4.0 2026-05-04

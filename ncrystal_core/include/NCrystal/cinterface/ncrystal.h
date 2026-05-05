@@ -553,6 +553,10 @@ extern "C" {
 #  undef ncrystal_samplescatter
 #endif
 #define ncrystal_samplescatter NCRYSTAL_APPLY_C_NAMESPACE(samplescatter)
+#ifdef ncrystal_samplescatter_rs
+#  undef ncrystal_samplescatter_rs
+#endif
+#define ncrystal_samplescatter_rs NCRYSTAL_APPLY_C_NAMESPACE(samplescatter_rs)
 #ifdef ncrystal_samplescatter_many
 #  undef ncrystal_samplescatter_many
 #endif
@@ -780,6 +784,18 @@ extern "C" {
                                             const double (*direction)[3],
                                             double* ekin_final,
                                             double (*direction_final)[3] );
+
+  /*Version which samples via RNG callback function (it must return numbers */
+  /*uniformly in [0,1)) passed along the arguments. The state data of this  */
+  /*RNG stream is passed as an void*, which will be passed on to the rngfct */
+  /*on each call.*/
+  NCRYSTAL_API void ncrystal_samplescatter_rs( double (*rngfct)(void*),
+                                               void* rngfctstate,
+                                               ncrystal_scatter_t,
+                                               double ekin,
+                                               const double (*direction)[3],
+                                               double* ekin_final,
+                                               double (*direction_final)[3] );
 
   /*============================================================================== */
   /*============================================================================== */
