@@ -1,4 +1,4 @@
-v4.4.1 (work in progress)
+v4.4.2 2026-05-05
      * Add new ncrystal_samplescatter_rs function in the C API, which is
        functionally similar to ncrystal_samplescatter except that the caller
        must also pass in a random number stream via the arguments. This thus
@@ -9,7 +9,6 @@ v4.4.1 (work in progress)
        particular intended to enable proper sampling in McStas where each
        particle carries along its own specific RNG state. This fixes github
        issue #354.
-     * ...
 
 v4.4.0 2026-05-04
      * Support new strain parameter in cfg-strings which allows for an isotropic
