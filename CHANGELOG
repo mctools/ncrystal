@@ -1,3 +1,6 @@
+v4.4.3 (work in progress)
+     * ...
+
 v4.4.2 2026-05-05
      * Add new ncrystal_samplescatter_rs function in the C API, which is
        functionally similar to ncrystal_samplescatter except that the caller
