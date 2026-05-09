@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/sab/NCSABRefEval.hh"
+#include "NCrystal/internal/sab/NCSABKBCellSmpl.hh"
 #include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
 #include "NCrystal/internal/extd_utils/NCInfoUtils.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
@@ -53,6 +54,59 @@ namespace NCRYSTAL_NAMESPACE {
         }
         refeval.toJSON( os, nsample, rngptr );
       }
+
+      class RNGSpy final : public NC::RNGStream {
+        shared_obj<RNGStream> m_realrng;
+        std::uint64_t m_count = 0;
+      public:
+        RNGSpy(shared_obj<RNGStream> rs) : m_realrng( std::move(rs) ) {}
+        std::uint64_t count() const { return m_count; }
+      protected:
+        double actualGenerate() override {
+          ++m_count;
+          return m_realrng->generate(); }
+      };
+
+      void query_impl_samplexyparabolicband( std::ostream& os,
+                                             double x0, double y0,
+                                             double x1, double y1,
+                                             std::uint64_t nsample )
+      {
+        RNGSpy rng( getRNG() );
+
+        ParabolicBandBoxSampler sampler( x0, y0, x1, y1 );
+        if (!sampler.canSample())
+          nsample = 0;
+
+        nc_assert_always(x0>=0);
+        nc_assert_always(y0>=0);
+        nc_assert_always(x1>x0);
+        nc_assert_always(y1>y0);
+
+        os << "{\"x0\":";
+        streamJSON(os,x0);
+        os << ",\"y0\":";
+        streamJSON(os,y0);
+        os << ",\"x1\":";
+        streamJSON(os,x1);
+        os << ",\"y1\":";
+        streamJSON(os,y1);
+        os << ",\"samples\":[";
+        for ( std::uint64_t i = 0; i < nsample; ++i ) {
+          auto res = sampler.sample(rng);
+          if ( i )
+            os << ',';
+          streamJSON(os,res);
+        }
+        os << "],\"rng_per_sample\":";
+        if ( nsample )
+          streamJSON(os, double(rng.count())/nsample );
+        else
+          streamJSON(os, json_null_t{} );
+        os << ",\"sampler_details\":";
+        sampler.toJSON(os);
+        os<<'}';
+      }
     }
   }
 }
@@ -80,6 +134,7 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
 
   constexpr auto sv_list = StrView::make("list");
   constexpr auto sv_refeval = StrView::make("refeval");
+  constexpr auto sv_samplepb = StrView::make("samplepb");
 
   if ( key == sv_refeval ) {
     //query like: ncrystal_query sab refeval 0.025 'bla.ncmat' 1000 ['Al']
@@ -101,10 +156,27 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
                            NeutronEnergy{ DoValidate, opt_eval.value() },
                            atomDisplayLabel,
                            opt_nsample.value() );
+  } else if ( key == sv_samplepb ) {
+    //sab samplepb x0 y0 x1 y1 nsample
+    if ( nargs != 5 )
+      invalid("correct usage: [\"sab\",\"samplepb\",X0,Y0,X1,Y1,NSAMPLE");
+    auto opt_nsample = arg(4).toUInt64();
+    if ( !opt_nsample.has_value() )
+      invalid("invalid NSAMPLE value");
+    auto s_x0 = arg(0).toDbl();
+    auto s_y0 = arg(1).toDbl();
+    auto s_x1 = arg(2).toDbl();
+    auto s_y1 = arg(3).toDbl();
+    if ( !s_x0.has_value() || !s_y0.has_value()
+         || !s_x1.has_value() || !s_y1.has_value() )
+      invalid("bad coordinate value");
+    query_impl_samplexyparabolicband( os, s_x0.value(), s_y0.value(),
+                                      s_x1.value(), s_y1.value(),
+                                      opt_nsample.value() );
   } else if ( key == sv_list ) {
     if ( nargs != 0 )
       invalid("no arguments should come after: [\"mmc\",\"list\"]");
-    streamJSON( os, std::array<StrView,1>{ sv_refeval } );
+    streamJSON( os, std::array<StrView,2>{ sv_refeval, sv_samplepb } );
   } else {
     invalid(nullptr);
   }
