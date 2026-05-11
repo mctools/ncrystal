@@ -103,7 +103,7 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     //Evaluate at a point (returns 0.0 outside the grid!):
-    using rawcellidx_t = unsigned;
+    using rawcellidx_t = unsigned;//fixme: should be uint32_fast_t
     class CellIndex;
     class PackedCellIndex;
     class NAlphaCells;
