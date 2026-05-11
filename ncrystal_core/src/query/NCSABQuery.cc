@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/sab/NCSABRefEval.hh"
 #include "NCrystal/internal/sab/NCSABKBCellSmpl.hh"
+#include "NCrystal/internal/sab/NCSABSurveyor.hh"
 #include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
 #include "NCrystal/internal/extd_utils/NCInfoUtils.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
@@ -32,6 +33,44 @@ namespace NCRYSTAL_NAMESPACE {
   namespace SABUtils {
 
     namespace {
+      void query_impl_surveyor( std::ostream& os,
+                                const VectD& alpha,
+                                const VectD& beta )
+      {
+        SABSurveyor surv( alpha, beta );
+        os<<"{\"alpha\":";
+        streamJSON(os,alpha);
+        os<<",\"beta\":";
+        streamJSON(os,beta);
+        auto streamCellList = [&os](const SABSurveyor::CellList& cl)
+        {
+          nc_assert_always(cl.size()>=1);
+          os << '[';
+          bool first = true;
+          for ( auto& e : cl ) {
+            auto cell_idx = SABSurveyor::unpackCellIdx<unsigned>(e.second);
+            if ( first )
+              first = false;
+            else
+              os << ',';
+            os<<"[";
+            streamJSON(os,e.first);
+            os<<',';
+            streamJSON(os,cell_idx.first);
+            os<<',';
+            streamJSON(os,cell_idx.second);
+            os<<']';
+          }
+          os << ']';
+        };
+        os<<",\"list_format\":[\"E_div_kT\",\"cell_ialpha\",\"cell_ibeta\"]";
+        os<<",\"touch_list\":";
+        streamCellList(surv.getTouchList());
+        os<<",\"cover_list\":";
+        streamCellList(surv.getCoverList());
+        os<<'}';
+      }
+
       void query_impl_SABRefEval( std::ostream& os,
                                   const MatCfg& cfg,
                                   NeutronEnergy eval,
@@ -135,7 +174,7 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
   constexpr auto sv_list = StrView::make("list");
   constexpr auto sv_refeval = StrView::make("refeval");
   constexpr auto sv_samplepb = StrView::make("samplepb");
-
+  constexpr auto sv_surveyor = StrView::make("surveyor");
   if ( key == sv_refeval ) {
     //query like: ncrystal_query sab refeval 0.025 'bla.ncmat' 1000 ['Al']
     if ( nargs != 4 && nargs != 3 )
@@ -173,10 +212,37 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
     query_impl_samplexyparabolicband( os, s_x0.value(), s_y0.value(),
                                       s_x1.value(), s_y1.value(),
                                       opt_nsample.value() );
+  } else if ( key == sv_surveyor ) {
+    const char * usage = ( "correct usage: [\"sab\",\"surveyor\",ALPHAGRID,"
+                           "BETAGRID], with grids encoded as '@val1@..@valn" );
+    if ( nargs != 2 )
+      invalid(usage);
+    auto decodeGrid = [](StrView v) -> VectD
+    {
+      if (!v.startswith('@'))
+        return {};
+      auto vs = v.substr(1).splitTrimmed('@');
+      VectD res;
+      res.reserve(vs.size());
+      for ( auto& e : vs ) {
+        auto val = e.toDbl();
+        if (!e.has_value())
+          return {};
+        res.push_back(val.value());
+      }
+      return res;
+    };
+    const VectD alpha = decodeGrid( arg(0) );
+    const VectD beta = decodeGrid( arg(1) );
+    if ( beta.size() < 2 || alpha.size() < 2)
+      invalid(usage);
+    query_impl_surveyor( os, alpha, beta );
   } else if ( key == sv_list ) {
     if ( nargs != 0 )
       invalid("no arguments should come after: [\"mmc\",\"list\"]");
-    streamJSON( os, std::array<StrView,2>{ sv_refeval, sv_samplepb } );
+    streamJSON( os, std::array<StrView,3>{ sv_refeval,
+                                           sv_samplepb,
+                                           sv_surveyor } );
   } else {
     invalid(nullptr);
   }
