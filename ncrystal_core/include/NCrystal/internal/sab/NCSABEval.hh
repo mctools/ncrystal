@@ -369,6 +369,7 @@ namespace NCRYSTAL_NAMESPACE {
     inline constexpr PackedCellIndex::PackedCellIndex( NAlphaCells nac, CellIndex ci ) noexcept
       : m_idx{ ci.isValid() ? static_cast<index_t>( ci.ia() + nac.value() * ci.ib() ) : invalid }
     {
+      //fixme: some asserts and static asserts regarding range of values
     }
 
     inline CellIndex PackedCellIndex::unpack( NAlphaCells nac ) const ncnoexceptndebug
