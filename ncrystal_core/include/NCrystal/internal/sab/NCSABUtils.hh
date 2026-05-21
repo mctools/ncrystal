@@ -65,6 +65,9 @@ namespace NCRYSTAL_NAMESPACE {
     double interpolate_loglin_fallbacklinlin_fast(double a, double fa, double b, double fb, double x, double logfa, double logfb);
     double interpolate_linear(double a, double fa, double b, double fb, double x);
 
+    //Version which returns both f and logf:
+    PairDD interpolate_loglin_fallbacklinlin_fast2(double a, double fa, double b, double fb, double x, double logfa, double logfb);
+
     //Templated selection based on enum:
     enum class InterpolationScheme { LOGLIN, LINLIN };
     template<InterpolationScheme scheme>
@@ -182,7 +185,7 @@ inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin_fast(double 
   const double bma = b - a;
   nc_assert( bma > 0.0 );
   const double midpoint = 0.5 * ( b + a );
-  const bool linlin_mode = ( fa*fb == 0.0 );
+  const bool linlin_mode = ( fa*fb == 0.0 );//fixme: -> !ncmin(fa,fb) (also elsewhere in file)
   if ( x < midpoint ) {
     //choose form most numerically stable for x near a
     const double r = (x-a) / bma;
@@ -192,6 +195,44 @@ inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin_fast(double 
     const double s = (b-x) / bma;
     return ( linlin_mode ? ( fb + (fa-fb)*s ) : std::exp(logfb+(logfa-logfb)*s) );
   }
+}
+
+inline NCrystal::PairDD
+NCrystal::SABUtils::interpolate_loglin_fallbacklinlin_fast2
+(double a, double fa, double b, double fb, double x, double logfa, double logfb)
+{
+  //fixme: duplicated from interpolate_loglin_fallbacklinlin_fast (just
+  //reimplement that fct to use this fct).
+
+  nc_assert( fa>=0.0 && fb >= 0.0 );
+  nc_assert( x >= a && x <= b );
+  nc_assert( !ncisnan(logfa) && !ncisnan(logfb) );
+  nc_assert( ( b-a ) > 0.0 );
+  const double bma = b - a;
+  nc_assert( bma > 0.0 );
+  const double midpoint = 0.5 * ( b + a );
+  const bool loglin_mode = bool( ncmin(fa,fb) );
+  PairDD res;
+  if ( x < midpoint ) {
+    //choose forms most numerically stable for x near a
+    const double r = (x-a) / bma;
+    if ( loglin_mode )
+      res.second = logfa+(logfb-logfa)*r;
+    else
+      res.first = fa + (fb-fa)*r;
+  } else {
+    //choose form most numerically stable for x near b
+    const double s = (b-x) / bma;
+    if ( loglin_mode )
+      res.second = logfb+(logfa-logfb)*s;
+    else
+      res.first = fb + (fa-fb)*s;
+  }
+  if ( loglin_mode )
+    res.first = std::exp(res.second);
+  else
+    res.second = 0.0;//"N/A"
+  return res;
 }
 
 inline double NCrystal::SABUtils::integrateAlphaInterval(double a1,double s1, double a2 , double s2 )
