@@ -55,7 +55,7 @@ namespace NCRYSTAL_NAMESPACE {
     virtual bool accept( unsigned level, double prev_estimate, double estimate,
                          double a, double b ) const;
 
-    //Default behaviour in case of convertion issues is to throw an exception
+    //Default behaviour in case of convergence issues is to throw an exception
     //after first dumping the function to a file for debugging. Client code can
     //override this method to change this behaviour (if the overriding methods
     //returns without exceptions, integration will return the best estimate
