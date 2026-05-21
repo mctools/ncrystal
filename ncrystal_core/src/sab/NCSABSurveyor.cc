@@ -70,7 +70,7 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
   const auto ncells_sizet = (na_sizet-1)*(nb_sizet-1);
   m_touch.reserve( ncells_sizet );
   m_cover.reserve( ncells_sizet );
-
+  m_data.reserve( ncells_sizet );
   //The first energy value E at which a given point in (alpha,beta) space is
   //accessible is what we must find for all grid points in order to answer
   //questions about which cells are touched or covered by different
@@ -120,13 +120,13 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
     const double aval = vectAt(alphaGrid,ia);
     nc_assert(aval>0.0);
     const double inv4a = 0.25 / aval;
-    const idx_t packidx_ib0 = ia << 16;
+    const idx_t packidx_ib0 = (ia-1) << 16;
     double bval_prev = betaGrid.front();
     double e_prevb = ncsquare(aval-bval_prev)*inv4a;
     double * itPAEBUF = prevalpha_ebuf_begin;
     for ( idx_t ib = 1 ; ib < nbeta; ++ib ) {
       const double bval = vectAt(betaGrid,ib);
-      const idx_t packidx = packidx_ib0 | ib;
+      const idx_t packidx = packidx_ib0 | (ib-1);
       const double e = ncsquare(aval-bval)*inv4a;
       const double e_prevab = *itPAEBUF;
       const double e_preva = *std::next(itPAEBUF);
@@ -141,6 +141,8 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
       const double ecover = ncmax( e_prevb,e_prevab,e_preva);
       m_touch.emplace_back( etouch, packidx );
       m_cover.emplace_back( ecover, packidx );
+      m_data.emplace_back( etouch, ecover, packidx );
+
       *itPAEBUF++ = e_prevb;
       bval_prev = bval;
       e_prevb = e;
@@ -152,6 +154,8 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
 
   nc_assert( m_touch.size() == ncells_sizet );
   nc_assert( m_cover.size() == ncells_sizet );
+  nc_assert( m_data.size() == ncells_sizet );
   std::sort( m_touch.begin(), m_touch.end() );
   std::sort( m_cover.begin(), m_cover.end() );
+  std::sort( m_data.begin(), m_data.end() );
 }

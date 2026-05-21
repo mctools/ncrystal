@@ -67,8 +67,26 @@ namespace NCRYSTAL_NAMESPACE {
         return { TUInt( ci >> 16 ), TUInt( ci & mask ) };
       }
 
+      struct CellInfo final {
+        double e_touch;
+        double e_cover;
+        cellidx_t cellidx;
+        CellInfo( double et, double ec, cellidx_t ci ) noexcept
+          : e_touch(et), e_cover(ec), cellidx(ci) {}
+        bool operator<(const CellInfo& o) const noexcept {
+          if ( e_touch != o.e_touch )
+            return e_touch < o.e_touch;
+          if ( e_cover != o.e_cover )
+            return e_cover < o.e_cover;
+          return cellidx < o.cellidx;
+        }
+      };
+      const std::vector<CellInfo>& data() const noexcept { return m_data; }
+
+
     private:
       CellList m_touch, m_cover;
+      std::vector<CellInfo> m_data;//fixme this better? (if so, discard others)
     };
   }
 }
