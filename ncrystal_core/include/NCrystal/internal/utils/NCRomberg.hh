@@ -25,6 +25,8 @@
 
 namespace NCRYSTAL_NAMESPACE {
 
+  class StableSum;
+
   class Romberg {
   public:
 
@@ -70,7 +72,25 @@ namespace NCRYSTAL_NAMESPACE {
     //Dump the function to a file for inspection:
     void writeFctToFile(const std::string& filename, double a, double b, unsigned npts) const;
 
+    //In case a fixed order integration is desired, one can simple pass in
+    //arrays of {f(xi)} where xi are uniformly distributed in [0,1] (i.e. xi=i/N
+    //for i=0..N, with N equal 9, 17 or 33).
+    static double fixedOrderIntegration5pts( const double* fvals )
+    {
+      constexpr double c04(7./90.), c13(16./45.), c2(2./15.);
+      return (fvals[0]+fvals[4])*c04 + (fvals[1]+fvals[3])*c13 + fvals[2]*c2;
+    }
 
+    static double fixedOrderIntegration9pts( const double* fvals );
+    static double fixedOrderIntegration17pts( const double* fvals );
+    static double fixedOrderIntegration33pts( const double* fvals );
+
+    static void fixedOrderIntegration5pts( const double* fvals, StableSum& );
+    static void fixedOrderIntegration9pts( const double* fvals, StableSum& );
+    static void fixedOrderIntegration17pts( const double* fvals, StableSum& );
+    static void fixedOrderIntegration33pts( const double* fvals, StableSum& );
+    static void fixedOrderIntegration65pts( const double* fvals, StableSum& );
+    static void fixedOrderIntegration129pts( const double* fvals, StableSum& );
   };
 
 }
