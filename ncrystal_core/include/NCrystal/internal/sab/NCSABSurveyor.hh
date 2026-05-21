@@ -88,6 +88,43 @@ namespace NCRYSTAL_NAMESPACE {
       CellList m_touch, m_cover;
       std::vector<CellInfo> m_data;//fixme this better? (if so, discard others)
     };
+
+    class SABCellSurvey final : private NoCopyMove {
+
+      // Class which is used to locate and classify the various regions within a
+      // specific S(alpha,beta) cell which should be integrated separately to
+      // find the total contribution to the integral of S(alpha,beta) within a
+      // particular neutron phasespace curve - and to both ensure that the
+      // integrand is smooth enough for Romberg integration within each region,
+      // as well as making it possible to find any rectangular regions if
+      // present. The subsequent integration is not performed by this class, as
+      // it could depend on S(alpha,beta) interpolation schemes and choices of
+      // numerical quadrature algorithms.
+      //
+      // The resulting region list is sorted, so the regions at upper alpha
+      // values appear FIRST in the list, and regions are always consecutive
+      // (i.e. alpha_low of the i'th region equals alpha_up of the (i+1)th
+      // region).
+    public:
+      SABCellSurvey( double alpha1, double alpha2,
+                     double beta1, double beta2,
+                     double E_div_kT );
+
+      struct Region final {
+        double alpha_low;
+        double alpha_up;
+        bool is_bounded_by_betaminus;
+        bool is_bounded_by_betaplus;
+      };
+      //fixme: something else than smallvector? A fixed array + Span interface?
+      static constexpr unsigned nmax_regions = 4;
+      using RegionList = SmallVector<Region,nmax_regions>;
+      const RegionList& regions() { return m_regions; }
+      void toJSON( std::ostream& ) const;
+    private:
+      RegionList m_regions;
+    };
+
   }
 }
 

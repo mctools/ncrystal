@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/sab/NCSABSurveyor.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
@@ -158,4 +159,143 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
   std::sort( m_touch.begin(), m_touch.end() );
   std::sort( m_cover.begin(), m_cover.end() );
   std::sort( m_data.begin(), m_data.end() );
+}
+
+NCS::SABCellSurvey::SABCellSurvey( double alpha1, double alpha2,
+                                   double beta1, double beta2,
+                                   double E_div_kT )
+{
+  //fixme: special-early return for the few cases we are likely to encounter
+  //mostly!
+  nc_assert( !ncisnan(alpha1) );
+  nc_assert( !ncisnan(alpha2) );
+  nc_assert( !ncisnan(beta1) );
+  nc_assert( !ncisnan(beta2) );
+  nc_assert( !ncisnan(E_div_kT) );
+  nc_assert( !ncisinf(alpha1) );
+  nc_assert( !ncisinf(alpha2) );
+  nc_assert( !ncisinf(beta1) );
+  nc_assert( !ncisinf(beta2) );
+  nc_assert( !ncisinf(E_div_kT) );//fixme: we could allow inf?
+  nc_assert( alpha1>=0.0 );
+  nc_assert( alpha2>alpha1 );
+  nc_assert( beta2>beta1 );
+  nc_assert( E_div_kT > 0.0 );//fixme: we could allow also 0?
+
+  double a1 = alpha1;
+  double a2 = alpha2;
+  const double b1 = beta1;
+  const double b2 = beta2;
+  const double e = E_div_kT;
+
+  if (b2 <= -e)
+    return;//no overlap
+  const double twoe = e+e;
+  double tmp = 2*std::sqrt(e*(b2+e));
+  const double ap2 = twoe+b2+tmp;//alpha^+(b2)
+  if ( a1 >= ap2 )
+    return;//no overlap
+  double am2 = twoe+b2-tmp;//alpha^-(b2)
+
+  double am1(-1.0), ap1(-1.0);
+  if ( b1 >= -e ) {
+    const double tmp2 = 2*std::sqrt(e*(b1+e));
+    am1 = 2*e+b1-tmp2;//alpha^-(b1)
+    ap1 = 2*e+b1+tmp2;//alpha^+(b1)
+  }
+
+  //snap along alpha:
+  a2 = ncmin(a2,ap2);
+  if ( b2 < 0 ) {
+    a1 = ncmax(a1,am2);
+  } else if ( b1 > 0 ) {
+    a1 = ncmax(a1,am1);
+  }
+  if (!(a2 > a1))
+    return;//no overlap
+
+  struct Interval final {
+    Interval( double aa1, double aa2, bool bb )
+      : a1(aa1), a2(aa2), bounded(bb) {}
+    double a1, a2;
+    bool bounded;
+  };
+  //fixme: Can we do it without smallvector?
+  SmallVector<Interval,3> intervals_lower, intervals_upper;
+  //Look at lower bounds:
+  if ( b1 <= -e ) {
+    intervals_lower.emplace_back(a1,a2,true);//bounded by beta^-(alpha)
+  } else {
+    double aa1 = a1;
+    nc_assert(am1!=-1.0);
+    if ( aa1 < am1 ) {
+      intervals_lower.emplace_back(aa1,am1,true);//bounded by beta^-(alpha)
+      aa1 = am1;
+    }
+    if ( aa1 < ap1 ) {
+      intervals_lower.emplace_back(aa1,ncmin(ap1,a2),false);//bounded by b1 edge
+      aa1 = ncmin(ap1,a2);
+    }
+    if ( aa1 < a2 )
+      intervals_lower.emplace_back(aa1,a2,true);//bounded by beta^-(alpha)
+  }
+  //Look at upper bounds:
+  if ( b2 <= 0.0 )
+    am2 = 0.0;
+  {
+    double aa1 = a1;
+    if ( aa1 < am2 ) {
+      intervals_upper.emplace_back(aa1,ncmin(am2,a2),true);//bounded by beta^+(alpha)
+      aa1 = ncmin(am2,a2);
+    }
+    if ( aa1 < a2 )
+      intervals_upper.emplace_back(aa1,a2,false);//bounded by b2 edge
+  }
+
+  //Combine intervals:
+  // (FIXME: Special case intervals_lower.size()==1 and intervals_upper.size() == 1?
+  nc_assert( !intervals_lower.empty() && !intervals_upper.empty() );
+  nc_assert( intervals_lower.front().a1 == intervals_upper.front().a1 );
+  nc_assert( intervals_lower.back().a2 == intervals_upper.back().a2 );
+  double au = intervals_upper.back().a2, al;
+  while ( !intervals_lower.empty() ) {
+    bool bm_bounded =  intervals_lower.back().bounded;
+    bool bp_bounded =  intervals_upper.back().bounded;
+    if ( intervals_lower.back().a1 >= intervals_upper.back().a1 ) {
+      al = intervals_lower.back().a1;
+      intervals_lower.pop_back();
+    } else {
+      al = intervals_upper.back().a1;
+      intervals_upper.pop_back();
+    }
+    m_regions.emplace_back();
+    m_regions.back().alpha_low = al;
+    m_regions.back().alpha_up = au;
+    m_regions.back().is_bounded_by_betaminus = bm_bounded;
+    m_regions.back().is_bounded_by_betaplus = bp_bounded;
+    au = al;
+  }
+  nc_assert( intervals_upper.size()==1 );
+  nc_assert( m_regions.size() <= nmax_regions );
+}
+
+void NCS::SABCellSurvey::toJSON( std::ostream& os ) const
+{
+  os << ("{\"regions_format\":[\"alphalow\",\"alphaup\","
+         "\"is_bounded_by_beta-\",\"is_bounded_by_beta+\"],\"regions\":[");
+  for( auto i : ncrange( m_regions.size() ) ) {
+    auto& r = m_regions.at(i);
+    if ( i )
+      os << ',';
+    os << '[';
+    streamJSON(os,r.alpha_low);
+    os<<',';
+    streamJSON(os,r.alpha_up);
+    os<<',';
+    streamJSON(os,r.is_bounded_by_betaminus);
+    os<<',';
+    streamJSON(os,r.is_bounded_by_betaplus);
+    os<<']';
+  }
+  os<<"]}";
 }
