@@ -43,7 +43,6 @@ namespace NCRYSTAL_NAMESPACE {
       static constexpr auto alphaInterpType = SCE_Data::alphaInterpType;
       static constexpr auto betaInterpType = SCE_Data::betaInterpType;
       static constexpr auto interpOrder = SCE_Data::interpOrder;
-      typedef double SValues[4];
 
       SABCellEval( PairDD alpha, PairDD beta, const double (&svals)[4] );
       //svals: { S(alpha0,beta0), S(alpha1,beta0), S(alpha0,beta1), S(alpha1,beta1) };
