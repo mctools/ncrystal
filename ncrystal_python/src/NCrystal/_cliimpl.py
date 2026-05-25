@@ -80,8 +80,8 @@ def create_ArgumentParser( *args, **kwargs ):
         f(parser)
 
     thepyversion = _pyversion()
-    if thepyversion < (3,13) and hasattr(parser,'_check_value'):
-        #Monkey patch object to have same _check_value as in 3.13
+    if thepyversion < (3,14) and hasattr(parser,'_check_value'):
+        #Monkey patch object to have same _check_value as in 3.14
         def _check_value( action, value):
             # converted value must be one of the choices (if specified)
             choices = action.choices
@@ -90,7 +90,8 @@ def create_ArgumentParser( *args, **kwargs ):
                     choices = iter(choices)
                 if value not in choices:
                     args = {'value': str(value),
-                            'choices': ', '.join(map(str, action.choices))}
+                            'choices': ', '.join(repr(str(choice))
+                                                 for choice in action.choices)}
                     from gettext import gettext as _
                     msg = _('invalid choice: %(value)r'
                             ' (choose from %(choices)s)')

@@ -1,4 +1,7 @@
 v4.4.3 (work in progress)
+     * Ensure consistent output across python versions of of cmdline script
+       errors in case of invalid choices. This removes spurious test failures
+       with Python 3.14.
      * ...
 
 v4.4.2 2026-05-05
