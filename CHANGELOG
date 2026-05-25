@@ -1,9 +1,8 @@
-v4.4.3 (work in progress)
+v4.4.4 2026-05-25
      * Ensure consistent output across python versions of of cmdline script
        errors in case of invalid choices. This removes spurious test failures
        with Python 3.14.
      * Exercise Python 3.14 in more CI tests.
-     * ...
 
 v4.4.2 2026-05-05
      * Add new ncrystal_samplescatter_rs function in the C API, which is
