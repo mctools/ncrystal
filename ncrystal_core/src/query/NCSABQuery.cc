@@ -21,10 +21,12 @@
 #include "NCrystal/internal/sab/NCSABRefEval.hh"
 #include "NCrystal/internal/sab/NCSABKBCellSmpl.hh"
 #include "NCrystal/internal/sab/NCSABSurveyor.hh"
+#include "NCrystal/internal/sab/NCSABCellInteg.hh"//fixme: reconsider filename?
 #include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
 #include "NCrystal/internal/extd_utils/NCInfoUtils.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/core/NCSmallVector.hh"
 #include "NCSABQuery.hh"
 
 namespace NC = NCrystal;
@@ -33,6 +35,93 @@ namespace NCRYSTAL_NAMESPACE {
   namespace SABUtils {
 
     namespace {
+      void query_impl_sglcell( std::ostream& os, double E_div_kT,
+                               double a1, double a2, double b1, double b2,
+                               double s11, double s12, double s21, double s22 )
+      {
+        PairDD alpha(a1,a2), beta(b1,b2);
+        VectD alpha_v = {a1,a2};
+        VectD beta_v = {b1,b2};
+        SABSurveyor surv( alpha_v, beta_v );
+        SABCellSurvey cellsurv( a1, a2, b1, b2, E_div_kT );
+        double cellinteg_full;
+        SmallVector<std::pair<StrView,double>,32> cellinteg_pb_list;
+        {
+          CellData cell;//fixme: use this in all relevant interfaces?
+          cell.a1 = a1;
+          cell.a2 = a2;
+          cell.b1 = b1;
+          cell.b2 = b2;
+          cell.S[0] = s11;
+          cell.S[1] = s12;
+          cell.S[2] = s21;
+          cell.S[3] = s22;
+          for ( auto i : ncrange(4) )
+            cell.logS[i] = ( cell.S[i] > 0.0 ? std::log(cell.S[i]) : 0.0 );
+          StableSum sum_full;
+          using SCI = StdLogLinCellIntegrator;
+          SCI::integrateFullCell(cell,sum_full);
+          cellinteg_full = sum_full.sum();
+
+          StrView sv_allschemes(SCI::allIntegSchemesAsStr());
+          for ( auto sv_scheme : sv_allschemes.split(';') ) {
+            auto scheme = SCI::str2IntegScheme( sv_scheme );
+            StableSum sum_pb;
+            SCI::integrateWithinKB( cell, E_div_kT, scheme, sum_pb);
+            cellinteg_pb_list.emplace_back(sv_scheme,sum_pb.sum());
+          }
+        }
+
+        nc_assert_always(surv.getTouchList().size()==1);
+        nc_assert_always(surv.getCoverList().size()==1);
+        os<<"{\"alpha\":";
+        streamJSON(os,alpha);
+        os<<",\"beta\":";
+        streamJSON(os,beta);
+        os<<",\"S\":";
+        SmallVector<double,4> s_v = {s11, s12, s21, s22};
+        streamJSON(os,s_v);
+        os<<",\"surveyor\":{\"E_div_kT_touch\":";
+        streamJSON(os,surv.getTouchList().front().first);
+        os<<",\"E_div_kT_cover\":";
+        streamJSON(os,surv.getCoverList().front().first);
+
+        {
+          //Fixme: SABCellEval is not trustworthy -> replace eventually with new
+          //code!
+          double s[4] = {s11, s12, s21, s22};//fixme check order
+          using CellEval = SABCellEval<InterpolationScheme::LOGLIN,
+                                       SABInterpolationOrder::ALPHA_FIRST>;
+          CellEval ce( alpha, beta, s );
+          os<<"},\"celleval_OBSOLETE\":{\"full_integral\":";//fixme: remove this obsolete class
+          streamJSON(os,ce.integral());
+          os<<",\"phasespace_integral\":";
+          streamJSON(os,ce.integralWithinKinematicBounds( E_div_kT ));
+          os<<",\"phasespace_E_div_kT\":";
+          streamJSON(os,E_div_kT);
+        }
+        os<<"},\"cellintegral\":{\"full_integral\":";
+        streamJSON(os,cellinteg_full);
+        os<<",\"phasespace_E_div_kT\":";
+        streamJSON(os,E_div_kT);
+        os <<",\"integration_regions\":";
+        cellsurv.toJSON(os);
+        os<<",\"phasespace_integral_format\":[\"scheme\",\"value\"]";
+        os<<",\"phasespace_integral\":[";
+        bool first=true;
+        for ( auto& e : cellinteg_pb_list ) {
+          if (!first)
+            os<<',';
+          first = false;
+          os<<'[';
+          streamJSON(os,e.first);
+          os<<',';
+          streamJSON(os,e.second);
+          os<<']';
+        }
+        os <<"]}}";
+      }
+
       void query_impl_surveyor( std::ostream& os,
                                 const VectD& alpha,
                                 const VectD& beta )
@@ -175,6 +264,9 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
   constexpr auto sv_refeval = StrView::make("refeval");
   constexpr auto sv_samplepb = StrView::make("samplepb");
   constexpr auto sv_surveyor = StrView::make("surveyor");
+  constexpr auto sv_sglcell = StrView::make("sglcell");
+  constexpr auto sv_integschemes = StrView::make("integschemes");
+
   if ( key == sv_refeval ) {
     //query like: ncrystal_query sab refeval 0.025 'bla.ncmat' 1000 ['Al']
     if ( nargs != 4 && nargs != 3 )
@@ -237,11 +329,52 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
     if ( beta.size() < 2 || alpha.size() < 2)
       invalid(usage);
     query_impl_surveyor( os, alpha, beta );
+  } else if ( key == sv_sglcell ) {
+    const char * usage = ( "correct usage: [\"sab\",\"sglcell\",EDIVKT,ALPHA1,"
+                           "ALPHA2,BETA1,BETA2,SA1B1,SA2B1,SA1B2,SA2B2],"
+                           " with negative beta values prefixed with '@'." );
+    if ( nargs != 9 )
+      invalid(usage);
+    if (!arg(3).startswith('@')||!arg(4).startswith('@'))
+      invalid(usage);
+    SmallVector<Optional<double>,9> v;
+    for ( auto i : ncrange(9)) {
+      v.push_back( arg(i).startswith('@')
+                   ? arg(i).substr(1).toDbl()
+                   : arg(i).toDbl() );
+    }
+    for ( auto e : v ) {
+      if (!e.has_value()||ncisnan(e.value())||!std::isfinite(e.value()))
+        invalid(usage);
+    }
+    const double E_div_kT = v.at(0).value();
+    const double a1 = v.at(1).value();
+    const double a2 = v.at(2).value();
+    const double b1 = v.at(3).value();
+    const double b2 = v.at(4).value();
+    const double s11 = v.at(5).value();
+    const double s12 = v.at(6).value();
+    const double s21 = v.at(7).value();
+    const double s22 = v.at(8).value();
+    if ( !(E_div_kT>0.0) || !(a1<a2) || !(a1>=0.0) || !(b2>b1)
+         || !(s11>=0.0) || !(s12>=0.0)
+         || !(s21>=0.0) || !(s22>=0.0) )
+      invalid(usage);
+    query_impl_sglcell( os, E_div_kT, a1, a2, b1, b2,
+                        s11, s12, s21, s22);
+  } else if ( key == sv_integschemes ) {
+    if ( nargs != 0 )
+      invalid("[\"sab\",\"sglcell\",\"integschemes\"] does"
+              " not support any arguments");
+    streamJSON(os,StrView(StdLogLinCellIntegrator::
+                          allIntegSchemesAsStr()).split(';'));
   } else if ( key == sv_list ) {
     if ( nargs != 0 )
       invalid("no arguments should come after: [\"mmc\",\"list\"]");
-    streamJSON( os, std::array<StrView,3>{ sv_refeval,
+    streamJSON( os, std::array<StrView,5>{ sv_integschemes,
+                                           sv_refeval,
                                            sv_samplepb,
+                                           sv_sglcell,
                                            sv_surveyor } );
   } else {
     invalid(nullptr);
