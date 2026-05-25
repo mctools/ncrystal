@@ -11,8 +11,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - { os: ubuntu-latest, openmcbranch: "develop", python : "3.13" }
-          - { os: ubuntu-latest, openmcbranch: "master", python : "3.11" }
+          - { os: ubuntu-latest, openmcbranch: "develop", python : "3.14" }
+          - { os: ubuntu-latest, openmcbranch: "master", python : "3.12" }
 
     name: ${{ matrix.os }}.openmc-${{ matrix.openmcbranch }}.python-${{ matrix.python }}
     runs-on: ${{ matrix.os }}
