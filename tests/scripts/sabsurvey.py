@@ -26,28 +26,17 @@ import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.stabilise_ncpprint # noqa F401
 from NCrystalDev._common import ncpprint
 from NCrystalDev.misc import evaluate_query as ncquery
+from NCTestUtils.sabcelleval import draw_alpha_beta_grid
 import numpy as np
 import math
 
-def plot( alphagrid, betagrid, cell_list, title ):
-    import matplotlib.pyplot as plt
-    fig,axis = plt.subplots()
-    xi = betagrid
-    yi = alphagrid
-
-    #Draw grid:
-    gridpts = []
-    if 0.0 not in xi:
-        axis.axvline(0.0, color='red', linestyle=':', linewidth=1, alpha=0.5)
-    if 0.0 not in yi:
-        axis.axhline(0.0, color='red', linestyle=':', linewidth=1, alpha=0.5)
-
-    for x in xi:
-        axis.axvline(x, color='lightgray', linewidth=0.5)
-        gridpts += [ (x,y) for y in yi ]
-    for y in yi:
-        axis.axhline(y, color='lightgray', linewidth=0.5)
-    axis.plot(*zip(*gridpts), 'o')
+def plot( alphagrid, betagrid, cell_list, title, **kw_plot ):
+    from NCrystalDev.plot import PlotContext
+    pctx = PlotContext(**kw_plot).check_unused()
+    axis = pctx.axis
+    draw_alpha_beta_grid(alphagrid=alphagrid,
+                         betagrid=betagrid,
+                         **pctx.kwargs_subcontext())
 
     #Collect energies curves:
     estr2count = {}
@@ -79,20 +68,18 @@ def plot( alphagrid, betagrid, cell_list, title ):
             sbe = np.sqrt(b+e)
             ap = ( sbe + np.sqrt(e) )**2
             am = ( sbe - np.sqrt(e) )**2
-            color = plt.plot(b,ap)[0].get_color()
-            plt.plot(b,am,color=color)
+            color = axis.plot(b,ap)[0].get_color()
+            axis.plot(b,am,color=color)
         else:
-            color = plt.plot(b,b)[0].get_color()
+            color = axis.plot(b,b)[0].get_color()
         nbr2col[nbr]=color
 
     #Draw cell numbers:
-    nbr_prev = None
     for ia, ib, nbr, e in cell_numbering:
-        if nbr_prev is None or nbr_prev != nbr:
-            print("Adding text for %i (E/kT=%g)"%(nbr,e))
-            nbr_prev=nbr
-        axis.text(0.5*(betagrid[ib-1]+betagrid[ib]),
-                  0.5*(alphagrid[ia-1]+alphagrid[ia]),
+        assert ib<len(betagrid)
+        assert ia<len(alphagrid)
+        axis.text(0.5*(betagrid[ib]+betagrid[ib+1]),
+                  0.5*(alphagrid[ia]+alphagrid[ia+1]),
                   str(nbr),ha='center',va='center',color=nbr2col[nbr])
 
     da = alphagrid[-1]-alphagrid[0]
@@ -100,10 +87,8 @@ def plot( alphagrid, betagrid, cell_list, title ):
     axis.set_ylim(-da*0.05,alphagrid[-1]+da*0.05)
     axis.set_xlim(betagrid[0]-db*0.05,betagrid[-1]+db*0.05)
 
-    axis.set_xlabel('beta')
-    axis.set_ylabel('alpha')
     axis.set_title(title)
-    plt.show()
+    return pctx.finalise( do_grid = False )
 
 def surv(alphagrid, betagrid,do_plot=True):
     res = ncquery( [ 'sab','surveyor',

@@ -92,6 +92,25 @@ class RefCell:
         self.__psint[e] = v
         return v
 
+def draw_alpha_beta_grid(alphagrid,betagrid,**kw_plot):
+    from NCrystalDev.plot import PlotContext
+    pctx = PlotContext(**kw_plot).check_unused()
+    xi, yi, axis = betagrid, alphagrid, pctx.axis
+    gridpts = []
+    if 0.0 not in xi:
+        axis.axvline(0.0, color='red', linestyle=':', linewidth=1, alpha=0.5)
+    if 0.0 not in yi:
+        axis.axhline(0.0, color='red', linestyle=':', linewidth=1, alpha=0.5)
+    for x in xi:
+        axis.axvline(x, color='lightgray', linewidth=0.5)
+        gridpts += [ (x,y) for y in yi ]
+    for y in yi:
+        axis.axhline(y, color='lightgray', linewidth=0.5)
+    axis.plot(*zip(*gridpts), 'o')
+    axis.set_xlabel('beta')
+    axis.set_ylabel('alpha')
+    return pctx.finalise( do_grid = False )
+
 def _mp_integral_k_pow_x(k, a, b,mp):
     #Integrate k^x over x in [a,b].
     assert b>=a
