@@ -95,7 +95,7 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert(s1>=0.0);
           nc_assert(s2>=0.0);
           nc_assert( ncmin(s1,s2)>0.0 || meth == Method::LIN );
-          nc_assert( isOneOf(n,2,3,5,9,17,33) );
+          nc_assert( isOneOf(n,2u,3u,5u,9u,17u,33u) );
           a[0] = a1;
           S[0] = s1;
           const unsigned nm1 = n-1;
@@ -332,20 +332,20 @@ namespace NCRYSTAL_NAMESPACE {
           constexpr static std::uint_fast32_t test17 = 0x000011;
           static_assert( test17 == 17, "");
           nc_assert( !(is_romberg&&is_simpson) );
-          nc_assert(isOneOf(npts,2,3,5,9,17,33));
+          nc_assert(isOneOf(npts,2u,3u,5u,9u,17u,33u));
         }
         StdLogLinCellIntegrator::IntegrationScheme encode() const//fixme: used?
         {
           std::uint_fast32_t v = static_cast<std::uint_fast32_t>(npts);
           if (is_romberg) {
             v |= 0x010000;
-            nc_assert(isOneOf(npts,5,9,17,33));
+            nc_assert(isOneOf(npts,5u,9u,17u,33u));
           } else if (is_simpson) {
             v |= 0x040000;
-            nc_assert(isOneOf(npts,3,5,9,17,33));
+            nc_assert(isOneOf(npts,3u,5u,9u,17u,33u));
           } else {
             v |= 0x020000;//trapez
-            nc_assert(isOneOf(npts,2,3,5,9,17,33));
+            nc_assert(isOneOf(npts,2u,3u,5u,9u,17u,33u));
           }
           return static_cast<StdLogLinCellIntegrator::IntegrationScheme>(v);
         }

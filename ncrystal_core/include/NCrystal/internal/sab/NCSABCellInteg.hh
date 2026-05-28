@@ -39,6 +39,8 @@ namespace NCRYSTAL_NAMESPACE {
     //Fixme: decide if better with a class or namespace for the next:
     struct StdLogLinCellIntegrator final : private NonInstantiable {
 
+      ~StdLogLinCellIntegrator() = delete;
+
       using Region = SABCellSurvey::Region;
       using RegionList = SABCellSurvey::RegionList;
 
