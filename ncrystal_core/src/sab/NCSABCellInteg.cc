@@ -23,9 +23,14 @@
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
 
+//Fixme: A lot of cleanup and consolidation still to happen in this file, once
+//we are in a position to benchmark the effect in realistic usage conditions.
+
 namespace NCRYSTAL_NAMESPACE {
   namespace SABUtils {
     namespace {
+
+      enum class AlphaInterpMethod { LOG, LIN };
 
       class BetaEdgeData final : private NoCopyMove {
         //Helper class which is used to keep track of S and log(S) at the
@@ -74,20 +79,23 @@ namespace NCRYSTAL_NAMESPACE {
         double getLogS() const { return m_logS; }
       };
 
-      struct SOfAlphaGrid final : NoCopyMove {
+      struct SOfAlphaGrid final : private NoCopyMove {
         //Class which sets up an alpha grid like linspace(a1,a2,n) with
         //associated interpolated values of S and logS. In case of loglin
         //interpolation, a naive implementation would use n-2 std::exp calls to
         //achieve this, but the implementation here instead gets by with just
         //log2(n-1) calls to std::sqrt (i.e. 4 at n=17).
-        SOfAlphaGrid( double a1, double s1, double a2, double s2, unsigned nn )
+        using Method = AlphaInterpMethod;
+        SOfAlphaGrid( Method meth,
+                      double a1, double s1, double a2, double s2, unsigned nn )
           : n(nn)
         {
           nc_assert(a1>=0);
           nc_assert(a2>a1);
           nc_assert(s1>=0.0);
           nc_assert(s2>=0.0);
-          nc_assert(isOneOf(n,2,3,5,9,17,33));
+          nc_assert( ncmin(s1,s2)>0.0 || meth == Method::LIN );
+          nc_assert( isOneOf(n,2,3,5,9,17,33) );
           a[0] = a1;
           S[0] = s1;
           const unsigned nm1 = n-1;
@@ -101,9 +109,10 @@ namespace NCRYSTAL_NAMESPACE {
           for ( unsigned i = 1; i < nm1; ++i )
             a[i] = a1 + da * i;
 
-          if ( ncmin(s1,s2) == 0.0 ) {
+          if ( meth == Method::LIN ) {
             //linear
-            double ds = (s2-s1)*inv_nm1;
+            final_k = s2-s1;
+            double ds = final_k*inv_nm1;
             for ( unsigned i = 1; i < nm1; ++i )
               S[i] = s1 + ds * i;
             return;
@@ -132,11 +141,182 @@ namespace NCRYSTAL_NAMESPACE {
             }
             areas *= 2;
           }
+          final_k = k;
         }
         static constexpr unsigned nmax = 33;
         double a[nmax];
         double S[nmax];
         std::size_t n;
+        double final_k;//needed for adaptive alg
+      };
+
+      class IntegrandOfA final : private NoCopyMove {
+      public:
+
+        struct Input {
+          AlphaInterpMethod interpAtB1, interpAtB2;
+          double a1, a2, b1, b2, s11, s12, s21, s22;
+          double E_div_kT;
+          bool is_bounded_by_betaminus;
+          bool is_bounded_by_betaplus;
+        };
+        IntegrandOfA( const Input& i )
+          : m_interpAtB1(i.interpAtB1),
+            m_interpAtB2(i.interpAtB2),
+            m_4e(4.0 * i.E_div_kT),
+            m_a2minusa1( i.a2 - i.a1 ),
+            m_b1(i.b1), m_b2(i.b2), m_invdb(1.0/(i.b2-i.b1)),
+            m_is_bounded_by_betaminus(i.is_bounded_by_betaminus),
+            m_is_bounded_by_betaplus(i.is_bounded_by_betaplus),
+            m_is_bounded_by_both( i.is_bounded_by_betaminus
+                                  && i.is_bounded_by_betaplus )
+        {
+          //only for crossed cells:
+          nc_assert( m_is_bounded_by_betaminus ||  m_is_bounded_by_betaplus );
+          nc_assert( (i.b2-i.b1) > 0.0 );
+          //We always initialise to 4 levels (16 bins, 17 pts) with the points
+          //in reverse order (the reverse order makes it easy to ignore the
+          //point at a2 by just skipping the first element - even after we grow
+          //and append additional points).
+
+          //Fixme: we are simply using SOfAlphaGrid for the initialisation here,
+          //not sure if it is too wasteful.
+          SOfAlphaGrid s_b1( m_interpAtB1, i.a1, i.s11, i.a2, i.s12, 17 );
+          SOfAlphaGrid s_b2( m_interpAtB2, i.a1, i.s21, i.a2, i.s22, 17 );
+          m_stepcache_at_b1 = s_b1.final_k;
+          m_stepcache_at_b2 = s_b2.final_k;
+          for ( unsigned k = 0; k < 17; ++k ) {
+            unsigned j = 16-k;
+            m_data.emplace_back(s_b1.a[j],s_b1.S[j],s_b2.S[j]);
+          }
+          nc_assert(m_data.size()==17);
+          nc_assert(m_data.at(0).alpha>m_data.at(1).alpha);
+        }
+
+        void evalInitialF17(double* fvals) const {
+          nc_assert(m_data.size()>=17);
+          for ( unsigned i = 0; i < 17; ++i )
+            fvals[i] = contrib( m_data[16-i] );
+        }
+
+        double growNextLevelAndCollectContribSum()
+        {
+          auto nold = m_data.size();
+          grow();
+          auto nnew = m_data.size();
+          StableSum sum;
+          for ( auto i = nold; i < nnew; ++i )
+            sum.add(contrib(vectAt(m_data,i)));
+          return sum.sum();
+        }
+
+      private:
+        struct AlphaSlice {
+          AlphaSlice(double a,double sb1,double sb2)
+            : alpha(a), s_at_b1(sb1), s_at_b2(sb2) {}
+          double alpha;
+          double s_at_b1;
+          double s_at_b2;
+        };
+
+        double contrib(const AlphaSlice& slice) const
+        {
+          const double a = slice.alpha;
+          const double dbpm = std::sqrt( m_4e * a );//NB: Most expensive
+                                                    //per-point calc in this
+                                                    //line? (fixme: revisit with profiling)
+          const double bl( m_is_bounded_by_betaminus ? a - dbpm : m_b1 );
+          const double bu( m_is_bounded_by_betaplus ? a + dbpm : m_b2 );
+          //To find the contribution we integrate S(a,b) over [bl,bu]. This is
+          //easy, since we always interpolate linearly in b:
+          const double bmiddle( m_is_bounded_by_both ? a : (bu+bl)*0.5 );
+          const double rb = (bmiddle-m_b1)*m_invdb;
+          const double smiddle = slice.s_at_b1*(1.0-rb)+slice.s_at_b2*rb;
+          const double bumbl( m_is_bounded_by_both ? 2.0*dbpm : bu-bl );
+          return bumbl * smiddle;
+        }
+
+        double growK( AlphaInterpMethod aim,
+                      double inv_newnbins,
+                      double& stepcache ) const
+        {
+          if ( aim == AlphaInterpMethod::LOG )
+            return stepcache = std::sqrt(stepcache);
+          else
+            return stepcache*inv_newnbins;
+        }
+
+        void grow() {
+          const std::size_t Nold = m_data.size();
+          nc_assert( Nold < 100000 );
+
+          //Figure out "deltaS" for this step (multiplicative or additive)
+          double inv_newnbins = 0.5/(Nold-1);
+          double k1 = growK(m_interpAtB1,inv_newnbins,m_stepcache_at_b1);
+          double k2 = growK(m_interpAtB2,inv_newnbins,m_stepcache_at_b2);
+          nc_assert(m_a2minusa1>0.0);
+          const double da = m_a2minusa1*inv_newnbins;
+          nc_assert(da>0.0);
+          m_data.reserve_hint( 1025 );//reduce slow reallocs
+          for ( std::size_t i = 1; i < Nold; ++i ) {
+            const auto& ref = vectAt(m_data,i);
+            m_data.emplace_back( ref.alpha + da,
+                                 ( m_interpAtB1 == AlphaInterpMethod::LOG
+                                   ? ref.s_at_b1*k1
+                                   : ref.s_at_b1+k1 ),
+                                 ( m_interpAtB2 == AlphaInterpMethod::LOG
+                                   ? ref.s_at_b2*k2
+                                   : ref.s_at_b2+k2 ) );
+          }
+        }
+
+        SmallVector<AlphaSlice,33> m_data;
+        AlphaInterpMethod m_interpAtB1;
+        AlphaInterpMethod m_interpAtB2;
+        double m_4e;
+        double m_a2minusa1;
+        double m_b1, m_b2, m_invdb;
+        double m_stepcache_at_b1, m_stepcache_at_b2;
+        bool m_is_bounded_by_betaminus;
+        bool m_is_bounded_by_betaplus;
+        bool m_is_bounded_by_both;
+      };
+
+      class R17Adaptive final : public Romberg {
+        mutable IntegrandOfA m_iofa;
+        unsigned m_maxlvl = 11;
+        double m_prec;
+      public:
+        R17Adaptive( const IntegrandOfA::Input& inp,
+                     unsigned maxlvl = 11, double prec=1e-6)
+          : m_iofa(inp), m_maxlvl(maxlvl), m_prec(prec) {}
+
+        double evalFunc(double) const override
+        {
+          nc_assert_always(false);
+          return 0.0;
+        }
+
+        void evalFuncMany(double* fvals, unsigned n,
+                          double, double) const override
+        {
+          (void)n;
+          nc_assert(n==17);
+          m_iofa.evalInitialF17(fvals);
+        }
+
+        double evalFuncManySum(unsigned, double, double) const override
+        {
+          return m_iofa.growNextLevelAndCollectContribSum();
+        }
+
+        bool accept( unsigned level, double prev_est, double est,
+                     double, double ) const override
+        {
+          return ( level==m_maxlvl
+                   || ncabs(prev_est-est) <= est*m_prec );
+        }
+
       };
 
       struct DecodedIntegScheme
@@ -171,7 +351,8 @@ namespace NCRYSTAL_NAMESPACE {
         }
       };
 
-      static void impl_numIntRegion( const CellData& c,
+      static void impl_numIntRegion( const CellData& entire_cell,
+                                     const CellData& subcell,
                                      double E_div_kT,
                                      StdLogLinCellIntegrator::IntegrationScheme
                                      scheme_encoded,
@@ -182,83 +363,155 @@ namespace NCRYSTAL_NAMESPACE {
         nc_assert(is_bounded_by_betaminus||is_bounded_by_betaplus);
         const DecodedIntegScheme scheme{scheme_encoded};
 
-        SOfAlphaGrid sofa_at_b1( c.a1, c.S[0], c.a2, c.S[1], scheme.npts );
-        SOfAlphaGrid sofa_at_b2( c.a1, c.S[2], c.a2, c.S[3], scheme.npts );
+        const CellData& cs = subcell;
+        const CellData& ce = entire_cell;
 
-        const double invdb = 1.0/(c.b2-c.b1);
+        const SOfAlphaGrid::Method method_b1( ncmin(ce.S[0],ce.S[1])
+                                              ? SOfAlphaGrid::Method::LOG
+                                              : SOfAlphaGrid::Method::LIN );
+        const SOfAlphaGrid::Method method_b2( ncmin(ce.S[2],ce.S[3])
+                                              ? SOfAlphaGrid::Method::LOG
+                                              : SOfAlphaGrid::Method::LIN );
+
+        //Guard against enourmous log-scale differences along alpha.
+        const bool use_romberg_adaptive
+          = ( scheme.is_romberg &&
+              ( ( method_b1==SOfAlphaGrid::Method::LOG &&
+                  !valueInInterval(cs.S[0]*0.01,cs.S[0]*100.0,cs.S[1]) )
+                || ( method_b2==SOfAlphaGrid::Method::LOG &&
+                     !valueInInterval(cs.S[2]*0.01,cs.S[2]*100.0,cs.S[3]) ) )
+              );
+
+        nc_assert( cs.b1 == ce.b1 );
+        nc_assert( cs.b2 == ce.b2 );
+        nc_assert( (cs.b2-cs.b1)>0.0 );
 
         //No matter the integration scheme, we must find the contribution at
         //each point of the alpha grid.
         double contrib_at_a[SOfAlphaGrid::nmax];
-        nc_assert_always(scheme.npts<=SOfAlphaGrid::nmax);//fixme _always
-        {
+        nc_assert(scheme.npts<=SOfAlphaGrid::nmax);
+        if (!use_romberg_adaptive) {
+          const double invdb = 1.0/(cs.b2-cs.b1);
+          SOfAlphaGrid sofa_at_b1( method_b1, cs.a1, cs.S[0], cs.a2, cs.S[1],
+                                   scheme.npts );
+          SOfAlphaGrid sofa_at_b2( method_b2, cs.a1, cs.S[2], cs.a2, cs.S[3],
+                                   scheme.npts );
           double * itC = contrib_at_a;
           double * itCE = itC + scheme.npts;
           const double * itSb1 = sofa_at_b1.S;
           const double * itSb2 = sofa_at_b2.S;
           const double * itA = sofa_at_b2.a;
-          double bl(c.b1), bu(c.b2);
+          double bl(cs.b1), bu(cs.b2);
+          const bool is_bounded_on_both_sides ( is_bounded_by_betaminus
+                                                && is_bounded_by_betaplus );
           for ( ; itC!=itCE; ++itC ) {
             double Sb1 = *(itSb1++);
             double Sb2 = *(itSb2++);
             double a = *(itA++);
-            double dbpm = 2.0 * std::sqrt( E_div_kT * a );
+            double dbpm = 2.0 * std::sqrt( E_div_kT * a );//fixme: can we avoid this??
             if ( is_bounded_by_betaminus )
               bl = a - dbpm;
             if ( is_bounded_by_betaplus )
               bu = a + dbpm;
             //To find the contribution we integrate S(a,b) over [bl,bu]. This is
             //easy, since we always interpolate linearly in b:
-            double bmiddle = (bu+bl)*0.5;
-            double smiddle = Sb1 + (Sb2-Sb1)*(bmiddle-c.b1)*invdb;
-            *itC = (bu-bl)*smiddle;
+            const double bmiddle( is_bounded_on_both_sides ? a : (bu+bl)*0.5 );
+#if 0
+            double smiddle = Sb1 + (Sb2-Sb1)*(bmiddle-cs.b1)*invdb;
+#else
+            double rb = (bmiddle-cs.b1)*invdb;
+            double smiddle = Sb1*(1.0-rb)+Sb2*(rb);
+#endif
+            const double bumbl( is_bounded_on_both_sides ? 2.0*dbpm : bu-bl );
+            *itC = bumbl*smiddle;
           }
-
-          //fixme
-          // for ( auto i : ncrange(scheme.npts) )
-          //   NCRYSTAL_MSG("TKTEST cpp contrib(i="<<i<<",a="<<fmtg(sofa_at_b2.a[i])<<") = "<<fmtg(contrib_at_a[i]))
-
         }
+
+        //Fixme: At this point, having constructed contrib_at_a, we could test
+        //for the scenario where a lot of the range has ~0 contributions
+        //(i.e. from s1=1.0 to s2=1e-200 would trigger this). If we detect such
+        //a scenario, where more than half of the bins at the edges are not
+        //contributing, we could narrow the range and call ourselves
+        //recursively. That would most likely be better than blindly just using
+        //the adaptive alg.
+        //
+        //Another thing to look at: if eg. s1=1 and s2=1e-20, then we have
+        //catastropic cancellation, since 1 + 1e-20 = 1 in double precision.
+
         if ( scheme.is_romberg ) {
           double contrib;
-          if ( scheme.npts<17 ) {
-            if ( scheme.npts==5 ) {
-              contrib = Romberg::fixedOrderIntegration5pts(contrib_at_a);
+          if ( !use_romberg_adaptive ) {
+            if ( scheme.npts<17 ) {
+              if ( scheme.npts==5 ) {
+                contrib = Romberg::fixedOrderIntegration5pts(contrib_at_a);
+              } else {
+                nc_assert(scheme.npts==9);
+                contrib = Romberg::fixedOrderIntegration9pts(contrib_at_a);
+              }
             } else {
-              nc_assert(scheme.npts==9);
-              contrib = Romberg::fixedOrderIntegration9pts(contrib_at_a);
+              if ( scheme.npts==17 ) {
+                contrib = Romberg::fixedOrderIntegration17pts(contrib_at_a);
+              } else {
+                nc_assert(scheme.npts==33);
+                contrib = Romberg::fixedOrderIntegration33pts(contrib_at_a);
+              }
             }
           } else {
-            if ( scheme.npts==17 ) {
-              contrib = Romberg::fixedOrderIntegration17pts(contrib_at_a);
-            } else {
-              nc_assert(scheme.npts==33);
-              contrib = Romberg::fixedOrderIntegration33pts(contrib_at_a);
-            }
+            IntegrandOfA::Input i;
+            i.interpAtB1 = method_b1;
+            i.interpAtB2 = method_b2;
+            i.a1 = cs.a1;
+            i.a2 = cs.a2;
+            i.b1 = cs.b1;
+            i.b2 = cs.b2;
+            i.s11 = cs.S[0];
+            i.s12 = cs.S[1];
+            i.s21 = cs.S[2];
+            i.s22 = cs.S[3];
+            i.E_div_kT = E_div_kT;
+            i.is_bounded_by_betaminus = is_bounded_by_betaminus;
+            i.is_bounded_by_betaplus = is_bounded_by_betaplus;
+            unsigned maxlvl;
+            double prec;
+            switch( scheme.npts ) {
+            case 5: prec = 0.005; maxlvl=7; break;
+            case 9: prec = 1e-3; maxlvl=8; break;
+            case 17: prec = 1e-5; maxlvl=10; break;
+            default:
+              nc_assert(false);
+            case 33: prec = 1e-6; maxlvl=12; break;
+            };
+            R17Adaptive r17adapt(i,maxlvl,prec);
+            contrib = r17adapt.integrate(0.0,1.0);
           }
-          tgt.add( contrib*(c.a2-c.a1) );
+          tgt.add( contrib*cs.a2 );
+          tgt.add( -contrib*cs.a1 );
         } else if ( scheme.is_simpson ) {
           nc_assert( scheme.npts%2==1 && scheme.npts>=3 );
+          StableSum ss;
           const unsigned nbins = scheme.npts-1;
-          const double k = (c.a2-c.a1)/(3.0*nbins);
+          const double k = 1.0/(3.0*nbins);
           const double k2 = k + k;
           const double k4 = k2 + k2;
           const double * itCB = contrib_at_a;
           const double * itCL = itCB + nbins;
-          tgt.add( k * (*itCB) );
+          ss.add( k * (*itCB) );
           for ( const double * itC = itCB+1;
                 itC < itCL;
                 itC += 2 )
-            tgt.add( k4 * (*itC) );
+            ss.add( k4 * (*itC) );
           for ( const double * itC = itCB+2;
                 itC < itCL;
                 itC += 2 )
-            tgt.add( k2 * (*itC) );
-          tgt.add( k * (*itCL) );
+            ss.add( k2 * (*itC) );
+          ss.add( k * (*itCL) );
+          double contrib = ss.sum();
+          tgt.add( contrib*cs.a2 );
+          tgt.add( -contrib*cs.a1 );
         } else {
           //Trapezoidal
           unsigned nbins = scheme.npts-1;
-          double da = (c.a2-c.a1)/nbins;
+          double da = (cs.a2-cs.a1)/nbins;
           const double * itC = contrib_at_a;
           const double * itCL = itC + nbins;
           tgt.add( 0.5 * da * (*itC++) );
@@ -322,13 +575,10 @@ void NCS::StdLogLinCellIntegrator::integrateWithinKB( const CellData& c,
       continue;
     }
 
-    //Needs careful numerical integration!
-    //fixme double pre = tgt.sum();
-    impl_numIntRegion( subcell, E_div_kT, scheme,
+    impl_numIntRegion( c, subcell, E_div_kT, scheme,
                        r.is_bounded_by_betaminus,
                        r.is_bounded_by_betaplus,
                        tgt );
-    //fixme NCRYSTAL_MSG("TKTEST region numint gives: "<<fmtg(tgt.sum()-pre));
   }
 }
 
@@ -386,6 +636,7 @@ const char * NCS::StdLogLinCellIntegrator::integSchemeToStr( IntegrationScheme v
 {
   using IS = IntegrationScheme;
   switch ( v ) {
+    //fixme: something shorter, so might be used in cfg strings? r33?
   case IS::Romberg5:  return "Romberg5";
   case IS::Romberg9:  return "Romberg9";
   case IS::Romberg17: return "Romberg17";
