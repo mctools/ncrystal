@@ -276,7 +276,43 @@ NCS::SABCellSurvey::SABCellSurvey( double alpha1, double alpha2,
     au = al;
   }
   nc_assert( intervals_upper.size()==1 );
-  nc_assert( m_regions.size() <= nmax_regions );
+  const auto nsize = m_regions.size();
+  nc_assert( nsize <= nmax_regions );
+
+  //Testing with various integration algs indicates that we benefit from more
+  //careful splitting around the phasespace endpoints. This should happen very
+  //rarely. Note that we have incremented nmax_regions by 2 due to this!!
+  std::size_t isplit = nsize;
+  for ( auto i : ncrange( nsize ) ) {
+    auto& r = m_regions[i];
+    if ( r.is_bounded_by_betaminus &&
+         e > r.alpha_low && e < r.alpha_up )
+      isplit = i;
+  }
+  if ( isplit < nsize ) {
+    //split at endpoint at beta=-e
+    RegionList newregions;
+    for ( auto i : ncrange( nsize ) ) {
+      auto& r = m_regions[i];
+      newregions.push_back(r);
+      if ( i == isplit ) {
+        newregions.back().alpha_low = e;
+        newregions.push_back(r);
+        newregions.back().alpha_up = e;
+      }
+    }
+    std::swap(newregions,m_regions);
+  }
+
+  //split at endpoint near alpha=0:
+  if ( !m_regions.empty()
+       && m_regions.back().alpha_low < 0.01*m_regions.back().alpha_up ) {
+    m_regions.push_back(m_regions.back());
+    const double asplit = 0.05*m_regions.back().alpha_up;
+    m_regions.back().alpha_up = asplit;
+    m_regions.at(m_regions.size()-2).alpha_low = asplit;
+  }
+
 }
 
 void NCS::SABCellSurvey::toJSON( std::ostream& os ) const
