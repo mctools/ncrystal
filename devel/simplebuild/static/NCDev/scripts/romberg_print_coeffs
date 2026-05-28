@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2026 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+# Small script which finds the coefficient vectors needed for a fixed order
+# Romberg integration (using 2**m+1 equidistant function evaluations on the
+# interval [0,1]).
+
+from fractions import Fraction
+
+class RombergCoeff:
+    def __init__(self, M, i):
+        self.__M, self.__N = M, 2**M+1
+        assert 0 <= M <= 30 and i < self.__N
+        self.__i = i
+        self.__cache = {}
+        assert i < self.__N
+    def f(self,j):
+        assert 0 <= j < self.__N
+        return 1 if j==self.__i else 0
+    def h(self,n):
+        assert 0<=n<=self.__N
+        return Fraction(1,2**(n+1))
+    def R(self,n,m):
+        v = self.__cache.get((n,m))
+        if v is not None:
+            return v
+        assert n>=m
+        if n==0 and m==0:
+            assert self.h(0)==Fraction(1,2)
+            return self.h(0)*(self.f(0)+self.f(self.__N-1))
+        if m==0:
+            s = Fraction(0,1)
+            for k in range(1,2**(n-1)+1):
+                s += self.f((2*k-1)*(2**(self.__M-n)))
+            return Fraction(1,2)*self.R(n-1,0)+2*self.h(n)*s
+        v = Fraction(1,4**m-1) * (4**m*self.R(n,m-1)-self.R(n-1,m-1))
+        self.__cache[(n,m)] = v
+        return v
+
+    def __call__(self):
+        return self.R(self.__M,self.__M)
+
+def print_cppcode_romberg_coeffs(m):
+    import textwrap
+    coeffs = []
+    n = 2**m+1
+    for i in range(n):
+        c = RombergCoeff(m,i)()
+        if c.is_integer():
+            cfmt = str(c)
+        elif c==Fraction(1,2):
+            cfmt = '0.5'
+        else:
+            cfmt = '%i./%i.'%(c.as_integer_ratio())
+        coeffs.append(cfmt)
+    print('  constexpr double coeffs%i[%i] = {'%(n,len(coeffs)))
+    txt = ( '%s'%(', '.join(coeffs)) )
+    width = 78# if n < 129 else 80
+    print(textwrap.indent(
+        textwrap.fill(txt,width,initial_indent='  ',subsequent_indent='  '),
+        '  ' )
+    )
+    print('  };')
+
+if __name__ == '__main__':
+    for m in [0,1,2,3,4,5,6,7]:
+        if m:
+            print()
+        print_cppcode_romberg_coeffs(m)
+
