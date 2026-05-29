@@ -63,7 +63,7 @@ def trim_knl_edges( *, alphagrid, betagrid, sab, view = False ):
     if sab_ndim == 1:
         s = reshape_sab_1D( nalpha = len(a),
                             nbeta = len(b),
-                            sab = sab )
+                            sab = s )
     return ( a, b, s ) if view else ( a.copy(), b.copy(), s.copy() )
 
 def _trim_edges_2d( x, y, s, keep_low_y = False ):

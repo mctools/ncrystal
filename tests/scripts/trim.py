@@ -120,7 +120,7 @@ def _set_upper_alpha_edge_to_zero( knl,nbins ):
     s[:,-nbins:] = 0.0
     knl['sab'] = s.reshape( (len(a)*len(b),) )
 
-def plot_testsab():
+def testrealsab(do_plot):
     from NCrystalDev.core import createInfo
     from NCrystalDev.plot import plot_knl
     info = createInfo('stdlib::Al_sg225.ncmat;vdoslux=0')
@@ -132,25 +132,30 @@ def plot_testsab():
 
     k = get_knl()
     _apply_smin( k, 1e-3 )
-    plot_knl( k )
-    _plot_sign( k )
+    if do_plot:
+        plot_knl( k )
+        _plot_sign( k )
     trimknl( k )
-    _plot_sign( k )
-    plot_knl( k )
+    if do_plot:
+        _plot_sign( k )
+        plot_knl( k )
 
     k = get_knl()
     _apply_smin( k, 1e-3 )
-    _plot_sign( k )
+    if do_plot:
+        _plot_sign( k )
     _set_upper_alpha_edge_to_zero( k, 5 )
-    _plot_sign( k )
+    if do_plot:
+        _plot_sign( k )
     trimknl( k )
-    _plot_sign( k )
+    if do_plot:
+        _plot_sign( k )
+    assert len(k['sab']) == len(k['alpha'])*len(k['beta'])
 
-def main():
+def main(do_plot):
     testsimple()
-    if False:
-        #nb: uncomment FPE import above if plotting
-        plot_testsab()
+    testrealsab(do_plot=do_plot)
 
 if __name__ == '__main__':
-    main()
+    import sys
+    main(do_plot = '--plot' in sys.argv[1:])
