@@ -85,6 +85,17 @@ class ensure_error:
         pf(f"Caught expected {exc_type.__name__}({repr(val)})")
         return True
 
+@_contextlib.contextmanager
+def change_random_seed( seed ):
+    """Context manager for temporarily changing random seed."""
+    import random
+    state = random.getstate()
+    random.seed(seed)
+    try:
+        yield
+    finally:
+        random.setstate(state)
+
 def fmt_args_as_str( *args, **kwargs ):
     return ', '.join( [ repr(a) for a in args ]
                       + [ f'{k}={repr(v)}' for k,v in sorted(kwargs.items()) ] )

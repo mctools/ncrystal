@@ -25,82 +25,10 @@
 import mpmath # noqa F401
 import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.stabilise_ncpprint # noqa F401
-from NCTestUtils.sabcelleval import RefCell, draw_alpha_beta_grid
+from NCTestUtils.sabcelleval import RefCell
 from NCrystalDev._common import ncpprint
-from NCrystalDev._numpy import _np_linspace
 from NCTestUtils.env import ncsetenv
 from NCrystalDev.misc import evaluate_query as ncquery
-import numpy as np
-
-def plot_celleval( data, **kw_plot ):
-    from NCrystalDev.plot import PlotContext
-    pctx = PlotContext(**kw_plot).check_unused()
-    draw_alpha_beta_grid( alphagrid = data['alpha'],
-                          betagrid = data['beta'],
-                          **pctx.kwargs_subcontext() )
-    b = data['beta']
-    db = b[1]-b[0]
-    a = data['alpha']
-    da = a[1]-a[0]
-    blim = ( b[0]-0.1*db, b[1]+0.1*db )
-    alim = ( max(0.0,a[0]-0.1*da), a[1]+0.1*da )
-    pctx.axis.set_xlim( *blim )
-    pctx.axis.set_ylim( *alim )
-
-    data_ci = data['cellintegral']
-    elist = [ ( data['surveyor']['E_div_kT_touch'], 'touch', 'green', 0.0 ),
-              ( data['surveyor']['E_div_kT_cover'], 'cover', 'blue',
-                data_ci['full_integral'] ),
-              ( data_ci['phasespace_E_div_kT'], 'chosen', 'red',
-                list( v for k,v in data_ci['phasespace_integral']
-                      if k=='Romberg33' )[0] ) ]
-    for e, lbl, col, integral in elist:
-        brangeplot = [max(blim[0],-e),blim[1]]
-        assert brangeplot[1] > brangeplot[0]
-        lble = f'{e:g}kT' if not np.isinf(e) else 'INF'
-        lbl = f'{lbl} ({lble}, integral={integral:g})'
-        if e > 0 and not np.isinf(e):
-            b = _np_linspace(*brangeplot,5000)
-            sbe = np.sqrt(b+e)
-            ap = ( sbe + np.sqrt(e) )**2
-            am = ( sbe - np.sqrt(e) )**2
-            pctx.axis.plot(b,ap,color=col,label=lbl)
-            pctx.axis.plot(b,am,color=col)
-        elif np.isinf(e):
-            pctx.axis.plot(brangeplot,[0,0],color=col,label=lbl)
-        else:
-            pctx.axis.plot(brangeplot,brangeplot,color=col,label=lbl)
-
-    e = data_ci['phasespace_E_div_kT']
-    b1, b2 = data['beta']
-    a1, a2 = data['alpha']
-    from matplotlib import patches
-    for ( r_a1, r_a2,clip_betaminus,
-          clip_betaplus ) in data_ci['integration_regions']['regions']:
-        print(f"AlphaRange [{r_a1},{r_a2}]: clip_betaminus"
-              f"={clip_betaminus}, clip_betaplus={clip_betaplus}")
-
-        assert a1 <= r_a1 <= a2
-        color=None
-        if not ( clip_betaminus or clip_betaplus ):
-            #Just a square!
-            r = patches.Rectangle((b1, r_a1), b2-b1, r_a2-r_a1,
-                                  facecolor=color, edgecolor='k',#'lightblue'
-                                  hatch='///', linewidth=1.0)
-            pctx.axis.add_patch(r)
-            continue
-        for aval in _np_linspace(r_a1,r_a2,50):
-            #phasespace curve: 4ae=(b-a)^2 <=> |b-a|=sqrt(4ae)
-            db = np.sqrt(4*aval*e)
-            bm = aval-db if clip_betaminus else b1
-            bp = aval+db if clip_betaplus else b2
-            _=pctx.axis.plot([bm,bp],[aval,aval],color=color,alpha=0.3)
-            if color is None:
-                color=_[0].get_color()
-
-    title='s11=%g, s12=%g, s21=%g, s22=%g'%tuple(data['S'])
-    pctx.axis.set_title(title)
-    return pctx.finalise( do_grid = False, do_legend='draggable' )
 
 def evalcell(*,E_div_kT, alpha, beta, svals = None, do_plot=False ):
     a1, a2 = alpha
@@ -151,14 +79,15 @@ def evalcell(*,E_div_kT, alpha, beta, svals = None, do_plot=False ):
     prec = float(abs(resfullint/mprefval_fullint-1))
     print(f" full integral : {resfullint:.12g} [precision lvl {prec:g}]")
 
-    r33 = [e for e in vals if e[2]=='Romberg33'][0]
+    f65 = [e for e in vals if e[2]=='Flex65'][0]
     if do_plot:
+        from NCTestUtils.sabcelleval import plot_celleval
         plot_celleval( res )
 
-    r33prec = 5e-6
+    f65prec = 5e-6
     if a2<a1*(1+1e-10):
-        r33prec = 1e-3
-    assert r33[0] < r33prec, "Romberg33 not suitable as reference"
+        f65prec = 1e-3
+    assert f65[0] < f65prec, "Romberg65 not suitable as reference"
 
 def main(do_plot):
     if not do_plot:
@@ -204,8 +133,11 @@ def main(do_plot):
              svals=[1.0,101,1.0,101]),
         dict(E_div_kT=0.01,alpha=(5.499,5.5),beta=(5,5.92),
              svals=[1.0,0.011,1.0,0.011]),
+
         #Note: some rather bad results, attributed to numerical issues when a2
-        #~- a1.
+        #~- a1 (which is to be expected, since there are not many mantissa bits
+        #left to describe values inside the span from e.g. 5.5-1e-12 to 5.5.
+
         dict(E_div_kT=0.01,alpha=(5.5-1e-12,5.5),beta=(5,5.92),
              svals=[1.0,99,1.0,99]),
         dict(E_div_kT=0.01,alpha=(5.5-1e-12,5.5),beta=(5,5.92),
@@ -214,11 +146,23 @@ def main(do_plot):
              svals=[1.0,0.011,1.0,0.011]),
         dict(E_div_kT=0.01,alpha=(5.47*0+5.5-1e-12,5.5),beta=(5,5.92),
              svals=[1.0,0.009,1.0,0.009]),
+        dict( E_div_kT=0.2812650004,
+              alpha=(5e-10,8e-10),
+              beta=(-3e-5,-2e-05),
+              svals=[1,1,1,1] ),
+        dict( E_div_kT=0.2812650005,
+              alpha=(5e-10,8e-10),
+              beta=(-3e-5,-2e-05),
+              svals=[1,1,1,1] ),
+        dict(E_div_kT=0.000395856,
+             alpha=(8.36433e-50,8.36433e-10),
+             beta=(-2.78659e-05,-2.60257e-08),
+             svals=[2.09324e-51,2.09324e-11,2.09321e-51,2.09321e-11]),
     ]
 
     for i,data in enumerate(testpts):
         i += 1
-        #if i not in (13,17):
+        #if i not in (7,8):
         #    continue
         print()
         print("=============>")
