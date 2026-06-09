@@ -525,6 +525,116 @@ NC::VectD::const_iterator NC::findClosestValInSortedVector(const NC::VectD& v, d
   return ncabs(*it-value) < ncabs(*std::prev(it)-value) ? it : std::prev(it);
 }
 
+double NC::integrate01_kpowx( double k, const Optional<double>& opt_lnk )
+{
+  nc_assert(k>0.0&&std::isfinite(k));
+  const double u = k - 1.0;
+  if ( ncabs(u) < 0.1 ) {
+    //direct Taylor, not even needing log:
+    // For the record we simply got the Taylor coefficients with sagemath:
+    // > sage: u,x=var('u,x');f=( ((1+u)**x).integrate(x,0,1) )
+    //
+    // First investigating number of orders needed for u=+-0.1 with command
+    // (with a few orders added for safety):
+    //
+    // > sage: ((f-f.taylor(u,0,13))(u=1/10)).n()
+    // > sage: ((f-f.taylor(u,0,13))(u=-1/10)).n()
+    // Then generate the coefficients with:
+    // > sage: print( '\n'.join(('constexpr double c%i = %s;'%(c[1],str(c[0])))
+    // > ....:   .replace('/','./') for c in (f.taylor(u,0,13)).coefficients()))
+    //
+    // In this case, one can also simply evaluate the 14th term at u=0.1, giving
+    // 4.21e-17, so the taylor expansion is indeed giving full precision.
+
+    constexpr double c1 = 1.0/2.0;
+    constexpr double c2 = -1.0/12.0;
+    constexpr double c3 = 1.0/24.0;
+    constexpr double c4 = -19.0/720.0;
+    constexpr double c5 = 3.0/160.0;
+    constexpr double c6 = -863.0/60480.0;
+    constexpr double c7 = 275.0/24192.0;
+    constexpr double c8 = -33953.0/3628800.0;
+    constexpr double c9 = 8183.0/1036800.0;
+    constexpr double c10 = -3250433.0/479001600.0;
+    constexpr double c11 = 4671.0/788480.0;
+    constexpr double c12 = -13695779093.0/2615348736000.0;
+    constexpr double c13 = 2224234463.0/475517952000.0;
+    return ( 1.0+u*(c1+u*(c2+u*(c3+u*(c4+u*(c5+u*(c6+u*(c7
+             +u*(c8+u*(c9+u*(c10+u*(c11+u*(c12+u*c13)))))))))))) );
+  }
+
+  //Full formula, needs lnk=log(k):
+  double lnk;
+  if ( opt_lnk.has_value() ) {
+    lnk = opt_lnk.value();
+    nc_assert(std::isfinite(lnk));
+    nc_assert(floateq(std::log(k),lnk));
+  } else {
+    lnk = std::log(k);
+    nc_assert(std::isfinite(lnk));
+  }
+  return ( k - 1.0 ) / lnk;
+}
+
+double NC::integrate01_xkpowx( double k, const Optional<double>& opt_lnk )
+{
+  nc_assert(k>0.0&&std::isfinite(k));
+  const double u = k - 1.0;
+  if ( ncabs(u) < 0.22 ) {
+    //direct Taylor, not even needing log:
+
+    // For the record we simply got the Taylor coefficients with sagemath:
+    // > sage: u,x=var('u,x');f=( (x*(1+u)**x).integrate(x,0,1) )
+    // > sage: print( '\n'.join(('constexpr double c%i = %s;'%(c[1],str(c[0])))
+    // > ....:   .replace('/','./') for c in (f.taylor(u,0,18)).coefficients()))
+    //
+    // The final order and thresholds were determined manually after checking
+    // with mpmath, since the analytical (large u) formula below also has
+    // numerical issues. To truly improve on this, one would likely need several
+    // taylor domains - but for now the worst error seen by the entire function
+    // was 2e-15 which is OK.
+
+    constexpr double c0 = 1.0/2.0;
+    constexpr double c1 = 1.0/3.0;
+    constexpr double c2 = -1.0/24.0;
+    constexpr double c3 = 7.0/360.0;
+    constexpr double c4 = -17.0/1440.0;
+    constexpr double c5 = 41.0/5040.0;
+    constexpr double c6 = -731.0/120960.0;
+    constexpr double c7 = 8563.0/1814400.0;
+    constexpr double c8 = -27719.0/7257600.0;
+    constexpr double c9 = 190073.0/59875200.0;
+    constexpr double c10 = -516149.0/191600640.0;
+    constexpr double c11 = 1013143139.0/435891456000.0;
+    constexpr double c12 = -1519024289.0/747242496000.0;
+    constexpr double c13 = 14108351869.0/7846046208000.0;
+    constexpr double c14 = -14399405173.0/8966909952000.0;
+    constexpr double c15 = 23142912688967.0/16005934264320000.0;
+    constexpr double c16 = -83945247395407.0/64023737057280000.0;
+    constexpr double c17 = 84894728616107.0/70959641905152000.0;
+    constexpr double c18 = -3204549982389941.0/2919482409811968000.0;
+
+    return (c0+u*(c1+u*(c2+u*(c3+u*(c4+u*(c5+u*(c6+u*(c7+u*(c8+u*(c9+u*(c10
+   +u*(c11+u*(c12+u*(c13+u*(c14+u*(c15+u*(c16+u*(c17+u*c18))))))))))))))))));
+  }
+  //Full formula, needs lnk=log(k):
+  double lnk;
+  if ( opt_lnk.has_value() ) {
+    lnk = opt_lnk.value();
+    nc_assert(std::isfinite(lnk));
+    nc_assert(floateq(std::log(k),lnk));
+  } else {
+    lnk = std::log(k);
+    nc_assert(std::isfinite(lnk));
+  }
+  StableSum ss;
+  ss.add(lnk);
+  ss.add(-1.0);
+  ss.mult(k);
+  ss.add(1.0);
+  return ss.sum() / ncsquare(lnk);
+}
+
 static_assert( NC::ncconstexpr_ispow2( 1 ), "" );
 static_assert( NC::ncconstexpr_ispow2( 2 ), "" );
 static_assert( NC::ncconstexpr_ispow2( 4 ), "" );
@@ -540,4 +650,5 @@ static_assert( NC::ncconstexpr_roundupnextpow2(3) == 4, "" );
 static_assert( NC::ncconstexpr_roundupnextpow2(4) == 4, "" );
 static_assert( NC::ncconstexpr_roundupnextpow2(17) == 32, "" );
 static_assert( NC::ncconstexpr_roundupnextpow2(24) == 32, "" );
-static_assert( std::numeric_limits<double>::is_iec559, "NCrystal requires IEEE 754 floating point numbers" );
+static_assert( std::numeric_limits<double>::is_iec559,
+               "NCrystal requires IEEE 754 floating point numbers" );

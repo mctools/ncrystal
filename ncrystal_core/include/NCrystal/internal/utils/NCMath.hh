@@ -120,6 +120,11 @@ namespace NCRYSTAL_NAMESPACE {
   //loss due to numerical precision issues):
   double erfc_rescaled(double x, double b);
 
+  //Calculate integral of k^x or x*k^x over [0,1] for k>0. For efficiency ln(k)
+  //can be provided if known (it won't actually be needed if 0.9<k<1.1):
+  double integrate01_kpowx( double k, const Optional<double>& lnk = NullOpt );
+  double integrate01_xkpowx( double k, const Optional<double>& lnk = NullOpt );
+
   //Evenly spaced points (like Numpy equivalent functions):
   VectD linspace(double start, double stop, unsigned num);
   VectD logspace(double start, double stop, unsigned num);

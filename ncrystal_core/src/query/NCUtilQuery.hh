@@ -22,9 +22,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/query/NCQuery.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace {
+
     void queryimpl_version( std::ostream& os, const Query& query )
     {
       if ( query.size() != 1 || query.front() != "version" )
@@ -75,10 +77,11 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr auto sv_list = StrView::make("list");
       constexpr auto sv_wl2ekin = StrView::make("wl2ekin");
       constexpr auto sv_ekin2wl = StrView::make("ekin2wl");
+      constexpr auto sv_mathval = StrView::make("mathval");
       if ( key == sv_list ) {
         if ( nargs != 0 )
           invalid("no arguments should come after: [\"util\",\"list\"]");
-        os<<"[\"wl2ekin\", \"ekin2wl\"]";
+        os<<"[\"wl2ekin\", \"ekin2wl\", \"mathval\"]";
       } else if ( isOneOf(key,sv_wl2ekin,sv_ekin2wl) ) {
         double val = ( nargs == 1
                        ? arg(0).toDbl().value_or(-1.0)
@@ -90,6 +93,33 @@ namespace NCRYSTAL_NAMESPACE {
         streamJSON( os, ( key==sv_wl2ekin
                           ? wl2ekin( val )
                           : ekin2wl( val ) ) );
+      } else if ( key == sv_mathval ) {
+        if ( nargs != 1 || arg(0) != "kpowxinteg" )
+          invalid("Only supported mathval arg is for now [\"kpowxinteg\"]");
+        VectD testk = { 1e-300, 1e-10, 1e-3, 0.5, 0.74,0.76,0.779,0.781,0.79,
+                        0.81, 0.89, 0.91, 0.95, 0.99, 1.0-1e-5, 1.0-1e-14, 1.0,
+                        1.0+1e-14, 1.0+1e-5, 1.01, 1.05, 1.09, 1.11, 1.19,
+                        1.21, 1.219,1.221, 1.24,1.26,3.0, 400.0, 1e4, 1e10,
+                        1e300 };
+        VectD kpowx, xkpowx;
+        for ( auto k : testk ) {
+          Optional<double> lnk = std::log(k);
+          double v1 = integrate01_kpowx( k, lnk );
+          double v2 = integrate01_kpowx( k );
+          nc_assert_always( v1==v2 );
+          kpowx.push_back( v1 );
+          v1 = integrate01_xkpowx( k, lnk );
+          v2 = integrate01_xkpowx( k );
+          nc_assert_always( v1==v2 );
+          xkpowx.push_back( v1 );
+        }
+        os << "{\"k\":";
+        streamJSON(os,testk);
+        os << ",\"integral01_kpowx\":";
+        streamJSON(os,kpowx);
+        os << ",\"integral01_xkpowx\":";
+        streamJSON(os,xkpowx);
+        os<<'}';
       } else {
         invalid(nullptr);
       }

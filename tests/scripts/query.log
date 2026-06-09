@@ -92,7 +92,7 @@ Caught expected NCBadInput('Invalid JSON query key: "foo"')
 ['run', 'scenario', 'inspectcfg', 'cfgdoc']
 ===========================================
 ============= CLI >>util list<< ====================
-['wl2ekin', 'ekin2wl']
+['wl2ekin', 'ekin2wl', 'mathval']
 ===========================================
 ============= CLI >>util wl2ekin 1.8<< ====================
 0.0252482128412
