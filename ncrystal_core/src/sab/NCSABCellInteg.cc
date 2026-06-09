@@ -284,12 +284,13 @@ namespace NCRYSTAL_NAMESPACE {
 
       class R17Adaptive final : public Romberg {
         mutable IntegrandOfA m_iofa;
-        unsigned m_maxlvl = 11;
+        unsigned m_minlvl;
+        unsigned m_maxlvl;
         double m_prec;
       public:
         R17Adaptive( const IntegrandOfA::Input& inp,
-                     unsigned maxlvl = 11, double prec=1e-6)
-          : m_iofa(inp), m_maxlvl(maxlvl), m_prec(prec) {}
+                     unsigned minlvl, unsigned maxlvl, double prec)
+          : m_iofa(inp), m_minlvl(minlvl), m_maxlvl(maxlvl), m_prec(prec) {}
 
         double evalFunc(double) const override
         {
@@ -314,7 +315,8 @@ namespace NCRYSTAL_NAMESPACE {
                      double, double ) const override
         {
           return ( level==m_maxlvl
-                   || ncabs(prev_est-est) <= est*m_prec );
+                   || ( level>=m_minlvl
+                        && ncabs(prev_est-est) <= est*m_prec ) );
         }
 
       };
@@ -322,17 +324,29 @@ namespace NCRYSTAL_NAMESPACE {
       struct DecodedIntegScheme
       {
         unsigned npts;
+        bool is_flex;
         bool is_romberg;
         bool is_simpson;
         DecodedIntegScheme( StdLogLinCellIntegrator::IntegrationScheme s )
           : npts( static_cast<std::uint_fast32_t>(s) & 0x00FFFF ),
+            is_flex( static_cast<std::uint_fast32_t>(s) & 0x100000 ),
             is_romberg( static_cast<std::uint_fast32_t>(s) & 0x010000 ),
             is_simpson( static_cast<std::uint_fast32_t>(s) & 0x040000 )
         {
           constexpr static std::uint_fast32_t test17 = 0x000011;
           static_assert( test17 == 17, "");
-          nc_assert( !(is_romberg&&is_simpson) );
-          nc_assert(isOneOf(npts,2u,3u,5u,9u,17u,33u));
+          //check we decoded exactly one type (trapezoidal when all others are
+          //unset).
+#ifndef NDEBUG
+          const bool is_trapez = static_cast<std::uint_fast32_t>(s) & 0x020000;
+#endif
+          nc_assert( (int(is_romberg)+int(is_simpson)
+                      +int(is_flex)+int(is_trapez))==1 );
+          //only trapez has n=2 and only flex has n=65:
+          nc_assert(isOneOf(npts,2u,3u,5u,9u,17u,33u,65u));
+          nc_assert( npts!=65u || is_flex );
+          nc_assert( npts!=2u || is_trapez );
+          nc_assert( npts!=3u || (is_trapez||is_simpson) );
         }
         StdLogLinCellIntegrator::IntegrationScheme encode() const//fixme: used?
         {
@@ -340,6 +354,9 @@ namespace NCRYSTAL_NAMESPACE {
           if (is_romberg) {
             v |= 0x010000;
             nc_assert(isOneOf(npts,5u,9u,17u,33u));
+          } else if (is_flex) {
+            v |= 0x100000;
+            nc_assert(isOneOf(npts,5u,9u,17u,33u,65u));
           } else if (is_simpson) {
             v |= 0x040000;
             nc_assert(isOneOf(npts,3u,5u,9u,17u,33u));
@@ -374,23 +391,35 @@ namespace NCRYSTAL_NAMESPACE {
                                               : SOfAlphaGrid::Method::LIN );
 
         //Guard against enourmous log-scale differences along alpha.
-        const bool use_romberg_adaptive
-          = ( scheme.is_romberg &&
-              ( ( method_b1==SOfAlphaGrid::Method::LOG &&
-                  !valueInInterval(cs.S[0]*0.01,cs.S[0]*100.0,cs.S[1]) )
-                || ( method_b2==SOfAlphaGrid::Method::LOG &&
-                     !valueInInterval(cs.S[2]*0.01,cs.S[2]*100.0,cs.S[3]) ) )
-              );
+        bool use_romberg_adaptive(false);
+        bool use_romberg_fixed(scheme.is_romberg);
+        if ( scheme.is_flex ) {
+          if ( scheme.npts >= 33 ) {
+            use_romberg_adaptive = true;
+          } else {
+            //fixme: in some extreme cases (s1=1,s2=1e200), it might be more
+            //appropriate to instead split the cell, and do the more expensive
+            //integration only very near s2=1e200 where all the contributions
+            //are.
+            use_romberg_adaptive
+              = ( ( method_b1==SOfAlphaGrid::Method::LOG &&
+                    !valueInInterval(cs.S[0]*0.01,cs.S[0]*100.0,cs.S[1]) )
+                  || ( method_b2==SOfAlphaGrid::Method::LOG &&
+                       !valueInInterval(cs.S[2]*0.01,cs.S[2]*100.0,cs.S[3]) ) );
+            use_romberg_fixed = !use_romberg_adaptive;
+          }
+        }
 
         nc_assert( cs.b1 == ce.b1 );
         nc_assert( cs.b2 == ce.b2 );
         nc_assert( (cs.b2-cs.b1)>0.0 );
 
         //No matter the integration scheme, we must find the contribution at
-        //each point of the alpha grid.
+        //each point of the alpha grid (skip this in case of adaptive Romberg
+        //integration).
         double contrib_at_a[SOfAlphaGrid::nmax];
-        nc_assert(scheme.npts<=SOfAlphaGrid::nmax);
         if (!use_romberg_adaptive) {
+          nc_assert(scheme.npts<=SOfAlphaGrid::nmax);
           const double invdb = 1.0/(cs.b2-cs.b1);
           SOfAlphaGrid sofa_at_b1( method_b1, cs.a1, cs.S[0], cs.a2, cs.S[1],
                                    scheme.npts );
@@ -412,7 +441,7 @@ namespace NCRYSTAL_NAMESPACE {
             if ( is_bounded_by_betaminus )
               bl = a - dbpm;
             if ( is_bounded_by_betaplus )
-              bu = a + dbpm;
+              bu = ncmax(bl,a + dbpm);//ncmax as a safeguard against FP issues
             //To find the contribution we integrate S(a,b) over [bl,bu]. This is
             //easy, since we always interpolate linearly in b:
             const double bmiddle( is_bounded_on_both_sides ? a : (bu+bl)*0.5 );
@@ -424,69 +453,68 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
             const double bumbl( is_bounded_on_both_sides ? 2.0*dbpm : bu-bl );
             *itC = bumbl*smiddle;
+            nc_assert_always(*itC >= 0.0);
+            nc_assert_always(std::isfinite(*itC));
           }
         }
 
-        //Fixme: At this point, having constructed contrib_at_a, we could test
-        //for the scenario where a lot of the range has ~0 contributions
-        //(i.e. from s1=1.0 to s2=1e-200 would trigger this). If we detect such
-        //a scenario, where more than half of the bins at the edges are not
-        //contributing, we could narrow the range and call ourselves
-        //recursively. That would most likely be better than blindly just using
-        //the adaptive alg.
-        //
-        //Another thing to look at: if eg. s1=1 and s2=1e-20, then we have
-        //catastropic cancellation, since 1 + 1e-20 = 1 in double precision.
-
-        if ( scheme.is_romberg ) {
+        if ( use_romberg_adaptive ) {
+          //fixme: divert to other function (before the contrib_at_a is
+          //initialised above)
           double contrib;
-          if ( !use_romberg_adaptive ) {
-            if ( scheme.npts<17 ) {
-              if ( scheme.npts==5 ) {
-                contrib = Romberg::fixedOrderIntegration5pts(contrib_at_a);
-              } else {
-                nc_assert(scheme.npts==9);
-                contrib = Romberg::fixedOrderIntegration9pts(contrib_at_a);
-              }
+          IntegrandOfA::Input i;
+          i.interpAtB1 = method_b1;
+          i.interpAtB2 = method_b2;
+          i.a1 = cs.a1;
+          i.a2 = cs.a2;
+          i.b1 = cs.b1;
+          i.b2 = cs.b2;
+          i.s11 = cs.S[0];
+          i.s12 = cs.S[1];
+          i.s21 = cs.S[2];
+          i.s22 = cs.S[3];
+          i.E_div_kT = E_div_kT;
+          i.is_bounded_by_betaminus = is_bounded_by_betaminus;
+          i.is_bounded_by_betaplus = is_bounded_by_betaplus;
+          unsigned minlvl, maxlvl;
+          double prec;
+          //fixme: revisit values below
+          switch( scheme.npts ) {
+          case 5: prec = 5e-3; minlvl=2; maxlvl=8; break;
+          case 9: prec = 5e-4; minlvl=3; maxlvl=9; break;
+          case 17: prec = 1e-6; minlvl=4; maxlvl=10; break;
+          case 33: prec = 1e-9; minlvl=5; maxlvl=12; break;
+          default:
+            nc_assert(false);
+          case 65: prec = 1e-12; minlvl=6; maxlvl=14; break;
+          };
+          R17Adaptive r17adapt(i,minlvl,maxlvl,prec);
+          contrib = r17adapt.integrate(0.0,1.0);
+          tgt.add( contrib*cs.a2 );
+          tgt.add( -contrib*cs.a1 );
+        } else if ( use_romberg_fixed ) {
+          double contrib;
+          nc_assert_always(contrib_at_a[0] >= 0.0);
+          if ( scheme.npts<17 ) {
+            if ( scheme.npts==5 ) {
+              contrib = Romberg::fixedOrderIntegration5pts(contrib_at_a);
             } else {
-              if ( scheme.npts==17 ) {
-                contrib = Romberg::fixedOrderIntegration17pts(contrib_at_a);
-              } else {
-                nc_assert(scheme.npts==33);
-                contrib = Romberg::fixedOrderIntegration33pts(contrib_at_a);
-              }
+              nc_assert(scheme.npts==9);
+              contrib = Romberg::fixedOrderIntegration9pts(contrib_at_a);
             }
           } else {
-            IntegrandOfA::Input i;
-            i.interpAtB1 = method_b1;
-            i.interpAtB2 = method_b2;
-            i.a1 = cs.a1;
-            i.a2 = cs.a2;
-            i.b1 = cs.b1;
-            i.b2 = cs.b2;
-            i.s11 = cs.S[0];
-            i.s12 = cs.S[1];
-            i.s21 = cs.S[2];
-            i.s22 = cs.S[3];
-            i.E_div_kT = E_div_kT;
-            i.is_bounded_by_betaminus = is_bounded_by_betaminus;
-            i.is_bounded_by_betaplus = is_bounded_by_betaplus;
-            unsigned maxlvl;
-            double prec;
-            switch( scheme.npts ) {
-            case 5: prec = 0.005; maxlvl=7; break;
-            case 9: prec = 1e-3; maxlvl=8; break;
-            case 17: prec = 1e-5; maxlvl=10; break;
-            default:
-              nc_assert(false);
-            case 33: prec = 1e-6; maxlvl=12; break;
-            };
-            R17Adaptive r17adapt(i,maxlvl,prec);
-            contrib = r17adapt.integrate(0.0,1.0);
+            if ( scheme.npts==17 ) {
+              contrib = Romberg::fixedOrderIntegration17pts(contrib_at_a);
+            } else {
+              nc_assert(scheme.npts==33);
+              contrib = Romberg::fixedOrderIntegration33pts(contrib_at_a);
+            }
           }
           tgt.add( contrib*cs.a2 );
           tgt.add( -contrib*cs.a1 );
         } else if ( scheme.is_simpson ) {
+          nc_assert( !use_romberg_adaptive );
+          nc_assert_always(contrib_at_a[0] >= 0.0);
           nc_assert( scheme.npts%2==1 && scheme.npts>=3 );
           StableSum ss;
           const unsigned nbins = scheme.npts-1;
@@ -510,10 +538,15 @@ namespace NCRYSTAL_NAMESPACE {
           tgt.add( -contrib*cs.a1 );
         } else {
           //Trapezoidal
+          nc_assert( !use_romberg_adaptive );
+          nc_assert_always(contrib_at_a[0] >= 0.0);
           unsigned nbins = scheme.npts-1;
           double da = (cs.a2-cs.a1)/nbins;
+          nc_assert_always(da>0.0);
           const double * itC = contrib_at_a;
           const double * itCL = itC + nbins;
+          nc_assert_always(itCL < contrib_at_a + scheme.npts);
+          nc_assert_always(*itC >= 0.0);
           tgt.add( 0.5 * da * (*itC++) );
           for (; itC!=itCL; ++itC )
             tgt.add( da * (*itC) );
@@ -551,6 +584,7 @@ void NCS::StdLogLinCellIntegrator::integrateWithinKB( const CellData& c,
 
   for ( auto iregion : ncrange(surv.regions().size() ) ) {
     auto& r = regions.at(iregion);
+    nc_assert( r.alpha_up > r.alpha_low );
     //Update subcell data @ upper alpha edge:
     nc_assert( r.alpha_up == atb1.getAlpha() );
     nc_assert( r.alpha_up == atb2.getAlpha() );
@@ -586,7 +620,18 @@ NCS::StdLogLinCellIntegrator::IntegrationScheme
 NCS::StdLogLinCellIntegrator::str2IntegScheme( StrView v )
 {
   using IS = IntegrationScheme;
-  if ( v.startswith("Romberg") ) {
+  if ( v.startswith("Flex") ) {
+    if ( v=="Flex9" )
+      return IS::Flex9;
+    if ( v=="Flex5" )
+      return IS::Flex5;
+    if ( v=="Flex17" )
+      return IS::Flex17;
+    if ( v=="Flex33" )
+      return IS::Flex33;
+    if ( v=="Flex65" )
+      return IS::Flex65;
+  } else if ( v.startswith("Romberg") ) {
     if ( v=="Romberg9" )
       return IS::Romberg9;
     if ( v=="Romberg5" )
@@ -628,7 +673,8 @@ NCS::StdLogLinCellIntegrator::str2IntegScheme( StrView v )
 
 const char * NCS::StdLogLinCellIntegrator::allIntegSchemesAsStr()
 {
-  return "Romberg5;Romberg9;Romberg17;Romberg33;"
+  return "Flex5;Flex9;Flex17;Flex33;Flex65;"
+    "Romberg5;Romberg9;Romberg17;Romberg33;"
     "Trapez2;Trapez3;Trapez5;Trapez9;Trapez17;Trapez33;"
     "Simpson3;Simpson5;Simpson9;Simpson17;Simpson33";
 }
@@ -637,6 +683,11 @@ const char * NCS::StdLogLinCellIntegrator::integSchemeToStr( IntegrationScheme v
   using IS = IntegrationScheme;
   switch ( v ) {
     //fixme: something shorter, so might be used in cfg strings? r33?
+  case IS::Flex5:  return "Flex5";
+  case IS::Flex9:  return "Flex9";
+  case IS::Flex17: return "Flex17";
+  case IS::Flex33: return "Flex33";
+  case IS::Flex65: return "Flex65";
   case IS::Romberg5:  return "Romberg5";
   case IS::Romberg9:  return "Romberg9";
   case IS::Romberg17: return "Romberg17";
