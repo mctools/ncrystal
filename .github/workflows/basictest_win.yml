@@ -122,19 +122,9 @@ jobs:
         nctool --pdf Al_sg225.ncmat
         if %errorlevel% neq 0 exit /b %errorlevel%
 
-    #Two ways of enabling cl.exe and other tools. One is via an external action...:
+    #Enable cl.exe and other tools:
     - name: Setup VS in shell
-      uses: ilammy/msvc-dev-cmd@v1
-    #...but a simpler one might be to simply invoke the correct vcvars64.bat
-    #file first, like...:
-    #
-    #    - name: whatever
-    #      shell: cmd
-    #      run: |
-    #        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-    #        cl /help
-    #
-    #...but since we also want to support VS 2019, we use the above action for now
+      uses: egor-tensin/vs-shell@54e4148eac794e4580591c2e0b7750f14b7891fc
 
     - name: Test downstream compilation and build flags
       shell: cmd
