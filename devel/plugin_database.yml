@@ -99,3 +99,11 @@ LiquidHeliumData:
     https://doi.org/10.1016/j.nima.2023.168284 (for details refer to comments on
     https://github.com/mctools/ncrystal/issues/279 and
     https://github.com/dddijulio/ncrystal-plugin-LiquidHelium).
+
+Liquids:
+  github_repo_key: "dddijulio/ncrystal-plugin-Liquids"
+  description: |
+    A preliminary plugin providing on-the-fly modelling of liquids. This was
+    presented at ICANS XXV (13-17 April 2026)
+    https://indico.ess.eu/event/3811/contributions/24554/ and proceedings with
+    more details have been submitted.
