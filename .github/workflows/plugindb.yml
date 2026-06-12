@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v6.0.3
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       with:
         path: src
 
@@ -43,12 +43,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v6.0.3
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       with:
         path: src
 
     - name: Setup python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
       with:
         python-version: '3.12'
 
@@ -68,7 +68,7 @@ jobs:
       run: pipx run build ./src/ncrystal_pypluginmgr --wheel --outdir ./dist
 
     - name: upload ncrystal wheels
-      uses: actions/upload-artifact@v7.0.1
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
         name: wheels-ncrystal-${{ matrix.os }}
         path: ./dist/*.whl
@@ -114,12 +114,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v6.0.3
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       with:
         path: src
 
     - name: Setup python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
       with:
         python-version: '3.12'
 
@@ -184,7 +184,7 @@ jobs:
 
     - name: Checkout plugin repo as src_plugin
       if: steps.pluginfo.outputs.mode == 'otherreporoot'
-      uses: actions/checkout@v6.0.3
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       with:
         path: src_plugin
         repository: ${{ steps.pluginfo.outputs.github_repo_key }}
@@ -192,7 +192,7 @@ jobs:
 
     - name: Checkout plugin repo as src_plugin_reporoot
       if: steps.pluginfo.outputs.mode == 'otherreposubdir'
-      uses: actions/checkout@v6.0.3
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       with:
         path: src_plugin_reporoot
         repository: ${{ steps.pluginfo.outputs.github_repo_key }}
@@ -228,7 +228,7 @@ jobs:
             raise SystemExit("Error: ./src_plugin/pyproject.toml not found!")
 
     - name: download ncrystal wheels
-      uses: actions/download-artifact@v8.0.1
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
       with:
         name: wheels-ncrystal-${{ matrix.os }}
         path: ./dist
@@ -306,7 +306,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v6.0.3
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       with:
         path: src
 
@@ -323,7 +323,7 @@ jobs:
       if: runner.os == 'Windows'
       run: tree /F ./virtapiapp
 
-    - uses: actions/upload-artifact@v7.0.1
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
         name: virtapi-app-${{ matrix.os }}
         path: ./virtapiapp/bin/ncrystal-virtapi-example*
@@ -340,13 +340,13 @@ jobs:
 
     steps:
     - name: download virtapi app
-      uses: actions/download-artifact@v8.0.1
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
       with:
         name: virtapi-app-${{ matrix.os }}
         path: ./app
 
     - name: download ncrystal wheels
-      uses: actions/download-artifact@v8.0.1
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
       with:
         name: wheels-ncrystal-${{ matrix.os }}
         path: ./dist
