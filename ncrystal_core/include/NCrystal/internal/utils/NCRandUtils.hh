@@ -63,6 +63,12 @@ namespace NCRYSTAL_NAMESPACE {
   double randExp( RNG& rng );//sample non-negative value from exp(-x)
   double randExpInterval( RNG& rng, double a, double b, double c );//sample value in [a,b] from exp(-c*x)
 
+  //Sample a value x in [0,1] for a PDF proportional to k^x for k>0, based on a
+  //value uniformly distributed in (0,1], rand01val. This can be used to sample
+  //a PDF whose density is linear in log and changes by a factor of k between 0
+  //and 1. To allow caching, lnk=std::log(k) must be provided by the caller.
+  double randKPowX( double k, double lnk, double rand01val );
+
   class RandExpIntervalSampler {
   public:
     //Like randExpInterval fct, but more efficient if need to sample repeatedly

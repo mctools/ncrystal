@@ -583,3 +583,46 @@ void NC::RandXRSRImpl::generateMany(std::size_t n, double* tgt) ncnoexceptndebug
   if ( n )
     this->genmanyimpl(n,tgt);
 }
+
+double NC::randKPowX( double k, double lnk, double R )
+{
+  //Mathematically, the result is given by x=ln(1+R*(k-1))/ln(k) when k!=1
+  //or x=R if k=1. But of course, care must be taken to reduce floating
+  //point issues during the evaluation.
+
+  if (R>0.99) {
+    //"1.0-epsilon" does not have as many significant digits as "epsilon", so we
+    //achieve higher precision by sampling with R->1-r and k->1/k:
+    return 1.0-randKPowX(1.0/k,-lnk,1.0-R);
+  }
+  nc_assert( std::isfinite(k));
+  nc_assert( k > 0.0 );
+  nc_assert( R > 0.0 && R <= 1.0 );
+  nc_assert( floateq(std::log(k),lnk) );
+
+  //Near k=1 we handle the results via a taylor expansion in u=k-1.
+  const double u = k - 1.0;
+  if ( ncabs(u) < 1e-4 ) {
+    const double c0 = R;
+    const double c1 = 0.5 * R * ( 1.0 - R );
+    constexpr double inv12 = 1.0/12.0;
+    constexpr double inv24 = 1.0/24.0;
+    const double c2 = ((4.0*R - 3.0)*R - 1.0)*R*inv12;
+    const double c3 = (((-6.0*R + 4.0)*R + 1.0)*R + 1.0)*R*inv24;
+    return ncclamp( c0+u*(c1+u*(c2+u*c3)), 0.0, 1.0 );
+  }
+
+  //Case where k is not near 1 and lnk is not near 0.
+  //
+  //  ln(1+R*(k-1))/ln(k) = (ln(R)+ln(k)+ln(1+(1-R)/Rk))/ln(k)
+  //
+  // To handle large values of k safely, we note that when |t|<1e-17, then
+  // log(1+t)=t at (double) floating point precision. Thus:
+  //
+  const double onemR = 1.0-R;
+  const double Rk = R*k;
+  const double nom = ( onemR < Rk * 1e-17
+                       ? std::log(R) + lnk + onemR / Rk
+                       : std::log1p(R*u) );
+  return ncclamp( nom / lnk, 0.0, 1.0);
+}

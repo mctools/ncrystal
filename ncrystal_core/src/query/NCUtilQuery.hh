@@ -23,6 +23,7 @@
 
 #include "NCrystal/internal/query/NCQuery.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCRandUtils.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace {
@@ -94,8 +95,22 @@ namespace NCRYSTAL_NAMESPACE {
                           ? wl2ekin( val )
                           : ekin2wl( val ) ) );
       } else if ( key == sv_mathval ) {
-        if ( nargs != 1 || arg(0) != "kpowxinteg" )
-          invalid("Only supported mathval arg is for now [\"kpowxinteg\"]");
+        if ( nargs != 1 || arg(0) != "kpowx" )
+          invalid("Only supported mathval arg is for now [\"kpowx\"]");
+        VectD testsamplek = { 1e-300, 1e-200, 1e-30, 1e-10, 1e-3, 0.5,
+          0.95, 0.99,
+          1.0-1.1e-4, 1.0-1e-4, 1.0-0.9e-4, 1.0,
+          1.0+1.1e-4, 1.0+1e-4, 1.0+0.9e-4,
+          1.01, 2.0, 1e2, 1e5, 1e30, 1e200, 1e300 };
+        VectD testsampleR = { 1e-300,1e-20,1e-5,1e-2,0.1,0.5,0.9,
+                              0.9899,0.9901,1.0-1e-5,1.0-1e-10,1.0 };
+        VectD testsample;
+        testsample.reserve( testsamplek.size() * testsampleR.size() );
+        for ( auto& k : testsamplek ) {
+          for ( auto& R : testsampleR )
+            testsample.push_back(randKPowX( k, std::log(k), R ));
+        }
+
         VectD testk = { 1e-300, 1e-10, 1e-3, 0.5, 0.74,0.76,0.779,0.781,0.79,
                         0.81, 0.89, 0.91, 0.95, 0.99, 1.0-1e-5, 1.0-1e-14, 1.0,
                         1.0+1e-14, 1.0+1e-5, 1.01, 1.05, 1.09, 1.11, 1.19,
@@ -119,7 +134,14 @@ namespace NCRYSTAL_NAMESPACE {
         streamJSON(os,kpowx);
         os << ",\"integral01_xkpowx\":";
         streamJSON(os,xkpowx);
-        os<<'}';
+        os << ",\"sample_kpowx\":{";
+        os << "\"k\":";
+        streamJSON(os,testsamplek);
+        os << ",\"R\":";
+        streamJSON(os,testsampleR);
+        os << ",\"samples\":";
+        streamJSON(os,testsample);
+        os<<"}}";
       } else {
         invalid(nullptr);
       }
