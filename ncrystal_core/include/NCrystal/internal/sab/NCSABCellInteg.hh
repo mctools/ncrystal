@@ -29,6 +29,10 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace SABUtils {
 
+    ////////////////////////////////////////
+    // Utilities for SAB Cell integration //
+    ////////////////////////////////////////
+
     struct CellData {
       double a1, a2; // alpha extent of cell, a2>a1>=0
       double b1, b2; // beta extent of cell, b2 > b1
