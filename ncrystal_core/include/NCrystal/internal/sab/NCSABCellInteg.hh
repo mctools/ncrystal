@@ -35,6 +35,7 @@ namespace NCRYSTAL_NAMESPACE {
       double S[4];   // {S(a1,b1), S(a2,b1), S(a1,b2), S(a2,b2).
       double logS[4];// {log(S[i])} (0 where S==0).
     };
+    std::ostream& operator<<( std::ostream&, const CellData& );
 
     //Fixme: decide if better with a class or namespace for the next:
     struct StdLogLinCellIntegrator final : private NonInstantiable {

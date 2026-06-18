@@ -451,7 +451,11 @@ namespace NCRYSTAL_NAMESPACE {
             double rb = (bmiddle-cs.b1)*invdb;
             double smiddle = Sb1*(1.0-rb)+Sb2*(rb);
 #endif
-            const double bumbl( is_bounded_on_both_sides ? 2.0*dbpm : bu-bl );
+            nc_assert_always(bu-bl > -1e-12);
+            const double bumbl( is_bounded_on_both_sides
+                                ? 2.0*dbpm
+                                : ncmax(0.0,bu-bl) );
+
             *itC = bumbl*smiddle;
             nc_assert_always(*itC >= 0.0);
             nc_assert_always(std::isfinite(*itC));
@@ -707,4 +711,21 @@ const char * NCS::StdLogLinCellIntegrator::integSchemeToStr( IntegrationScheme v
     nc_assert_always(false&&"invalid IntegrationScheme");
     return "";
   };
+}
+
+std::ostream& NCS::operator<<( std::ostream& os, const CellData& c )
+{
+  os << "CellData(a1=" << fmt(c.a1)
+     << ", a2=" << fmt(c.a2)
+     << ", b1=" << fmt(c.b1)
+     << ", b2=" << fmt(c.b2)
+     << ", S11=" << fmt(c.S[0])
+     << ", S12=" << fmt(c.S[1])
+     << ", S21=" << fmt(c.S[2])
+     << ", S22=" << fmt(c.S[3])
+     << ", logS11=" << fmt(c.logS[0])
+     << ", logS12=" << fmt(c.logS[1])
+     << ", logS21=" << fmt(c.logS[2])
+     << ", logS22=" << fmt(c.logS[3]) << ')';
+  return os;
 }
