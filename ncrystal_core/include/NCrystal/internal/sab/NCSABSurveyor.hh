@@ -119,8 +119,9 @@ namespace NCRYSTAL_NAMESPACE {
       //fixme: something else than smallvector? A fixed array + Span interface?
       static constexpr unsigned nmax_regions = 6;
       using RegionList = SmallVector<Region,nmax_regions>;
-      const RegionList& regions() { return m_regions; }
+      const RegionList& regions() const { return m_regions; }
       void toJSON( std::ostream& ) const;
+
     private:
       RegionList m_regions;
     };
