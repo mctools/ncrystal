@@ -68,6 +68,10 @@ namespace NCRYSTAL_NAMESPACE {
     //Version which returns both f and logf:
     PairDD interpolate_loglin_fallbacklinlin_fast2(double a, double fa, double b, double fb, double x, double logfa, double logfb);
 
+    //Versions with a forced interpolation (loglin requires fa>0 and fb>0): (fixme naming)
+    double interpolate_linlin_NEW(double a, double fa, double b, double fb, double x);
+    PairDD interpolate_loglin_fast2_NEW(double a, double fa, double b, double fb, double x, double logfa, double logfb);
+
     //Templated selection based on enum:
     enum class InterpolationScheme { LOGLIN, LINLIN };
     template<InterpolationScheme scheme>
@@ -197,6 +201,64 @@ inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin_fast(double 
   }
 }
 
+inline double NCrystal::SABUtils::interpolate_linlin_NEW(double a, double fa,
+                                                         double b, double fb,
+                                                         double x)
+{
+  nc_assert( fa >= 0.0 && fb >= 0.0 );
+  nc_assert( x >= a && x <= b );
+  nc_assert( std::isfinite(fa) && std::isfinite(fb) );
+  const double bma = b - a;
+  nc_assert( bma > 0.0 );
+  const double midpoint = 0.5 * ( b + a );
+  if ( x < midpoint ) {
+    //choose forms most numerically stable for x near a
+    const double r = (x-a) / bma;
+    return fa + (fb-fa)*r;
+  } else {
+    //choose forms most numerically stable for x near b
+    const double s = (b-x) / bma;
+    return fb + (fa-fb)*s;
+  }
+}
+
+inline NCrystal::PairDD
+NCrystal::SABUtils::interpolate_loglin_fast2_NEW(double a, double fa,
+                                                 double b, double fb, double x,
+                                                 double logfa, double logfb)
+{
+  nc_assert( fa >= 0.0 && fb >= 0.0 );
+  nc_assert( x >= a && x <= b );
+  nc_assert( std::isfinite(logfa) && std::isfinite(logfb) );
+  nc_assert( std::isfinite(fa) && std::isfinite(fb) );
+  const double bma = b - a;
+  nc_assert( bma > 0.0 );
+  const double midpoint = 0.5 * ( b + a );
+  auto flexexp = [](double x)
+  {
+    //exp_smallarg_approx has 7th order Taylor, which might be faster than a
+    //library call.
+    return ncabs(x)<0.02 ? exp_smallarg_approx(x) : std::exp(x);
+  };
+  PairDD res;
+  if ( x < midpoint ) {
+    //choose forms most numerically stable (and with smallest flexexp arg) for x
+    //near a
+    const double r = (x-a) / bma;
+    const double dlf = (logfb-logfa)*r;
+    res.first = fa * flexexp(dlf);
+    res.second = logfa+dlf;
+  } else {
+    //choose forms most numerically stable (and with smallest flexexp arg) for x
+    //near b
+    const double s = (b-x) / bma;
+    const double dlf = (logfa-logfb)*s;
+    res.first = fb * flexexp(dlf);
+    res.second = logfb+dlf;
+  }
+  return res;
+}
+
 inline NCrystal::PairDD
 NCrystal::SABUtils::interpolate_loglin_fallbacklinlin_fast2
 (double a, double fa, double b, double fb, double x, double logfa, double logfb)
@@ -322,6 +384,7 @@ inline double NCrystal::SABUtils::sampleLogLinDist(double a, double fa, double b
 
 inline double NCrystal::SABUtils::sampleLogLinDist_fast(double a, double fa, double b, double fb, double rand, double logfa, double logfb)
 {
+  //fixme: new LogLinDistSampler class is better.
   //(NB: Code duplicated above!)
   //Slightly faster. Although, still log+exp remains so not sure that it is really worth the extra caching overhead.
   nc_assert(b>a);
