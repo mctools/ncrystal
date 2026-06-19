@@ -318,20 +318,6 @@ namespace NCRYSTAL_NAMESPACE {
         setError("<unknown>","std::exception");
     }
 
-    class WarnFirstTime {
-      std::mutex m_mtx;
-      bool m_first = true;
-    public:
-      void operator()(const char * msg)
-      {
-        NCRYSTAL_LOCK_GUARD(m_mtx);
-        if ( m_first ) {
-          m_first = false;
-          NCRYSTAL_WARN(msg);
-        }
-      }
-    };
-
     class RNGCWrapper final : public RNGStream {
       double (*m_rngfct)(void*);
       void * m_rngfctstate;
@@ -806,7 +792,7 @@ void ncrystal_raw_vdos2knl( const double* vdos_egrid,
 {
   //obsolete fct:
   try {
-    static ncc::WarnFirstTime wf;
+    static NC::Msg::WarnFirstTime wf;
     wf("The ncrystal_raw_vdos2knl function is obsolete. Please use"
        " the ncrystal_raw_vdos2kernel function instead.");
   } NCCATCH;
@@ -1287,7 +1273,7 @@ void ncrystal_genscatter_nonoriented( ncrystal_scatter_t o, double ekin, double*
   *result_angle = -999.0;
   *result_dekin = -999.0;
   try {
-    static ncc::WarnFirstTime wf;
+    static NC::Msg::WarnFirstTime wf;
     wf("The ncrystal_genscatter_nonoriented function is obsolete. Please use"
        " the ncrystal_samplescatterisotropic function instead.");
     auto& sc = ncc::extract(o);
@@ -1307,7 +1293,7 @@ void ncrystal_genscatter_nonoriented_many( ncrystal_scatter_t o,
 {
   //obsolete fct:
   try {
-    static ncc::WarnFirstTime wf;
+    static NC::Msg::WarnFirstTime wf;
     wf("The ncrystal_genscatter_nonoriented_many function is obsolete."
        " Please use the ncrystal_samplescatterisotropic_many"
        " function instead.");
@@ -1335,7 +1321,7 @@ void ncrystal_genscatter_many( ncrystal_scatter_t o,
 {
   //obsolete fct:
   try {
-    static ncc::WarnFirstTime wf;
+    static NC::Msg::WarnFirstTime wf;
     wf("The ncrystal_genscatter_many function is obsolete."
        " Please use the ncrystal_samplescatter_many"
        " function instead.");
@@ -1358,7 +1344,7 @@ void ncrystal_genscatter( ncrystal_scatter_t o, double ekin, const double (*dire
 {
   //obsolete fct.
   try {
-    static ncc::WarnFirstTime wf;
+    static NC::Msg::WarnFirstTime wf;
     wf("The ncrystal_genscatter function is obsolete."
        " Please use the ncrystal_samplescatter"
        " function instead.");
@@ -1375,7 +1361,7 @@ void ncrystal_genscatter( ncrystal_scatter_t o, double ekin, const double (*dire
 int ncrystal_info_hasatompos( ncrystal_info_t ci_t ) {
   //obsolete fct:
   try {
-    static ncc::WarnFirstTime wf;
+    static NC::Msg::WarnFirstTime wf;
     wf("The ncrystal_info_hasatompos function is obsolete."
        " Please stop using it and instead call"
        " ncrystal_info_natominfo() which returns 0"
@@ -1389,7 +1375,7 @@ int ncrystal_info_hasanydebyetemp( ncrystal_info_t ci_t )
 {
   //obsolete fct:
   try {
-    static ncc::WarnFirstTime wf;
+    static NC::Msg::WarnFirstTime wf;
     wf("The ncrystal_info_hasanydebyetemp function is obsolete."
        " Please stop using it and instead call"
        " ncrystal_info_hasatomdebyetemp().");
@@ -1401,7 +1387,7 @@ double ncrystal_info_getglobaldebyetemp( ncrystal_info_t ci )
 {
   //obsolete fct.
   try {
-    static ncc::WarnFirstTime wf;
+    static NC::Msg::WarnFirstTime wf;
     wf("The ncrystal_info_getglobaldebyetemp function is obsolete."
        " Please stop using it.");
     ncc::extract(ci);//trigger type checking
@@ -1414,7 +1400,7 @@ double ncrystal_info_getdebyetempbyelement( ncrystal_info_t ci,
 {
   //obsolete fct
   try {
-    static ncc::WarnFirstTime wf;
+    static NC::Msg::WarnFirstTime wf;
     wf("The ncrystal_info_getdebyetempbyelement function is obsolete."
        " Please stop using it.");
     NC::AtomIndex idx{atomdataindex};
@@ -1486,7 +1472,7 @@ double ncrystal_decodecfg_packfact( const char * cfgstr )
   //Obsolete, returns 1 (but we still decode the cfgstr just to help the user
   //catch errors).
   try {
-    static ncc::WarnFirstTime wf;
+    static NC::Msg::WarnFirstTime wf;
     wf("The ncrystal_decodecfg_packfact function is obsolete"
        " and now always returns 1.0. Please stop using it"
        " and instead emulate a packing factor in the "
@@ -1581,7 +1567,7 @@ void ncrystal_clear_info_caches(void)
 {
   //obsolete, now simply redirects to ncrystal_clear_caches.
   try {
-    static ncc::WarnFirstTime wf;
+    static NC::Msg::WarnFirstTime wf;
     wf("The ncrystal_clear_info_caches function is obsolete"
        " and for now simply redirects to"
        " ncrystal_clear_caches(). Please stop using it"
@@ -2164,7 +2150,7 @@ void ncrystal_get_plugin_list( unsigned* nstrs,
 char* ncrystal_get_file_contents( const char * name )
 {
   try {
-    static ncc::WarnFirstTime wf;
+    static NC::Msg::WarnFirstTime wf;
     wf("The ncrystal_get_file_contents function is obsolete."
        " Please stop using it and use the ncrystal_get_text_data"
        " function instead.");

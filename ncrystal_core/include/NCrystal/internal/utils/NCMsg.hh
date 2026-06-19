@@ -81,6 +81,12 @@ namespace NCRYSTAL_NAMESPACE {
                  ::NCRYSTAL_NAMESPACE::MsgType::Warning );
 #endif
 
+    class WarnFirstTime : private NoCopyMove {
+      std::mutex m_mtx;
+      bool m_first = true;
+    public:
+      void operator()(const char * msg);
+    };
   }
 }
 
@@ -112,6 +118,14 @@ namespace NCRYSTAL_NAMESPACE {
     inline void outputMsg( const std::string& msg, MsgType mt )
     {
       detail::outputMsgImpl( msg.c_str(), mt );
+    }
+    inline void WarnFirstTime::operator()(const char*msg)
+    {
+      NCRYSTAL_LOCK_GUARD(m_mtx);//fixme: lock-less?
+      if ( m_first ) {
+        m_first = false;
+        NCRYSTAL_WARN(msg);
+      }
     }
   }
 }
