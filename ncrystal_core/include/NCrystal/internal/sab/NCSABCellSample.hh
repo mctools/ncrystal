@@ -154,6 +154,32 @@ namespace NCRYSTAL_NAMESPACE {
       double m_restrict_a2;
       void initEdge( EdgeData&, unsigned ) const;
     };
+
+
+    class RefCellSampler final : private NoCopyMove {
+
+      //////////////////////////////////////////////////////////////////////////
+      // Like BoundedCellSampler, but with a reference algorithm which has a
+      // much higher initialisation overhead, and might not be particularly fast
+      // to sample (but always with a non-abysmal acceptance rate). Its primary
+      // purpose is to be used as a reference in tests, and not to be used for
+      // actual end-user sampling.
+
+    public:
+
+      RefCellSampler( const CellData& cell, double E_div_kT );
+      ~RefCellSampler();
+
+      struct Result final {
+        double alpha;
+        double beta;
+        std::uint_fast64_t ntries;
+      };
+      Result sampleAlphaBeta( RNG& );
+    private:
+      void * m_impl;
+    };
+
   }
 }
 
