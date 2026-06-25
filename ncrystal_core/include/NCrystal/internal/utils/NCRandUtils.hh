@@ -23,6 +23,7 @@
 
 #include "NCrystal/internal/utils/NCSpan.hh"
 #include "NCrystal/internal/utils/NCVector.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/core/NCTypes.hh"
 
 namespace NCRYSTAL_NAMESPACE {
@@ -40,6 +41,10 @@ namespace NCRYSTAL_NAMESPACE {
   {
     return randNeutronDirectionGivenScatterMu( rng, mu.dbl(), in.as<Vector>() );
   }
+
+  //Sample uniformly in an interval:
+  double randInterval( double rand01, double a, double b );
+  double randInterval( RNG& rng, double a, double b );
 
   //Sample a random point on the unit circle:
   PairDD randPointOnUnitCircle( RNG& );
@@ -258,6 +263,18 @@ inline NCrystal::PairDD NCrystal::randPointInUnitCircle( RNG& rng )
     b = -1.0+rng.generate()*2.0;
   } while ( a*a + b*b > 1.0 );
   return { a, b };
+}
+
+
+inline double NCrystal::randInterval( double rand01, double a, double b )
+{
+  nc_assert( rand01 >= 0.0 && rand01 <= 1.0 );
+  return intervalPos( a, b, rand01 );
+}
+
+inline double NCrystal::randInterval( RNG& rng, double a, double b )
+{
+  return randInterval( rng.generate(), a, b );
 }
 
 #endif
