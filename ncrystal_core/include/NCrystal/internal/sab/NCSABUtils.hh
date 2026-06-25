@@ -227,7 +227,7 @@ NCrystal::SABUtils::interpolate_loglin_fast2_NEW(double a, double fa,
                                                  double b, double fb, double x,
                                                  double logfa, double logfb)
 {
-  nc_assert( fa >= 0.0 && fb >= 0.0 );
+  nc_assert( fa > 0.0 && fb > 0.0 );
   nc_assert( x >= a && x <= b );
   nc_assert( std::isfinite(logfa) && std::isfinite(logfb) );
   nc_assert( std::isfinite(fa) && std::isfinite(fb) );
