@@ -21,6 +21,7 @@
 #include "NCrystal/virtualapi/NCVirtAPI_Type1_v1.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCVirtAPIUtils.hh"
+#include <unordered_map>
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -56,13 +57,21 @@ namespace NCRYSTAL_NAMESPACE {
         delete reinterpret_cast<const ScatterProcess*>(sp);
       }
 
+      // Reuse a persistent cache per (thread, process) instead of allocating a
+      // fresh one on every call. The cache is keyed by process pointer so it is
+      // never shared between processes: accessCache does not check process
+      // identity, and m_nHistory (the only reset trigger) is not unique per
+      // process, so a single shared cache could be applied to the wrong process.
+      // The cross-section and scatter paths use separate maps, matching the two
+      // original CachePtr objects. thread_local keeps it thread-safe without
+      // locks, and replaces the per-call allocation the original flagged as
+      // "Fully MT safe, fully inefficient".
       double crossSectionUncached( const PubScatterProcess& pub_sp,
                                    const double* n ) const override
       {
         auto sp = reinterpret_cast<const ScatterProcess*>(&pub_sp);
-        CachePtr dummycache;//<--- Fully MT safe, fully inefficient. To be
-                            //revisited in a future api version!
-        return sp->procptr->crossSection( dummycache,
+        thread_local std::unordered_map<const ScatterProcess*, CachePtr> xs_caches;
+        return sp->procptr->crossSection( xs_caches[sp],
                                           NeutronEnergy{ n[0] },
                                           NeutronDirection( n[1], n[2], n[3] )
                                           ).dbl();
@@ -75,10 +84,9 @@ namespace NCRYSTAL_NAMESPACE {
                                   double* n ) const override
       {
         auto sp = reinterpret_cast<const ScatterProcess*>(&pub_sp);
-        CachePtr dummycache;//<--- Fully MT safe, fully inefficient. To be
-                            //revisited in a future api version!
+        thread_local std::unordered_map<const ScatterProcess*, CachePtr> scat_caches;
         VirtAPIUtils::RNGWrapper rng( &rng_fct );
-        auto out = sp->procptr->sampleScatter( dummycache, rng,
+        auto out = sp->procptr->sampleScatter( scat_caches[sp], rng,
                                                NeutronEnergy{ n[0] },
                                                NeutronDirection( n[1],
                                                                  n[2],
