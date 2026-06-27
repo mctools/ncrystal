@@ -22,6 +22,7 @@
 #include "NCrystal/core/NCFmt.hh"
 #include <istream>
 #include <iomanip>
+#include <locale>
 namespace NC = NCrystal;
 
 std::string NC::displayCharSafeQuoted( char ch_raw, char quote_char )
@@ -585,4 +586,37 @@ std::string NC::fmtUInt64AsNiceDbl( std::uint64_t n )
   if (res.empty())
     res = std::to_string(n);
   return res;
+}
+
+void NC::streamJSONHugeDblVect( std::ostream& os, Span<const double> v )
+{
+  os << '[';
+  std::ostringstream ss;
+  ss.imbue(std::locale::classic());
+  ss << std::setprecision(std::numeric_limits<double>::max_digits10)
+     << std::showpoint;
+  bool first(true);
+  unsigned iflush = 0;
+  for ( auto it = v.begin(); it!=v.end(); ++it ) {
+    if (++iflush==512) {
+      //flush contents, no need for the ss buffer to be large enough to
+      //contain everything at once.
+      iflush = 0;
+      os << ss.str();
+      ss.str("");
+    }
+    if ( first )
+      first = false;
+    else
+      ss <<',';
+    double val = *it;
+    if ( !std::isfinite(val) || !val ) {
+      //Handle nan+inf+0 with standard code path.
+      streamJSON(ss,val);
+    } else {
+      ss<<val;
+    }
+  }
+  os << ss.str();
+  os<<']';
 }

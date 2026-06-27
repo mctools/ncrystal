@@ -203,6 +203,10 @@ namespace NCRYSTAL_NAMESPACE {
   template<class T1, class T2>
   void streamJSON( std::ostream&, const std::pair<T1,T2>& );
 
+  //Slightly less nice FP formatting, but way more efficient for very long
+  //arrays of double data:
+  void streamJSONHugeDblVect( std::ostream&, Span<const double> );
+
   //Entries in dictionary "\"key\":<value>":
   enum class JSONDictPos { FIRST, LAST, OTHER };
   template<class T>

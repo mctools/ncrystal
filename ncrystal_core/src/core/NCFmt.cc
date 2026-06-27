@@ -23,6 +23,7 @@ namespace NC = NCrystal;
 
 #include <streambuf>
 #include <istream>
+#include <locale>
 
 namespace NCRYSTAL_NAMESPACE {
   namespace detail {
