@@ -26,6 +26,75 @@
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
 
+namespace NCRYSTAL_NAMESPACE {
+
+  namespace SABUtils {
+    namespace LargeKHandling {
+      //For very small k=S2/S1 (or S1/S2, whichever is smaller), alpha sampling
+      //will in practice only pick a relative alpha in [0,u] for some small
+      //u. To avoid bad acceptance rates later, we will in the
+      //BoundedCellSampler use this information to limit the alpha ranges and
+      //overlay values to the most significant part of the alpha
+      //range. Otherwise the overlay value can end up drastically overshooting
+      //the value in the region which is actually sampled.
+      //
+      // If we define a PDF f(x) = norm*k^t on [0,1], then norm=log(k)/(k-1) (we
+      // only deal with small k, so k!=1 is a safe assumption).
+      //
+      //For a given k<1 we want to determine u so that integral(f,x=0..u)=1-eps.
+      //This is equivalent to the condition:
+      //
+      //       k^u = 1-(1-eps)*(1-k)
+      //  <=>  u = ln(1-(1-eps)*(1-k))/ln(k)
+      //
+      //To avoid the special treatment when not needed, we will only consider it
+      //when u<0.5, leading to the threshold value of k given by:
+      //     k^0.5 = 1-(1-eps)*(1-k) => k = (eps/(1-eps))^2 ~= eps^2
+      //
+      //So if for instance eps=1e-4 we only apply the procedure when S2/S1 is
+      //outside the interval [1e-8,1e8].
+      constexpr double eps = 1e-6;//fixme "luxury"!!
+      constexpr double oneminuseps = 1.0 - eps;
+      constexpr double threshold_k = eps*eps/(oneminuseps*oneminuseps);
+      constexpr double inv_threshold_k = 1.0/threshold_k;
+      bool needsLargeKTreatment( double s1, double s2 )
+      {
+        return ( s1>0.0 && s2>0.0
+                 && !valueInInterval( threshold_k*s2,
+                                      inv_threshold_k*s2, s1 ) );
+      }
+
+      PairDD findRestrictedAlphaRange( double a1, double a2,
+                                       double s1, double s2,
+                                       double lns1, double lns2 )
+      {
+        nc_assert( needsLargeKTreatment(s1,s2) );
+        nc_assert( floateq( std::log(s1), lns1 ) );
+        nc_assert( floateq( std::log(s2), lns2 ) );
+        double k,lnk;
+        nc_assert( s2>s1 || s1>s2 );
+        nc_assert( s1>0.0 && s2>0.0 );
+        if ( s2>s1 ) {
+          k = s1/s2;
+          lnk = lns1-lns2;
+        } else {
+          k = s2/s1;
+          lnk = lns2-lns1;
+        }
+        nc_assert( k < 1.0 );
+        nc_assert( lnk < 0.0 );
+        const double t = std::log1p( oneminuseps * ( k - 1.0 ) ) / lnk;
+        if ( s2>s1 ) {
+          return { intervalPos( a1, a2, 1.0-t ), a2 };
+        } else {
+          return { a1, intervalPos(a1,a2,t) };
+        }
+      }
+
+    }
+  }
+}
+
 NCS::LogLinDistSampler::LogLinDistSampler( double a, double fa, double logfa,
                                            double b, double fb, double logfb,
                                            bool force_linlin )
@@ -86,7 +155,6 @@ NCS::FullCellSampler::FullCellSampler( const CellData* cellptr )
 {
   //fixme: alternative constructor which simply takes prob1 or (W1,W2), if we
   //already know it?
-
   nc_assert(m_cellptr!=nullptr);
   const CellData& c = *m_cellptr;
   const double W1 = integrateAlphaInterval_fast(c.a1,c.S[0],c.a2 , c.S[1],
@@ -134,8 +202,8 @@ NCS::BoundedCellSampler::sampleAlphaBeta( RNG& rng )
   const auto& edge = optEdge.value();
   const auto& c = m_cell;
 
-  LogLinDistSampler sampler( m_restrict_a1, edge.s_low, edge.lns_low,
-                             m_restrict_a2, edge.s_up, edge.lns_up,
+  LogLinDistSampler sampler( m_restrict_a1[offset/2], edge.s_low, edge.lns_low,
+                             m_restrict_a2[offset/2], edge.s_up, edge.lns_up,
                              edge.islinlin );
 
   Result res;
@@ -144,7 +212,9 @@ NCS::BoundedCellSampler::sampleAlphaBeta( RNG& rng )
   double overlay_val = overlay_val_orig;
   while ( true ) {
     ++res.ntries;
-#if 1
+    nc_assert_always(res.ntries< 200);//fixme _always + we should be able to
+                                      //lower this!
+#if 0
     //FIXME: Just testing a way to limit worst performance. Instead of raising
     //the overlay, we could also simply pick the previous best value after N
     //tries? (where "best" includes both the actual value and the R value used
@@ -157,7 +227,7 @@ NCS::BoundedCellSampler::sampleAlphaBeta( RNG& rng )
     }
     //fixme: just do this at init time (for cells with huge k or 1/k), and lower
     //cached overlay values? That way we can also use more values (e.g. 100).
-    if ( res.ntries > 20 && max_overlay_val_seen > 0.0 ) {
+    if ( res.ntries > 50 && max_overlay_val_seen > 0.0 ) {
       const double new_overlay = (res.ntries>20?1.2:2.0)*max_overlay_val_seen;
       overlay_val = ncmin(overlay_val_orig,new_overlay);
     }
@@ -222,31 +292,31 @@ void NCS::BoundedCellSampler::initEdge( EdgeData& edge, unsigned offset ) const
   edge.islinlin = !(ncmin( edge.s_low, edge.s_up )>0.0);
   if ( edge.islinlin ) {
     edge.lns_low = edge.lns_up = 0.0;
-    if ( m_restrict_a1 > m_cell.a1 )
+    if ( m_restrict_a1[offset/2] > m_cell.a1 )
       edge.s_low = interpolate_linlin_NEW(m_cell.a1, c.S[offset],
                                           m_cell.a2, c.S[offset+1],
-                                          m_restrict_a1);
-    if ( m_restrict_a2 < m_cell.a2 )
+                                          m_restrict_a1[offset/2]);
+    if ( m_restrict_a2[offset/2] < m_cell.a2 )
       edge.s_up = interpolate_linlin_NEW(m_cell.a1, c.S[offset],
                                          m_cell.a2, c.S[offset+1],
-                                         m_restrict_a2);
+                                         m_restrict_a2[offset/2]);
   } else {
     edge.lns_low = c.logS[offset];
     edge.lns_up = c.logS[offset+1];
-    if ( m_restrict_a1 > m_cell.a1 ) {
+    if ( m_restrict_a1[offset/2] > m_cell.a1 ) {
       auto rs = interpolate_loglin_fast2_NEW(m_cell.a1, c.S[offset],
                                              m_cell.a2, c.S[offset+1],
-                                             m_restrict_a1,
+                                             m_restrict_a1[offset/2],
                                              c.logS[offset],
                                              c.logS[offset+1]);
       edge.s_low = rs.first;
       edge.lns_low = rs.second;
     }
 
-    if ( m_restrict_a2 < m_cell.a2 ) {
+    if ( m_restrict_a2[offset/2] < m_cell.a2 ) {
       auto rs = interpolate_loglin_fast2_NEW(m_cell.a1, c.S[offset],
                                              m_cell.a2, c.S[offset+1],
-                                             m_restrict_a2,
+                                             m_restrict_a2[offset/2],
                                              c.logS[offset],
                                              c.logS[offset+1]);
       edge.s_up = rs.first;
@@ -255,63 +325,152 @@ void NCS::BoundedCellSampler::initEdge( EdgeData& edge, unsigned offset ) const
   }
 }
 
-NCS::BoundedCellSampler::ProcessedSurveyInfo
-NCS::BoundedCellSampler::processSurveyInfo( const SABCellSurvey& survey,
-                                            double alpha1, double alpha2,
-                                            double beta1, double beta2,
-                                            double E_div_kT )
+NCS::BoundedCellSampler::BCSData
+NCS::BoundedCellSampler::prepareBCSData( double probability_b1_edge,
+                                         const SABCellSurvey& survey,
+                                         const CellData& cell,
+                                         double E_div_kT )
 {
 
-  ProcessedSurveyInfo res;
-  res.overlay2 = -1.0f;
-  res.overlay1 = -1.0f;
-  res.alpha_up = -1.0f;
-  res.alpha_low = -1.0f;
+  BCSData res;
+  res.probability_b1_edge = probability_b1_edge;
+  res.overlay[0] = res.overlay[1] = -1.0;
+  res.alpha_low[0] = res.alpha_low[1] = -1.0;
+  res.alpha_up[0] = res.alpha_up[1] = -1.0;
 
   auto& regions = survey.regions();
   if ( regions.empty() )
     return res;
 
-  const double b1 = beta1;
-  const double b2 = beta2;
+  //large k treatment? First do a check across the cell, then a more specific
+  //one in the actual alpha-range of the active regions.
+  Optional<PairDD> restrict_a[2];
+  bool needs_largek[2] = {
+    LargeKHandling::needsLargeKTreatment( cell.S[0], cell.S[1] ),
+    LargeKHandling::needsLargeKTreatment( cell.S[2], cell.S[3] )
+  };
+
+  if ( needs_largek[0] || needs_largek[1] ) {
+    const bool region_restricts_a1 = ( regions.back().alpha_low > cell.a1 );
+    const bool region_restricts_a2 = ( regions.front().alpha_up < cell.a2 );
+    double S[4] = { cell.S[0], cell.S[1], cell.S[2], cell.S[3] };
+    double logS[4] = { cell.logS[0], cell.logS[1], cell.logS[2], cell.logS[3] };
+    double a1 = cell.a1;
+    double a2 = cell.a2;
+    //find restricted S/logS values if relevant:
+    auto s_interp = [&cell](double a,int offset) {
+      return interpolate_loglin_fast2_NEW( cell.a1, cell.S[offset],
+                                           cell.a2, cell.S[offset+1],
+                                           a,
+                                           cell.logS[offset], cell.logS[offset+1] );
+    };
+    if ( region_restricts_a1 ) {
+      auto sls1 = s_interp(regions.back().alpha_low,0);
+      auto sls2 = s_interp(regions.back().alpha_low,2);
+      S[0] = sls1.first;
+      logS[0] = sls1.second;
+      S[2] = sls2.first;
+      logS[2] = sls2.second;
+      a1 = regions.back().alpha_low;
+    }
+    if ( region_restricts_a2 ) {
+      auto sls1 = s_interp(regions.front().alpha_up,0);
+      auto sls2 = s_interp(regions.front().alpha_up,2);
+      S[1] = sls1.first;
+      logS[1] = sls1.second;
+      S[3] = sls2.first;
+      logS[3] = sls2.second;
+      a2 = regions.front().alpha_up;
+    }
+    //recheck if still needs largek treatment in this reduced range:
+    needs_largek[0] = LargeKHandling::needsLargeKTreatment( S[0], S[1] );
+    needs_largek[1] = LargeKHandling::needsLargeKTreatment( S[2], S[3] );
+    //Find the reduced ranges if needed:
+    for ( int i = 0; i < 2; ++i ) {
+      auto offset = 2*i;
+      if (needs_largek[i]) {
+        auto rarange
+          = LargeKHandling::findRestrictedAlphaRange( a1, a2,
+                                                      S[offset], S[offset+1],
+                                                      logS[offset],
+                                                      logS[offset+1]);
+        restrict_a[i].emplace(rarange);
+      }
+    }
+  }
+
+  const bool restrict_any = ( restrict_a[0].has_value()
+                              || restrict_a[1].has_value() );
+  const double b1 = cell.b1;
+  const double b2 = cell.b2;
   const double e = E_div_kT;
 
   double o1(-1.0), o2(-1.0);
   auto it = regions.begin();
   auto itE = regions.end();
   SABCellSurvey::Region current = *it++;
-  auto updateO1 = [&o1,b2]( double bmid, double bwidth )
+  auto updateO1 = [&o1,b2,&restrict_a]( double bmid, double bwidth, double a )
   {
+    if ( a>=0.0 && restrict_a[0].has_value() ) {
+      if ( a < restrict_a[0].value().first || a > restrict_a[0].value().second )
+        return;
+    }
     o1 = ncmax(o1, (b2-bmid)*bwidth );
-
   };
-  auto updateO2 = [&o2,b1]( double bmid, double bwidth )
+  auto updateO2 = [&o2,b1,&restrict_a]( double bmid, double bwidth, double a )
   {
+    if ( a>=0.0 && restrict_a[1].has_value() ) {
+      if ( a < restrict_a[1].value().first || a > restrict_a[1].value().second )
+        return;
+    }
     o2 = ncmax(o2, (bmid-b1)*bwidth );
-
   };
-  auto updateO12 = [&updateO1,&updateO2]( double bmid, double bwidth )
+  auto updateO12 = [&updateO1,&updateO2]( double bmid, double bwidth, double a )
   {
-    updateO1(bmid,bwidth);
-    updateO2(bmid,bwidth);
+    updateO1(bmid,bwidth,a);
+    updateO2(bmid,bwidth,a);
   };
+
+  SmallVector<std::pair<int,double>,4> restriction_pts;//{ sideidx, alpha }
+  for ( int i = 0; i < 2; ++i ) {
+    if ( restrict_a[i].has_value() ) {
+      restriction_pts.emplace_back( i, restrict_a[i].value().first );
+      restriction_pts.emplace_back( i, restrict_a[i].value().second );
+    }
+  }
+
   auto processCurrent = [b1,b2,e,&current,
+                         &restrict_a,restrict_any,&restriction_pts,
                          &updateO1,&updateO2,&updateO12]()
   {
     const auto& r = current;
+
+    SmallVector<std::pair<int,double>,4> restriction_pts_in_region;
+    for ( auto& i_a : restriction_pts ) {
+      if ( valueInInterval( r.alpha_low, r.alpha_up, i_a.second ) )
+        restriction_pts_in_region.emplace_back( i_a );
+    }
+
     if ( r.is_bounded_by_betaplus ) {
       if ( r.is_bounded_by_betaminus ) {
         //bound by [betaminus(alpha),betaplus(alpha)]
-        updateO12( r.alpha_up, 4.0*std::sqrt(e * r.alpha_up) );
-        updateO12( r.alpha_low, 4.0*std::sqrt(e * r.alpha_low) );
+        updateO12( r.alpha_up, 4.0*std::sqrt(e * r.alpha_up), r.alpha_up );
+        updateO12( r.alpha_low, 4.0*std::sqrt(e * r.alpha_low), r.alpha_low );
         //local maximum at a=b2/3 for o1 and at a=b1/3 for o2:
         constexpr double onethird = 1.0/3.0;
         const double amax1 = b2*onethird;
         const double amax2 = b1*onethird;
         if ( valueInInterval( r.alpha_low, r.alpha_up, amax1 ) )
-          updateO1( amax1, 4.0*std::sqrt(e * amax1) );
+          updateO1( amax1, 4.0*std::sqrt(e * amax1), amax1 );
         if ( valueInInterval( r.alpha_low, r.alpha_up, amax2 ) )
-          updateO2( amax2, 4.0*std::sqrt(e * amax2) );
+          updateO2( amax2, 4.0*std::sqrt(e * amax2), amax2 );
+        //check for restriction points:
+        for ( auto& i_a : restriction_pts_in_region ) {
+          const double bw = 4.0*std::sqrt(e * i_a.second);
+          ( i_a.first
+            ? updateO2( i_a.second, bw, i_a.second )
+            :  updateO1( i_a.second, bw, i_a.second ) );
+        }
       } else {
         //bound by [b1,betaplus(alpha)]
         const double sqrte = std::sqrt(e);
@@ -322,9 +481,9 @@ NCS::BoundedCellSampler::processSurveyInfo( const SABCellSurvey& survey,
           const double bplus = a + twosqrte*std::sqrt(a);
           const double bmid((bplus+b1)*0.5), bwidth(bplus-b1);
           if (do1)
-            updateO1(bmid,bwidth);
+            updateO1(bmid,bwidth,a);
           if (do2)
-            updateO2(bmid,bwidth);
+            updateO2(bmid,bwidth,a);
         };
         pt(r.alpha_up);
         pt(r.alpha_low);
@@ -334,6 +493,10 @@ NCS::BoundedCellSampler::processSurveyInfo( const SABCellSurvey& survey,
           pt( amax1, true, false );
         if ( valueInInterval( r.alpha_low, r.alpha_up, amax2 ) )
           pt( amax2, false, true );
+        //check for restriction points:
+        for ( auto& i_a : restriction_pts_in_region ) {
+          i_a.first ? pt(i_a.second,true,false) : pt(i_a.second,false,true);
+        }
       }
     } else {
       if ( r.is_bounded_by_betaminus ) {
@@ -342,15 +505,36 @@ NCS::BoundedCellSampler::processSurveyInfo( const SABCellSurvey& survey,
         const double twosqrte = 2.0 * sqrte;
         auto pt = [b2,updateO12,twosqrte]( double a ) {
           const double bminus = a - twosqrte*std::sqrt(a);
-          updateO12((bminus+b2)*0.5,b2-bminus);
+          updateO12((bminus+b2)*0.5,b2-bminus,a);
         };
         pt( r.alpha_up );
         pt( r.alpha_low );
         if ( valueInInterval( r.alpha_low, r.alpha_up, e ) )
           pt( e );
+        //check for restriction points:
+        for ( auto& i_a : restriction_pts_in_region )
+          pt( i_a.second );//potentially calling twice with same point, but not
+                           //a problem and extremely rare.
       } else {
         //bound by [b1,b2]
-        updateO12( (b1+b2)*0.5, b2-b1 );
+        const double bm = (b1+b2)*0.5;
+        const double bw = b2-b1;
+        if (!restrict_any) {
+          updateO12( bm, bw, -1.0 );
+        } else {
+          if ( !restrict_a[0].has_value()
+               || intervalsOverlap( r.alpha_low, r.alpha_up,
+                                    restrict_a[0].value().first,
+                                    restrict_a[0].value().second ) ) {
+            updateO1( bm, bw, -1.0 );
+          }
+          if ( !restrict_a[1].has_value()
+               || intervalsOverlap( r.alpha_low, r.alpha_up,
+                                    restrict_a[1].value().first,
+                                    restrict_a[1].value().second ) ) {
+            updateO2( bm, bw, -1.0 );
+          }
+        }
       }
     }
   };
@@ -382,30 +566,157 @@ NCS::BoundedCellSampler::processSurveyInfo( const SABCellSurvey& survey,
     }
   };
 
-  if ( regions.front().alpha_up < alpha2 ) {
-    storeFloat(res.alpha_up,regions.front().alpha_up);
-    if ( !(static_cast<double>(res.alpha_up)<alpha2) )
-      res.alpha_up = -1.0f;
+#if 0
+  if ( regions.front().alpha_up < cell.a2 ) {
+    storeFloat(res.alpha_up[0],regions.front().alpha_up);
+    if ( !(static_cast<double>(res.alpha_up[0])<cell.a2) )
+      res.alpha_up[0] = -1.0f;
+    res.alpha_up[1] = res.alpha_up[0];//FIXME JUST STORING ONE!
   }
 
-  if ( regions.back().alpha_low > alpha1 ) {
-    storeFloat(res.alpha_low,regions.back().alpha_low,false);
-    if ( !(static_cast<double>(res.alpha_low)>alpha1) )
-      res.alpha_low = -1.0f;
+  if ( regions.back().alpha_low > cell.a1 ) {
+    storeFloat(res.alpha_low[0],regions.back().alpha_low,false);
+    if ( !(static_cast<double>(res.alpha_low[0])>cell.a1) )
+      res.alpha_low[0] = -1.0f;
+    res.alpha_low[1] = res.alpha_low[0];//FIXME JUST STORING ONE!
   }
+#else
+  for ( int i = 0; i < 2; ++i ) {
+    double aup = ncmin( regions.front().alpha_up, cell.a2 );
+    double alow = ncmax( regions.back().alpha_low, cell.a1 );
+    if ( restrict_a[i].has_value() ) {
+      aup = ncmin( aup, restrict_a[i].value().second );
+      alow = ncmax( alow, restrict_a[i].value().first );
+    }
+    storeFloat(res.alpha_up[i],aup);
+    if ( !(static_cast<double>(res.alpha_up[i])<cell.a2) )
+      res.alpha_up[i] = -1.0f;
+    storeFloat(res.alpha_low[i],alow,false);
+    if ( !(static_cast<double>(res.alpha_low[i])>cell.a1) )
+      res.alpha_low[i] = -1.0f;
+  }
+#endif
 
-  storeFloat(res.overlay1,o1);
-  storeFloat(res.overlay2,o2);
-  nc_assert( res.overlay1 >= 0.0f );
-  nc_assert( res.overlay2 >= 0.0f );
+  storeFloat(res.overlay[0],o1);
+  storeFloat(res.overlay[1],o2);
+  nc_assert( res.overlay[0] >= 0.0f );
+  nc_assert( res.overlay[1] >= 0.0f );
 
   constexpr double overlay_safety_factor = 1.0001;
-  res.overlay1 *= overlay_safety_factor;
-  res.overlay2 *= overlay_safety_factor;
-  nc_assert( res.overlay1 > 0.0f );
-  nc_assert( res.overlay2 > 0.0f );
+  res.overlay[0] *= overlay_safety_factor;
+  res.overlay[1] *= overlay_safety_factor;
+  nc_assert( res.overlay[0] > 0.0f );
+  nc_assert( res.overlay[1] > 0.0f );
 
   return res;
+}
+
+std::size_t NCS::BoundedCellSampler::pack( MixedDataVector& buffer, const BCSData& data )
+{
+  nc_assert( data.overlay[0]>0.0 );
+  nc_assert( data.overlay[1]>0.0 );
+  nc_assert( data.probability_b1_edge >= 0.0 );
+  nc_assert( data.probability_b1_edge <= 1.0 );
+  std::size_t idx = buffer.append<double>( data.probability_b1_edge );
+
+  //Figure out what kind of alpha range limits are available:
+  const bool has_alow = ncmax( data.alpha_low[0],
+                               data.alpha_low[1]) >= 0.0;
+  const bool has_aup = ncmax( data.alpha_up[0],
+                              data.alpha_up[1]) >= 0.0;
+  auto packalpha = [&buffer]( const float (&a)[2] )
+  {
+    nc_assert( a[0]>0.0 || a[1] > 0.0 );
+    nc_assert( a[0]>0.0 || a[0] == -1.0 );
+    nc_assert( a[1]>0.0 || a[1] == -1.0 );
+    //encode 2 alpha values. If identical, just put the single
+    //value. Otherwise put the two values with negative sign (one might be
+    //-1.0 if only one is set).
+    if ( a[0]==a[1] ) {
+      buffer.append<float>( a[0] );
+    } else {
+      buffer.append<float>( -a[0] );
+      buffer.append<float>( -a[1] );
+    }
+  };
+  if ( has_alow ) {
+    if ( has_aup ) {
+      //both alow+aup overrides ( signature: -ol[0] -ol[1] ).
+      buffer.append<float>( -data.overlay[0] );
+      buffer.append<float>( -data.overlay[1] );
+      packalpha( data.alpha_low );
+      packalpha( data.alpha_up );
+    } else {
+      //just alow overrides ( signature: -ol[0] +ol[1] ).
+      buffer.append<float>( -data.overlay[0] );
+      buffer.append<float>( data.overlay[1] );
+      packalpha( data.alpha_low );
+    }
+  } else {
+    if ( has_aup ) {
+      //just aup overrides ( signature: +ol[0] -ol[1] ).
+      buffer.append<float>( data.overlay[0] );
+      buffer.append<float>( -data.overlay[1] );
+      packalpha( data.alpha_up );
+    } else {
+      //neither alow or aup overrides ( signature: +ol[0] +ol[1] ).
+      buffer.append<float>( data.overlay[0] );
+      buffer.append<float>( data.overlay[1] );
+    }
+  }
+  return idx;
+}
+
+NCS::BoundedCellSampler::BCSData
+NCS::BoundedCellSampler::unpack( const MixedDataVector& buffer,
+                                 std::size_t index )
+{
+  BCSData data;
+  data.probability_b1_edge = buffer.extract<double>(index);
+  index += sizeof(double);
+  auto getfloat = [&buffer,&index]()
+  {
+    float v = buffer.extract<float>(index);
+    index += sizeof(float);
+    return v;
+  };
+  float ol0 = getfloat();
+  float ol1 = getfloat();
+  data.overlay[0] = ncabs(ol0);
+  data.overlay[1] = ncabs(ol1);
+  auto unpackalpha = [&getfloat]( float (&a)[2] )
+  {
+    a[0] = getfloat();
+    if ( a[0] > 0.0 ) {
+      a[1] = a[0];
+    } else {
+      a[0] = -a[0];
+      a[1] = -getfloat();
+    }
+  };
+
+  if ( ol0 > 0.0 ) {
+    if ( ol1 > 0.0 ) {
+      //neither alow or aup overrides ( signature: +ol[0] +ol[1] ).
+      data.alpha_low[0] = data.alpha_low[1] = -1.0;
+      data.alpha_up[0] = data.alpha_up[1] = -1.0;
+    } else {
+      //just aup overrides ( signature: +ol[0] -ol[1] ).
+      unpackalpha(data.alpha_up);
+      data.alpha_low[0] = data.alpha_low[1] = -1.0;
+    }
+  } else {
+    if ( ol1 > 0.0 ) {
+      //just alow overrides ( signature: -ol[0] +ol[1] ).
+      unpackalpha(data.alpha_low);
+      data.alpha_up[0] = data.alpha_up[1] = -1.0;
+    } else {
+      //both alow+aup overrides ( signature: -ol[0] -ol[1] ).
+      unpackalpha(data.alpha_low);
+      unpackalpha(data.alpha_up);
+    }
+  }
+  return data;
 }
 
 namespace NCRYSTAL_NAMESPACE {
