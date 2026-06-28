@@ -21,24 +21,151 @@
 #include "NCrystal/internal/sab/NCSABRefEval.hh"
 #include "NCrystal/internal/sab/NCSABKBCellSmpl.hh"
 #include "NCrystal/internal/sab/NCSABSurveyor.hh"
-#include "NCrystal/internal/sab/NCSABCellInteg.hh"//fixme: reconsider filename?
+#include "NCrystal/internal/sab/NCSABCellInteg.hh"
+#include "NCrystal/internal/sab/NCSABCellSample.hh"
 #include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
 #include "NCrystal/internal/extd_utils/NCInfoUtils.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/factories/NCMatCfg.hh"
 #include "NCrystal/core/NCSmallVector.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #include "NCSABQuery.hh"
-
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
   namespace SABUtils {
 
     namespace {
+
+      struct SampleResult {
+        VectD a;
+        VectD b;
+        std::uint64_t ntries = 0;
+        double prob1 = -1.0;//probability of edge @ beta=b1
+      };
+      SampleResult testFullCellOverlaySample( double E_div_kT,
+                                              RNG& rng,
+                                              const CellData& c,
+                                              std::uint64_t nsample,
+                                              std::uint64_t ntries_max )
+      {
+        FullCellSampler fcsampler( &c );
+        const double foure = 4*E_div_kT;
+        SampleResult res;
+        res.prob1 = fcsampler.probabilityEdge1();
+        res.a.reserve(nsample);
+        res.b.reserve(nsample);
+        while( res.a.size() < nsample ) {
+          if ( res.ntries > ntries_max ) {
+            NCRYSTAL_WARN("Early abort of FullCellOverlaySample due to bad AR.");
+            break;
+          }
+          ++res.ntries;
+          auto ab = fcsampler.sampleAlphaBeta( rng );
+          if ( ncsquare(ab.first-ab.second) <= ab.first*foure ) {
+            res.a.push_back( ab.first );
+            res.b.push_back( ab.second );
+          }
+        }
+        return res;
+      }
+
+      SampleResult testBoundedCellSample( const SABCellSurvey& cellsurv,
+                                          double E_div_kT,
+                                          RNG& rng,
+                                          const CellData& c,
+                                          std::uint64_t nsample,
+                                          std::uint64_t ntries_max )
+      {
+        //Use contributions from each individual cell edge to find probability
+        //of scattering from that edge.
+
+        //Calculate prob1 (will be cached in actual production usage alg):
+        double prob1;
+        const auto scheme
+          = StdLogLinCellIntegrator::IntegrationScheme::MaxPrec;//fixme
+        {
+          CellData c1 = c;
+          c1.S[2]=c1.S[3]=c1.logS[2]=c1.logS[3]=0.0;
+          CellData c2 = c;
+          c2.S[0]=c2.S[1]=c2.logS[0]=c2.logS[1]=0.0;
+          StableSum sum;
+          StdLogLinCellIntegrator::integrateWithinKB( c1, E_div_kT,
+                                                      scheme, sum );
+          const double W1 = sum.sum();
+          StdLogLinCellIntegrator::integrateWithinKB( c2, E_div_kT,
+                                                      scheme, sum );
+          //fixme: can also just use the regular dual-edge integration result in
+          //place of W1plusW2.
+          const double W1plusW2 = sum.sum();
+          nc_assert_always(W1plusW2>0.0);
+          prob1 = W1 / W1plusW2;
+        }
+
+        auto bcsdata
+          = BoundedCellSampler::prepareBCSData( prob1, cellsurv, c, E_div_kT );
+
+        {
+          //Small serialisation test:
+          MixedDataVector dummy_cache;
+          dummy_cache.append(123.0);
+          auto packidx = BoundedCellSampler::pack(dummy_cache, bcsdata );
+          nc_assert_always(packidx>0&&packidx<dummy_cache.size_bytes());
+          dummy_cache.append(456.0);
+          std::memset( &bcsdata, 17, sizeof(bcsdata) );
+          bcsdata = BoundedCellSampler::unpack(dummy_cache, packidx );
+        }
+
+        BoundedCellSampler sampler( c, bcsdata, E_div_kT );
+        SampleResult res;
+        res.prob1 = prob1;
+        res.a.reserve(nsample);
+        res.b.reserve(nsample);
+        while( res.a.size() < nsample ) {
+          auto ab = sampler.sampleAlphaBeta(rng);
+          res.a.push_back(ab.alpha);
+          res.b.push_back(ab.beta);
+          res.ntries += ab.ntries;
+          if ( res.ntries > ntries_max ) {
+            NCRYSTAL_WARN("Early abort of FixedKBCellSample due to bad AR.");
+            break;
+          }
+        }
+        return res;
+      }
+
+      SampleResult produceRefCellSamples( double E_div_kT,
+                                          RNG& rng,
+                                          const CellData& c,
+                                          std::uint64_t nsample,
+                                          std::uint64_t ntries_max )
+      {
+        RefCellSampler refsampler( c, E_div_kT );
+        const double foure = 4*E_div_kT;
+        SampleResult res;
+        res.prob1 = -1.0;//not available
+        res.a.reserve(nsample);
+        res.b.reserve(nsample);
+        while( res.a.size() < nsample ) {
+          if ( res.ntries > ntries_max )
+            NCRYSTAL_THROW(CalcError,"RefCellSampler too inefficient.");
+          auto ab = refsampler.sampleAlphaBeta( rng );
+          res.ntries += ab.ntries;
+          if ( !( ncsquare(ab.alpha-ab.beta) <= ab.alpha*foure ) )
+            NCRYSTAL_THROW(CalcError,
+                           "RefCellSampler produced inaccessible point.");
+          res.a.push_back( ab.alpha );
+          res.b.push_back( ab.beta );
+        }
+        return res;
+      }
+
       void query_impl_sglcell( std::ostream& os, double E_div_kT,
                                double a1, double a2, double b1, double b2,
-                               double s11, double s12, double s21, double s22 )
+                               double s11, double s12, double s21, double s22,
+                               std::uint64_t nsample )
       {
+        const std::uint64_t ntries_max = nsample*100;
         PairDD alpha(a1,a2), beta(b1,b2);
         VectD alpha_v = {a1,a2};
         VectD beta_v = {b1,b2};
@@ -46,8 +173,9 @@ namespace NCRYSTAL_NAMESPACE {
         SABCellSurvey cellsurv( a1, a2, b1, b2, E_div_kT );
         double cellinteg_full;
         SmallVector<std::pair<StrView,double>,32> cellinteg_pb_list;
+        double cellinteg_pb_chosen_for_fcsample = -1.0;
+        CellData cell;//fixme: use this in all relevant interfaces?
         {
-          CellData cell;//fixme: use this in all relevant interfaces?
           cell.a1 = a1;
           cell.a2 = a2;
           cell.b1 = b1;
@@ -58,6 +186,8 @@ namespace NCRYSTAL_NAMESPACE {
           cell.S[3] = s22;
           for ( auto i : ncrange(4) )
             cell.logS[i] = ( cell.S[i] > 0.0 ? std::log(cell.S[i]) : 0.0 );
+        }
+        {
           StableSum sum_full;
           using SCI = StdLogLinCellIntegrator;
           SCI::integrateFullCell(cell,sum_full);
@@ -69,11 +199,39 @@ namespace NCRYSTAL_NAMESPACE {
             StableSum sum_pb;
             SCI::integrateWithinKB( cell, E_div_kT, scheme, sum_pb);
             cellinteg_pb_list.emplace_back(sv_scheme,sum_pb.sum());
+            if ( scheme == SCI::IntegrationScheme::Flex5 )
+              cellinteg_pb_chosen_for_fcsample = sum_pb.sum();
           }
         }
 
+        const double predicted_fc_ar
+          = ( cellinteg_full > 0.0
+              ? cellinteg_pb_chosen_for_fcsample/cellinteg_full
+              : -1.0 );
+
+        const bool useBoundedCellSample = ( cellinteg_pb_chosen_for_fcsample
+                                            < 0.1*cellinteg_full );//fixme: thr?
+
         nc_assert_always(surv.getTouchList().size()==1);
         nc_assert_always(surv.getCoverList().size()==1);
+        const double E_div_kT_touch = surv.getTouchList().front().first;
+        SampleResult samples_fc, samples_bc, samples_ref;
+        Optional<double> prob1_fc, prob1_bc;
+        const uint64_t seed = 123456;
+        auto rng = createBuiltinRNG( seed );
+        if ( nsample>0 && E_div_kT>E_div_kT_touch ) {
+          samples_ref = produceRefCellSamples( E_div_kT, rng, cell,
+                                               nsample, ntries_max );
+          nc_assert_always( samples_ref.a.size() == nsample );
+          nc_assert_always( samples_ref.b.size() == nsample );
+          if ( predicted_fc_ar > 0.001 || !useBoundedCellSample )
+            samples_fc = testFullCellOverlaySample( E_div_kT, rng, cell,
+                                                    nsample, ntries_max );
+          samples_bc = testBoundedCellSample( cellsurv, E_div_kT, rng,
+                                              cell, nsample, ntries_max );
+          prob1_fc = samples_fc.prob1;
+          prob1_bc = samples_bc.prob1;
+        }
         os<<"{\"alpha\":";
         streamJSON(os,alpha);
         os<<",\"beta\":";
@@ -119,7 +277,34 @@ namespace NCRYSTAL_NAMESPACE {
           streamJSON(os,e.second);
           os<<']';
         }
-        os <<"]}}";
+        os <<"]},\"sampling\":{";
+        os <<"\"chosen_sample_method\":";
+        streamJSON(os,(useBoundedCellSample?"bc":"fc"));
+        os <<",\"fc_predicted_AR\":";
+        streamJSON(os,predicted_fc_ar);
+        os <<",\"fc_sampled_alpha\":";
+        streamJSONHugeDblVect(os,samples_fc.a);
+        os <<",\"fc_sampled_beta\":";
+        streamJSONHugeDblVect(os,samples_fc.b);
+        os <<",\"bc_sampled_alpha\":";
+        streamJSONHugeDblVect(os,samples_bc.a);
+        os <<",\"bc_sampled_beta\":";
+        streamJSONHugeDblVect(os,samples_bc.b);
+        os <<",\"bc_sampled_ntries\":";
+        streamJSON(os,samples_bc.ntries);
+        os <<",\"fc_sampled_ntries\":";
+        streamJSON(os,samples_fc.ntries);
+        os <<",\"fc_prob_edge_1\":";
+        streamJSON(os,prob1_fc);
+        os <<",\"bc_prob_edge_1\":";
+        streamJSON(os,prob1_bc);
+        os <<",\"ref_sampled_alpha\":";
+        streamJSONHugeDblVect(os,samples_ref.a);
+        os <<",\"ref_sampled_beta\":";
+        streamJSONHugeDblVect(os,samples_ref.b);
+        os <<",\"ref_sampled_ntries\":";
+        streamJSON(os,samples_ref.ntries);
+        os <<"}}";
       }
 
       void query_impl_surveyor( std::ostream& os,
@@ -331,10 +516,18 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
     query_impl_surveyor( os, alpha, beta );
   } else if ( key == sv_sglcell ) {
     const char * usage = ( "correct usage: [\"sab\",\"sglcell\",EDIVKT,ALPHA1,"
-                           "ALPHA2,BETA1,BETA2,SA1B1,SA2B1,SA1B2,SA2B2],"
-                           " with negative beta values prefixed with '@'." );
-    if ( nargs != 9 )
+                           "ALPHA2,BETA1,BETA2,SA1B1,SA2B1,SA1B2,SA2B2,"
+                           "NSAMPLE], with negative beta values prefixed"
+                           " with '@' and NSAMPLE being optional." );
+    if ( nargs != 9 && nargs != 10 )
       invalid(usage);
+    std::uint64_t nsample = 0;
+    if ( nargs==10 ) {
+      auto optns = arg(9).toUInt64();
+      if ( !optns.has_value() )
+        invalid(usage);
+      nsample = optns.value();
+    }
     if (!arg(3).startswith('@')||!arg(4).startswith('@'))
       invalid(usage);
     SmallVector<Optional<double>,9> v;
@@ -361,7 +554,7 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
          || !(s21>=0.0) || !(s22>=0.0) )
       invalid(usage);
     query_impl_sglcell( os, E_div_kT, a1, a2, b1, b2,
-                        s11, s12, s21, s22);
+                        s11, s12, s21, s22, nsample );
   } else if ( key == sv_integschemes ) {
     if ( nargs != 0 )
       invalid("[\"sab\",\"sglcell\",\"integschemes\"] does"
