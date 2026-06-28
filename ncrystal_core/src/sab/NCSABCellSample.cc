@@ -844,10 +844,21 @@ namespace NCRYSTAL_NAMESPACE {
           //alpha-bin edges could be underestimated.
           SmallVector<double,5> special_avals;
           {
+            //candidates (the ncabs(..) inside the sqrt is inserted for safety,
+            //it is no harm to add spurious candidates here if that candidate
+            //did not actually exist in the given setup.
+            const double sqrte = std::sqrt(m_e);
+            const double da1 = 2*std::sqrt(ncabs(m_e*(m_cell.b1+m_e)));
+            const double da2 = 2*std::sqrt(ncabs(m_e*(m_cell.b2+m_e)));
+
             SmallVector<double,5> special_avals_candidates
               = { m_e, m_cell.b1/3, m_cell.b2/3,
-                  ncsquare( std::sqrt( m_e + m_cell.b1 ) - std::sqrt(m_e) ),
-                  ncsquare( std::sqrt( m_e + m_cell.b2 ) - std::sqrt(m_e) ) };
+                  ncsquare( std::sqrt( ncabs(m_e + m_cell.b1) ) - sqrte ),
+                  ncsquare( std::sqrt( ncabs(m_e + m_cell.b2) ) - sqrte ),
+                  2*m_e+m_cell.b1-da1,
+                  2*m_e+m_cell.b1+da1,
+                  2*m_e+m_cell.b2-da2,
+                  2*m_e+m_cell.b2+da2 };
             for ( auto a : special_avals_candidates ) {
               if ( valueInInterval(m_alow,m_aup,a) )
                 special_avals.push_back(a);
