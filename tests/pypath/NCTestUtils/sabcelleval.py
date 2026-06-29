@@ -29,7 +29,7 @@ class RefCell:
     """
 
     def __init__(self, *, a1,a2,b1,b2,s11,s12,s21,s22,
-                 mpmath_dps = 50 ):
+                 mpmath_dps = 100 ):
         from .mpmathctx import get_mpmath_context
         self.__mp = get_mpmath_context(mpmath_dps)
         mpf = self.__mp.mpf
