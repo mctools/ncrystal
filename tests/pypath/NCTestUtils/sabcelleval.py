@@ -732,7 +732,6 @@ class AlphaRangeSampler:
         #Now, prepare uniform overlay sampler for these cells:
         overlay_contrib = []
         totsum = mp.mpf(0)
-        overlay_vals = []
         safety = mpf('1.1')
         finalcells = []
         for c in cells:
