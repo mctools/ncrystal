@@ -163,7 +163,7 @@ namespace NCRYSTAL_NAMESPACE {
       void query_impl_sglcell( std::ostream& os, double E_div_kT,
                                double a1, double a2, double b1, double b2,
                                double s11, double s12, double s21, double s22,
-                               std::uint64_t nsample )
+                               std::uint64_t nsample, std::uint64_t seed )
       {
         const std::uint64_t ntries_max = nsample*100;
         PairDD alpha(a1,a2), beta(b1,b2);
@@ -217,7 +217,6 @@ namespace NCRYSTAL_NAMESPACE {
         const double E_div_kT_touch = surv.getTouchList().front().first;
         SampleResult samples_fc, samples_bc, samples_ref;
         Optional<double> prob1_fc, prob1_bc;
-        const uint64_t seed = 123456;
         auto rng = createBuiltinRNG( seed );
         if ( nsample>0 && E_div_kT>E_div_kT_touch ) {
           samples_ref = produceRefCellSamples( E_div_kT, rng, cell,
@@ -517,16 +516,23 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
   } else if ( key == sv_sglcell ) {
     const char * usage = ( "correct usage: [\"sab\",\"sglcell\",EDIVKT,ALPHA1,"
                            "ALPHA2,BETA1,BETA2,SA1B1,SA2B1,SA1B2,SA2B2,"
-                           "NSAMPLE], with negative beta values prefixed"
-                           " with '@' and NSAMPLE being optional." );
-    if ( nargs != 9 && nargs != 10 )
+                           "NSAMPLE,SEED], with negative beta values prefixed"
+                           " with '@' and NSAMPLE+SEED being optional." );
+    if ( nargs < 9 || nargs > 11 )
       invalid(usage);
     std::uint64_t nsample = 0;
-    if ( nargs==10 ) {
+    std::uint64_t seed = 123456;
+    if ( nargs>=10 ) {
       auto optns = arg(9).toUInt64();
       if ( !optns.has_value() )
         invalid(usage);
       nsample = optns.value();
+    }
+    if ( nargs>=11 ) {
+      auto optsd = arg(10).toUInt64();
+      if ( !optsd.has_value() )
+        invalid(usage);
+      seed = optsd.value();
     }
     if (!arg(3).startswith('@')||!arg(4).startswith('@'))
       invalid(usage);
@@ -554,7 +560,7 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
          || !(s21>=0.0) || !(s22>=0.0) )
       invalid(usage);
     query_impl_sglcell( os, E_div_kT, a1, a2, b1, b2,
-                        s11, s12, s21, s22, nsample );
+                        s11, s12, s21, s22, nsample, seed );
   } else if ( key == sv_integschemes ) {
     if ( nargs != 0 )
       invalid("[\"sab\",\"sglcell\",\"integschemes\"] does"
