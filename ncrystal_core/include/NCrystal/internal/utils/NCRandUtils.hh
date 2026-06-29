@@ -269,7 +269,7 @@ inline NCrystal::PairDD NCrystal::randPointInUnitCircle( RNG& rng )
 inline double NCrystal::randInterval( double rand01, double a, double b )
 {
   nc_assert( rand01 >= 0.0 && rand01 <= 1.0 );
-  return intervalPos( a, b, rand01 );
+  return intervalPos01( a, b, rand01 );
 }
 
 inline double NCrystal::randInterval( RNG& rng, double a, double b )

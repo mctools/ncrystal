@@ -147,6 +147,9 @@ namespace NCRYSTAL_NAMESPACE {
   //in a numerically stable way. Usually 0<=relpos<=1 but that is not strictly
   //speaking a requirement.
   double intervalPos(double a, double b, double relpos);
+  //Same, but with a strict requirement that 0<=relpos<=1 and a strong guarantee
+  //that output is in [a,b]:
+  double intervalPos01(double a, double b, double relpos);
 
   class Fct1D {
   public:
@@ -456,6 +459,17 @@ inline double NCrystal::intervalPos(double a, double b, double relpos)
   nc_assert( !ncisnan(relpos) );
   nc_assert( b >= a );
   return std::fma(relpos, b, (1.0-relpos)*a);
+}
+
+inline double NCrystal::intervalPos01(double a, double b, double relpos)
+{
+  nc_assert( std::isfinite(a) );
+  nc_assert( std::isfinite(b) );
+  nc_assert( !ncisnan(relpos) );
+  nc_assert( b >= a );
+  nc_assert( 0.0 <= relpos );
+  nc_assert( relpos <= 1.0 );
+  return ncclamp(std::fma(relpos, b, (1.0-relpos)*a),a,b);
 }
 
 inline double NCrystal::exp_smallarg_approx( double x )
