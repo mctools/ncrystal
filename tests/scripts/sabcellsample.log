@@ -1,0 +1,723 @@
+
+=============>
+=============> Launching test 1
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 58%
+Actual FullCell AR   : 58%
+Actual BoundedCell AR: 64%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 32%
+
+=============>
+=============> Launching test 2
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 41%
+Actual FullCell AR   : 41%
+Actual BoundedCell AR: 97%
+Probability edge@b1 (FullCell)   : 65%
+Probability edge@b1 (BoundedCell): 37%
+
+=============>
+=============> Launching test 3
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 8.5%
+Actual FullCell AR   : 8.5%
+Actual BoundedCell AR: 59%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 7.7%
+
+=============>
+=============> Launching test 4
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 6.1e-05%
+Actual BoundedCell AR: 49%
+Probability edge@b1 (BoundedCell): 0.34%
+
+=============>
+=============> Launching test 5
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.05%
+Actual BoundedCell AR: 64%
+Probability edge@b1 (BoundedCell): 0.15%
+
+=============>
+=============> Launching test 6
+=============>
+
+NCrystal WARNING: Early abort of FullCellOverlaySample due to bad AR.
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.14%
+Actual FullCell AR   : 0.14%
+Actual BoundedCell AR: 66%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 0.4%
+
+=============>
+=============> Launching test 7
+=============>
+
+NCrystal WARNING: Early abort of FullCellOverlaySample due to bad AR.
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.2%
+Actual FullCell AR   : 0.2%
+Actual BoundedCell AR: 67%
+Probability edge@b1 (FullCell)   : 25%
+Probability edge@b1 (BoundedCell): 0.13%
+
+=============>
+=============> Launching test 8
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 5.4%
+Actual FullCell AR   : 5.4%
+Actual BoundedCell AR: 70%
+Probability edge@b1 (FullCell)   : 25%
+Probability edge@b1 (BoundedCell): 1.4%
+
+=============>
+=============> Launching test 9
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 27%
+Actual FullCell AR   : 27%
+Actual BoundedCell AR: 71%
+Probability edge@b1 (FullCell)   : 25%
+Probability edge@b1 (BoundedCell): 6.1%
+
+=============>
+=============> Launching test 10
+=============>
+
+NCrystal WARNING: Early abort of FullCellOverlaySample due to bad AR.
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.25%
+Actual FullCell AR   : 0.25%
+Actual BoundedCell AR: 34%
+Probability edge@b1 (FullCell)   : 1e+02%
+Probability edge@b1 (BoundedCell): 1e+02%
+
+=============>
+=============> Launching test 11
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 3.2%
+Actual FullCell AR   : 3.2%
+Actual BoundedCell AR: 52%
+Probability edge@b1 (FullCell)   : 0%
+Probability edge@b1 (BoundedCell): 0%
+
+=============>
+=============> Launching test 12
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 1.7%
+Actual FullCell AR   : 1.7%
+Actual BoundedCell AR: 50%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 7%
+
+=============>
+=============> Launching test 13
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 1.3%
+Actual FullCell AR   : 1.3%
+Actual BoundedCell AR: 43%
+Probability edge@b1 (FullCell)   : 99%
+Probability edge@b1 (BoundedCell): 98%
+
+=============>
+=============> Launching test 14
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.025%
+Actual BoundedCell AR: 47%
+Probability edge@b1 (BoundedCell): 9.4%
+
+=============>
+=============> Launching test 15
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 16%
+Actual FullCell AR   : 16%
+Actual BoundedCell AR: 61%
+Probability edge@b1 (FullCell)   : 0.69%
+Probability edge@b1 (BoundedCell): 0.011%
+
+=============>
+=============> Launching test 16
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.036%
+Actual BoundedCell AR: 42%
+Probability edge@b1 (BoundedCell): 4.7%
+
+=============>
+=============> Launching test 17
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 7.5%
+Actual FullCell AR   : 7.4%
+Actual BoundedCell AR: 51%
+Probability edge@b1 (FullCell)   : 1e+02%
+Probability edge@b1 (BoundedCell): 1e+02%
+
+=============>
+=============> Launching test 18
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 16%
+Actual FullCell AR   : 16%
+Actual BoundedCell AR: 70%
+Probability edge@b1 (FullCell)   : 0%
+Probability edge@b1 (BoundedCell): 0%
+
+=============>
+=============> Launching test 19
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 12%
+Actual FullCell AR   : 12%
+Actual BoundedCell AR: 62%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 32%
+
+=============>
+=============> Launching test 20
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 1.7%
+Actual FullCell AR   : 1.7%
+Actual BoundedCell AR: 12%
+Probability edge@b1 (FullCell)   : 1e+02%
+Probability edge@b1 (BoundedCell): 1e+02%
+
+=============>
+=============> Launching test 21
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 10%
+Actual FullCell AR   : 10%
+Actual BoundedCell AR: 46%
+Probability edge@b1 (FullCell)   : 0%
+Probability edge@b1 (BoundedCell): 0%
+
+=============>
+=============> Launching test 22
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 6.1%
+Actual FullCell AR   : 6.1%
+Actual BoundedCell AR: 33%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 14%
+
+=============>
+=============> Launching test 23
+=============>
+
+NCrystal WARNING: Early abort of FullCellOverlaySample due to bad AR.
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.6%
+Actual FullCell AR   : 0.6%
+Actual BoundedCell AR: 31%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 14%
+
+=============>
+=============> Launching test 24
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 54%
+Actual FullCell AR   : 54%
+Actual BoundedCell AR: 63%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 30%
+
+=============>
+=============> Launching test 25
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 64%
+Actual FullCell AR   : 64%
+Actual BoundedCell AR: 74%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 35%
+
+=============>
+=============> Launching test 26
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 49%
+Actual FullCell AR   : 49%
+Actual BoundedCell AR: 74%
+Probability edge@b1 (FullCell)   : 33%
+Probability edge@b1 (BoundedCell): 0.54%
+
+=============>
+=============> Launching test 27
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 52%
+Actual FullCell AR   : 51%
+Actual BoundedCell AR: 60%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 13%
+
+=============>
+=============> Launching test 28
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 14%
+Actual FullCell AR   : 14%
+Actual BoundedCell AR: 19%
+Probability edge@b1 (FullCell)   : 1e+02%
+Probability edge@b1 (BoundedCell): 1e+02%
+
+=============>
+=============> Launching test 29
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 89%
+Actual FullCell AR   : 89%
+Actual BoundedCell AR: 91%
+Probability edge@b1 (FullCell)   : 0%
+Probability edge@b1 (BoundedCell): 0%
+
+=============>
+=============> Launching test 30
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 17%
+Actual FullCell AR   : 17%
+Actual BoundedCell AR: 23%
+Probability edge@b1 (FullCell)   : 99%
+Probability edge@b1 (BoundedCell): 97%
+
+=============>
+=============> Launching test 31
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 83%
+Actual FullCell AR   : 83%
+Actual BoundedCell AR: 85%
+Probability edge@b1 (FullCell)   : 0%
+Probability edge@b1 (BoundedCell): 0%
+
+=============>
+=============> Launching test 32
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.00013%
+Actual BoundedCell AR: 7.2%
+Probability edge@b1 (BoundedCell): 1e+02%
+
+=============>
+=============> Launching test 33
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 4.2e-06%
+Actual BoundedCell AR: 9%
+Probability edge@b1 (BoundedCell): 1e+02%
+
+=============>
+=============> Launching test 34
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 7.2e-08%
+Actual BoundedCell AR: 7.2%
+Probability edge@b1 (BoundedCell): 1e+02%
+
+=============>
+=============> Launching test 35
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 4.2e-06%
+Actual BoundedCell AR: 9%
+Probability edge@b1 (BoundedCell): 1e+02%
+
+=============>
+=============> Launching test 36
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.0013%
+Actual BoundedCell AR: 67%
+Probability edge@b1 (BoundedCell): 50%
+
+=============>
+=============> Launching test 37
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 70%
+Actual FullCell AR   : 70%
+Actual BoundedCell AR: 70%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 37%
+
+=============>
+=============> Launching test 38
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 70%
+Actual FullCell AR   : 70%
+Actual BoundedCell AR: 70%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 37%
+
+=============>
+=============> Launching test 39
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 4%
+Actual FullCell AR   : 4%
+Actual BoundedCell AR: 99%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 2%
+
+=============>
+=============> Launching test 40
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 71%
+Actual FullCell AR   : 71%
+Actual BoundedCell AR: 78%
+Probability edge@b1 (FullCell)   : 0.022%
+Probability edge@b1 (BoundedCell): 0.0031%
+
+=============>
+=============> Launching test 41
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 19%
+Actual FullCell AR   : 19%
+Actual BoundedCell AR: 85%
+Probability edge@b1 (FullCell)   : 65%
+Probability edge@b1 (BoundedCell): 87%
+
+=============>
+=============> Launching test 42
+=============>
+
+NCrystal WARNING: Early abort of FullCellOverlaySample due to bad AR.
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.37%
+Actual FullCell AR   : 0.38%
+Actual BoundedCell AR: 50%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 50%
+
+=============>
+=============> Launching test 43
+=============>
+
+NCrystal WARNING: Early abort of FullCellOverlaySample due to bad AR.
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.19%
+Actual FullCell AR   : 0.19%
+Actual BoundedCell AR: 89%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 4.3%
+
+=============>
+=============> Launching test 44
+=============>
+
+NCrystal WARNING: Early abort of FullCellOverlaySample due to bad AR.
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.26%
+Actual FullCell AR   : 0.26%
+Actual BoundedCell AR: 49%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 41%
+
+=============>
+=============> Launching test 45
+=============>
+
+NCrystal WARNING: Early abort of FullCellOverlaySample due to bad AR.
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.79%
+Actual FullCell AR   : 0.78%
+Actual BoundedCell AR: 49%
+Probability edge@b1 (FullCell)   : 65%
+Probability edge@b1 (BoundedCell): 81%
+
+=============>
+=============> Launching test 46
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 33%
+Actual FullCell AR   : 33%
+Actual BoundedCell AR: 56%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 7.7%
+
+=============>
+=============> Launching test 47
+=============>
+
+NCrystal WARNING: Early abort of FullCellOverlaySample due to bad AR.
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.11%
+Actual FullCell AR   : 0.11%
+Actual BoundedCell AR: 87%
+Probability edge@b1 (FullCell)   : 81%
+Probability edge@b1 (BoundedCell): 3.4%
+
+=============>
+=============> Launching test 48
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 98%
+Actual FullCell AR   : 97%
+Actual BoundedCell AR: 1e+02%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 48%
+
+=============>
+=============> Launching test 49
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 97%
+Actual FullCell AR   : 97%
+Actual BoundedCell AR: 1e+02%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 48%
+
+=============>
+=============> Launching test 50
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 97%
+Actual FullCell AR   : 97%
+Actual BoundedCell AR: 1e+02%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 48%
+
+=============>
+=============> Launching test 51
+=============>
+
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.0049%
+Actual BoundedCell AR: 40%
+Probability edge@b1 (BoundedCell): 91%
+
+=============>
+=============> Launching test 52
+=============>
+
+NCrystal WARNING: Early abort of FullCellOverlaySample due to bad AR.
+Chosen method: BoundedCell
+Alternative method: FullCell
+Predicted FullCell AR: 0.18%
+Actual FullCell AR   : 0.18%
+Actual BoundedCell AR: 55%
+Probability edge@b1 (FullCell)   : 94%
+Probability edge@b1 (BoundedCell): 78%
+
+=============>
+=============> Launching test 53
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 97%
+Actual FullCell AR   : 97%
+Actual BoundedCell AR: 1e+02%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 48%
+
+=============>
+=============> Launching test 54
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 97%
+Actual FullCell AR   : 97%
+Actual BoundedCell AR: 1e+02%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 48%
+
+=============>
+=============> Launching test 55
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 97%
+Actual FullCell AR   : 97%
+Actual BoundedCell AR: 1e+02%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 48%
+
+=============>
+=============> Launching test 56
+=============>
+
+Chosen method: FullCell
+Alternative method: BoundedCell
+Predicted FullCell AR: 97%
+Actual FullCell AR   : 97%
+Actual BoundedCell AR: 1e+02%
+Probability edge@b1 (FullCell)   : 50%
+Probability edge@b1 (BoundedCell): 48%
+
+=============>
+=============> Final summary
+=============>
+
+P-value for test #1 : OK
+P-value for test #2 : OK
+P-value for test #3 : OK
+P-value for test #4 : OK
+P-value for test #5 : OK
+P-value for test #6 : OK
+P-value for test #7 : OK
+P-value for test #8 : OK
+P-value for test #9 : OK
+P-value for test #10 : OK
+P-value for test #11 : OK
+P-value for test #12 : OK
+P-value for test #13 : OK
+P-value for test #14 : OK
+P-value for test #15 : OK
+P-value for test #16 : OK
+P-value for test #17 : OK
+P-value for test #18 : OK
+P-value for test #19 : OK
+P-value for test #20 : OK
+P-value for test #21 : OK
+P-value for test #22 : OK
+P-value for test #23 : OK
+P-value for test #24 : OK
+P-value for test #25 : OK
+P-value for test #26 : OK
+P-value for test #27 : OK
+P-value for test #28 : OK
+P-value for test #29 : OK
+P-value for test #30 : OK
+P-value for test #31 : OK
+P-value for test #32 : OK
+P-value for test #33 : OK
+P-value for test #34 : OK
+P-value for test #35 : OK
+P-value for test #36 : OK
+P-value for test #37 : OK
+P-value for test #38 : OK
+P-value for test #39 : OK
+P-value for test #40 : OK
+P-value for test #41 : OK
+P-value for test #42 : OK
+P-value for test #43 : OK
+P-value for test #44 : OK
+P-value for test #45 : OK
+P-value for test #46 : OK
+P-value for test #47 : OK
+P-value for test #48 : OK
+P-value for test #49 : OK
+P-value for test #50 : OK
+P-value for test #51 : OK
+P-value for test #52 : OK
+P-value for test #53 : OK
+P-value for test #54 : OK
+P-value for test #55 : OK
+P-value for test #56 : OK
