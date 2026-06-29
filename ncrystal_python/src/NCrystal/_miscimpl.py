@@ -377,13 +377,42 @@ def detect_scatcomps( standard_comp_types, matsrc ):
             res.append(ct)
     return res
 
-def evalquery( query, unpack, readonly ):
+class enable_huge_vect_ctxmgr:
+    def __init__(self, fct_enablejsonarr):
+        self.__f = fct_enablejsonarr
+    def __enter__(self):
+        self.__f(True)
+    def __exit__(self,*args,**kwargs):
+        self.__f(False)
+
+#def lookup_numpy_arrays( f, data ):
+def _eqnp(f,data):
+    #Create read-only view of data, assuming only dict/list/tuple + basic
+    #immutable types are used.
+    if isinstance(data, dict):
+        return dict( (k,_eqnp(f,v)) for k,v in data.items())
+    elif isinstance(data, list) or isinstance(data, tuple):
+        return list(_eqnp(f,v) for v in data)
+    elif isinstance(data, str) and data.startswith('__ncrystal__dblarray::'):
+        return f(data)
+    else:
+        return data
+
+def evalquery( query, unpack, readonly, huge_arrays ):
+    from ._chooks import _get_raw_cfcts
+    _rawfct = _get_raw_cfcts()
+    if huge_arrays:
+        if readonly or not unpack:
+            from .exceptions import NCBadInput
+            raise NCBadInput('huge_arrays=True requires %s'%
+                             ('readonly=False' if readonly else 'unpack=True'))
+        with enable_huge_vect_ctxmgr(_rawfct['enablejsonarr']):
+            res = evalquery(query,unpack=True,readonly=False,huge_arrays=False)
+        return _eqnp(_rawfct['getjsonarr'],res)
     if not all( isinstance(a,str) for a in query ):
         from .exceptions import NCBadInput
         raise NCBadInput('Invalid query (not all entries are strings):'
                          ' %s'%repr(query))
-    from ._chooks import _get_raw_cfcts
-    _rawfct = _get_raw_cfcts()
     res = _rawfct['jsonquery']( query )
     if unpack:
         import json

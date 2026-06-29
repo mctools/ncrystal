@@ -42,6 +42,13 @@ namespace NCRYSTAL_NAMESPACE {
   using Query = SmallVector<StrView,8>;
   void JSONQuery( std::ostream&, const Query& query );
 
+  // Some JSONQuery might for performance replace huge data arrays with special
+  // placeholder strings like "__ncrystal__dblarray::<key>::<size>". These
+  // arrays can then automatically be picked up with the following function (can
+  // only be acquired once for each key).
+
+  void enableJSONQueryHugeArray(bool=true);//call to enable
+  VectD getJSONQueryHugeArray( const std::string& key );
 }
 
 #endif

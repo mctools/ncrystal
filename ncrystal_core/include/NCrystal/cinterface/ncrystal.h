@@ -645,6 +645,10 @@ extern "C" {
 #  undef ncrystal_jsonquery
 #endif
 #define ncrystal_jsonquery NCRYSTAL_APPLY_C_NAMESPACE(jsonquery)
+#ifdef ncrystal_fill_jsonarray
+#  undef ncrystal_fill_jsonarray
+#endif
+#define ncrystal_fill_jsonarray NCRYSTAL_APPLY_C_NAMESPACE(fill_jsonarray)
 #ifdef ncrystal_flexmmcrun
 #  undef ncrystal_flexmmcrun
 #endif
@@ -1251,6 +1255,12 @@ extern "C" {
   /* is bound to change between NCrystal versions.                           */
   /* Must free returned string with call to ncrystal_dealloc_string.         */
   NCRYSTAL_API char* ncrystal_jsonquery( const char * );
+
+  /* Some jsonquerys might for performance replace huge data arrays with     */
+  /* special placeholder strings like "__ncrystal__dblarray::<key>::<size>". */
+  /* These arrays can then automatically be picked up (once!) with this      */
+  /* fct (call with keys "on" or "off" to enable/disable):                   */
+  NCRYSTAL_API void ncrystal_fill_jsonarray( const char* key, double* );
 
   /* The MiniMC is usually invoked via the ncrystal_jsonquery function, but  */
   /* in case it is needed to have access to all tallied neutrons via a       */

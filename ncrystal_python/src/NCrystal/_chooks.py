@@ -848,6 +848,23 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         return decode_query_result(raw_str)
     functions['jsonquery'] = jsonquery
 
+    _raw_filljsonarr = _wrap('ncrystal_fill_jsonarray',
+                              None,(_cstr, _dblp),hide=True)
+    def getjsonarr( key ):
+        keyparts=key.split('::')
+        assert len(keyparts)==3 and keyparts[0]=='__ncrystal__dblarray'
+        ckey = _str2cstr(keyparts[1])
+        a, a_dblp = _create_numpy_double_array(int(keyparts[2]))
+        _raw_filljsonarr( ckey, a_dblp )
+        return a
+
+    def enablejsonarr( f ):
+        ckey = _str2cstr("on" if f else "off")
+        _raw_filljsonarr( ckey, None )
+
+    functions['getjsonarr'] = getjsonarr
+    functions['enablejsonarr'] = enablejsonarr
+
     _FLEXMMCRUNCBTYPE = ctypes.CFUNCTYPE( _uint, _dblpp, _ulong, _ulong )
     _raw_flexmmcrun = _wrap( 'ncrystal_flexmmcrun',_charptr,
                              (_cstr,_cstr,_FLEXMMCRUNCBTYPE ), hide=True )

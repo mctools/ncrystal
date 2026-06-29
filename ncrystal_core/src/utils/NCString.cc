@@ -588,8 +588,64 @@ std::string NC::fmtUInt64AsNiceDbl( std::uint64_t n )
   return res;
 }
 
-void NC::streamJSONHugeDblVect( std::ostream& os, Span<const double> v )
+namespace NCRYSTAL_NAMESPACE {
+  namespace HugeVectDB {
+    struct DB {
+      std::mutex mtx;
+      bool enabled = false;
+      std::map<std::string,VectD> data;
+      std::uint64_t count = 0;
+      std::string registerData( VectD&& v )
+      {
+        std::string key = std::to_string(++count);
+        data.emplace(key,std::move(v));
+        return key;
+      }
+      VectD retrieveData( const std::string& key )
+      {
+        auto it = data.find(key);
+        if (it == data.end())
+          NCRYSTAL_THROW2(BadInput,"Invalid key for JSON Huge Vector: \""
+                          <<key<<"\"");
+        VectD res = std::move(it->second);
+        data.erase(it);
+        return res;
+      }
+    };
+    DB& getDB()
+    {
+      static DB db;
+      return db;
+    }
+
+    void enable( bool f )
+    {
+      auto& db = getDB();
+      NCRYSTAL_LOCK_GUARD(db.mtx);
+      db.enabled = f;
+    }
+
+    VectD retrieveData( const std::string& key ) {
+      auto& db = getDB();
+      NCRYSTAL_LOCK_GUARD(db.mtx);
+      return db.retrieveData(key);
+    }
+
+  }
+}
+
+void NC::streamJSONHugeDblVect( std::ostream& os, VectD&& v )
 {
+  auto& db = HugeVectDB::getDB();
+  std::unique_lock<std::mutex> lock(db.mtx);
+  if (db.enabled) {
+    const std::size_t n = v.size();
+    std::string key = db.registerData( std::move(v) );
+    os << "\"__ncrystal__dblarray::"<<key<<"::"<<n<<"\"";
+    return;
+  } else {
+    lock.unlock();
+  }
   os << '[';
   std::ostringstream ss;
   ss.imbue(std::locale::classic());

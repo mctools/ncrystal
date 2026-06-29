@@ -70,3 +70,21 @@ void NC::JSONQuery( std::ostream& os, const Query& query )
     NCRYSTAL_THROW2(BadInput, "Invalid JSON query key: \""<<key<<'"');
   }
 }
+
+namespace NCRYSTAL_NAMESPACE {
+  //fwd declare functions from NCString.cc:
+  namespace HugeVectDB {
+    void enable( bool );
+    VectD retrieveData( const std::string& );
+  }
+}
+
+void NC::enableJSONQueryHugeArray( bool f )
+{
+  HugeVectDB::enable(f);
+}
+
+NC::VectD NC::getJSONQueryHugeArray( const std::string& key )
+{
+  return HugeVectDB::retrieveData(key);
+}

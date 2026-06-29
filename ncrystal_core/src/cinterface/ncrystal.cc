@@ -2446,6 +2446,7 @@ namespace NCRYSTAL_NAMESPACE {
     }
   }
 }
+
 char* ncrystal_jsonquery( const char * raw )
 {
   char * result = nullptr;
@@ -2457,6 +2458,20 @@ char* ncrystal_jsonquery( const char * raw )
   } NCCATCH;
   return result;
 }
+
+void ncrystal_fill_jsonarray( const char* key_raw, double* dst )
+{
+  try {
+    NC::StrView key(key_raw);
+    if ( key=="on" || key=="off" ) {
+      NC::enableJSONQueryHugeArray(key=="on");
+      return;
+    }
+    NC::VectD data = NC::getJSONQueryHugeArray(key.to_string());
+    std::memcpy(dst,data.data(),sizeof(double)*data.size());
+  } NCCATCH;
+}
+
 
 void ncrystal_runmmcsim_stdengine( unsigned, unsigned, const char *,
                                    const char *, const char *, char ** a,

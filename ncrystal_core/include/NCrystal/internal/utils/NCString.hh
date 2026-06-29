@@ -205,7 +205,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   //Slightly less nice FP formatting, but way more efficient for very long
   //arrays of double data:
-  void streamJSONHugeDblVect( std::ostream&, Span<const double> );
+  void streamJSONHugeDblVect( std::ostream&, VectD&& );
 
   //Entries in dictionary "\"key\":<value>":
   enum class JSONDictPos { FIRST, LAST, OTHER };
