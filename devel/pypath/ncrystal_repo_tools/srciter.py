@@ -33,9 +33,14 @@ def all_files_iter( *patterns, root = None ):
     patternset = PatternSet( *expand_patterns( patterns ))
     gitignore = get_main_gitignore()
     from .dirs import reporoot
+    nocheck = reporoot.joinpath('nocheck')
+    if not nocheck.is_dir():
+        nocheck = None
     for f in _all_files_iter_impl( root or reporoot,
                                    patternset,
                                    gitignore ):
+        if nocheck is not None and nocheck in f.parents:
+            continue
         yield f
 
 def _all_files_iter_impl( currentdir, patternset, gitignore ):
