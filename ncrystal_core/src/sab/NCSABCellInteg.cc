@@ -18,7 +18,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/internal/sab/NCSABCellInteg.hh"//fixme: reconsider filename?
+#include "NCrystal/internal/sab/NCSABCellInteg.hh"
 
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
@@ -451,7 +451,8 @@ namespace NCRYSTAL_NAMESPACE {
             double rb = (bmiddle-cs.b1)*invdb;
             double smiddle = Sb1*(1.0-rb)+Sb2*(rb);
 #endif
-            nc_assert_always(bu-bl > -1e-12);
+            nc_assert_always(bu-bl > -1e-6);//could be slightly negative due to
+                                            //numerical instabilities
             const double bumbl( is_bounded_on_both_sides
                                 ? 2.0*dbpm
                                 : ncmax(0.0,bu-bl) );
