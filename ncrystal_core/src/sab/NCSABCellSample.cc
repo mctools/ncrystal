@@ -476,8 +476,8 @@ NCS::BoundedCellSampler::prepareBCSData( double probability_b1_edge,
         const double sqrte = std::sqrt(e);
         const double twosqrte = 2.0 * sqrte;
         auto pt = [b1,updateO1,updateO2,twosqrte]( double a,
-                                                   bool do1 = true,
-                                                   bool do2 = true ) {
+                                                   bool do1,
+                                                   bool do2 ) {
           const double bplus = a + twosqrte*std::sqrt(a);
           const double bmid((bplus+b1)*0.5), bwidth(bplus-b1);
           if (do1)
@@ -485,8 +485,8 @@ NCS::BoundedCellSampler::prepareBCSData( double probability_b1_edge,
           if (do2)
             updateO2(bmid,bwidth,a);
         };
-        pt(r.alpha_up);
-        pt(r.alpha_low);
+        pt(r.alpha_up,true,true);
+        pt(r.alpha_low,true,true);
         const double amax1 = ncsquare( std::sqrt(e+b2)- sqrte );
         const double amax2 = ncsquare( std::sqrt(e+b1)- sqrte );
         if ( valueInInterval( r.alpha_low, r.alpha_up, amax1 ) )
