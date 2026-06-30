@@ -567,7 +567,7 @@ class NuclearData():
                 # contain numbers that cannot be represented
                 # as distinct FORTRAN reals in the ENDF-6 file
                 #
-                sab.shape = (beta.size, alpha.size)
+                sab = sab.reshape(beta.size, alpha.size)
                 sab_int = _interp2d(self._elems[sym].alpha*T0/T,
                           self._elems[sym].beta_total*T0/T,
                           alpha, beta, sab.transpose()).transpose()
@@ -762,7 +762,7 @@ class EndfFile():
                 # S(a,b) for negative beta
                 # get negative branch of S(a,b)
                 sab_sym2 = sab_total[_np.where(beta_grid<=0)]
-                sab_sym2.shape = (len(beta), len(alpha))
+                sab_sym2 = sab_sym2.reshape(len(beta), len(alpha))
                 sab_sym3 = sab_sym2[::-1,:]  # Invert S(a,b) for negative beta
                 sab_data.append(sab_sym3.transpose())
                 continue
@@ -776,7 +776,7 @@ class EndfFile():
                 sab_sym = sab_total*detailed_balance_factor
                 # get negative branch of S(a,b)
                 sab_sym2 = sab_sym[_np.where(beta_grid<=0)]
-                sab_sym2.shape = (len(beta), len(alpha))
+                sab_sym2 = sab_sym2.reshape(len(beta), len(alpha))
                 # Invert S(a,b) for negative beta
                 sab_sym3 = sab_sym2[::-1,:]
                 sab_data.append(sab_sym3.transpose())
