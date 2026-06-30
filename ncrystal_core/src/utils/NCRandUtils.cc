@@ -597,7 +597,7 @@ double NC::randKPowX( double k, double lnk, double R )
   }
   nc_assert( std::isfinite(k));
   nc_assert( k > 0.0 );
-  nc_assert( R > 0.0 && R <= 1.0 );
+  nc_assert( R >= 0.0 && R <= 1.0 );
   nc_assert( floateq(std::log(k),lnk) );
 
   //Near k=1 we handle the results via a taylor expansion in u=k-1.
