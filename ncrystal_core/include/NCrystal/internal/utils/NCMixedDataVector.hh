@@ -91,7 +91,7 @@ inline NCrystal::MixedDataVector NCrystal::MixedDataVector::clone() const
   return o;
 }
 
-NCrystal::MixedDataVector::MixedDataVector( std::size_t reserve_num_bytes )
+inline NCrystal::MixedDataVector::MixedDataVector( std::size_t reserve_num_bytes )
 {
   if ( reserve_num_bytes )
     reserve_bytes( reserve_num_bytes );
