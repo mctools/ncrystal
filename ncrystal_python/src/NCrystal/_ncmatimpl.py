@@ -2062,14 +2062,21 @@ def _cifdata_via_ase( data_or_file, ase_format = None, quiet = False ):
                 ase_format = 'cif'
         assert isinstance(ase_format,str)
         prfct('Attempting to load data via ASE')
-        if dof_str:
-            assert isinstance(dof_str,str)
-            with io.StringIO(dof_str) as memfile:
-                ase_obj = ase_io.read( memfile, format = ase_format )
-        else:
-            assert isinstance(dof_bytes,bytes)
-            with io.BytesIO(dof_bytes) as memfile:
-                ase_obj = ase_io.read( memfile, format = ase_format )
+        #Temporary workaround to quiet a DeprecationWarning from Numpy 2.5+
+        #(jun2026) triggered by ASE. We can remove it again in a few years:
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings( "ignore", category=DeprecationWarning,
+                                     message=('.*Setting the shape on a NumPy'
+                                              ' array has been deprecated.*'))
+            if dof_str:
+                assert isinstance(dof_str,str)
+                with io.StringIO(dof_str) as memfile:
+                    ase_obj = ase_io.read( memfile, format = ase_format )
+            else:
+                assert isinstance(dof_bytes,bytes)
+                with io.BytesIO(dof_bytes) as memfile:
+                    ase_obj = ase_io.read( memfile, format = ase_format )
 
     assert ase_obj is not None
 
