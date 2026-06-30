@@ -554,7 +554,7 @@ NCS::BoundedCellSampler::prepareBCSData( double probability_b1_edge,
 
   //finish up, rounding single precision floats the right way and add a bit of
   //safety:
-  auto storeFloat = [](float&dest, double val, bool push_is_up=true)
+  auto storeFloat = [](float&dest, double val, bool push_is_up)
   {
     dest = static_cast<float>( val );
     if ( push_is_up ) {
@@ -568,7 +568,7 @@ NCS::BoundedCellSampler::prepareBCSData( double probability_b1_edge,
 
 #if 0
   if ( regions.front().alpha_up < cell.a2 ) {
-    storeFloat(res.alpha_up[0],regions.front().alpha_up);
+    storeFloat(res.alpha_up[0],regions.front().alpha_up,true);
     if ( !(static_cast<double>(res.alpha_up[0])<cell.a2) )
       res.alpha_up[0] = -1.0f;
     res.alpha_up[1] = res.alpha_up[0];//FIXME JUST STORING ONE!
@@ -588,7 +588,7 @@ NCS::BoundedCellSampler::prepareBCSData( double probability_b1_edge,
       aup = ncmin( aup, restrict_a[i].value().second );
       alow = ncmax( alow, restrict_a[i].value().first );
     }
-    storeFloat(res.alpha_up[i],aup);
+    storeFloat(res.alpha_up[i],aup,true);
     if ( !(static_cast<double>(res.alpha_up[i])<cell.a2) )
       res.alpha_up[i] = -1.0f;
     storeFloat(res.alpha_low[i],alow,false);
@@ -597,8 +597,8 @@ NCS::BoundedCellSampler::prepareBCSData( double probability_b1_edge,
   }
 #endif
 
-  storeFloat(res.overlay[0],o1);
-  storeFloat(res.overlay[1],o2);
+  storeFloat(res.overlay[0],o1,true);
+  storeFloat(res.overlay[1],o2,true);
   nc_assert( res.overlay[0] >= 0.0f );
   nc_assert( res.overlay[1] >= 0.0f );
 
