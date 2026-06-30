@@ -73,11 +73,14 @@ def evalcell(*,E_div_kT, alpha, beta, svals = None, do_plot=False ):
     vals = sorted( ( float(abs(v/mprefval-1)), v, name )
                    for name, v
                    in res['cellintegral']['phasespace_integral'] )
+    def fmtprec(v):
+        return '%g'%v if do_plot else '%.1g'%v
+
     for prec, v, name in vals:
-        print(f" {name.rjust(10)} : {v:.12g}  [precision lvl {prec:g}]")
+        print(f" {name.rjust(10)} : {v:.11g}  [precision lvl {fmtprec(prec)}]")
     resfullint = res['cellintegral']['full_integral']
     prec = float(abs(resfullint/mprefval_fullint-1))
-    print(f" full integral : {resfullint:.12g} [precision lvl {prec:g}]")
+    print(f" full integral : {resfullint:.11g} [precision lvl {fmtprec(prec)}]")
 
     f65 = [e for e in vals if e[2]=='Flex65'][0]
     if do_plot:
