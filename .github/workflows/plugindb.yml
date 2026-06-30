@@ -233,6 +233,12 @@ jobs:
         name: wheels-ncrystal-${{ matrix.os }}
         path: ./dist
 
+    - name: list downloaded ncrystal wheels
+      shell: bash
+      run: ls -la "./dist"
+
+    - run: pip debug --verbose
+
     - name: Install numpy and build backends
       run: pip install -c "constraints.txt" numpy "setuptools>=64.0" "scikit-build-core>=0.10"
       #                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -350,6 +356,12 @@ jobs:
       with:
         name: wheels-ncrystal-${{ matrix.os }}
         path: ./dist
+
+    - name: list downloaded ncrystal wheels
+      shell: bash
+      run: ls -la "./dist"
+
+    - run: pip debug --verbose
 
     - name: Install numpy
       run: pip install "numpy>=1.22"
