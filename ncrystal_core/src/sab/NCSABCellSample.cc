@@ -919,7 +919,7 @@ namespace NCRYSTAL_NAMESPACE {
           const double bu = pt.bup;
           const double b1 = m_cell.b1;
           const double b2 = m_cell.b2;
-          auto contrib_of_b = [&pt,&svals,b1,b2] ( double b )
+          auto contrib_of_b = [&svals,b1,b2] ( double b )
           {
             //Returns S(b)*(b2_b1) = (b2-b)*s1+(b-b1)*s2;
             StableSum ss;
