@@ -1,3 +1,6 @@
+v4.4.7 (work in progress)
+     * ...
+
 v4.4.6 2026-06-30
      * Support Numpy 2.5 by reworking usage of obsoleted array reshaping
        API. Also for now block a DeprecationWarning from ASE which apparently
