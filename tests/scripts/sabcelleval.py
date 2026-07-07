@@ -92,7 +92,7 @@ def evalcell(*,E_div_kT, alpha, beta, svals = None, do_plot=False ):
         f65prec = 1e-3
     assert f65[0] < f65prec, "Romberg65 not suitable as reference"
 
-def main(do_plot):
+def main(do_plot,test_select):
     if not do_plot:
         ncsetenv('FAKEPYPLOT','1')
 
@@ -163,10 +163,14 @@ def main(do_plot):
              svals=[2.09324e-51,2.09324e-11,2.09321e-51,2.09321e-11]),
     ]
 
+    if test_select:
+        test_select = set(test_select)
+
     for i,data in enumerate(testpts):
         i += 1
-        #if i not in (7,8):
-        #    continue
+        if test_select and i not in test_select:
+            print("=============> SKIPPING test %i"%i)
+            continue
         print()
         print("=============>")
         print("=============> Launching test %i"%i)
@@ -177,6 +181,14 @@ def main(do_plot):
 
 if __name__ == '__main__':
     import sys
-    main(do_plot = '--plot' in sys.argv[1:])
+    do_plot = False
+    args = sys.argv[1:]
+    while '--plot' in args:
+        args.remove('--plot')
+        do_plot = True
+    assert not args or all(e.isdigit() for e in args)
+
+    main( do_plot = do_plot,
+          test_select = [int(e) for e in args] )
 
 #fixme: Add option to test a huge bunch of randomly generated cells.
