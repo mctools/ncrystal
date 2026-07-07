@@ -401,11 +401,13 @@ namespace NCRYSTAL_NAMESPACE {
             //appropriate to instead split the cell, and do the more expensive
             //integration only very near s2=1e200 where all the contributions
             //are.
+            constexpr double thr = 1e4;//fixme: tune!
+            constexpr double recthr = 1/thr;
             use_romberg_adaptive
               = ( ( method_b1==SOfAlphaGrid::Method::LOG &&
-                    !valueInInterval(cs.S[0]*0.01,cs.S[0]*100.0,cs.S[1]) )
+                    !valueInInterval(cs.S[0]*recthr,cs.S[0]*thr,cs.S[1]) )
                   || ( method_b2==SOfAlphaGrid::Method::LOG &&
-                       !valueInInterval(cs.S[2]*0.01,cs.S[2]*100.0,cs.S[3]) ) );
+                       !valueInInterval(cs.S[2]*recthr,cs.S[2]*thr,cs.S[3]) ) );
             use_romberg_fixed = !use_romberg_adaptive;
           }
         }
@@ -568,7 +570,12 @@ void NCS::StdLogLinCellIntegrator::integrateWithinKB( const CellData& c,
                                                       IntegrationScheme scheme,
                                                       StableSum& tgt )
 {
-  SABCellSurvey surv( c.a1, c.a2, c.b1, c.b2, E_div_kT );
+  SABCellSurvey surv( c.a1, c.a2, c.b1, c.b2, E_div_kT );//fixme: in
+                                                         //SABProcessor.cc we
+                                                         //call this function
+                                                         //from a context where
+                                                         //we already have a
+                                                         //SABCellSurvey!
   auto& regions = surv.regions();
   if ( regions.empty() )
     return;
