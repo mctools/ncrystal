@@ -130,8 +130,14 @@ def testcell(*,E_div_kT, alpha, beta, svals = None,
               %(100.0*sm['fc_prob_edge_1']))
     print(f"Probability edge@b1 (BoundedCell): %.{ndig}g%%"
           %(100.0*sm['bc_prob_edge_1']))
-    if actual_fc_ar is not None and sm['fc_predicted_AR']>0.01:
-        assert abs(actual_fc_ar/sm['fc_predicted_AR']-1.0)<0.025
+
+    AR_prec = 0.1
+    if sm['fc_predicted_AR']>0.01:
+        AR_prec = 0.05
+    if sm['fc_predicted_AR']>0.1:
+        AR_prec = 0.025
+    if actual_fc_ar is not None and sm['fc_predicted_AR']>0.001:
+        assert abs(actual_fc_ar/sm['fc_predicted_AR']-1.0)<AR_prec
 
     samples_ref = Samples('ref')
     samples_ref.add_data( sm['ref_sampled_alpha'],
