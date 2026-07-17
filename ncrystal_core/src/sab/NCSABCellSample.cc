@@ -961,11 +961,29 @@ NCS::RefCellSampler::RefCellSampler( const CellData& cell, double E_div_kT )
 
 NCS::RefCellSampler::~RefCellSampler()
 {
-  RCSImpl* rcsimpl = static_cast<RCSImpl*>(m_impl);
-  delete rcsimpl;
+  if ( m_impl ) {
+    delete static_cast<RCSImpl*>(m_impl);
+  }
+}
+
+NCS::RefCellSampler::RefCellSampler( RefCellSampler&& o )
+{
+  std::swap( m_impl, o.m_impl );
+}
+
+NCS::RefCellSampler&
+NCS::RefCellSampler::operator=( RefCellSampler&& o )
+{
+  if ( m_impl ) {
+    delete static_cast<RCSImpl*>(m_impl);
+    m_impl = nullptr;
+  }
+  std::swap( m_impl, o.m_impl );
+  return *this;
 }
 
 NCS::RefCellSampler::Result NCS::RefCellSampler::sampleAlphaBeta( RNG& rng )
 {
+  nc_assert( m_impl != nullptr );
   return static_cast<RCSImpl*>(m_impl)->sample(rng);
 }

@@ -176,7 +176,7 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
 
-    class RefCellSampler final : private NoCopyMove {
+    class RefCellSampler final : private MoveOnly {
 
       //////////////////////////////////////////////////////////////////////////
       // Like BoundedCellSampler, but with a reference algorithm which has a
@@ -187,8 +187,12 @@ namespace NCRYSTAL_NAMESPACE {
 
     public:
 
+      RefCellSampler() = default;//invalid object, for later assignment
       RefCellSampler( const CellData& cell, double E_div_kT );
       ~RefCellSampler();
+
+      RefCellSampler( RefCellSampler&& );
+      RefCellSampler& operator=( RefCellSampler&& );
 
       struct Result final {
         double alpha;
@@ -197,7 +201,7 @@ namespace NCRYSTAL_NAMESPACE {
       };
       Result sampleAlphaBeta( RNG& );
     private:
-      void * m_impl;
+      void * m_impl = nullptr;
     };
 
   }
