@@ -126,12 +126,12 @@ namespace NCRYSTAL_NAMESPACE {
 NC::ScatKnlData NC::SABUtils::trimZeroEdgesFromKernel(ScatKnlData&& input)
 {
   validateScatKnlData(input);
-  NC::ScatKnlData res{ std::move(input) };
+  ScatKnlData res{ std::move(input) };
   detail_trimZeroEdgesFromKernel(res);
   return res;
 }
 
-NC::SABData NC::SABUtils::transformKernelToStdFormat( NC::ScatKnlData&& input_orig )
+NC::SABData NC::SABUtils::transformKernelToStdFormat( ScatKnlData&& input_orig )
 {
   validateScatKnlData(input_orig);
 
@@ -139,7 +139,7 @@ NC::SABData NC::SABUtils::transformKernelToStdFormat( NC::ScatKnlData&& input_or
   // Trim null edges: //
   //////////////////////
 
-  NC::ScatKnlData input{ std::move(input_orig) };
+  ScatKnlData input{ std::move(input_orig) };
   auto ntrimmed = detail_trimZeroEdgesFromKernel(input);
   if ( ntrimmed )
     NCRYSTAL_WARN("Discarding "<<ntrimmed<<" edges of provided kernel"
@@ -328,9 +328,9 @@ NC::SABData NC::SABUtils::transformKernelToStdFormat( NC::ScatKnlData&& input_or
   return out;
 }
 
-void NC::SABUtils::expandBetaAndSABToAllBetas( NC::Span<const double> halfbetagrid,
-                                               NC::Span<const double> alphagrid,
-                                               NC::Span<const double> sab_for_halfbetagrid,
+void NC::SABUtils::expandBetaAndSABToAllBetas( Span<const double> halfbetagrid,
+                                               Span<const double> alphagrid,
+                                               Span<const double> sab_for_halfbetagrid,
                                                VectD& complete_betagrid,
                                                VectD& complete_sab )
 {
@@ -385,7 +385,7 @@ void NC::SABUtils::expandBetaAndSABToAllBetas( NC::Span<const double> halfbetagr
 
 }
 
-void NC::SABUtils::activeGridCells( const NC::SABData& data,
+void NC::SABUtils::activeGridCells( const SABData& data,
                                     double ekin_div_kT,
                                     std::vector<std::pair<std::uint16_t,std::uint16_t>>& out_alpharanges,
                                     std::size_t& ibeta_low  )
@@ -457,7 +457,7 @@ void NC::SABUtils::activeGridCells( const NC::SABData& data,
   return;
 }
 
-void NC::SABUtils::activeGridRanges( const NC::SABData& data,
+void NC::SABUtils::activeGridRanges( const SABData& data,
                                      double ekin_div_kT,
                                      std::vector<std::pair<std::uint16_t,std::uint16_t>>& out_alpharanges,
                                      std::size_t& ibeta_low  )
@@ -535,10 +535,10 @@ void NC::SABUtils::activeGridRanges( const NC::SABData& data,
 
 }
 
-NC::SABUtils::TailedBreakdown NC::SABUtils::createTailedBreakdown( const NC::Span<const double>& alphaGrid,
-                                                                   const NC::Span<const double>& sab,
-                                                                   const NC::Span<const double>& logsab,
-                                                                   const NC::Span<const double>& alphaIntegrals_cumul,
+NC::SABUtils::TailedBreakdown NC::SABUtils::createTailedBreakdown( const Span<const double>& alphaGrid,
+                                                                   const Span<const double>& sab,
+                                                                   const Span<const double>& logsab,
+                                                                   const Span<const double>& alphaIntegrals_cumul,
                                                                    double alpha_low, double alpha_upp,
                                                                    const unsigned aidx_low, const unsigned aidx_upp )
 {

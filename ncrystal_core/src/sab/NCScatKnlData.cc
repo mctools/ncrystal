@@ -23,7 +23,7 @@
 
 namespace NC = NCrystal;
 
-void NC::validateScatKnlData( const NC::ScatKnlDataView& data )
+void NC::validateScatKnlData( const ScatKnlDataView& data )
 {
   auto xlabel = (data.knltype == ScatKnlData::KnlType::SQW?"Q":"alpha");
   auto ylabel = (data.knltype == ScatKnlData::KnlType::SQW?"omega":"beta");

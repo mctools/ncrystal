@@ -23,14 +23,14 @@ namespace NC = NCrystal;
 
 NC::SAB::SABExtender::~SABExtender() = default;
 
-NC::SAB::SABFGExtender::SABFGExtender( Temperature temp_k, AtomMass mass, NC::SigmaFree sigma )
+NC::SAB::SABFGExtender::SABFGExtender( Temperature temp_k, AtomMass mass, SigmaFree sigma )
   : m_xsprovider(temp_k,mass,sigma),
     m_t(DoValidate,temp_k),
     m_m(DoValidate,mass)
 {
 }
 
-NC::SAB::SABFGExtender::SABFGExtender( Temperature temp_k, AtomMass mass, NC::SigmaBound sigma )
+NC::SAB::SABFGExtender::SABFGExtender( Temperature temp_k, AtomMass mass, SigmaBound sigma )
   : m_xsprovider(temp_k,mass,sigma),
     m_t(DoValidate,temp_k),
     m_m(DoValidate,mass)

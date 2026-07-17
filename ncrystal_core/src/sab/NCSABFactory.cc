@@ -31,7 +31,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       UniqueIDValue emptyEgridUIDVal()
       {
-        static NC::UniqueID uid_empty;
+        static UniqueID uid_empty;
         return uid_empty.getUniqueID();
       }
 
@@ -62,10 +62,10 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr auto scathelperfact_nstrongrefskept = 20;
 
       class ScatterHelperFactory
-        : public NC::CachedFactoryBase<ScatHelperCacheKey,
-                                       SABScatterHelper,
-                                       scathelperfact_nstrongrefskept,
-                                       ScatHelperCache_KeyThinner> {
+        : public CachedFactoryBase<ScatHelperCacheKey,
+                                   SABScatterHelper,
+                                   scathelperfact_nstrongrefskept,
+                                   ScatHelperCache_KeyThinner> {
       public:
         const char* factoryName() const final { return "ScatterHelperFactory"; }
         std::string keyToString( const ScatHelperCacheKey& key ) const final
@@ -112,7 +112,7 @@ namespace NCRYSTAL_NAMESPACE {
 }
 
 std::unique_ptr<const NC::SAB::SABScatterHelper>
-NC::SAB::createScatterHelper( shared_obj<const NC::SABData> data,
+NC::SAB::createScatterHelper( shared_obj<const SABData> data,
                               std::shared_ptr<const VectD> energyGrid )
 {
   nc_assert(!!data);
@@ -126,7 +126,7 @@ void NC::SAB::clearScatterHelperCache() {
 }
 
 NC::shared_obj<const NC::SAB::SABScatterHelper>
-NC::SAB::createScatterHelperWithCache( shared_obj<const NC::SABData> sabdataptr,
+NC::SAB::createScatterHelperWithCache( shared_obj<const SABData> sabdataptr,
                                        std::shared_ptr<const VectD> egrid )
 {
   ScatHelperCacheKey key;
@@ -136,7 +136,7 @@ NC::SAB::createScatterHelperWithCache( shared_obj<const NC::SABData> sabdataptr,
   return getScatterHelperFactory().create(key);
 }
 
-NC::UniqueIDValue NC::SAB::egridToUniqueID(const NC::VectD& egrid)
+NC::UniqueIDValue NC::SAB::egridToUniqueID(const VectD& egrid)
 {
   if ( egrid.empty() ) {
     //empty => no need for hashing or locking
@@ -161,7 +161,7 @@ NC::UniqueIDValue NC::SAB::egridToUniqueID(const NC::VectD& egrid)
 }
 
 NC::UniqueIDValue
-NC::SAB::egridToUniqueID(const std::shared_ptr<const NC::VectD>& egrid)
+NC::SAB::egridToUniqueID(const std::shared_ptr<const VectD>& egrid)
 {
   if ( !egrid || egrid->empty() ) {
     //Treat nullptr as empty grid and handle specially.
@@ -186,7 +186,7 @@ NC::SAB::egridToUniqueID(const std::shared_ptr<const NC::VectD>& egrid)
 }
 
 std::shared_ptr<const NC::VectD>
-NC::SAB::egridFromUniqueID( NC::UniqueIDValue uidval )
+NC::SAB::egridFromUniqueID( UniqueIDValue uidval )
 {
   if ( uidval == emptyEgridUIDVal() )
     return nullptr;
