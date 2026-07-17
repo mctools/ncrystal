@@ -23,6 +23,7 @@
 
 #include "NCrystal/internal/sab/NCSABSurveyor.hh"
 #include "NCrystal/internal/sab/NCSABUtils.hh"//fixme disentangle old infrastructure?
+#include "NCrystal/internal/sab/NCSABCfg.hh"
 #include "NCrystal/internal/utils/NCStrView.hh"
 
 namespace NCRYSTAL_NAMESPACE {
@@ -49,40 +50,7 @@ namespace NCRYSTAL_NAMESPACE {
       using Region = SABCellSurvey::Region;
       using RegionList = SABCellSurvey::RegionList;
 
-      //Supported numerical integration schemes:
-      enum class IntegrationScheme : std::uint_fast32_t {
-        //Basic fixed-order schemes:
-        Trapez2   = 0x020002,
-        Trapez3   = 0x020003,
-        Trapez5   = 0x020005,
-        Trapez9   = 0x020009,
-        Trapez17  = 0x020011,
-        Trapez33  = 0x020021,
-        Simpson3  = 0x040003,
-        Simpson5  = 0x040005,
-        Simpson9  = 0x040009,
-        Simpson17 = 0x040011,
-        Simpson33 = 0x040021,
-        Romberg5  = 0x010005,
-        Romberg9  = 0x010009,
-        Romberg17 = 0x010011,
-        Romberg33 = 0x010021,
-        //Flex schemes, based on potentially adaptive Romberg integration:
-        Flex5  = 0x100005,//mostly Romberg5, occasionally adaptive Romberg17+
-                          //with target prec=1e-3
-        Flex9  = 0x100009,//mostly Romberg9, occasionally adaptive Romberg17+
-                          //with target prec=1e-4
-        Flex17 = 0x100011,//mostly Romberg17, occasionally adaptive Romberg17+
-                          //with target prec=1e-6
-        Flex33 = 0x100021,//Adaptive Romberg33+, target prec=1e-9
-        Flex65 = 0x100041,//Adaptive Romberg65+, target prec=1e-12
-        MaxPrec = Flex65,
-        Default = Flex17//fixme revisit
-      };
-      //Utilities for encoding to/from strings
-      static const char * integSchemeToStr( IntegrationScheme );
-      static IntegrationScheme str2IntegScheme( StrView );
-      static const char * allIntegSchemesAsStr();//';' separated list
+      using IntegrationScheme = SABCfg::IntegrationScheme;//fixme for migration
 
       ////////////////////////////////////////////////////////////////////////
       //Integrate within kinematic bounds.
