@@ -204,12 +204,15 @@ namespace NCRYSTAL_NAMESPACE {
     double m_phimax, m_negdelta;
   };
 
+  class StableSumKahan;
+
   class StableSum {
   public:
     //Numerically stable summation, based on Neumaier's
     //algorithm (doi:10.1002/zamm.19740540106).
     void add(double);
     void add(const StableSum&);
+    void add(const StableSumKahan&);
     double sum() const;
     double value() const { return sum(); }
     void mult(double f) { m_sum *= f; m_correction *= f; }
@@ -218,9 +221,36 @@ namespace NCRYSTAL_NAMESPACE {
     StableSum( const StableSum& o )
       : m_sum(o.m_sum), m_correction(o.m_correction) {}
     StableSum clone() const { return StableSum(*this); }
+    void addPosVal(double);
   private:
     double m_sum = 0.0, m_correction = 0.0;
   };
+
+  class StableSumKahan {
+  public:
+    //This one is based on Kahan summation, which can be a lot faster than
+    //Neumaiers summation. It is provided only to be used with non-negative
+    //summation terms, where Kahan summation has a similar corrective
+    //performance to Neumaier summation.
+    void add(double);
+    void add(const StableSumKahan& o) { add(o.sum()); }
+    double sum() const;
+    double sumUncorrected() const { return m_sum; }//not for normal usage
+    double value() const { return sum(); }
+    void mult(double f) { nc_assert(f>=0.0); m_sum *= f; m_correction *= f; }
+    StableSumKahan() = default;
+    StableSumKahan( double v ) : m_sum(v) { nc_assert( v>=0.0 ); }
+    StableSumKahan( const StableSumKahan& o )
+      : m_sum(o.m_sum), m_correction(o.m_correction) {}
+    void set( const StableSumKahan& o )
+    {
+      m_sum = o.m_sum;
+      m_correction = o.m_correction;
+    }
+  private:
+    double m_sum = 0.0, m_correction = 0.0;
+  };
+
 
   template<typename T, typename Container>
   inline bool hasValue(const Container & c, const T & value)
@@ -317,7 +347,12 @@ constexpr TInt NCrystal::ncconstexpr_roundupnextpow2( TInt a )
   return ncconstexpr_ispow2(a) ? a : ncconstexpr_roundupnextpow2( a + 1 );
 }
 
-inline double NCrystal::ncabs(double a) { return std::abs(a); }
+inline double NCrystal::ncabs(double a)
+{
+  static_assert(std::is_same<decltype(std::abs(0.0)), double>::value,
+                "header issues detected: std::abs not returning a double");
+  return std::abs(a);
+}
 inline bool NCrystal::ncisnan(double a) { return std::isnan(a); }
 inline bool NCrystal::ncisinf(double a) { return std::isinf(a); }
 inline bool NCrystal::ncisnanorinf(double a) { return std::isnan(a) || std::isinf(a); }
@@ -564,10 +599,27 @@ inline bool NCrystal::CosSinGridGen::step() {
   return true;
 }
 
+inline void NCrystal::StableSumKahan::add( double x )
+{
+  nc_assert( x>=0.0 );
+  const double y = x - m_correction;
+  const double t = m_sum + y;
+  m_correction = (t - m_sum) - y;
+  m_sum = t;
+}
+
 inline void NCrystal::StableSum::add( double x )
 {
-  double t = m_sum + x;
-  m_correction += ncabs(m_sum)>=ncabs(x)  ? (m_sum-t)+x : (x-t)+m_sum;
+  const double t = m_sum + x;
+  m_correction += ncabs(m_sum)>=ncabs(x) ? (m_sum-t)+x : (x-t)+m_sum;
+  m_sum = t;
+}
+
+inline void NCrystal::StableSum::addPosVal( double x )
+{
+  nc_assert(x>=0.0);
+  const double t = m_sum + x;
+  m_correction += ncabs(m_sum)>=x ? (m_sum-t)+x : (x-t)+m_sum;
   m_sum = t;
 }
 
@@ -583,9 +635,19 @@ inline void NCrystal::StableSum::add( const StableSum& o )
   m_sum = t;
 }
 
+inline void NCrystal::StableSum::add( const StableSumKahan& o )
+{
+  add( o.sum() );
+}
+
 inline double NCrystal::StableSum::sum() const
 {
   return m_sum + m_correction;
+}
+
+inline double NCrystal::StableSumKahan::sum() const
+{
+  return m_sum - m_correction;//correction sign convention differs from Neumaier
 }
 
 inline bool NCrystal::floateq(double a, double b, double rtol, double atol)
