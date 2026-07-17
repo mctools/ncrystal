@@ -870,7 +870,7 @@ namespace NCRYSTAL_NAMESPACE {
             constexpr std::size_t nbins = 1024;
             m_abinedges = linspace( m_alow, m_aup, nbins+1 );
             m_bincontrib_commul.reserve(nbins);
-            StableSum contrib_commul_ssum;
+            StableSumKahan contrib_commul_ssum;
             double bin_alow = m_abinedges.front();
             double contrib_low_edge = contribOfA(bin_alow);
             for ( auto ibin : ncrange(nbins) ) {

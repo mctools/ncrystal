@@ -93,12 +93,12 @@ namespace NCRYSTAL_NAMESPACE {
       static void integrateWithinKB( const CellData&,
                                      double E_div_kT,
                                      IntegrationScheme,
-                                     StableSum& tgt );
+                                     StableSumKahan& tgt );
 
       ////////////////////////////////////////////////////////////////////////
       //Integrate a full cell (this is a lot faster):
 
-      static void integrateFullCell( const CellData& c, StableSum& tgt )
+      static void integrateFullCell( const CellData& c, StableSumKahan& tgt )
       {
         double f = 0.5 * (c.b2-c.b1);
         tgt.add( f * integrateAlphaInterval_fast(c.a1,c.S[0],c.a2 , c.S[1],

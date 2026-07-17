@@ -204,7 +204,7 @@ namespace NCRYSTAL_NAMESPACE {
           auto nold = m_data.size();
           grow();
           auto nnew = m_data.size();
-          StableSum sum;
+          StableSumKahan sum;
           for ( auto i = nold; i < nnew; ++i )
             sum.add(contrib(vectAt(m_data,i)));
           return sum.sum();
@@ -375,7 +375,7 @@ namespace NCRYSTAL_NAMESPACE {
                                      scheme_encoded,
                                      bool is_bounded_by_betaminus,
                                      bool is_bounded_by_betaplus,
-                                     StableSum& tgt )
+                                     StableSumKahan& tgt )
       {
         nc_assert(is_bounded_by_betaminus||is_bounded_by_betaplus);
         const DecodedIntegScheme scheme{scheme_encoded};
@@ -497,8 +497,9 @@ namespace NCRYSTAL_NAMESPACE {
           };
           R17Adaptive r17adapt(i,minlvl,maxlvl,prec);
           contrib = r17adapt.integrate(0.0,1.0);
-          tgt.add( contrib*cs.a2 );
-          tgt.add( -contrib*cs.a1 );
+          // tgt.add( contrib*cs.a2 );
+          // tgt.add( -contrib*cs.a1 );
+          tgt.add( contrib*(cs.a2-cs.a1) );
         } else if ( use_romberg_fixed ) {
           double contrib;
           nc_assert_always(contrib_at_a[0] >= 0.0);
@@ -517,13 +518,14 @@ namespace NCRYSTAL_NAMESPACE {
               contrib = Romberg::fixedOrderIntegration33pts(contrib_at_a);
             }
           }
-          tgt.add( contrib*cs.a2 );
-          tgt.add( -contrib*cs.a1 );
+          // tgt.add( contrib*cs.a2 );
+          // tgt.add( -contrib*cs.a1 );
+          tgt.add( contrib*(cs.a2-cs.a1) );
         } else if ( scheme.is_simpson ) {
           nc_assert( !use_romberg_adaptive );
           nc_assert_always(contrib_at_a[0] >= 0.0);
           nc_assert( scheme.npts%2==1 && scheme.npts>=3 );
-          StableSum ss;
+          StableSumKahan ss;
           const unsigned nbins = scheme.npts-1;
           const double k = 1.0/(3.0*nbins);
           const double k2 = k + k;
@@ -541,8 +543,9 @@ namespace NCRYSTAL_NAMESPACE {
             ss.add( k2 * (*itC) );
           ss.add( k * (*itCL) );
           double contrib = ss.sum();
-          tgt.add( contrib*cs.a2 );
-          tgt.add( -contrib*cs.a1 );
+          // tgt.add( contrib*cs.a2 );
+          // tgt.add( -contrib*cs.a1 );
+          tgt.add( contrib*(cs.a2-cs.a1) );
         } else {
           //Trapezoidal
           nc_assert( !use_romberg_adaptive );
@@ -568,7 +571,7 @@ void NCS::StdLogLinCellIntegrator::integrateWithinKB( const CellData& c,
                                                       double E_div_kT,
                                                       StdLogLinCellIntegrator::
                                                       IntegrationScheme scheme,
-                                                      StableSum& tgt )
+                                                      StableSumKahan& tgt )
 {
   SABCellSurvey surv( c.a1, c.a2, c.b1, c.b2, E_div_kT );//fixme: in
                                                          //SABProcessor.cc we
