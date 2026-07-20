@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/interfaces/NCSABData.hh"
+#include "NCrystal/internal/utils/NCSpan.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -40,27 +41,18 @@ namespace NCRYSTAL_NAMESPACE {
       // provide cross sections or samplings.
 
     public:
-      SABSurveyor( const VectD& alphaGrid, const VectD& betaGrid );
+      SABSurveyor( const VectD& alphaGrid,
+                   const VectD& betaGrid );
       SABSurveyor( const SABData& );//convenience
 
       //Packed cell index (unpack via unpackCellIdx below):
-      using cellidx_t = std::uint_fast32_t;
-
-      //Each entry in a CellList is (E/kT,cell index):
-      using CellList = std::vector<std::pair<double,cellidx_t>>;
-
-      //Get sorted list of the minimum energy (E/kT) needed before the
-      //phase-space reaches ("touches") a given cell:
-      const CellList& getTouchList() const noexcept { return m_touch; }
-
-      //Get sorted list of the minimum energy (E/kT) needed before the
-      //phase-space completely covers a given cell:
-      const CellList& getCoverList() const noexcept { return m_cover; }
+      using cellidx_t = std::uint32_t;
 
       //Unpack cell idx to (ialpha,ibeta):
       template<class TUInt = unsigned>
       static std::pair<TUInt,TUInt> unpackCellIdx( cellidx_t ci )
       {
+        //fixme: use new classes from NCSABIdx.hh instead?
         static_assert( std::numeric_limits<TUInt>::max()
                        >= std::numeric_limits<std::uint16_t>::max(), "" );
         constexpr cellidx_t mask = 0xFFFFu;
@@ -80,13 +72,17 @@ namespace NCRYSTAL_NAMESPACE {
             return e_cover < o.e_cover;
           return cellidx < o.cellidx;
         }
+        static std::unique_ptr<CellInfo[]>
+        detail_createUninitArray(std::size_t n);
+      private:
+        CellInfo() = default;//uninitialised object
       };
-      const std::vector<CellInfo>& data() const noexcept { return m_data; }
 
+      Span<const CellInfo> data() const noexcept { return m_dataSpan; }
 
     private:
-      CellList m_touch, m_cover;
-      std::vector<CellInfo> m_data;//fixme this better? (if so, discard others)
+      Span<const CellInfo> m_dataSpan;
+      std::unique_ptr<CellInfo[]> m_dataHolder;
     };
 
     class SABCellSurvey final : private NoCopyMove {

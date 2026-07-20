@@ -25,9 +25,134 @@
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
 
+#define NCRYSTAL_USE_CELLINFO_RADIX_SORT
+
 namespace NCRYSTAL_NAMESPACE {
   namespace SABUtils {
     namespace {
+
+      using CellInfo = SABSurveyor::CellInfo;
+
+#ifdef NCRYSTAL_USE_CELLINFO_RADIX_SORT
+
+      template <typename FuncDblKey, typename FuncTieBreak>
+      void radixSortByDouble( std::unique_ptr<CellInfo[]>& dataArray,
+                              std::size_t n,
+                              FuncDblKey key_extract,
+                              FuncTieBreak tie_breaker) {
+        //Specialised radix sort, intended to sort structs where a single double
+        //field is the primary sorting key (with tie-breaker for other
+        //fields. For simplicity we just hardwirde the CellInfo type, but it
+        //could be templated.
+        //
+        //The double fields are assumed to be non-negative finite values, or
+        //+infinity. Negative zero is NOT allowed.
+
+        using T = CellInfo;
+
+        if (n < 2)
+          return;
+
+        std::unique_ptr<T[]> buffer = T::detail_createUninitArray(n);
+        T* src = dataArray.get();
+#ifndef NDEBUG
+        //Check validity (needed for our std::memcpy trick to work, see below):
+        for ( std::size_t i = 0; i < n; ++i ) {
+          double val = key_extract(src[i]);
+          nc_assert_always( val >= 0.0 && !std::signbit(val) );
+        }
+#endif
+        T* dst = buffer.get();
+
+        constexpr int BITS_PER_PASS = 16;//NB: BUCKET=2**16 is large, but we
+                                         //allocate on the heap to be safe.
+                                         //We could reduce to 8 if needed, but
+                                         //that was slightly less efficient in
+                                         //profiling.
+        constexpr int TOTAL_PASSES  = ( sizeof(double) * 8 ) / BITS_PER_PASS;
+        constexpr int BUCKETS       = 1 << BITS_PER_PASS;
+        constexpr int MASK          = BUCKETS - 1;
+        std::unique_ptr<std::size_t[]> tmpbuf(new std::size_t[2*BUCKETS]);
+        std::size_t * counts = tmpbuf.get();
+        std::size_t * offsets = counts + BUCKETS;
+        auto resetCounts = [&counts]() { std::fill_n(counts, BUCKETS,
+                                                     std::size_t{0}); };
+        static_assert( TOTAL_PASSES == 4, "" );
+        static_assert( BUCKETS == 65536, "" );
+
+        for (int pass = 0; pass < TOTAL_PASSES; ++pass) {
+          const int shift = pass * BITS_PER_PASS;
+          auto radix = [shift,key_extract,src](std::size_t i)
+          {
+            double v = key_extract(src[i]);
+            //The trick is to interpret the double bits as an uint64_t, and then
+            //extract BITS_PER_PASS in each pass. With our constraints of
+            //non-negative (no -0.0 but +inf allowed) integers, this should have
+            //the same sorting with standard double implementations:
+            static_assert(std::numeric_limits<double>::is_iec559,"");
+            static_assert(sizeof(double) == sizeof(std::uint64_t), "");
+            std::uint64_t bits;
+            std::memcpy(&bits, &v, sizeof(double));
+            int res = (bits >> shift) & MASK;
+            nc_assert( res >= 0 && res < BUCKETS );
+            return res;
+          };
+          resetCounts();
+          for (std::size_t i = 0; i < n; ++i)
+            ++counts[radix(i)];
+          offsets[0] = 0;
+          for (int i = 1; i < BUCKETS; ++i)
+            offsets[i] = offsets[i - 1] + counts[i - 1];
+          for (std::size_t i = 0; i < n; ++i)
+            dst[offsets[radix(i)]++] = src[i];
+          //every second pass we use the original array as the new target
+          //buffer for the next step:
+          std::swap(src, dst);
+        }
+
+        //Even number of swaps should have left the results in dataArray.data():
+        static_assert( TOTAL_PASSES%2 == 0, "" );
+        nc_assert( src == dataArray.get() );
+
+        //Release buffer:
+        dst = nullptr;
+        buffer = nullptr;
+
+        //Radix sort done on primary double key, now resolve ties:
+        double key0 = key_extract(src[0]);
+        for (std::size_t i = 1, i0 = 0; i <= n; ++i) {
+          double key = key_extract(src[i]);
+          if ( i == n || key != key0 ) {
+            if ( i - i0 > 1 ) {
+              std::sort( src + i0, src + i, tie_breaker);
+            }
+            i0 = i;
+            key0 = key;
+          }
+        }
+      }
+#endif// NCRYSTAL_USE_CELLINFO_RADIX_SORT
+
+      inline void sortCellInfo( std::unique_ptr<CellInfo[]>& data,
+                                std::size_t n )
+      {
+#ifdef NCRYSTAL_USE_CELLINFO_RADIX_SORT
+        //Note: The comparisons functions in the next statement must be carefully
+        //aligned with the CellInfo::operator<(..) implementation!
+        radixSortByDouble( data, n,
+                           []( CellInfo& c ) -> double& { return c.e_touch; },
+                           []( const CellInfo& a, const CellInfo& b) -> bool {
+                             return  ( ( a.e_cover != b.e_cover )
+                                       ? ( a.e_cover < b.e_cover )
+                                       : ( a.cellidx < b.cellidx ) );
+                           } );
+#else
+        std::sort( data.get(), data.get()+n );
+#endif
+        //As a sanity check, std::is_sorted should yield true if everything was
+        //implemented consistently:
+        nc_assert( std::is_sorted(data.get(), data.get()+n) );
+      }
 
       inline bool rectIntersectsIdentityLine( double x0, double y0,
                                               double x1, double y1 ) {
@@ -37,10 +162,19 @@ namespace NCRYSTAL_NAMESPACE {
         nc_assert(y1>y0);
         return std::min<double>(x1, y1) >= std::max<double>(y0, x0);
       }
-
     }
   }
 }
+
+
+std::unique_ptr<NCS::SABSurveyor::CellInfo[]>
+NCS::SABSurveyor::CellInfo::detail_createUninitArray( std::size_t n )
+{
+  //nb: avoid ncmake_unique_array<CellInfo>(n) here since that would
+  //value-initialise rather than default-initialise:
+  return std::unique_ptr<CellInfo[]>(new CellInfo[n]);
+}
+
 
 NCS::SABSurveyor::SABSurveyor( const SABData& sd )
   : SABSurveyor( sd.alphaGrid(), sd.betaGrid() )
@@ -64,12 +198,14 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
   nc_assert( nc_is_grid(betaGrid) );
   nc_assert_always( alphaGrid.front()>=0.0 );
 
-  using idx_t = std::uint_fast32_t;
+  using idx_t = std::uint32_t;
   static_assert(std::is_same<idx_t,cellidx_t>::value,"");
   const idx_t nalpha = static_cast<idx_t>(na_sizet);
   const idx_t nbeta  = static_cast<idx_t>(nb_sizet);
   const auto ncells_sizet = (na_sizet-1)*(nb_sizet-1);
-  m_data.reserve( ncells_sizet );
+  auto cellinfo_array = CellInfo::detail_createUninitArray(ncells_sizet);
+  auto itData = cellinfo_array.get();
+
   //The first energy value E at which a given point in (alpha,beta) space is
   //accessible is what we must find for all grid points in order to answer
   //questions about which cells are touched or covered by different
@@ -138,7 +274,10 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
                    ? 0.0
                    : ncmin( e,e_prevb,e_prevab,e_preva) );
       const double ecover = ncmax( e_prevb,e_prevab,e_preva);
-      m_data.emplace_back( etouch, ecover, packidx );
+      itData->e_touch = etouch;
+      itData->e_cover = ecover;
+      itData->cellidx = packidx;
+      ++itData;
 
       *itPAEBUF++ = e_prevb;
       bval_prev = bval;
@@ -148,22 +287,17 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
     *itPAEBUF = e_prevb;
     aval_prev = aval;
   }
+  nc_assert( itData == cellinfo_array.get() + ncells_sizet );
 
-  nc_assert( m_data.size() == ncells_sizet );
-  std::sort( m_data.begin(), m_data.end() );
+  //Finally, we must sort the cells. Profiling shows this to be a very important
+  //bottleneck for material initialisation time, and this is improved by the
+  //usage of a custom radix sort instead of a simple std::sort invocation.
+  sortCellInfo( cellinfo_array, ncells_sizet );
 
-  //fixme: the following lines seem innocent, but they cost >70ms or so!!!!
-  m_touch.reserve( ncells_sizet );
-  for ( auto& cc : m_data )
-    m_touch.emplace_back( cc.e_touch, cc.cellidx );
-  nc_assert( m_touch.size() == ncells_sizet );
-  std::sort( m_touch.begin(), m_touch.end() );
-
-  m_cover.reserve( ncells_sizet );
-  for ( auto& cc : m_data )
-    m_cover.emplace_back( cc.e_cover, cc.cellidx );
-  nc_assert( m_cover.size() == ncells_sizet );
-  std::sort( m_cover.begin(), m_cover.end() );
+  //All done:
+  m_dataHolder = std::move(cellinfo_array);
+  m_dataSpan = Span<const CellInfo>( m_dataHolder.get(),
+                                     m_dataHolder.get() + ncells_sizet );
 }
 
 NCS::SABCellSurvey::SABCellSurvey( double alpha1, double alpha2,
@@ -173,7 +307,7 @@ NCS::SABCellSurvey::SABCellSurvey( double alpha1, double alpha2,
                                    )
 {
   //fixme: special-early return for the few cases we are likely to encounter
-  //mostly!
+  //mostly?
   nc_assert( !ncisnan(alpha1) );
   nc_assert( !ncisnan(alpha2) );
   nc_assert( !ncisnan(beta1) );
@@ -223,14 +357,42 @@ NCS::SABCellSurvey::SABCellSurvey( double alpha1, double alpha2,
     return;//no overlap
 
   struct Interval final {
+    Interval() {}//deliberately no initialisation!
     Interval( double aa1, double aa2, bool bb )
       : a1(aa1), a2(aa2), bounded(bb) { nc_assert( a2 > a1 ); }
     double a1, a2;
     bool bounded;
   };
-  //fixme: Can we do it without smallvector?
-  SmallVector<Interval,3> intervals_lower, intervals_upper;
 
+  struct Intervals final : private NoCopyMove {
+    //fixme: as utility template class with nmax arg (only for trivially
+    //destructible and constructible and copyable types).
+    Intervals() { m_next = &m_data[0]; }
+    void emplace_back( double a1, double a2, double b )
+    {
+      nc_assert( static_cast<std::size_t>(std::distance(&m_data[0], m_next))
+                 < sizeof(m_data)/sizeof(m_data[0]) );
+      *m_next++ = Interval(a1,a2,b);
+    }
+    std::size_t size() const noexcept
+    { return static_cast<std::size_t>(m_next - &m_data[0]); }
+    bool empty() const noexcept { return m_next == &m_data[0]; }
+    const Interval& front() const ncnoexceptndebug
+    { nc_assert(!empty()); return m_data[0]; }
+    const Interval& back() const ncnoexceptndebug
+    { nc_assert(!empty()); return *std::prev(m_next); }
+    Interval& front() ncnoexceptndebug
+    { nc_assert(!empty()); return m_data[0]; }
+    Interval& back() ncnoexceptndebug
+    { nc_assert(!empty()); return *std::prev(m_next); }
+    void pop_back() ncnoexceptndebug
+    { nc_assert(m_next > &m_data[0]); nc_assert(!empty()); --m_next; }
+  private:
+    Interval * m_next;
+    Interval m_data[3];//fixme: perhaps 2 is enough?
+  };
+
+  Intervals intervals_lower, intervals_upper;
   //Look at lower bounds:
   if ( b1 <= -e ) {
     intervals_lower.emplace_back(a1,a2,true);//bounded by beta^-(alpha)
@@ -270,12 +432,13 @@ NCS::SABCellSurvey::SABCellSurvey( double alpha1, double alpha2,
   nc_assert( !intervals_lower.empty() && !intervals_upper.empty() );
   nc_assert( intervals_lower.front().a1 == intervals_upper.front().a1 );
   nc_assert( intervals_lower.back().a2 == intervals_upper.back().a2 );
-  double au = intervals_upper.back().a2, al;
+  double au = intervals_upper.back().a2;
+  double al;
 
   while ( !intervals_lower.empty() ) {
     bool bm_bounded =  intervals_lower.back().bounded;
     bool bp_bounded =  intervals_upper.back().bounded;
-    nc_assert_always(!intervals_upper.empty());
+    nc_assert(!intervals_upper.empty());
     if ( intervals_lower.back().a1 >= intervals_upper.back().a1 ) {
       al = intervals_lower.back().a1;
       intervals_lower.pop_back();
