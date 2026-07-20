@@ -537,11 +537,7 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
   nc_assert( !doSampler || sampler_infos.size()+1 ==  nsamplervals );
 
   //Apply factor C/E, with C=boundXS*kT/4 (cf. eq. 4 in sampling paper):
-  NCRYSTAL_MSG("TKTEST m_data->boundXS().get()="<<m_data->boundXS().get());
   double xs_total = xs_total_stable.sum() * m_data->boundXS().get() / (4*ekin_div_kT);
-  NCRYSTAL_MSG("TKTEST xs_total_stable.sum()="<<xs_total_stable.sum());
-  NCRYSTAL_MSG("TKTEST factor="<<(m_data->boundXS().get()*kT /4));
-  NCRYSTAL_MSG("TKTEST xs_total value: "<<xs_total);
 
   if (!(xs_total>=0.0))
     xs_total = 0.0;
