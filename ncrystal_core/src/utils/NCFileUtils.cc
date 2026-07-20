@@ -350,7 +350,7 @@ std::string NC::ncgetcwd() {
   if (errno == ERANGE) {
     //crazy system with crazy long path.
     constexpr std::size_t nlarge = 131072;
-    auto largebuf = ncmake_unique_array<char>(nlarge);
+    auto largebuf = ncmake_unique_array_noinit<char>(nlarge);
     if (getcwd(&largebuf[0], nlarge))
       return std::string(&largebuf[0]);
     if (errno == ERANGE)

@@ -116,7 +116,7 @@ namespace NCRYSTAL_NAMESPACE {
                      && da.capacity() <= CBMgrInput::cachelen_max );
           const std::size_t nvalues = nfields * da.capacity();
           nc_assert( da_memholder == nullptr );
-          da_memholder = ncmake_unique_array<double>( nvalues );
+          da_memholder = ncmake_unique_array_noinit<double>( nvalues );
           double * it = da_memholder.get();
           for ( auto i : ncrange( nfields ) ) {
             da_datacache[i] = it;

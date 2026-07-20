@@ -366,12 +366,27 @@ namespace NCRYSTAL_NAMESPACE {
                   "use ncmake_unique_array");
     return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
   }
+
   //But make array version explicit:
   template<typename T>
   inline std::unique_ptr<T[]> ncmake_unique_array( std::size_t n )
   {
     static_assert(std::is_array<T>::value == false, "");
-    return std::unique_ptr<T[]>( new T[n]() );
+    //NB: new T[n]() value initialises, T[n] default initialises.
+    return std::unique_ptr<T[]>( new T[n]() );//NB: Not "new T[n]"
+  }
+
+  //Version which can be used to default-initialise elements. This is meant to
+  //efficiently allocate arrays where all elements are going to have data
+  //assigned later anyway. This works with things like fundamental types and
+  //structs of fundamental types.
+  template<typename T>
+  inline std::unique_ptr<T[]> ncmake_unique_array_noinit( std::size_t n )
+  {
+    static_assert(std::is_array<T>::value == false, "");
+    static_assert(std::is_trivially_default_constructible<T>::value,"");
+    //NB: new T[n]() value initialises, T[n] default initialises.
+    return std::unique_ptr<T[]>( new T[n] );//NB: Not "new T[n]()"
   }
 }
 
