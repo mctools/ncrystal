@@ -22,6 +22,7 @@
 #include "NCrystal/internal/sab/NCSABSurveyor.hh"
 #include "NCrystal/internal/sab/NCSABCellInteg.hh"
 #include "NCrystal/internal/sab/NCSABCellSample.hh"
+#include "NCrystal/internal/sab/NCSABIdx.hh"
 //fixme: use common SABIDx
 
 namespace NC = NCrystal;
@@ -59,8 +60,7 @@ namespace NCRYSTAL_NAMESPACE {
           (void)dummy_testsabidx;
           auto& sab = m_sab->sab();
           nc_assert(m_logS==nullptr);
-          //FIXME: Need ncmake_unique_array_uninit! (should assert that T is fundamental so default init leave it alone?).
-          m_logS = std::unique_ptr<double[]>(new double[sab.size()]);//nb: default-init, not value-init!
+          m_logS = ncmake_unique_array_noinit<double>(sab.size());
           auto itS = sab.begin();
           auto itSE = sab.end();
           double * itLS = m_logS.get();
@@ -1206,4 +1206,60 @@ NC::NeutronEnergy NCS::SABProcessor::getEMax() const
 const NC::VectD& NCS::SABProcessor::getEDivKTGrid() const
 {
   return sp_cimpl(m_impl)->m_eGrid;
+}
+
+
+//fixme: remove:
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/phys_utils/NCFreeGasUtils.hh"
+void NCS::SABProcessor::testJSON( shared_obj<const SABData> sd,
+                                  std::ostream& os )
+{
+  //MAKE touchedinteg(E) curve first -> reeeelatively cheap I hope, and we
+  //anyway need (most) of the cell integrals.
+  SABSurveyor surv(sd);
+  CellMgr cellmgr(sd);
+  nc_assert_always( !surv.data().empty() );
+
+  VectD test_egrid = determineEGrid( sd, cellmgr, surv, {} );
+  VectD test_sint;
+  VectD test_sint_full;
+  std::vector<std::size_t> test_sint_ncrossed;
+  const auto scheme = StdLogLinCellIntegrator::IntegrationScheme::Flex17;
+  sIntegralAtE_Result result;
+  result.crossedIntegrals.reserve(256);
+  for ( auto& E_div_kT : test_egrid ) {
+    sIntegralAtE( E_div_kT, cellmgr, surv, scheme, result, true );
+    test_sint.push_back( result.integralWithinKB );
+    test_sint_full.push_back( result.integralTouchedCells );
+    test_sint_ncrossed.push_back( result.crossedIntegrals.size() );
+  }
+
+  auto sIntByEtouch
+    = determineSIntegralByTouchedCells( cellmgr, surv,
+                                        sd->temperature().kT() );
+
+
+  os << "{\"E/kT\":";
+  streamJSON(os,sIntByEtouch.e);
+  os << ",\"sumcellint\":";
+  streamJSON(os,sIntByEtouch.sint);
+  os << ",\"kT\":";
+  streamJSON(os,sd->temperature().kT());
+  os << ",\"T\":";
+  streamJSON(os,sd->temperature().get());
+  os << ",\"E/kT_careful\":";
+  streamJSON(os,test_egrid);
+  os << ",\"Sintegral_careful\":";
+  streamJSON(os,test_sint);
+  os << ",\"Sintegral_careful_fullcells\":";
+  streamJSON(os,test_sint_full);
+  os << ",\"Sintegral_careful_ncrossed\":";
+  streamJSON(os,test_sint_ncrossed);
+  os << ",\"egrid_range\":";
+  std::pair<double,double> egrid_range{ test_egrid.front(),
+                                        test_egrid.back() };
+  streamJSON(os,egrid_range);
+  os << "}";
+
 }
