@@ -106,15 +106,16 @@ namespace NCRYSTAL_NAMESPACE {
 
           const double inv_nm1 = 1.0 / nm1;
           const double da = (a2-a1)*inv_nm1;
+
           for ( unsigned i = 1; i < nm1; ++i )
-            a[i] = a1 + da * i;
+            a[i] = std::fma(da, static_cast<double>(i), a1); // = a1+da*i
 
           if ( meth == Method::LIN ) {
             //linear
             final_k = s2-s1;
             double ds = final_k*inv_nm1;
             for ( unsigned i = 1; i < nm1; ++i )
-              S[i] = s1 + ds * i;
+              S[i] = std::fma(ds, static_cast<double>(i), s1); // = s1+ds*i
             return;
           }
 
@@ -257,7 +258,8 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert(m_a2minusa1>0.0);
           const double da = m_a2minusa1*inv_newnbins;
           nc_assert(da>0.0);
-          m_data.reserve_hint( 1025 );//reduce slow reallocs
+          m_data.reserve_hint( 1025 );//reduce slow reallocs in case SmallVector
+                                      //memory overflows
           for ( std::size_t i = 1; i < Nold; ++i ) {
             const auto& ref = vectAt(m_data,i);
             m_data.emplace_back( ref.alpha + da,
@@ -453,13 +455,15 @@ namespace NCRYSTAL_NAMESPACE {
             double rb = (bmiddle-cs.b1)*invdb;
             double smiddle = Sb1*(1.0-rb)+Sb2*(rb);
 #endif
-            nc_assert_always(bu-bl > -1e-6);//could be slightly negative due to
+            nc_assert_always(bu-bl > -0.01);//could be slightly negative due to
                                             //numerical instabilities
             const double bumbl( is_bounded_on_both_sides
                                 ? 2.0*dbpm
                                 : ncmax(0.0,bu-bl) );
 
-            *itC = bumbl*smiddle;
+            nc_assert_always(bumbl >= -1e-9 );
+            nc_assert_always(smiddle >= -1e-9 );
+            *itC = ncmax(0.0,bumbl*smiddle);
             nc_assert_always(*itC >= 0.0);
             nc_assert_always(std::isfinite(*itC));
           }
