@@ -72,7 +72,8 @@ namespace NCRYSTAL_NAMESPACE {
         constexpr int TOTAL_PASSES  = ( sizeof(double) * 8 ) / BITS_PER_PASS;
         constexpr int BUCKETS       = 1 << BITS_PER_PASS;
         constexpr int MASK          = BUCKETS - 1;
-        std::unique_ptr<std::size_t[]> tmpbuf(new std::size_t[2*BUCKETS]);
+        auto tmpbuf = ncmake_unique_array_noinit<std::size_t>(2*BUCKETS);
+
         std::size_t * counts = tmpbuf.get();
         std::size_t * offsets = counts + BUCKETS;
         auto resetCounts = [&counts]() { std::fill_n(counts, BUCKETS,
@@ -170,9 +171,9 @@ namespace NCRYSTAL_NAMESPACE {
 std::unique_ptr<NCS::SABSurveyor::CellInfo[]>
 NCS::SABSurveyor::CellInfo::detail_createUninitArray( std::size_t n )
 {
-  //nb: avoid ncmake_unique_array<CellInfo>(n) here since that would
-  //value-initialise rather than default-initialise:
+  //Not using ncmake_unique_array_noinit due to private constructor:
   return std::unique_ptr<CellInfo[]>(new CellInfo[n]);
+  //return ncmake_unique_array_noinit<CellInfo>(n);
 }
 
 
