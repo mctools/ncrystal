@@ -178,6 +178,14 @@ namespace NCrystal = NCRYSTAL_NAMESPACE;
 #  else
 #    define ncnoexceptndebug noexcept
 #  endif
+#  ifdef ncconstexprndebug
+#    undef ncconstexprndebug
+#  endif
+#  ifndef NDEBUG
+#    define ncconstexprndebug
+#  else
+#    define ncconstexprndebug constexpr
+#  endif
 #  ifdef ncnodiscard17
 #    undef ncnodiscard17
 #  endif
