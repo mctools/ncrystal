@@ -68,35 +68,13 @@ namespace NCRYSTAL_NAMESPACE {
                                      //safe to store in uint32_t
 
     //Fwd declarations:
-    class PackedIndex;//packing (ialpha,ibeta) into a single integer
     class NAlpha;//strongly typed "nalpha"
     class NAlphaCells;//strongly typed "nalpha-1"
     class SABIndex;//Strongly typed SAB index ( idx = ib*nalpha+ia )
     class SABCellIndex;//Strongly typed SAB index ( idx = ib*(nalpha-1)+ia )
 
-    class NAlpha final {
-    public:
-      //Strongly typed NAlpha ("alphaGrid.size()")
-      using size_type = raw_size_t;
-      NAlpha( const VectD& alphaGrid ) ncnoexceptndebug;
-      explicit constexpr NAlpha( size_type ) ncnoexceptndebug;
-      explicit constexpr NAlpha( NAlphaCells ) ncnoexceptndebug;
-      constexpr size_type value() const noexcept { return m_value; }
-    private:
-      size_type m_value;
-    };
-
-    class NAlphaCells final {
-    public:
-      //Strongly typed NAlphaCells ("alphaGrid.size()-1")
-      using size_type = raw_size_t;
-      NAlphaCells( const VectD& alphaGrid ) ncnoexceptndebug;
-      explicit constexpr NAlphaCells( size_type ) ncnoexceptndebug;
-      explicit constexpr NAlphaCells( NAlpha ) ncnoexceptndebug;
-      constexpr size_type value() const noexcept { return m_value; }
-    private:
-      size_type m_value;
-    };
+    //Call to trigger exception if out of range:
+    void verifyGridSizes( raw_size_t nalpha, raw_size_t nbeta );
 
     namespace detail {
 
@@ -123,67 +101,76 @@ namespace NCRYSTAL_NAMESPACE {
       };
     }
 
-    class PackedIndex {
-      using packer_t = detail::UIntPacker<raw_idx_t,std::uint16_t>;
-    public:
-      //Cell indices are in unpacked form (ialpha,ibeta) where the indices are
-      //the ones of the lower grid point. Thus, if the grid has nalpha*nbeta
-      //grid points, there are only (nalpha-1)*(nbeta-1) cells. We thus define
-      //nalphacells=nalpha-1 and ncellbeta=nbeta-1, and let ialpha run from
-      //0..(nalphacells-1), and similarly for ibeta.
-
+    struct PackedIndex {
+      //Strongly typed SAB cell or grid point index. Deliberately kept simple to
+      //be trivially constructible.
       using index_t = raw_idx_t;
-
-      static constexpr index_t invalid = std::numeric_limits<index_t>::max();
-      constexpr PackedIndex() noexcept : m_idx(invalid) {}
-      constexpr PackedIndex( NullOptType ) noexcept : m_idx(invalid) {}
-      constexpr PackedIndex( raw_size_t ialpha,
-                             raw_size_t ibeta ) ncnoexceptndebug;
-
-      std::size_t idxAlpha() const
+      using packer_t = detail::UIntPacker<index_t,std::uint16_t>;
+      index_t val;
+      static constexpr raw_size_t iAlphaLimit() noexcept { return packer_t::max_sizet(); }
+      static constexpr raw_size_t iBetaLimit() noexcept { return packer_t::max_sizet(); }
+      ncconstexprndebug raw_size_t unpack_ialpha() const ncnoexceptndebug
       {
-        return packer_t::unpack1_sizet( m_idx );
+        nc_assert( packer_t::unpack1_sizet( val ) <= iAlphaLimit() );
+        return packer_t::unpack1_sizet( val );
       }
-
-      std::size_t idxBeta() const
+      ncconstexprndebug raw_size_t unpack_ibeta() const ncnoexceptndebug
       {
-        return packer_t::unpack2_sizet( m_idx );
+        nc_assert( packer_t::unpack2_sizet( val ) <= iBetaLimit() );
+        return packer_t::unpack2_sizet( val );
       }
-
-      //      CellIndex unpack( NAlphaCells ) const ncnoexceptndebug;
-      constexpr bool isValid() const noexcept { return m_idx != invalid; }
-      constexpr index_t value() const noexcept { return m_idx; }
-      //static index_t nRawMax( NAlphaCells, std::size_t nbeta );
-      struct from_raw_t {};
-      constexpr PackedIndex( from_raw_t, index_t raw ) noexcept : m_idx(raw) { }
-      //constexpr index_t rawValue() const noexcept { return m_idx; }
-    private:
-      index_t m_idx;
+      static ncconstexprndebug
+      PackedIndex from_ia_ib( raw_size_t ialpha,
+                                    raw_size_t ibeta ) ncnoexceptndebug
+      {
+        nc_assert( ialpha <= iAlphaLimit() );
+        nc_assert( ibeta <= iBetaLimit() );
+        return PackedIndex{ packer_t::pack( ialpha, ibeta ) };
+      }
     };
 
-    template<class NAlphaT>
-    class SABIdxT {
+    class NAlpha final {
     public:
-      using size_type = raw_sab_idx_t;
-      SABIdxT( NAlpha, size_type idxAlpha, size_type idxBeta ) ncnoexceptndebug;
-      SABIdxT( NAlpha na, PackedIndex p ) ncnoexceptndebug
-        : SABIdxT( na, p.idxAlpha(), p.idxBeta() )
-      {
-        nc_assert( p.isValid() );
-      }
-      explicit constexpr SABIdxT( size_type raw ) noexcept : m_value(raw)
-      {
-        nc_assert( m_value < static_cast<std::size_t>
-                   (std::numeric_limits<std::uint32_t>::max()) );
-      }
+      //Strongly typed NAlpha ("alphaGrid.size()")
+      using size_type = raw_size_t;
+      NAlpha( const VectD& alphaGrid ) ncnoexceptndebug;
+      explicit constexpr NAlpha( size_type ) ncnoexceptndebug;
+      explicit constexpr NAlpha( NAlphaCells ) ncnoexceptndebug;
       constexpr size_type value() const noexcept { return m_value; }
     private:
       size_type m_value;
     };
 
+    class NAlphaCells final {
+    public:
+      //Strongly typed NAlphaCells ("alphaGrid.size()-1")
+      using size_type = raw_size_t;
+      NAlphaCells( const VectD& alphaGrid ) ncnoexceptndebug;
+      explicit constexpr NAlphaCells( size_type ) ncnoexceptndebug;
+      explicit constexpr NAlphaCells( NAlpha ) ncnoexceptndebug;
+      constexpr size_type value() const noexcept { return m_value; }
+    private:
+      size_type m_value;
+    };
+
+    template<class NAlphaT>
+    class SABIdxT {
+    public:
+      //NB: S(alpha[ia],beta[ib]) = sab[ ib*NA+ia ] where NA is either
+      //NAlphaCells or NAlpha, depending on whether the array is keeping track
+      //of cell or grid data.
+      using size_type = raw_sab_idx_t;
+      SABIdxT( NAlphaT, size_type idxAlpha, size_type idxBeta ) ncnoexceptndebug;
+      SABIdxT( NAlphaT na, PackedIndex p ) ncnoexceptndebug
+        : SABIdxT( na, p.unpack_ialpha(), p.unpack_ibeta() )
+      {
+      }
+      constexpr size_type value() const noexcept { return m_value; }
+    private:
+      size_type m_value;
+    };
     using SABIdx = SABIdxT<NAlpha>;
     using SABCellIdx = SABIdxT<NAlphaCells>;
-
   }
 }
 
@@ -236,7 +223,7 @@ namespace NCRYSTAL_NAMESPACE {
       static_assert( std::is_same<TOne,std::uint16_t>::value
                      || std::is_same<TOne,std::uint32_t>::value, "" );
       static_assert( sizeof(std::size_t) >= sizeof( TTwo ) );
-      return static_cast<std::size_t>(std::numeric_limits<TOne>::max());
+      return static_cast<std::size_t>(std::numeric_limits<TOne>::max()-1);
     }
 
     template<class TTwo, class TOne>
@@ -269,20 +256,23 @@ namespace NCRYSTAL_NAMESPACE {
       return static_cast<std::size_t>(max());
     }
 
-    inline constexpr PackedIndex
-    ::PackedIndex( raw_size_t ialpha, raw_size_t ibeta ) ncnoexceptndebug
-      : m_idx( packer_t::pack( ialpha, ibeta ) )
+    inline void verifyGridSizes( raw_size_t nalpha, raw_size_t nbeta )
     {
-      //disallow ialpha=ibeta=uint16_t::max, reserving it for "invalid":
-      static_assert( packer_t::unpack1(invalid) == packer_t::max(), "" );
-      static_assert( packer_t::unpack2(invalid) == packer_t::max(), "" );
-      nc_assert( ialpha < packer_t::max_sizet() );
-      nc_assert( ibeta < packer_t::max_sizet() );
-      nc_assert( isValid() );
+      //Fixme: better location for this? In SABData class? Or
+      //TransformKnlToStdFormat? Also, not inlined...
+      static_assert( std::is_same<raw_idx_t,std::uint32_t>::value, "" );
+      static_assert( std::numeric_limits<std::uint16_t>::max()==65535, "" );
+      static_assert( PackedIndex::iAlphaLimit()==65534, "" );
+      static_assert( PackedIndex::iBetaLimit()==65534, "" );
+      if ( !( nalpha <= 65534 && nbeta <= 65534 ) )
+        NCRYSTAL_THROW2(BadInput,"SAB grid too large"
+                        " (max size is 65534x65534)");
+      if ( !( nalpha >= 2 && nbeta >= 2 ) )
+        NCRYSTAL_THROW2(BadInput,"SAB grid too small (min size is 2x2)");
     }
 
     template<class NAlphaT>
-    inline SABIdxT<NAlphaT>::SABIdxT( NAlpha na,
+    inline SABIdxT<NAlphaT>::SABIdxT( NAlphaT na,
                                       size_type idxAlpha,
                                       size_type idxBeta ) ncnoexceptndebug
       : m_value( idxBeta * na.value() + idxAlpha )
