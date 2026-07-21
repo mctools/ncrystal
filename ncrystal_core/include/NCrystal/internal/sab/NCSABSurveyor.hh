@@ -23,6 +23,8 @@
 
 #include "NCrystal/interfaces/NCSABData.hh"
 #include "NCrystal/internal/utils/NCSpan.hh"
+#include "NCrystal/internal/utils/NCTinyVector.hh"
+#include "NCrystal/internal/sab/NCSABIdx.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -45,37 +47,19 @@ namespace NCRYSTAL_NAMESPACE {
                    const VectD& betaGrid );
       SABSurveyor( const SABData& );//convenience
 
-      //Packed cell index (unpack via unpackCellIdx below):
-      using cellidx_t = std::uint32_t;
-
-      //Unpack cell idx to (ialpha,ibeta):
-      template<class TUInt = unsigned>
-      static std::pair<TUInt,TUInt> unpackCellIdx( cellidx_t ci )
-      {
-        //fixme: use new classes from NCSABIdx.hh instead?
-        static_assert( std::numeric_limits<TUInt>::max()
-                       >= std::numeric_limits<std::uint16_t>::max(), "" );
-        constexpr cellidx_t mask = 0xFFFFu;
-        return { TUInt( ci >> 16 ), TUInt( ci & mask ) };
-      }
+      using cellidx_t = SABIdx::PackedIndex;
 
       struct CellInfo final {
         double e_touch;
         double e_cover;
         cellidx_t cellidx;
-        CellInfo( double et, double ec, cellidx_t ci ) noexcept
-          : e_touch(et), e_cover(ec), cellidx(ci) {}
         bool operator<(const CellInfo& o) const noexcept {
           if ( e_touch != o.e_touch )
             return e_touch < o.e_touch;
           if ( e_cover != o.e_cover )
             return e_cover < o.e_cover;
-          return cellidx < o.cellidx;
+          return cellidx.val < o.cellidx.val;
         }
-        static std::unique_ptr<CellInfo[]>
-        detail_createUninitArray(std::size_t n);
-      private:
-        CellInfo() = default;//uninitialised object
       };
 
       Span<const CellInfo> data() const noexcept { return m_dataSpan; }
@@ -112,9 +96,8 @@ namespace NCRYSTAL_NAMESPACE {
         bool is_bounded_by_betaminus;
         bool is_bounded_by_betaplus;
       };
-      //fixme: something else than smallvector? A fixed array + Span interface?
       static constexpr unsigned nmax_regions = 6;
-      using RegionList = SmallVector<Region,nmax_regions>;
+      using RegionList = TinyVector<Region,nmax_regions>;
       const RegionList& regions() const { return m_regions; }
       void toJSON( std::ostream& ) const;
 

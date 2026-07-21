@@ -53,7 +53,7 @@ namespace NCRYSTAL_NAMESPACE {
         if (n < 2)
           return;
 
-        std::unique_ptr<T[]> buffer = T::detail_createUninitArray(n);
+        std::unique_ptr<T[]> buffer = ncmake_unique_array_noinit<T>(n);
         T* src = dataArray.get();
 #ifndef NDEBUG
         //Check validity (needed for our std::memcpy trick to work, see below):
@@ -145,7 +145,7 @@ namespace NCRYSTAL_NAMESPACE {
                            []( const CellInfo& a, const CellInfo& b) -> bool {
                              return  ( ( a.e_cover != b.e_cover )
                                        ? ( a.e_cover < b.e_cover )
-                                       : ( a.cellidx < b.cellidx ) );
+                                       : ( a.cellidx.val < b.cellidx.val ) );
                            } );
 #else
         std::sort( data.get(), data.get()+n );
@@ -167,16 +167,6 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-
-std::unique_ptr<NCS::SABSurveyor::CellInfo[]>
-NCS::SABSurveyor::CellInfo::detail_createUninitArray( std::size_t n )
-{
-  //Not using ncmake_unique_array_noinit due to private constructor:
-  return std::unique_ptr<CellInfo[]>(new CellInfo[n]);
-  //return ncmake_unique_array_noinit<CellInfo>(n);
-}
-
-
 NCS::SABSurveyor::SABSurveyor( const SABData& sd )
   : SABSurveyor( sd.alphaGrid(), sd.betaGrid() )
 {
@@ -187,24 +177,20 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
 {
   const std::size_t na_sizet = alphaGrid.size();
   const std::size_t nb_sizet = betaGrid.size();
-
-  //Cell index must ultimately fit in an unsigned 16bit integer (for combined
-  //packing as an 32bit unsigned integer).
-  if ( !( na_sizet <= 65000 && nb_sizet < 65000 ) )
-    NCRYSTAL_THROW2(BadInput,"SAB grid too large (max size is 65000x65000)");
+  SABIdx::verifyGridSizes(na_sizet,nb_sizet);
 
   //Verify that we have a suitable grid (nc_is_grid only in dbg builds):
-  nc_assert_always( na_sizet >= 2 && nb_sizet >= 2 );
+  nc_assert( na_sizet >= 2 && nb_sizet >= 2 );
   nc_assert( nc_is_grid(alphaGrid) );
   nc_assert( nc_is_grid(betaGrid) );
   nc_assert_always( alphaGrid.front()>=0.0 );
 
-  using idx_t = std::uint32_t;
-  static_assert(std::is_same<idx_t,cellidx_t>::value,"");
+  using idx_t = cellidx_t::index_t;
+  static_assert(std::is_same<idx_t,SABIdx::raw_idx_t>::value,"");
   const idx_t nalpha = static_cast<idx_t>(na_sizet);
   const idx_t nbeta  = static_cast<idx_t>(nb_sizet);
   const auto ncells_sizet = (na_sizet-1)*(nb_sizet-1);
-  auto cellinfo_array = CellInfo::detail_createUninitArray(ncells_sizet);
+  auto cellinfo_array = ncmake_unique_array_noinit<CellInfo>(ncells_sizet);
   auto itData = cellinfo_array.get();
 
   //The first energy value E at which a given point in (alpha,beta) space is
@@ -226,7 +212,7 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
   if ( nb_sizet <= nsmall ) {
     prevalpha_ebuf_begin = buf_stack;
   } else {
-    buf_heap = ncmake_unique_array<double>(nb_sizet);
+    buf_heap = ncmake_unique_array_noinit<double>(nb_sizet);
     prevalpha_ebuf_begin = &buf_heap[0];
   }
 
@@ -256,13 +242,16 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
     const double aval = vectAt(alphaGrid,ia);
     nc_assert(aval>0.0);
     const double inv4a = 0.25 / aval;
+    static_assert( std::is_same<idx_t,std::uint32_t>::value, "" );
     const idx_t packidx_ib0 = (ia-1) << 16;
+    nc_assert( packidx_ib0 == SABIdx::PackedIndex::from_ia_ib(ia-1,0).val );
     double bval_prev = betaGrid.front();
     double e_prevb = ncsquare(aval-bval_prev)*inv4a;
     double * itPAEBUF = prevalpha_ebuf_begin;
     for ( idx_t ib = 1 ; ib < nbeta; ++ib ) {
       const double bval = vectAt(betaGrid,ib);
       const idx_t packidx = packidx_ib0 | (ib-1);
+      nc_assert( packidx == SABIdx::PackedIndex::from_ia_ib( ia-1,ib-1).val );
       const double e = ncsquare(aval-bval)*inv4a;
       const double e_prevab = *itPAEBUF;
       const double e_preva = *std::next(itPAEBUF);
@@ -277,9 +266,8 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
       const double ecover = ncmax( e_prevb,e_prevab,e_preva);
       itData->e_touch = etouch;
       itData->e_cover = ecover;
-      itData->cellidx = packidx;
+      itData->cellidx = SABIdx::PackedIndex{packidx};
       ++itData;
-
       *itPAEBUF++ = e_prevb;
       bval_prev = bval;
       e_prevb = e;
@@ -358,42 +346,14 @@ NCS::SABCellSurvey::SABCellSurvey( double alpha1, double alpha2,
     return;//no overlap
 
   struct Interval final {
-    Interval() {}//deliberately no initialisation!
-    Interval( double aa1, double aa2, bool bb )
+    Interval( double aa1, double aa2, bool bb ) ncnoexceptndebug
       : a1(aa1), a2(aa2), bounded(bb) { nc_assert( a2 > a1 ); }
     double a1, a2;
     bool bounded;
   };
 
-  struct Intervals final : private NoCopyMove {
-    //fixme: as utility template class with nmax arg (only for trivially
-    //destructible and constructible and copyable types).
-    Intervals() { m_next = &m_data[0]; }
-    void emplace_back( double a1, double a2, double b )
-    {
-      nc_assert( static_cast<std::size_t>(std::distance(&m_data[0], m_next))
-                 < sizeof(m_data)/sizeof(m_data[0]) );
-      *m_next++ = Interval(a1,a2,b);
-    }
-    std::size_t size() const noexcept
-    { return static_cast<std::size_t>(m_next - &m_data[0]); }
-    bool empty() const noexcept { return m_next == &m_data[0]; }
-    const Interval& front() const ncnoexceptndebug
-    { nc_assert(!empty()); return m_data[0]; }
-    const Interval& back() const ncnoexceptndebug
-    { nc_assert(!empty()); return *std::prev(m_next); }
-    Interval& front() ncnoexceptndebug
-    { nc_assert(!empty()); return m_data[0]; }
-    Interval& back() ncnoexceptndebug
-    { nc_assert(!empty()); return *std::prev(m_next); }
-    void pop_back() ncnoexceptndebug
-    { nc_assert(m_next > &m_data[0]); nc_assert(!empty()); --m_next; }
-  private:
-    Interval * m_next;
-    Interval m_data[3];//fixme: perhaps 2 is enough?
-  };
+  TinyVector<Interval,3> intervals_lower, intervals_upper;
 
-  Intervals intervals_lower, intervals_upper;
   //Look at lower bounds:
   if ( b1 <= -e ) {
     intervals_lower.emplace_back(a1,a2,true);//bounded by beta^-(alpha)
@@ -525,3 +485,6 @@ void NCS::SABCellSurvey::toJSON( std::ostream& os ) const
   }
   os<<"]}";
 }
+
+static_assert(std::is_trivially_default_constructible
+              <NC::SABIdx::PackedIndex>::value,"");

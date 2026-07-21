@@ -431,7 +431,12 @@ NCS::BoundedCellSampler::prepareBCSData( double probability_b1_edge,
     updateO2(bmid,bwidth,a);
   };
 
-  SmallVector<std::pair<int,double>,4> restriction_pts;//{ sideidx, alpha }
+#if 1
+  using VectRestrictionPts = TinyVector<std::pair<int,double>,4>;  //fixme: 4??
+#else
+  using VectRestrictionPts = SmallVector<std::pair<int,double>,4>;
+#endif
+  VectRestrictionPts restriction_pts;//{ sideidx, alpha }
   for ( int i = 0; i < 2; ++i ) {
     if ( restrict_a[i].has_value() ) {
       restriction_pts.emplace_back( i, restrict_a[i].value().first );
@@ -444,8 +449,7 @@ NCS::BoundedCellSampler::prepareBCSData( double probability_b1_edge,
                          &updateO1,&updateO2,&updateO12]()
   {
     const auto& r = current;
-
-    SmallVector<std::pair<int,double>,4> restriction_pts_in_region;
+    VectRestrictionPts restriction_pts_in_region;
     for ( auto& i_a : restriction_pts ) {
       if ( valueInInterval( r.alpha_low, r.alpha_up, i_a.second ) )
         restriction_pts_in_region.emplace_back( i_a );
@@ -842,7 +846,7 @@ namespace NCRYSTAL_NAMESPACE {
           //added safety, we must also evaluate on these if they fall in a given
           //alpha-bin. Otherwise the overlay value determined purely from the
           //alpha-bin edges could be underestimated.
-          SmallVector<double,5> special_avals;
+          TinyVector<double,9> special_avals;
           {
             //candidates (the ncabs(..) inside the sqrt is inserted for safety,
             //it is no harm to add spurious candidates here if that candidate
@@ -851,7 +855,7 @@ namespace NCRYSTAL_NAMESPACE {
             const double da1 = 2*std::sqrt(ncabs(m_e*(m_cell.b1+m_e)));
             const double da2 = 2*std::sqrt(ncabs(m_e*(m_cell.b2+m_e)));
 
-            SmallVector<double,5> special_avals_candidates
+            std::array<double,9> special_avals_candidates
               = { m_e, m_cell.b1/3, m_cell.b2/3,
                   ncsquare( std::sqrt( ncabs(m_e + m_cell.b1) ) - sqrte ),
                   ncsquare( std::sqrt( ncabs(m_e + m_cell.b2) ) - sqrte ),

@@ -23,7 +23,8 @@
 #include "NCrystal/internal/sab/NCSABCellInteg.hh"
 #include "NCrystal/internal/sab/NCSABCellSample.hh"
 #include "NCrystal/internal/sab/NCSABIdx.hh"
-//fixme: use common SABIDx
+#include "NCrystal/internal/utils/NCMixedDataVector.hh"
+#include "NCrystal/internal/utils/NCTinyVector.hh"
 
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
@@ -34,30 +35,27 @@ namespace NCRYSTAL_NAMESPACE {
 
     namespace {
 
-      //fixme only in debug : #ifndef NDEBUG
-      //Debug SABIdx
+#ifndef NDEBUG
       static bool dummy_testsabidx = [](){
         namespace SI = SABIdx;
-        nc_assert(!SI::PackedIndex().isValid());
-        nc_assert(!SI::PackedIndex(NullOpt).isValid());
-        nc_assert(SI::PackedIndex(2,6).isValid());
-        nc_assert(SI::PackedIndex(2,6).idxAlpha()==2);
-        nc_assert(SI::PackedIndex(2,6).idxBeta()==6);
-        nc_assert(SI::PackedIndex(0,0).isValid());
-        nc_assert(SI::PackedIndex(0,0).idxAlpha()==0);
-        nc_assert(SI::PackedIndex(0,0).idxBeta()==0);
+        nc_assert(SI::PackedIndex::from_ia_ib(2,6).unpack_ialpha()==2);
+        nc_assert(SI::PackedIndex::from_ia_ib(2,6).unpack_ibeta()==6);
+        nc_assert(SI::PackedIndex::from_ia_ib(0,0).unpack_ialpha()==0);
+        nc_assert(SI::PackedIndex::from_ia_ib(0,0).unpack_ibeta()==0);
         nc_assert(SI::NAlpha{4}.value() == 4);
         nc_assert(SI::NAlphaCells(SI::NAlpha{4}).value() == 3);
         nc_assert(SI::NAlphaCells{4}.value() == 4);
         nc_assert(SI::NAlpha(SI::NAlphaCells{4}).value() == 5);
         return true;
       }();
-
+#endif
       class CellMgr final : private NoCopyMove {
 
         void initLogSCache()
         {
+#ifndef NDEBUG
           (void)dummy_testsabidx;
+#endif
           auto& sab = m_sab->sab();
           nc_assert(m_logS==nullptr);
           m_logS = ncmake_unique_array_noinit<double>(sab.size());
@@ -72,19 +70,19 @@ namespace NCRYSTAL_NAMESPACE {
           auto& sab = m_sab->sab();
           auto& alpha = m_sab->alphaGrid();
           auto& beta = m_sab->betaGrid();
-
-          //populate log(S) cache (expensive):
           //Now calculate cell integrals:
-          const auto nalpha = alpha.size();
+          // const auto nalpha = alpha.size();
           const auto nbeta = beta.size();
-          nc_assert_always(nbeta*nalpha==sab.size());
-          nc_assert_always(nbeta>=2&&nalpha>=2);
-          const auto nalphacells = nalpha-1;
+          SABIdx::NAlpha nalpha(m_sab->alphaGrid());
+          SABIdx::NAlphaCells nalphacells(nalpha);
+          nc_assert_always(nbeta*nalpha.value()==sab.size());
+          nc_assert_always(nbeta>=2&&nalpha.value()>=2);
+          nc_assert( nalphacells.value()+1==alpha.size() );
           const auto nbetacells = nbeta-1;
-          const auto ncells = nalphacells*nbetacells;
+          const auto ncells = nalphacells.value()*nbetacells;
           m_cellIntegral.reserve(ncells);
           VectD alphaint_cache;
-          alphaint_cache.resize(nalphacells,0.0);
+          alphaint_cache.resize(nalphacells.value(),0.0);
           auto itS = sab.begin();
           nc_assert( m_logS != nullptr );
           const double * itLogS = m_logS.get();
@@ -106,10 +104,10 @@ namespace NCRYSTAL_NAMESPACE {
             //skip to beginning of beta slice:
             ++itS;
             ++itLogS;
-            nc_assert( (std::size_t)std::distance(sab.begin(),itS) == (ib+1)*nalpha );
-            nc_assert( (std::size_t)std::distance(static_cast<const double*>(m_logS.get()),itLogS) == (ib+1)*nalpha );
-            nc_assert( itS == std::next(sab.begin(),(ib+1)*nalpha) );
-            nc_assert( itLogS == std::next(m_logS.get(),(ib+1)*nalpha) );
+            nc_assert( (std::size_t)std::distance(sab.begin(),itS) == (ib+1)*nalpha.value() );
+            nc_assert( (std::size_t)std::distance(static_cast<const double*>(m_logS.get()),itLogS) == (ib+1)*nalpha.value() );
+            nc_assert( itS == std::next(sab.begin(),(ib+1)*nalpha.value()) );
+            nc_assert( itLogS == std::next(m_logS.get(),(ib+1)*nalpha.value()) );
             const double b1 = vectAt(beta,ib);//fixme: use iterators instead
             const double b2 = vectAt(beta,ib+1);
             const double half_db = 0.5 * (b2-b1);
@@ -119,6 +117,10 @@ namespace NCRYSTAL_NAMESPACE {
             nc_assert(alphaint_cache.size()+1==alpha.size());
             for ( ; itAIntCache!=itAIntCacheE; ++itAIntCache ) {
               nc_assert(itA<alpha.end());
+#ifndef NDEBUG
+              //Verify consistency of indexing:
+              auto dbg_ialpha = static_cast<SABIdx::raw_sab_idx_t>( itA-alpha.begin() );
+#endif
               const double a_low = *itA++;
               const double s_low = *itS++;
               const double logS_low = *itLogS++;
@@ -127,6 +129,9 @@ namespace NCRYSTAL_NAMESPACE {
                                                         logS_low, *itLogS);
               //combine linearly with previous edge integration to get full cell
               //integral:
+              nc_assert( m_cellIntegral.size()
+                         == SABIdx::SABCellIdx( nalphacells,
+                                                dbg_ialpha, ib ).value() );
               m_cellIntegral.push_back( half_db*(aint+*itAIntCache) );
               //store this edge integration for use during next beta line:
               *itAIntCache = aint;
@@ -138,7 +143,7 @@ namespace NCRYSTAL_NAMESPACE {
         }
 
       public:
-        using cellidx_t = SABSurveyor::cellidx_t;
+        using cellidx_t = SABIdx::PackedIndex;
         const SABData& sabData() const { return *m_sab; }
 
         CellMgr( shared_obj<const SABData> sab )
@@ -149,32 +154,33 @@ namespace NCRYSTAL_NAMESPACE {
           initCellIntegrals();
         }
 
-        CellData lookupCellInfo( cellidx_t idx_raw ) const
+        CellData lookupCellInfo( cellidx_t packed_idx ) const
         {
-          //fixme: not sure this is efficient enough?
-          auto idx_ab = SABSurveyor::unpackCellIdx<std::size_t>(idx_raw);
-          auto ia = idx_ab.first;
-          auto ib = idx_ab.second;
-          //packedidx = idx_ab.second*nacells+ idx_ab.first
+          auto ia = packed_idx.unpack_ialpha();
+          auto ib = packed_idx.unpack_ibeta();
           auto& sab = m_sab->sab();
           auto& alpha = m_sab->alphaGrid();
           auto& beta = m_sab->betaGrid();
           CellData res;
           res.a1 = vectAt(alpha,ia);
-          res.a2 = vectAt(alpha,ia+1);//fixme: iterators
+          res.a2 = vectAt(alpha,ia+1);
           res.b1 = vectAt(beta,ib);
-          res.b2 = vectAt(beta,ib+1);//fixme: iterators
-          const auto na = alpha.size();
-          auto idx_sab = ib*na + ia;
-          auto itS = std::next(sab.begin(),idx_sab);
-          const double * itLogS = m_logS.get() + idx_sab;
-
+          res.b2 = vectAt(beta,ib+1);
+          SABIdx::NAlpha na(m_sab->alphaGrid());//fixme cache?
+          SABIdx::SABIdx idx_sab( na, ia, ib );
+          //const auto na = alpha.size();
+          //auto idx_sab = ib*na + ia;
+          nc_assert( idx_sab.value() == ib*na.value() + ia );
+          auto itS = std::next(sab.begin(),idx_sab.value());
+          const double * itLogS = m_logS.get() + idx_sab.value();
           nc_assert(std::next(itS)<sab.end());
           nc_assert(std::next(itLogS)<m_logS.get()+sab.size());
           res.S[0] = *itS++;
           res.S[1] = *itS;
           res.logS[0] = *itLogS++;
           res.logS[1] = *itLogS;
+          //Advance one row, but we already advanced one item, so only add
+          //nalpha-1:
           itS += m_nalpham1;
           itLogS += m_nalpham1;
           nc_assert(std::next(itS)<sab.end());
@@ -186,13 +192,12 @@ namespace NCRYSTAL_NAMESPACE {
           return res;
         }
 
-        double getCellIntegral( cellidx_t idx_raw ) const
+        double getCellIntegral( SABIdx::PackedIndex p_idx ) const
         {
-          //fixme: migrate to packed cell indices everywhere!
-          auto idx_ab = SABSurveyor::unpackCellIdx<std::size_t>(idx_raw);
-
-          return vectAt(m_cellIntegral, idx_ab.second*m_nalpham1+ idx_ab.first );
+          SABIdx::SABCellIdx sab_idx( SABIdx::NAlphaCells{m_nalpham1}, p_idx );
+          return vectAt(m_cellIntegral, sab_idx.value() );
         }
+
       private:
         std::unique_ptr<double[]> m_logS;
         VectD m_cellIntegral;
@@ -244,7 +249,7 @@ namespace NCRYSTAL_NAMESPACE {
         //are touched by neutron phasespace as energy increases.
         VectD m_cumulFCInt;
         //The corresponding packed cell indices:
-        std::vector<std::uint32_t> m_cumulFCInt_cellidx;
+        std::vector<SABIdx::PackedIndex> m_cumulFCInt_cellidx;
 
         ///////////////////////////////////////////
         //Data needed for bounded-cell sampling:
@@ -260,7 +265,7 @@ namespace NCRYSTAL_NAMESPACE {
           //the total time in benchmarks.
           VectD cumulCellContrib;
           struct CellInfo {
-            std::uint32_t sabCellIndex;
+            SABIdx::PackedIndex sabCellIndex;
             std::uint32_t bcSampleInfoIndex;//== ::max() for full cell sampling
           };
           std::vector<CellInfo> cellInfo;
@@ -732,7 +737,7 @@ namespace NCRYSTAL_NAMESPACE {
             contrib = fullCellInteg;
           } else {
             nc_assert( itNextCrossed != integAtE.crossedIntegrals.end() );
-            nc_assert( itNextCrossed->second == cell.cellidx );
+            nc_assert( itNextCrossed->second.val == cell.cellidx.val );
             contrib = itNextCrossed->first;
             ++itNextCrossed;
           }
@@ -743,7 +748,7 @@ namespace NCRYSTAL_NAMESPACE {
           tmp.emplace_back();
           auto& entry = tmp.back();
           entry.first = contrib;
-          entry.second.sabCellIndex = cell.cellidx;//fixme: check types
+          entry.second.sabCellIndex = cell.cellidx;
 
           //If full cell sampling acceptance rate is high enough, mark this cell
           //for full-cell sampling .
@@ -802,8 +807,10 @@ namespace NCRYSTAL_NAMESPACE {
                      if ( a.first != b.first )
                        return a.first < b.first;//by ascending contrib
                      //rare contrib tie (written to support self-comparison):
-                     if ( a.second.sabCellIndex != b.second.sabCellIndex )
-                       return a.second.sabCellIndex < b.second.sabCellIndex;
+                     if ( a.second.sabCellIndex.val
+                          != b.second.sabCellIndex.val )
+                       return ( a.second.sabCellIndex.val
+                                < b.second.sabCellIndex.val );
                      return ( a.second.bcSampleInfoIndex
                               < b.second.bcSampleInfoIndex );
                    } );
@@ -1016,8 +1023,8 @@ namespace NCRYSTAL_NAMESPACE {
         //fixme: possible optimisation: cache last few (idx,FullCellSampler)
         //objects, in case a few cells are hit often?
         while ( true ) {
-          std::size_t idx = pickRandIdxByWeight( rng, cumulContrib );
-          auto cellidx = vectAt(m_cumulFCInt_cellidx,idx);
+          std::size_t randidx = pickRandIdxByWeight( rng, cumulContrib );
+          auto cellidx = vectAt(m_cumulFCInt_cellidx,randidx);
           auto cellData = m_cellmgr.lookupCellInfo( cellidx );
           auto ab = FullCellSampler::sampleOneAlphaBeta(cellData,rng);
           if ( ncsquare(ab.first-ab.second)<=foure*ab.first ) {
@@ -1209,57 +1216,3 @@ const NC::VectD& NCS::SABProcessor::getEDivKTGrid() const
 }
 
 
-//fixme: remove:
-#include "NCrystal/internal/utils/NCString.hh"
-#include "NCrystal/internal/phys_utils/NCFreeGasUtils.hh"
-void NCS::SABProcessor::testJSON( shared_obj<const SABData> sd,
-                                  std::ostream& os )
-{
-  //MAKE touchedinteg(E) curve first -> reeeelatively cheap I hope, and we
-  //anyway need (most) of the cell integrals.
-  SABSurveyor surv(sd);
-  CellMgr cellmgr(sd);
-  nc_assert_always( !surv.data().empty() );
-
-  VectD test_egrid = determineEGrid( sd, cellmgr, surv, {} );
-  VectD test_sint;
-  VectD test_sint_full;
-  std::vector<std::size_t> test_sint_ncrossed;
-  const auto scheme = StdLogLinCellIntegrator::IntegrationScheme::Flex17;
-  sIntegralAtE_Result result;
-  result.crossedIntegrals.reserve(256);
-  for ( auto& E_div_kT : test_egrid ) {
-    sIntegralAtE( E_div_kT, cellmgr, surv, scheme, result, true );
-    test_sint.push_back( result.integralWithinKB );
-    test_sint_full.push_back( result.integralTouchedCells );
-    test_sint_ncrossed.push_back( result.crossedIntegrals.size() );
-  }
-
-  auto sIntByEtouch
-    = determineSIntegralByTouchedCells( cellmgr, surv,
-                                        sd->temperature().kT() );
-
-
-  os << "{\"E/kT\":";
-  streamJSON(os,sIntByEtouch.e);
-  os << ",\"sumcellint\":";
-  streamJSON(os,sIntByEtouch.sint);
-  os << ",\"kT\":";
-  streamJSON(os,sd->temperature().kT());
-  os << ",\"T\":";
-  streamJSON(os,sd->temperature().get());
-  os << ",\"E/kT_careful\":";
-  streamJSON(os,test_egrid);
-  os << ",\"Sintegral_careful\":";
-  streamJSON(os,test_sint);
-  os << ",\"Sintegral_careful_fullcells\":";
-  streamJSON(os,test_sint_full);
-  os << ",\"Sintegral_careful_ncrossed\":";
-  streamJSON(os,test_sint_ncrossed);
-  os << ",\"egrid_range\":";
-  std::pair<double,double> egrid_range{ test_egrid.front(),
-                                        test_egrid.back() };
-  streamJSON(os,egrid_range);
-  os << "}";
-
-}

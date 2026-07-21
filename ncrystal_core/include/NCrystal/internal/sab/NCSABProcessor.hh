@@ -22,8 +22,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/interfaces/NCSABData.hh"
-#include "NCrystal/internal/sab/NCSABEval.hh"//fixme: for cell idx
-#include "NCrystal/internal/utils/NCMixedDataVector.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
