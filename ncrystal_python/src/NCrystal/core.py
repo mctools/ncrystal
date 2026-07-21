@@ -228,8 +228,11 @@ class AtomData(RCBase):
     components = property(getAllComponents)
 
     def displayLabel(self):
-        """Short label which unique identifies an atom role within a particular material."""
+        """Short label which uniquely identifies an atom role within a
+        particular material."""
         return self.__dl
+
+    lbl = property(displayLabel)
 
     def isTopLevel(self):
         """Whether or not AtomData appears directly on an Info object. If not,
@@ -903,6 +906,13 @@ class Info(RCBase):
                 self.__atomdata = _info._provideAtomData(self._atomidx)
                 assert self.__atomdata.isTopLevel()
             return self.__atomdata
+
+        def displayLabel(self):
+            """Short label which uniquely identifies an atom role within a
+            particular material."""
+            return (self.__atomdata or self.atomData).displayLabel()
+
+        lbl = property(displayLabel)
 
         def _np(self):
             _ensure_numpy()
