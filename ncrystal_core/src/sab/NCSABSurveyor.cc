@@ -186,7 +186,7 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
   nc_assert_always( alphaGrid.front()>=0.0 );
 
   using idx_t = cellidx_t::index_t;
-  static_assert(std::is_same<idx_t,SABIdx::raw_idx_t>::value,"");
+  static_assert(std::is_same<idx_t,SABIdx::PackedIndex::index_t>::value,"");
   const idx_t nalpha = static_cast<idx_t>(na_sizet);
   const idx_t nbeta  = static_cast<idx_t>(nb_sizet);
   const auto ncells_sizet = (na_sizet-1)*(nb_sizet-1);
