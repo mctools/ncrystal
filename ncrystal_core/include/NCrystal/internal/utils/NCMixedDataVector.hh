@@ -44,6 +44,7 @@ namespace NCRYSTAL_NAMESPACE {
     void reserve_bytes( std::size_t nbytes ) { m_data.reserve( nbytes ); }
     void shrink_to_fit() { m_data.shrink_to_fit(); }
     std::size_t size_bytes() const { return m_data.size(); }
+    void swap( MixedDataVector& o ) { m_data.swap( o.m_data ); }
 
     //Appending and extracting data is implemented via std::memcpy, for
     //portability and alignment safety.
