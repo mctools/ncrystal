@@ -235,7 +235,7 @@ namespace NCRYSTAL_NAMESPACE {
     PackedIndex::unpackBetaIdx() const ncnoexceptndebug
     {
       nc_assert( static_cast<std::size_t>(detail::packer32_t::unpack2( val ))
-                 <= iBetaLimit() );
+                 <= maxBetaIdx() );
       return static_cast<std::size_t>(detail::packer32_t::unpack2( val ));
     }
 

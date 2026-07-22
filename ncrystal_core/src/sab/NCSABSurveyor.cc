@@ -244,14 +244,16 @@ NCS::SABSurveyor::SABSurveyor( const VectD& alphaGrid,
     const double inv4a = 0.25 / aval;
     static_assert( std::is_same<idx_t,std::uint32_t>::value, "" );
     const idx_t packidx_ib0 = (ia-1) << 16;
-    nc_assert( packidx_ib0 == SABIdx::PackedIndex::from_ia_ib(ia-1,0).val );
+    nc_assert( packidx_ib0
+               == SABIdx::PackedIndex::fromAlphaIdxBetaIdx(ia-1,0).val );
     double bval_prev = betaGrid.front();
     double e_prevb = ncsquare(aval-bval_prev)*inv4a;
     double * itPAEBUF = prevalpha_ebuf_begin;
     for ( idx_t ib = 1 ; ib < nbeta; ++ib ) {
       const double bval = vectAt(betaGrid,ib);
       const idx_t packidx = packidx_ib0 | (ib-1);
-      nc_assert( packidx == SABIdx::PackedIndex::from_ia_ib( ia-1,ib-1).val );
+      nc_assert( packidx
+                 == SABIdx::PackedIndex::fromAlphaIdxBetaIdx( ia-1,ib-1).val );
       const double e = ncsquare(aval-bval)*inv4a;
       const double e_prevab = *itPAEBUF;
       const double e_preva = *std::next(itPAEBUF);
