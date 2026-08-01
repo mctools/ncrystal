@@ -121,9 +121,10 @@ namespace NCRYSTAL_NAMESPACE {
 
         //Radix sort done on primary double key, now resolve ties:
         double key0 = key_extract(src[0]);
-        for (std::size_t i = 1, i0 = 0; i <= n; ++i) {
+        const double nm1 = n-1;
+        for (std::size_t i = 1, i0 = 0; i <= nm1; ++i) {
           double key = key_extract(src[i]);
-          if ( i == n || key != key0 ) {
+          if ( i == nm1 || key != key0 ) {
             if ( i - i0 > 1 ) {
               std::sort( src + i0, src + i, tie_breaker);
             }
@@ -152,7 +153,7 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
         //As a sanity check, std::is_sorted should yield true if everything was
         //implemented consistently:
-        nc_assert( std::is_sorted(data.get(), data.get()+n) );
+        nc_assert_always( std::is_sorted(data.get(), data.get()+n) );//fixme _always
       }
 
       inline bool rectIntersectsIdentityLine( double x0, double y0,
