@@ -947,10 +947,12 @@ void NC::MatCfg::set_scatfactory( const std::string& v ) { m_impl.modify()->setV
 void NC::MatCfg::set_absnfactory( const std::string& v ) { m_impl.modify()->setVar( v, &CfgManip::set_absnfactory_stdstr ); }
 void NC::MatCfg::set_lcmode( std::int_least32_t v ) { m_impl.modify()->setVar( v, &CfgManip::set_lcmode ); }
 void NC::MatCfg::set_vdoslux( int v ) { m_impl.modify()->setVar( v, &CfgManip::set_vdoslux ); }
+void NC::MatCfg::set_knllux( int v ) { m_impl.modify()->setVar( v, &CfgManip::set_knllux ); }
 void NC::MatCfg::set_lcaxis( const LCAxis& axis ) { m_impl.modify()->setVar( axis, &CfgManip::set_lcaxis ); }
 void NC::MatCfg::set_atomdb( const std::string& v ) { m_impl.modify()->setVar( v, &CfgManip::set_atomdb_stdstr ); }
 std::int_least32_t NC::MatCfg::get_lcmode() const { return CfgManip::get_lcmode( m_impl->readVar(Cfg::VarId::lcmode) ); }
 int NC::MatCfg::get_vdoslux() const { return CfgManip::get_vdoslux( m_impl->readVar(Cfg::VarId::vdoslux) ); }
+int NC::MatCfg::get_knllux() const { return CfgManip::get_knllux( m_impl->readVar(Cfg::VarId::knllux) ); }
 std::string NC::MatCfg::get_atomdb() const { return CfgManip::get_atomdb( m_impl->readVar(Cfg::VarId::atomdb) ).to_string(); }
 std::vector<NC::VectS> NC::MatCfg::get_atomdb_parsed() const { return CfgManip::get_atomdb_parsed( m_impl->readVar(Cfg::VarId::atomdb) ); }
 

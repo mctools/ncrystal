@@ -223,6 +223,7 @@ namespace NCRYSTAL_NAMESPACE {
     void set_lcmode( std::int_least32_t );
     void set_ucnmode( const Optional<UCNMode>& );
     void set_vdoslux( int );
+    void set_knllux( int );
     void set_atomdb( const std::string& );
     void set_lcaxis( const LCAxis& );
     void set_dir1( const HKLPoint&, const LabAxis& );
@@ -276,6 +277,7 @@ namespace NCRYSTAL_NAMESPACE {
     std::string get_ucnmode_str() const;
     Optional<UCNMode> get_ucnmode() const;
     int get_vdoslux() const;
+    int get_knllux() const;
     std::string get_atomdb() const;
     std::vector<VectS> get_atomdb_parsed() const;
     bool get_coh_elas() const;

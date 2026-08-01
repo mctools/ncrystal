@@ -147,6 +147,7 @@ std::string NCF::InfoRequest::get_infofactory() const { return CfgManip::get_inf
 std::string NCF::InfoRequest::get_atomdb() const { return CfgManip::get_atomdb( m_data ).to_string(); }
 std::vector<NC::VectS> NCF::InfoRequest::get_atomdb_parsed() const { return CfgManip::get_atomdb_parsed( m_data ); }
 int NCF::ScatterRequest::get_vdoslux() const { return CfgManip::get_vdoslux(rawCfgData()); }
+int NCF::ScatterRequest::get_knllux() const { return CfgManip::get_knllux(rawCfgData()); }
 bool NCF::ScatterRequest::get_coh_elas() const { return CfgManip::get_coh_elas(rawCfgData()); }
 bool NCF::ScatterRequest::get_incoh_elas() const { return CfgManip::get_incoh_elas(rawCfgData()); }
 bool NCF::ScatterRequest::get_sans() const { return CfgManip::get_sans(rawCfgData()); }

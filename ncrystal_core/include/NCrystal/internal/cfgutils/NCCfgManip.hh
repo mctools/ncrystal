@@ -100,7 +100,7 @@ namespace NCRYSTAL_NAMESPACE {
       static void stream( const CfgData&, std::ostream&, const VarIdFilter& filter );
       static void stream( const CfgData& cd, std::ostream& os ) { stream(cd, os, nullptr); }
 
-      //Stream set variables as json list, e.g.: [ ["temp", 293.15], ["vdoslus", 3] ]
+      //Stream set variables as json list, e.g.: [ ["temp", 293.15], ["vdoslux", 3] ]
       static void streamJSON( const CfgData&, std::ostream& );
 
       //Miscellaneous:
@@ -176,6 +176,9 @@ namespace NCRYSTAL_NAMESPACE {
 
       static int get_vdoslux(const CfgData& data) { return static_cast<int>( getValue<vardef_vdoslux>(data) ); }
       static void set_vdoslux( CfgData& data, int val ) { setValue<vardef_vdoslux>( data, static_cast<std::int64_t>(val) ); }
+
+      static int get_knllux(const CfgData& data) { return static_cast<int>( getValue<vardef_knllux>(data) ); }
+      static void set_knllux( CfgData& data, int val ) { setValue<vardef_knllux>( data, static_cast<std::int64_t>(val) ); }
 
       static std::int_least32_t get_lcmode(const CfgData& data) { return static_cast<std::int_least32_t>( getValue<vardef_lcmode>(data) ); }
       static void set_lcmode( CfgData& data, std::int_least32_t val ) { setValue<vardef_lcmode>( data,static_cast<std::int_least32_t>(val) ); }

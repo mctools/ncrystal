@@ -88,6 +88,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       //Parameters (basic):
       int get_vdoslux() const;
+      int get_knllux() const;
       bool get_coh_elas() const;
       bool get_incoh_elas() const;
       bool get_sans() const;
