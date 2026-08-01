@@ -80,17 +80,19 @@ namespace NCRYSTAL_NAMESPACE {
       //Cfg object. Note that the default values correspond to sablux=3.
       //fixme: consistent snake case vs. camel case here
       IntegrationScheme integScheme = IntegrationScheme::Flex9;
+      IntegrationScheme integSchemeDetermineEGrid = IntegrationScheme::Flex5;
       IntegrationScheme integSchemeBCSample = IntegrationScheme::Flex9;
       unsigned egrid_npts = 300;
       double egrid_emin_accuracy = 0.01;
       double fullCellSamplingARThreshold = 0.15;
-      double bcSamplingLargeSRatioThreshold = 1e-6;
+      double bcSamplingLargeSRatioThreshold = 1e-5;//fixme: not used yet
     };
 
     ////////////////////////////////////////////
     // Factory function based on luxury level //
     ////////////////////////////////////////////
 
+    constexpr double sablux_max_luxury = 6;
     Cfg createConfig( int sablux );
 
   }

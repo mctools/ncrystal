@@ -123,6 +123,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     //Note, this will be the default scheme for VDOSDebye kernels, so it should
     //be "crude but workable":
     c.integScheme = IntegrationScheme::Simpson3;
+    c.integSchemeDetermineEGrid = IntegrationScheme::Simpson3;
     c.integSchemeBCSample = IntegrationScheme::Flex5;
     c.egrid_npts = 100;//fixme: too low for sampling speed?
     c.egrid_emin_accuracy = 0.05;
@@ -131,6 +132,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     break;
   case 1:
     c.integScheme = IntegrationScheme::Romberg5;
+    c.integSchemeDetermineEGrid = IntegrationScheme::Romberg5;
     c.integSchemeBCSample = IntegrationScheme::Flex5;
     c.egrid_npts = 140;
     c.egrid_emin_accuracy = 0.02;
@@ -139,6 +141,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     break;
   case 2:
     c.integScheme = IntegrationScheme::Flex5;
+    c.integSchemeDetermineEGrid = IntegrationScheme::Flex5;
     c.integSchemeBCSample = IntegrationScheme::Flex5;
     c.egrid_npts = 200;
     c.egrid_emin_accuracy = 0.01;
@@ -151,6 +154,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     //Default values of Cfg objects are already right for sablux==3, so we just
     //repeat them here to make it easier to get an overview.
     nc_assert( c.integScheme == IntegrationScheme::Flex9);
+    nc_assert( c.integSchemeDetermineEGrid == IntegrationScheme::Flex5);
     nc_assert( c.integSchemeBCSample == IntegrationScheme::Flex9 );
     nc_assert( c.egrid_npts == 300 );
     nc_assert( c.egrid_emin_accuracy == 0.01 );
@@ -159,6 +163,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     break;
   case 4:
     c.integScheme = IntegrationScheme::Flex17;
+    c.integSchemeDetermineEGrid = IntegrationScheme::Flex9;
     c.integSchemeBCSample = IntegrationScheme::Flex17;
     c.egrid_npts = 450;
     c.egrid_emin_accuracy = 1e-3;
@@ -167,6 +172,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     break;
   case 5:
     c.integScheme = IntegrationScheme::Flex33;
+    c.integSchemeDetermineEGrid = IntegrationScheme::Flex9;
     c.integSchemeBCSample = IntegrationScheme::Flex33;
     c.egrid_npts = 600;
     c.egrid_emin_accuracy = 1e-4;
@@ -177,8 +183,9 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     static_assert( IntegrationScheme::MaxPrec
                    == IntegrationScheme::Flex65, "" );
     c.integScheme = IntegrationScheme::MaxPrec;
+    c.integSchemeDetermineEGrid = IntegrationScheme::MaxPrec;
     c.integSchemeBCSample = IntegrationScheme::MaxPrec;
-    c.egrid_npts = 10000;
+    c.egrid_npts = 1000;//fixme: higher
     c.egrid_emin_accuracy = 1e-7;
     c.fullCellSamplingARThreshold = 0.15;
     c.bcSamplingLargeSRatioThreshold = 1e-8;
