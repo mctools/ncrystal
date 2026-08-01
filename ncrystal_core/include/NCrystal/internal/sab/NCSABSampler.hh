@@ -43,6 +43,8 @@ namespace NCRYSTAL_NAMESPACE {
   class SABSampler final : private MoveOnly {
   public:
 
+    //Fixme: we can use a high egridmargin to get the legacy code to provide a
+    //better sampling reference
     struct EGridMargin {
       //The value (typically 1 or a value a bit larger than 1, e.g. 1.05),
       //specifies a safety margin for what egrid point to actually sample the
@@ -51,6 +53,8 @@ namespace NCRYSTAL_NAMESPACE {
       //required.
       double value = 1.0;
       constexpr EGridMargin(double vv = 1.0) noexcept : value(vv) {}//for C++11
+      constexpr static double default_value = 1.05;
+      bool is_default() const { return value == default_value; }
     };
 
 

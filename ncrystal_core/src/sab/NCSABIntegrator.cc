@@ -31,9 +31,12 @@ namespace NS = NCrystal::SAB;
 
 struct NC::SAB::SABIntegrator::Impl : private NoCopyMove {
 
+  using EGridMargin = SABSampler::EGridMargin;
+
   Impl( shared_obj<const SABData>,
         const VectD* egrid,
-        std::shared_ptr<const SABExtender> );
+        std::shared_ptr<const SABExtender>,
+        Optional<SABSampler::EGridMargin> );
   void doit(SABXSProvider *, SABSampler*, UniqueIDValue, Optional<std::string>*);
   double determineEMax( const double ) const;
   double determineEMin( const double ) const;
@@ -48,7 +51,7 @@ struct NC::SAB::SABIntegrator::Impl : private NoCopyMove {
   std::shared_ptr<const SABSamplerAtE_Alg1::CommonCache> m_derivedData;
 
   //Setting;
-  SABSampler::EGridMargin m_egridMargin;
+  EGridMargin m_egridMargin;
 
   typedef std::unique_ptr<SABSamplerAtE> SamplerAtE_uptr;
   std::pair<SamplerAtE_uptr,double> analyseEnergyPoint(double ekin, bool doSampler ) const;
@@ -64,8 +67,9 @@ NS::SABIntegrator::~SABIntegrator() = default;
 
 NS::SABIntegrator::SABIntegrator( shared_obj<const SABData> data,
                                   const VectD* egrid,
-                                  std::shared_ptr<const SABExtender> sabextender )
-  : m_impl(std::move(data),egrid,std::move(sabextender))
+                                  std::shared_ptr<const SABExtender> sabextender,
+                                  Optional<SABSampler::EGridMargin> egm )
+  : m_impl(std::move(data),egrid,std::move(sabextender),egm)
 {
 }
 
@@ -79,11 +83,12 @@ void NS::SABIntegrator::doit(SABXSProvider * out_xs,
 
 NS::SABIntegrator::Impl::Impl( shared_obj<const SABData> data,
                                const VectD* egrid,
-                               std::shared_ptr<const SABExtender> sabextender )
+                               std::shared_ptr<const SABExtender> sabextender,
+                               Optional<EGridMargin> egm )
   : m_data(std::move(data)),
     m_egrid((egrid&&!egrid->empty())?*egrid:VectD()),
     m_extender(!sabextender?ncmake_unique<SABFGExtender>(m_data->temperature(),m_data->elementMassAMU(),m_data->boundXS()):std::move(sabextender)),
-    m_egridMargin{ 1.05 }
+    m_egridMargin{ egm.value_or(EGridMargin{EGridMargin::default_value}) }
 {
 }
 
@@ -329,6 +334,8 @@ void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs,
       tmp << ";T="<<m_data->temperature();
       tmp << ";M="<<m_data->elementMassAMU();
       tmp << ";sigma_free="<<m_data->boundXS().free(m_data->elementMassAMU());
+      if ( !m_egridMargin.is_default() )
+        tmp << ";E_sample_margin="<<m_egridMargin.value;
       streamJSONDictEntry( ss, "summarystr", tmp.str(), JSONDictPos::FIRST );
     }
     streamJSONDictEntry( ss, "Emax", m_egrid.back()  );
@@ -341,6 +348,8 @@ void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs,
     streamJSONDictEntry( ss, "nbeta", m_data->betaGrid().size()  );
     streamJSONDictEntry( ss, "nalpha", m_data->alphaGrid().size()  );
     streamJSONDictEntry( ss, "sabhelper_uid", uid.value );
+    if ( !m_egridMargin.is_default() )
+      streamJSONDictEntry( ss, "E_sample_margin", m_egridMargin.value );
 
     //NOTE: We do NOT end with JSONDictPos::LAST, since we want to be able to
     //append a few more items.

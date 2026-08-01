@@ -52,7 +52,8 @@ namespace NCRYSTAL_NAMESPACE {
       ~SABIntegrator();
       SABIntegrator( shared_obj<const SABData>,
                      const VectD* egrid = nullptr,
-                     std::shared_ptr<const SABExtender> sabextender = nullptr );
+                     std::shared_ptr<const SABExtender> sabextender = nullptr,
+                     Optional<SABSampler::EGridMargin> = NullOpt );
 
       SABXSProvider createXSProvider()
       {
