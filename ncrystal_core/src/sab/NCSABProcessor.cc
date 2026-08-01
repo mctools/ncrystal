@@ -205,10 +205,11 @@ namespace NCRYSTAL_NAMESPACE {
         std::size_t m_nalpham1;
       };
 
-      struct SABProcImpl {
+      struct SABProcImpl final : private NoCopyMove {
         using SampleSupport = SABProcessor::SampleSupport;
         using StoreExtraDiagnostics = SABProcessor::StoreExtraDiagnostics;
-        SABProcImpl( shared_obj<const SABData>,
+        SABProcImpl( const SABCfg::Cfg&,
+                     shared_obj<const SABData>,
                      std::shared_ptr<const VectD> egrid,
                      SampleSupport,
                      StoreExtraDiagnostics );
@@ -355,11 +356,12 @@ namespace NCRYSTAL_NAMESPACE {
           NCRYSTAL_THROW2(BadInput,"Phase-space of neutron energy E/kT="
                           <<fmt(E_div_kT)
                           <<" does not touch any S(alpha,beta) cells!");
+        //fixme: should we require all sab tables grids to intersect the E=0
+        //phasespace line?
         StableSumKahan sum;
         StableSumKahan sumFullCells;
         StableSumKahan sumCoveredCells;
         result.nTouchedCells = std::distance(survCells.begin(),itLastTouchedE);
-
         //cells with relative max contrib below this can never contribute:
         // (fixme: sablux should modify 1e10 in range [1e6,1e17])
         const double threshold = ncclamp( 1.0/(1e10*result.nTouchedCells),
@@ -413,9 +415,9 @@ namespace NCRYSTAL_NAMESPACE {
         prev.sumFullyCoveredCells.set(sumCoveredCells);
         prev.E_div_kT = E_div_kT;
         prev.nLastTouched = result.nTouchedCells;
-
         sum.add(sumCoveredCells);
         sumFullCells.add(sumCoveredCells);
+
 
         result.integralWithinKB = sum.sum();
         result.integralTouchedCells = sumFullCells.sum();
@@ -470,13 +472,13 @@ namespace NCRYSTAL_NAMESPACE {
       //few f(e) evaluations as possible, the highest possible emin value where
       //f(emin)~=f(e1). It is assumed that [e1,e2] is already narrow enough that
       //f(e) is a monotonic function over the interval.
-      double determineEMinDivKT( const PairDD& e_search_range,
+      double determineEMinDivKT( const SABCfg::Cfg& cfg,
+                                 const PairDD& e_search_range,
                                  const std::function<double(double)>& f_of_e )
       {
         //fixme: this function could use some luxury parameters
-        constexpr double logS_raise_target = 1e-3;
-        constexpr double root_acc = 0.01;//pretty rough search since f is
-                                         //very expensive. (fixme: sablux?)
+        constexpr double logS_raise_target = 1e-3;//fixme: lux?
+        const double root_acc = cfg.egrid_emin_accuracy;
 
         const double e1 = e_search_range.first;
         const double e2 = e_search_range.second;
@@ -593,11 +595,15 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       //fixme: clarify that this returns in E/kT, but requested_egrid is in eV
-      VectD determineEGrid( const SABData& sab,
+      VectD determineEGrid( const SABCfg::Cfg& cfg,
+                            const SABData& sab,
                             const CellMgr& cellmgr,
                             const SABSurveyor& surv,
                             std::shared_ptr<const VectD> requested_egrid )
       {
+        const auto scheme = cfg.integSchemeDetermineEGrid;
+        const auto npts = cfg.egrid_npts;
+
         //fixme: major cleanup needed
         Optional<NeutronEnergy> suggestedEMax_by_egrid;
 
@@ -645,15 +651,14 @@ namespace NCRYSTAL_NAMESPACE {
 
           sIntegralAtE_Result tmp_result;
           tmp_result.crossedIntegrals.reserve(1024);
-          auto f = [&cellmgr, &surv, &tmp_result]( double E_div_kT ) {
+          auto f = [&cellmgr, &surv, &tmp_result,scheme]( double E_div_kT ) {
             nc_assert(E_div_kT>0.0);
             const double se = std::sqrt(E_div_kT);
             nc_assert(se>0.0);
-            const auto scheme = StdLogLinCellIntegrator::IntegrationScheme::Flex5;//fixme: hardwired
             sIntegralAtE( E_div_kT, cellmgr, surv, scheme, tmp_result, false );
             return tmp_result.integralWithinKB / se;
           };
-          E_min_max.first = NeutronEnergy{ kT*determineEMinDivKT( r, f ) };
+          E_min_max.first = NeutronEnergy{ kT*determineEMinDivKT( cfg, r, f ) };
         }
         if ( E_min_max.first >= E_min_max.second ) {
           //fixme: warning!
@@ -692,7 +697,8 @@ namespace NCRYSTAL_NAMESPACE {
                                             //simplicity just use lin-in-sqrt(E)
                                             //for the lower 5% of epts (or we
                                             //can detect)
-          constexpr std::size_t n = 300-n_lowe;
+          nc_assert( npts >= 80 );
+          const std::size_t n = npts-n_lowe;
           constexpr double lowE_factor = 1e-4;
           final_egrid.reserve(n+n_lowe);
           for ( auto ee : geomspace(E_min_max.first.get()*lowE_factor,
@@ -715,6 +721,7 @@ namespace NCRYSTAL_NAMESPACE {
       SABProcImpl::BCEnergyPoint
       prepareBCEPt( double E_div_kT, const SABSurveyor& surv,
                     const CellMgr& mgr, const sIntegralAtE_Result& integAtE,
+                    SABCfg::IntegrationScheme scheme,
                     MixedDataVector& commonStorage )
       {
         nc_assert( commonStorage.size_bytes() < static_cast<std::size_t>
@@ -764,8 +771,6 @@ namespace NCRYSTAL_NAMESPACE {
             SABCellSurvey cellSurvey( cellData.a1, cellData.a2,
                                       cellData.b1, cellData.b2,
                                       E_div_kT );
-            const auto scheme
-              = StdLogLinCellIntegrator::IntegrationScheme::Flex5;//fixme sablux
             double prob1;
             {
               CellData c1 = cellData;
@@ -826,7 +831,8 @@ namespace NCRYSTAL_NAMESPACE {
         return res;
       }
 
-      SABProcImpl::SABProcImpl( shared_obj<const SABData> sd,
+      SABProcImpl::SABProcImpl( const SABCfg::Cfg& cfg,
+                                shared_obj<const SABData> sd,
                                 std::shared_ptr<const VectD> requested_egrid,
                                 SampleSupport sampleSupport,
                                 StoreExtraDiagnostics extraDiag )
@@ -837,12 +843,12 @@ namespace NCRYSTAL_NAMESPACE {
         const bool do_sample( sampleSupport == SampleSupport::YES );
         const bool do_diag( extraDiag == StoreExtraDiagnostics::YES );
         SABSurveyor surv(m_cellmgr.sabData());
-        m_eGrid = determineEGrid( m_cellmgr.sabData(), m_cellmgr,
+
+        m_eGrid = determineEGrid( cfg, m_cellmgr.sabData(), m_cellmgr,
                                   surv, requested_egrid );
 
-        //fixme: sablux for scheme:
-        const auto scheme = StdLogLinCellIntegrator::IntegrationScheme::Flex5;//fixme: hardwired
-        const double fullcellsample_AR_threshold = 0.15;//fixme: sablux + tune!
+        const auto scheme = cfg.integScheme;
+
         std::size_t nTouchedCellsMax(0);
         {
           static_assert
@@ -877,7 +883,8 @@ namespace NCRYSTAL_NAMESPACE {
 
             const bool needsBoundedCellSampler
               = ( integAtE.integralWithinKB
-                  < fullcellsample_AR_threshold*integAtE.integralTouchedCells );
+                  < (cfg.fullCellSamplingARThreshold
+                     *integAtE.integralTouchedCells) );
             nc_assert( integAtE.nTouchedCells < n_cellmax );
             nc_assert( integAtE.nTouchedCells > 0 );
             if ( needsBoundedCellSampler ) {
@@ -886,7 +893,9 @@ namespace NCRYSTAL_NAMESPACE {
               nc_assert(sidx<n_cellmax);
               m_sampleIdx.push_back(static_cast<std::int32_t>(sidx));
               m_bcEptInfo.push_back( prepareBCEPt( E_div_kT, surv, m_cellmgr,
-                                                   integAtE, m_bcSample ) );
+                                                   integAtE,
+                                                   cfg.integSchemeBCSample,
+                                                   m_bcSample ) );
             } else {
               //Full cell sampling is OK, store -nTouchedCells.
               m_sampleIdx.push_back(-static_cast<std::int32_t>
@@ -1173,11 +1182,13 @@ NCS::SABProcessor::sampleScatterAlphaBeta( RNG& rng, NeutronEnergy ekin ) const
   return sp_cimpl(m_impl)->sampleAlphaBeta(rng,ekin);
 }
 
-NCS::SABProcessor::SABProcessor( shared_obj<const SABData> sd,
+NCS::SABProcessor::SABProcessor( const SABCfg::Cfg& cfg,
+                                 shared_obj<const SABData> sd,
                                  std::shared_ptr<const VectD> req_egrid,
                                  SampleSupport sampleSupport,
                                  StoreExtraDiagnostics extraDiag )
-  : m_impl( static_cast<void*>( new SABProcImpl( std::move(sd),
+  : m_impl( static_cast<void*>( new SABProcImpl( cfg,
+                                                 std::move(sd),
                                                  std::move(req_egrid),
                                                  sampleSupport,
                                                  extraDiag ) ) )
@@ -1211,9 +1222,18 @@ NC::NeutronEnergy NCS::SABProcessor::getEMax() const
   return NeutronEnergy{ sp->m_eGrid.back() * sp->m_kT };
 }
 
+double NCS::SABProcessor::kT() const
+{
+  return sp_cimpl(m_impl)->m_kT;
+}
+
 const NC::VectD& NCS::SABProcessor::getEDivKTGrid() const
 {
   return sp_cimpl(m_impl)->m_eGrid;
 }
 
+const NC::VectD& NCS::SABProcessor::getPhaseSpaceIntegralAtGrid() const
+{
+  return sp_cimpl(m_impl)->m_sIntegral;
+}
 

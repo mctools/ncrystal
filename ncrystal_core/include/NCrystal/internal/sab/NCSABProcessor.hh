@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/interfaces/NCSABData.hh"
+#include "NCrystal/internal/sab/NCSABCfg.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -47,10 +48,13 @@ namespace NCRYSTAL_NAMESPACE {
 
       enum class SampleSupport { YES, NO };
       enum class StoreExtraDiagnostics { YES, NO };
-      SABProcessor( shared_obj<const SABData>,
+      SABProcessor( const SABCfg::Cfg& cfg,
+                    shared_obj<const SABData>,
                     std::shared_ptr<const VectD> egrid,
                     SampleSupport = SampleSupport::YES,
                     StoreExtraDiagnostics = StoreExtraDiagnostics::NO );
+
+      double kT() const;
 
       //integral of S(alpha,beta) within phasespace of a given neutron energy:
       double phaseSpaceIntegral( NeutronEnergy ) const;
@@ -81,8 +85,9 @@ namespace NCRYSTAL_NAMESPACE {
       //physics (this is the last point in the internal energy grid):
       NeutronEnergy getEMax() const;
 
-      //For reference, access the energy grid (in units of kT):
-      const VectD& getEDivKTGrid() const;
+      //For reference, access the gridded results (fixme: not just for ref?):
+      const VectD& getEDivKTGrid() const;//[units of kT]
+      const VectD& getPhaseSpaceIntegralAtGrid() const;
 
       //Move-only:
       SABProcessor( const SABProcessor& ) = delete;
