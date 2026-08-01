@@ -45,8 +45,11 @@ void NC::SABSampler::setData( Temperature temperature,
                               double xsAtEmax,
                               EGridMargin egridMargin )
 {
+  nc_assert( extender != nullptr );//fixme: change type to shared_obj?
   m_egrid = std::move(egrid);
   m_samplers = std::move(samplers);
+  nc_assert( m_egrid.size()>1 );
+  nc_assert( m_egrid.size()==m_samplers.size() );
   m_kT = temperature.kT();
   m_extender = std::move(extender);
   m_xsAtEmax = xsAtEmax;
