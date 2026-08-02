@@ -59,6 +59,9 @@ namespace NCRYSTAL_NAMESPACE {
       //integral of S(alpha,beta) within phasespace of a given neutron energy:
       double phaseSpaceIntegral( NeutronEnergy ) const;
 
+      //Assuming SigmaBound=1barn, get the corresponding cross section:
+      CrossSect crossSectionUnitSigmaBound( NeutronEnergy ekin ) const;
+
       //Sample a scattering event in (dE,mu) or (alpha,beta) space, with or
       //without diagnostics:
       ScatterOutcomeIsotropic sampleScatter( RNG&, NeutronEnergy ) const;
@@ -81,9 +84,16 @@ namespace NCRYSTAL_NAMESPACE {
       //fixme: also a streamJSONSummary?
       void toJSON( std::ostream& ) const;
 
-      //Maximal energy, after which the SAB does not reliably cover neutron
-      //physics (this is the last point in the internal energy grid):
-      NeutronEnergy getEMax() const;
+      //There is a maximal energy after which the SAB does not reliably cover
+      //neutron physics (this is the last point in the internal energy
+      //grid). Access this energy and associated information:
+      struct EPtInfo final {
+        NeutronEnergy ekin;
+        double E_div_kT;
+        double phaseSpaceIntegral;;
+        CrossSect crossSectionUnitSigmaBound;
+      };
+      EPtInfo getEMaxInfo() const;
 
       //For reference, access the gridded results (fixme: not just for ref?):
       const VectD& getEDivKTGrid() const;//[units of kT]

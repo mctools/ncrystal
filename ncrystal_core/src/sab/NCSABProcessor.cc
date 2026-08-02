@@ -714,7 +714,6 @@ namespace NCRYSTAL_NAMESPACE {
         for ( auto& ee : final_egrid )
           ee *= invkT;
 
-
         return final_egrid;
       }
 
@@ -929,7 +928,7 @@ namespace NCRYSTAL_NAMESPACE {
       {
         //fixme: just a temporary implementation, we can certainly improve and
         //for instance cache some of the 1.0/(x1-x0) factors.
-        const double t = ekin.dbl();
+        const double t = ekin.dbl() * m_invkT;
         auto& x = m_eGrid;
         auto& y = m_sIntegral;
         nc_assert( x.size() == y.size() );
@@ -1160,6 +1159,30 @@ double NCS::SABProcessor::phaseSpaceIntegral( NeutronEnergy ekin ) const
   return sp_cimpl(m_impl)->phaseSpaceIntegral(ekin);
 }
 
+NC::CrossSect NCS::SABProcessor::crossSectionUnitSigmaBound( NeutronEnergy ekin ) const
+{
+  //Fixme: optimise (most likely by caching in new vector in which we can
+  //directly interpolate results as per the old SABXSProvider?)
+  //fixme: keep synchronized with getEMaxInfo()
+  auto sp = sp_cimpl(m_impl);
+  const double Sint = sp->phaseSpaceIntegral(ekin);
+  const double kTdiv4 = sp->m_kT * 0.25;
+  return CrossSect{ Sint * kTdiv4 / ekin.dbl() };
+}
+
+NCS::SABProcessor::EPtInfo NCS::SABProcessor::getEMaxInfo() const
+{
+  auto sp = sp_cimpl(m_impl);
+  EPtInfo res;
+  res.E_div_kT = sp->m_eGrid.back();
+  res.phaseSpaceIntegral = sp_cimpl(m_impl)->m_sIntegral.back();
+
+  res.ekin = NeutronEnergy{ res.E_div_kT * sp->m_kT };
+  res.crossSectionUnitSigmaBound
+    = CrossSect{ res.phaseSpaceIntegral * 0.25 / res.E_div_kT };
+  return res;
+}
+
 NC::ScatterOutcomeIsotropic
 NCS::SABProcessor::sampleScatter( RNG& rng, NeutronEnergy ekin ) const
 {
@@ -1214,12 +1237,6 @@ void NCS::SABProcessor::toJSON( std::ostream& os ) const
 bool NCS::SABProcessor::hasSampleSupport() const
 {
   return sp_cimpl(m_impl)->canSample();
-}
-
-NC::NeutronEnergy NCS::SABProcessor::getEMax() const
-{
-  auto sp = sp_cimpl(m_impl);
-  return NeutronEnergy{ sp->m_eGrid.back() * sp->m_kT };
 }
 
 double NCS::SABProcessor::kT() const
