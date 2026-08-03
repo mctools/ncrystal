@@ -57,6 +57,9 @@ namespace NCRYSTAL_NAMESPACE {
       ScatterOutcomeIsotropic sampleScatter( RNG&, NeutronEnergy ) const;
       PairDD sampleScatterAlphaBeta( RNG& rng, NeutronEnergy ekin ) const;
 
+      const SABProcessor& processor() const noexcept { return m_p; }
+      const SAB::SABExtender& extender() const noexcept { return m_e; }
+
     private:
       shared_obj<const SABProcessor> m_p;
       shared_obj<const SAB::SABExtender> m_e;

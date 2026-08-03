@@ -29,6 +29,10 @@ NCS::SABExtended::SABExtended( shared_obj<const SABProcessor> p,
     m_kT( m_p->kT() ),
     m_invkT( 1.0 / m_kT )
 {
+  if (!m_p->hasSampleSupport())
+    NCRYSTAL_THROW(BadInput,"SABExtended can not use a SABProcessor"
+                   " without sampling support enabled.");
+
   nc_assert(!m_p->getEDivKTGrid().empty());
   nc_assert(!m_p->getPhaseSpaceIntegralAtGrid().empty());
   auto emaxInfo = m_p->getEMaxInfo();
