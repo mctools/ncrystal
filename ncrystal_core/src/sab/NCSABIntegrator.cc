@@ -24,7 +24,6 @@
 #include "NCrystal/internal/fact_utils/NCFactoryUtils.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
 #include "NCrystal/internal/utils/NCString.hh"
-#include "NCrystal/internal/utils/NCMsg.hh"
 
 namespace NC = NCrystal;
 namespace NS = NCrystal::SAB;
@@ -36,7 +35,8 @@ struct NC::SAB::SABIntegrator::Impl : private NoCopyMove {
   Impl( shared_obj<const SABData>,
         const VectD* egrid,
         std::shared_ptr<const SABExtender>,
-        Optional<SABSampler::EGridMargin> );
+        Optional<SABSampler::EGridMargin>,
+        bool disable_betafix );
   void doit(SABXSProvider *, SABSampler*, UniqueIDValue, Optional<std::string>*);
   double determineEMax( const double ) const;
   double determineEMin( const double ) const;
@@ -52,6 +52,7 @@ struct NC::SAB::SABIntegrator::Impl : private NoCopyMove {
 
   //Setting;
   EGridMargin m_egridMargin;
+  bool m_disable_betafix = false;
 
   typedef std::unique_ptr<SABSamplerAtE> SamplerAtE_uptr;
   std::pair<SamplerAtE_uptr,double> analyseEnergyPoint(double ekin, bool doSampler ) const;
@@ -68,8 +69,9 @@ NS::SABIntegrator::~SABIntegrator() = default;
 NS::SABIntegrator::SABIntegrator( shared_obj<const SABData> data,
                                   const VectD* egrid,
                                   std::shared_ptr<const SABExtender> sabextender,
-                                  Optional<SABSampler::EGridMargin> egm )
-  : m_impl(std::move(data),egrid,std::move(sabextender),egm)
+                                  Optional<SABSampler::EGridMargin> egm,
+                                  bool disable_betafix)
+  : m_impl(std::move(data),egrid,std::move(sabextender),egm,disable_betafix)
 {
 }
 
@@ -84,11 +86,13 @@ void NS::SABIntegrator::doit(SABXSProvider * out_xs,
 NS::SABIntegrator::Impl::Impl( shared_obj<const SABData> data,
                                const VectD* egrid,
                                std::shared_ptr<const SABExtender> sabextender,
-                               Optional<EGridMargin> egm )
+                               Optional<EGridMargin> egm,
+                               bool disable_betafix )
   : m_data(std::move(data)),
     m_egrid((egrid&&!egrid->empty())?*egrid:VectD()),
     m_extender(!sabextender?ncmake_unique<SABFGExtender>(m_data->temperature(),m_data->elementMassAMU(),m_data->boundXS()):std::move(sabextender)),
-    m_egridMargin{ egm.value_or(EGridMargin{EGridMargin::default_value}) }
+    m_egridMargin{ egm.value_or(EGridMargin{EGridMargin::default_value}) },
+    m_disable_betafix(disable_betafix)
 {
 }
 
@@ -315,11 +319,20 @@ void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs,
 
   energyPointSamplers.shrink_to_fit();
 
-  if ( doSampler )
+  if ( doSampler ) {
+    std::int64_t ptloopmax = 100;
+    if ( m_egridMargin.value > 1.2 ) {
+      //Not really sure why I am adding ncsquare and *2 here, but seems too low
+      //otherwise:
+      ptloopmax
+        = static_cast<std::int64_t>(200*ncsquare(m_egridMargin.value*2)+0.5);
+    }
     out_sampler->setData( m_data->temperature(),
                           VectD(m_egrid.begin(),m_egrid.end()),
                           std::move(energyPointSamplers),
-                          m_extender, xsvals.back(), m_egridMargin );
+                          m_extender, xsvals.back(), m_egridMargin,
+                          ptloopmax );
+  }
   if ( out_xs )
     out_xs->setData( VectD(m_egrid.begin(),m_egrid.end()),
                      std::move(xsvals),
@@ -358,7 +371,8 @@ void NS::SABIntegrator::Impl::doit(SABXSProvider * out_xs,
 
 }
 
-std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Impl::analyseEnergyPoint(double ekin, bool doSampler ) const
+std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double>
+NS::SABIntegrator::Impl::analyseEnergyPoint(double ekin, bool doSampler ) const
 {
   nc_assert_always(ekin>0.0);
 
@@ -384,7 +398,7 @@ std::pair<NS::SABIntegrator::Impl::SamplerAtE_uptr,double> NS::SABIntegrator::Im
   const double kT = m_data->temperature().kT();
   const double ekin_div_kT = ekin / kT;
   double beta_lower_limit = -ekin_div_kT;
-  bool starts_at_kinematic_endpoint = true;
+  bool starts_at_kinematic_endpoint = !m_disable_betafix;
   if (beta_lower_limit<betaGrid.front()) {
     //This can happen at high energies. Push up beta_lower_limit to juuuust
     //before the first grid point, thus keeping code simple without introducing
