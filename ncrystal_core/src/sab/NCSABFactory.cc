@@ -22,6 +22,7 @@
 #include "NCrystal/internal/sab/NCSABIntegrator.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/fact_utils/NCFactoryUtils.hh"
+#include "NCrystal/internal/sab/NCSABCfg.hh"
 
 namespace NC = NCrystal;
 
@@ -35,10 +36,58 @@ namespace NCRYSTAL_NAMESPACE {
         return uid_empty.getUniqueID();
       }
 
-      //Cache key is (sabdata uid, egrid uid). The thick key also carries a
-      //reference to the SAB data.
+      //Cache key is (sabdata uid, egrid uid, legacy opts). The thick key also
+      //carries a reference to the SAB data.
 
-      using ScatHelperCacheKey_Thin = std::pair<UniqueIDValue,UniqueIDValue>;
+      using EGridMargin = SABSampler::EGridMargin;
+
+      struct LegacyOptsDecoded final {
+        EGridMargin egridMargin = { EGridMargin::default_value };
+        bool disable_betafix = false;
+        LegacyOptsDecoded( int knllux )
+          : LegacyOptsDecoded([knllux]()
+          {
+            nc_assert_always ( knllux
+                               >= static_cast<int>(LegacySABAlgOpts::MIN)
+                               && knllux
+                               <= static_cast<int>(LegacySABAlgOpts::MAX) );
+            return static_cast<LegacySABAlgOpts>(knllux);
+          }())
+        {
+        }
+
+        LegacyOptsDecoded( LegacySABAlgOpts opts )
+        {
+          static_assert( static_cast<int>(LegacySABAlgOpts::MAX) == -1, "" );
+          static_assert( static_cast<int>(LegacySABAlgOpts::MIN) == -6, "" );
+          switch( opts ) {
+          case LegacySABAlgOpts::OVERSAMPLE10:
+            egridMargin = EGridMargin{ 10.0 };
+            break;
+          case LegacySABAlgOpts::OVERSAMPLE50:
+            egridMargin = EGridMargin{ 50.0 };
+            break;
+          case LegacySABAlgOpts::NOBETAFIX:
+            disable_betafix = true;
+            break;
+          case LegacySABAlgOpts::NOBETAFIX_OVERSAMPLE10:
+            egridMargin = EGridMargin{ 10.0 };
+            disable_betafix = true;
+            break;
+          case LegacySABAlgOpts::NOBETAFIX_OVERSAMPLE50:
+            egridMargin = EGridMargin{ 50.0 };
+            disable_betafix = true;
+            break;
+          default:
+          case LegacySABAlgOpts::DEFAULT:
+            break;
+          }
+        }
+      };
+
+      using ScatHelperCacheKey_Thin = std::tuple<UniqueIDValue,
+                                                 UniqueIDValue,
+                                                 LegacySABAlgOpts>;
 
       struct ScatHelperCacheKey {
         ScatHelperCacheKey_Thin thin_key;
@@ -71,17 +120,27 @@ namespace NCRYSTAL_NAMESPACE {
         std::string keyToString( const ScatHelperCacheKey& key ) const final
         {
           std::ostringstream ss;
-          ss<<"(SABData id="<<key.thin_key.first.value
-            <<";egrid id="<<key.thin_key.second.value<<")";
+          ss<<"(SABData id="<<std::get<0>(key.thin_key).value
+            <<";egrid id="<<std::get<1>(key.thin_key).value;
+          if ( std::get<2>(key.thin_key) != LegacySABAlgOpts::DEFAULT ) {
+            LegacyOptsDecoded o(std::get<2>(key.thin_key));
+            LegacyOptsDecoded odef(LegacySABAlgOpts::DEFAULT);
+            if ( o.egridMargin.value != odef.egridMargin.value )
+              ss << ";egridmargin=" << o.egridMargin.value;
+            if ( o.disable_betafix != odef.disable_betafix )
+              ss << ";disablebetafix=" << int(o.disable_betafix);
+          }
+          ss<<")";
           return ss.str();
         }
       protected:
         virtual ShPtr actualCreate( const ScatHelperCacheKey& key ) const final
         {
           nc_assert( key.sabdata_ptr != nullptr );
-          nc_assert( key.sabdata_ptr->getUniqueID() == key.thin_key.first );
+          nc_assert( key.sabdata_ptr->getUniqueID() == std::get<0>(key.thin_key) );
           return createScatterHelper( key.sabdata_ptr,
-                                      egridFromUniqueID(key.thin_key.second) );
+                                      egridFromUniqueID(std::get<1>(key.thin_key)),
+                                      std::get<2>(key.thin_key) );
         }
       };
 
@@ -107,31 +166,98 @@ namespace NCRYSTAL_NAMESPACE {
         static EgridUIDCacheDB db;
         return db;
       }
+
+      //New SABExtended (S.E.) cache, key is (sab uid, egrid uid, knllux):
+      using SECacheKey_Thin = std::tuple<UniqueIDValue,UniqueIDValue,int>;
+      struct SECacheKey {
+        SECacheKey_Thin thin_key;
+        std::shared_ptr<const SABData> sabdata_ptr;
+      };
+
+      struct SECache_KeyThinner {
+        using key_type = SECacheKey;
+        using thinned_key_type = SECacheKey_Thin;
+        template <class TMap>
+        static typename TMap::mapped_type&
+        cacheMapLookup( TMap& map, const key_type& key,
+                        Optional<thinned_key_type>& tkey )
+        {
+          if ( !tkey.has_value() )
+            tkey = key.thin_key;
+          return map[tkey.value()];
+        }
+      };
+
+      constexpr auto factSE_nstrongrefskept = 20;
+
+      class SEFactory final
+        : public CachedFactoryBase<SECacheKey,
+                                   SABUtils::SABExtended,
+                                   factSE_nstrongrefskept,
+                                   SECache_KeyThinner> {
+      public:
+        const char* factoryName() const override
+        {
+          return "SABExtendedFactory";
+        }
+
+        std::string keyToString( const SECacheKey& key ) const final
+        {
+          std::ostringstream ss;
+          ss<<"(SABData id="<<std::get<0>(key.thin_key).value
+            <<";egrid id="<<std::get<1>(key.thin_key).value
+            <<";knllux="<<std::get<2>(key.thin_key)<<")";
+          return ss.str();
+        }
+      protected:
+        virtual ShPtr actualCreate( const SECacheKey& key ) const final
+        {
+          nc_assert( key.sabdata_ptr != nullptr );
+          nc_assert( key.sabdata_ptr->getUniqueID()
+                     == std::get<0>(key.thin_key) );
+          int knllux = std::get<2>(key.thin_key);
+          auto egrid = egridFromUniqueID(std::get<1>(key.thin_key));
+          return createSABExtendedNoCache( knllux,
+                                           key.sabdata_ptr,
+                                           std::move(egrid) );
+        }
+      };
+
+      SEFactory& getSEFactory()
+      {
+        static SEFactory s_fact;
+        return s_fact;
+      }
+
     }
   }
 }
 
 std::unique_ptr<const NC::SAB::SABScatterHelper>
 NC::SAB::createScatterHelper( shared_obj<const SABData> data,
-                              std::shared_ptr<const VectD> energyGrid )
+                              std::shared_ptr<const VectD> energyGrid,
+                              LegacySABAlgOpts opts_raw)
 {
   nc_assert(!!data);
-  SABIntegrator si(data,energyGrid.get());
+  LegacyOptsDecoded opts(opts_raw);
+  SABIntegrator si( data,
+                    energyGrid.get(),
+                    nullptr/*default extender*/,
+                    opts.egridMargin,
+                    opts.disable_betafix );
   auto sh = si.createScatterHelper();
   return ncmake_unique<SABScatterHelper>(std::move(sh));
 }
 
-void NC::SAB::clearScatterHelperCache() {
-  getScatterHelperFactory().cleanup();
-}
-
 NC::shared_obj<const NC::SAB::SABScatterHelper>
 NC::SAB::createScatterHelperWithCache( shared_obj<const SABData> sabdataptr,
-                                       std::shared_ptr<const VectD> egrid )
+                                       std::shared_ptr<const VectD> egrid,
+                                       LegacySABAlgOpts opts )
 {
   ScatHelperCacheKey key;
-  key.thin_key.first = sabdataptr->getUniqueID();
-  key.thin_key.second = egridToUniqueID(egrid);
+  std::get<0>(key.thin_key) = sabdataptr->getUniqueID();
+  std::get<1>(key.thin_key) = egridToUniqueID(egrid);
+  std::get<2>(key.thin_key) = opts;
   key.sabdata_ptr = std::move(sabdataptr);
   return getScatterHelperFactory().create(key);
 }
@@ -197,4 +323,28 @@ NC::SAB::egridFromUniqueID( UniqueIDValue uidval )
     NCRYSTAL_THROW(LogicError,"egridFromUniqueID passed uid which was not"
                    " created by call to egridToUniqueID");
   return *it->second;
+}
+
+NC::shared_obj<const NC::SABUtils::SABExtended>
+NC::SAB::createSABExtendedNoCache( int knllux,
+                                   shared_obj<const SABData> sab,
+                                   std::shared_ptr<const VectD> egrid )
+{
+  auto cfg = SABCfg::createConfig(knllux);
+  return SABUtils::SABExtended::createWithFGExtender( cfg,
+                                                      std::move(sab),
+                                                      std::move(egrid) );
+}
+
+NC::shared_obj<const NC::SABUtils::SABExtended>
+NC::SAB::createSABExtendedWithCache( int knllux,
+                                     shared_obj<const SABData> sab,
+                                     std::shared_ptr<const VectD> egrid )
+{
+  SECacheKey key;
+  std::get<0>(key.thin_key) = sab->getUniqueID();
+  std::get<1>(key.thin_key) = egridToUniqueID(egrid);
+  std::get<2>(key.thin_key) = knllux;
+  key.sabdata_ptr = std::move(sab);
+  return getSEFactory().create(key);
 }
