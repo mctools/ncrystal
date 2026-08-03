@@ -28,7 +28,7 @@
 namespace NCRYSTAL_NAMESPACE {
   namespace SAB {
 
-    class SABSamplerAtE_Alg1 : public SABSamplerAtE {
+    class SABSamplerAtE_Alg1 final : public SABSamplerAtE {
       //A sampler which implements Algorithm1 of the Algorithm 1. of the
       //sampling paper (https://doi.org/10.1016/j.jcp.2018.11.043).
       //
@@ -37,7 +37,8 @@ namespace NCRYSTAL_NAMESPACE {
       //there.
 
     public:
-      PairDD sampleAlphaBeta(double ekin_div_kT, RNG&) const final;
+      PairDD sampleAlphaBeta( double ekin_div_kT,
+                              RNG&, std::int64_t loopmax ) const override;
 
       struct CommonCache {
         const std::shared_ptr<const SABData> data;
@@ -55,6 +56,7 @@ namespace NCRYSTAL_NAMESPACE {
         double prob_notback = 0;//prob_front+prob_middle
       };
 
+
       SABSamplerAtE_Alg1( std::shared_ptr<const CommonCache>,
                           VectD&& betaVals,
                           VectD&& betaWeights,
@@ -66,7 +68,8 @@ namespace NCRYSTAL_NAMESPACE {
       // Sample alpha from F(alpha|beta_j,Ei) (line 7-8 of Alg. 1 in the sampling
       // paper). NB: this needs to work with a single random number, the
       // percentile, for purposes of interpolating between two beta-rows:
-      double sampleAlpha(std::size_t ibeta, double rand_percentile) const;
+      double sampleAlpha(std::size_t ibeta,
+                         double rand_percentile ) const;
 
       //Data:
       std::shared_ptr<const CommonCache> m_common;
@@ -81,11 +84,11 @@ namespace NCRYSTAL_NAMESPACE {
                                               //in the first bin.
     };
 
-    class SABSamplerAtE_NoScatter : public SABSamplerAtE {
+    class SABSamplerAtE_NoScatter final : public SABSamplerAtE {
       //Special technical sampler which doesn't actually scatter (i.e. returns
       //alpha=beta=0). For usage of edge-cases with vanishing cross-section.
     public:
-      PairDD sampleAlphaBeta(double, RNG&) const final { return {0.0,0.0}; }
+      PairDD sampleAlphaBeta(double, RNG&, std::int64_t) const override { return {0.0,0.0}; }
     };
 
 #if 0

@@ -36,7 +36,8 @@ namespace NCRYSTAL_NAMESPACE {
     //too much lower than Ei (which is why we need a whole grid of Ei values,
     //rather than just one with Ei=Emax).
   public:
-    virtual PairDD sampleAlphaBeta(double ekin_div_kT, RNG&) const = 0;
+    virtual PairDD sampleAlphaBeta( double ekin_div_kT, RNG&,
+                                    std::int64_t loopmax ) const = 0;
     virtual ~SABSamplerAtE() = default;
   };
 
@@ -68,14 +69,16 @@ namespace NCRYSTAL_NAMESPACE {
                   SABSamplerAtEList&&,
                   std::shared_ptr<const SAB::SABExtender>,
                   double xsAtEmax,
-                  EGridMargin );
+                  EGridMargin,
+                  Optional<std::int64_t> loopmax );
 
     SABSampler( Temperature temperature,
                 VectD&& egrid,
                 SABSamplerAtEList&&,
                 std::shared_ptr<const SAB::SABExtender>,
                 double xsAtEmax,
-                EGridMargin );
+                EGridMargin,
+                Optional<std::int64_t> loopmax );
 
     SABSampler() = default;//invalid instance.
     ~SABSampler();
@@ -98,6 +101,7 @@ namespace NCRYSTAL_NAMESPACE {
     double m_xsAtEmax = 0.0, m_k1 = 0.0, m_k2 = 0.0;
     PairDD sampleHighE(NeutronEnergy, RNG&) const;
     EGridMargin m_egridMargin;
+    std::int64_t m_ptloopmax = 100;
   };
 }
 

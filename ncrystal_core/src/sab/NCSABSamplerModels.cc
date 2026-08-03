@@ -45,7 +45,9 @@ NC::SAB::SABSamplerAtE_Alg1::SABSamplerAtE_Alg1( std::shared_ptr<const CommonCac
   nc_assert( ibetaOffset+betaVals.size() == m_common->data->betaGrid().size()+1 );
 }
 
-NC::PairDD NC::SAB::SABSamplerAtE_Alg1::sampleAlphaBeta(double ekin_div_kT, RNG&rng) const
+NC::PairDD NC::SAB::SABSamplerAtE_Alg1::sampleAlphaBeta(double ekin_div_kT,
+                                                        RNG&rng,
+                                                        std::int64_t loopmax ) const
 {
   nc_assert(!!m_common);
   const auto& betaGrid = m_common->data->betaGrid();
@@ -54,9 +56,11 @@ NC::PairDD NC::SAB::SABSamplerAtE_Alg1::sampleAlphaBeta(double ekin_div_kT, RNG&
 
   //Allow only loopmax sample attempts, to make sure we detect if code gets too
   //inefficient. However, make sure users can override this if needed.
-  static const unsigned s_loopmax = ncgetenv_int("SABSAMPLE_LOOPMAX", 100 );
+  static const std::int64_t s_loopmax_env = ncgetenv_int64("SABSAMPLE_LOOPMAX", 0 );
+  if ( s_loopmax_env )
+    loopmax = s_loopmax_env;
 
-  unsigned iloopmax(s_loopmax+1);
+  unsigned iloopmax(loopmax+1);
   while (--iloopmax) {
     double beta;
     unsigned ibetaSampled;
@@ -148,7 +152,7 @@ NC::PairDD NC::SAB::SABSamplerAtE_Alg1::sampleAlphaBeta(double ekin_div_kT, RNG&
       return { alpha, beta };//accept
   }
   NCRYSTAL_THROW2(CalcError,"Rejection method failed to sample kinematically valid (alpha,beta) point after "
-                  <<s_loopmax<<" attempts. Perhaps energy grid is too sparse?"
+                  <<loopmax<<" attempts. Perhaps energy grid is too sparse?"
                   " As a workaround it is possible to increase the allowed number of sampling attempts"
                   " by setting the NCRYSTAL_SABSAMPLE_LOOPMAX variable to a higher number"
                   " (but please consider reporting the issue to the NCrystal developers nonetheless).");

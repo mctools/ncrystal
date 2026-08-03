@@ -32,9 +32,11 @@ NC::SABSampler::SABSampler( Temperature temperature,
                             SABSamplerAtEList&& samplers,
                             std::shared_ptr<const SAB::SABExtender> extender,
                             double xsAtEmax,
-                            EGridMargin egridMargin )
+                            EGridMargin egridMargin,
+                            Optional<std::int64_t> loopmax )
 {
-  setData( temperature, std::move(egrid), std::move(samplers), std::move(extender), xsAtEmax, egridMargin );
+  setData( temperature, std::move(egrid), std::move(samplers),
+           std::move(extender), xsAtEmax, egridMargin, loopmax );
 }
 
 
@@ -43,8 +45,10 @@ void NC::SABSampler::setData( Temperature temperature,
                               SABSamplerAtEList&& samplers,
                               std::shared_ptr<const SAB::SABExtender> extender,
                               double xsAtEmax,
-                              EGridMargin egridMargin )
+                              EGridMargin egridMargin,
+                              Optional<std::int64_t> loopmax )
 {
+  m_ptloopmax = loopmax.value_or( 100 );
   nc_assert( extender != nullptr );//fixme: change type to shared_obj?
   m_egrid = std::move(egrid);
   m_samplers = std::move(samplers);
@@ -199,10 +203,14 @@ NC::PairDD NC::SABSampler::sampleAlphaBeta(NeutronEnergy ekin, RNG& rng) const
   //Sample with *itSampler, using the rejection method to make the results
   //correct at the given ekin value:
   const double ekin_div_kT = ekin.get()/m_kT;
-  const double sampling_ekin_div_kT = (ultra_small_ekin_mode ? ultra_small_ekin/m_kT : ekin_div_kT);
+  const double sampling_ekin_div_kT = (ultra_small_ekin_mode
+                                       ? ultra_small_ekin/m_kT
+                                       : ekin_div_kT);
   int loopmax(100);
   while (loopmax--) {
-    std::tie(alpha,beta) = (*itSampler)->sampleAlphaBeta(sampling_ekin_div_kT, rng);
+    std::tie(alpha,beta) = (*itSampler)->sampleAlphaBeta(sampling_ekin_div_kT,
+                                                         rng,
+                                                         m_ptloopmax);
     if (beta<-ekin_div_kT)
       continue;
     double alow,aupp;
