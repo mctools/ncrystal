@@ -1271,7 +1271,6 @@ void NCS::SABProcessor::toJSONProcessInfo( std::ostream& os,
   const auto emin = NeutronEnergy{ sp->m_eGrid.front()*sp->m_kT };
   {
     std::ostringstream tmp;
-    //tmp << "nalpha="<<sab.alphaGrid().size()<<";nbeta="<<sab.betaGrid().size();
     tmp << "grid="<<sab.alphaGrid().size()<<"x"<<sab.betaGrid().size();
     tmp << ";Emax="<<emax;
     tmp << ";T="<<sab.temperature();
