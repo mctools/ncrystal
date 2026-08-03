@@ -21,8 +21,12 @@
 #include "NCrystal/internal/sab/NCSABRefEval.hh"
 #include "NCrystal/internal/sab/NCSABKBCellSmpl.hh"
 #include "NCrystal/internal/sab/NCSABSurveyor.hh"
+#include "NCrystal/internal/sab/NCSABProcessor.hh"
 #include "NCrystal/internal/sab/NCSABCellInteg.hh"
 #include "NCrystal/internal/sab/NCSABCellSample.hh"
+#include "NCrystal/internal/sab/NCSABRefSampler.hh"
+#include "NCrystal/internal/sab/NCSABExtender.hh"
+#include "NCrystal/internal/sab/NCSABIntegrator.hh"//legacy
 #include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
 #include "NCrystal/internal/extd_utils/NCInfoUtils.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
@@ -36,6 +40,28 @@ namespace NCRYSTAL_NAMESPACE {
   namespace SABUtils {
 
     namespace {
+
+      shared_obj<const SABData>
+      query_impl_extractSabData( const std::string& matcfgstr,
+                                 Optional<std::string> atomdsplbl )
+      {
+        MatCfg cfg(matcfgstr);
+        auto info = FactImpl::createInfo(cfg);
+        const DynamicInfo* di = nullptr;
+        if ( !atomdsplbl.has_value() ) {
+          if ( info->getDynamicInfoList().size() > 1 )
+            NCRYSTAL_THROW(BadInput, "ATOMDISPLAYLABEL required for"
+                           " polyatomic materials");
+          di = info->getDynamicInfoList().front().get();
+        } else {
+          di = InfoUtils::findDynInfo( info, atomdsplbl );
+        }
+        auto di_knl = dynamic_cast<const DI_ScatKnl*>(di);
+        if ( !di_knl )
+          NCRYSTAL_THROW(BadInput,"Indicated DynInfo object does not provide"
+                         " S(alpha,beta) kernels.");
+        return extractSABDataFromDynInfo( di_knl, cfg.get_vdoslux() );
+      };
 
       struct SampleResult {
         VectD a;
@@ -83,13 +109,13 @@ namespace NCRYSTAL_NAMESPACE {
         //Calculate prob1 (will be cached in actual production usage alg):
         double prob1;
         const auto scheme
-          = StdLogLinCellIntegrator::IntegrationScheme::MaxPrec;//fixme
+          = SABCfg::IntegrationScheme::MaxPrec;//fixme
         {
           CellData c1 = c;
           c1.S[2]=c1.S[3]=c1.logS[2]=c1.logS[3]=0.0;
           CellData c2 = c;
           c2.S[0]=c2.S[1]=c2.logS[0]=c2.logS[1]=0.0;
-          StableSum sum;
+          StableSumKahan sum;
           StdLogLinCellIntegrator::integrateWithinKB( c1, E_div_kT,
                                                       scheme, sum );
           const double W1 = sum.sum();
@@ -160,6 +186,152 @@ namespace NCRYSTAL_NAMESPACE {
         return res;
       }
 
+      void query_impl_proc( std::ostream& os,
+                            shared_obj<const SABData> sab,
+                            VectD egrid,
+                            std::uint64_t nsample,
+                            std::uint64_t seed,
+                            NeutronEnergy sample_ekin )
+      {
+        const double sablux = 3;//FIXME: As parameter!
+        auto cfg = SABCfg::createConfig(sablux);
+        SABProcessor sp( cfg,
+                         std::move(sab),
+                         std::make_shared<VectD>( std::move(egrid) ),
+                         ( nsample > 0
+                           ? SABProcessor::SampleSupport::YES
+                           : SABProcessor::SampleSupport::NO ),
+                         SABProcessor::StoreExtraDiagnostics::YES );
+        nc_assert_always( sp.hasSampleSupport() == (nsample>0) );
+
+        //fixme: also call sp.phaseSpaceIntegral( NeutronEnergy ) const => to check interpolation
+        //       (we can simply call with custom egrid to get the non-interpolated values at those points).
+        os << "{\"sabproc\":";
+        sp.toJSON(os);
+        os << ",\"sample\":";
+        if ( !nsample ) {
+          streamJSON(os,json_null_t{});
+          os << '}';
+          return;
+        }
+        auto rng = createBuiltinRNG( seed );
+        VectD a, b, ekin, mu;
+        a.reserve(nsample);
+        b.reserve(nsample);
+        ekin.reserve(nsample);
+        mu.reserve(nsample);
+        ++nsample;
+        std::uint64_t ntries = 0;
+        const std::uint64_t ntries_limit = 100*nsample;//fixme tighten?
+        const std::uint64_t ntries_sgl = 1000;//fixme tighten?
+        while (nsample-- > 1) {
+          auto evt =sp.sampleScatterDiag(rng,sample_ekin);
+          nc_assert_always( evt.alphabeta.ntries < ntries_sgl );
+          ntries += evt.alphabeta.ntries;
+          a.push_back( evt.alphabeta.alpha );
+          b.push_back( evt.alphabeta.beta );
+          ekin.push_back( evt.ekinmu.ekin.dbl() );
+          mu.push_back( evt.ekinmu.mu.dbl() );
+          nc_assert_always( ntries < ntries_limit );
+        }
+        os << "{\"alpha\":";
+        streamJSONHugeDblVect(os,std::move(a));
+        os << ",\"beta\":";
+        streamJSONHugeDblVect(os,std::move(b));
+        os << ",\"ekin\":";
+        streamJSONHugeDblVect(os,std::move(ekin));
+        os << ",\"mu\":";
+        streamJSONHugeDblVect(os,std::move(mu));
+        os << ",\"ntries\":";
+        streamJSON(os,ntries);
+        os << "}}";
+      }
+
+      void query_impl_refsample( std::ostream& os,
+                                 shared_obj<const SABData> sab,
+                                 std::uint64_t nsample,
+                                 std::uint64_t seed,
+                                 NeutronEnergy sample_ekin )
+      {
+        auto rng = createBuiltinRNG( seed );
+        const double E_div_kT = sample_ekin.dbl() / sab->temperature().kT();
+        auto ab = SABRef::refSampleAlphaBeta( rng, sab, E_div_kT, nsample );
+        os << "{\"refsample\":{\"E\":";
+        streamJSON(os,sample_ekin);
+        os << ",\"E_div_kT\":";
+        streamJSON(os,E_div_kT);
+        os << ",\"kT\":";
+        streamJSON(os,sab->temperature().kT());
+        os << ",\"seed\":";
+        streamJSON(os,seed);
+        os << ",\"nsample\":";
+        streamJSON(os,nsample);
+        os << ",\"alpha\":";
+        streamJSONHugeDblVect(os,std::move(ab.first));
+        os << ",\"beta\":";
+        streamJSONHugeDblVect(os,std::move(ab.second));
+        os << "}}";
+      }
+
+      void query_impl_legacysample( std::ostream& os,
+                                    shared_obj<const SABData> sab,
+                                    std::uint64_t nsample,
+                                    std::uint64_t seed,
+                                    NeutronEnergy sample_ekin,
+                                    bool legacy_oversample )
+      {
+        auto rng = createBuiltinRNG( seed );
+        //teeny tiny E-values are cheaper, and we only really need the one at
+        //sample_ekin:
+
+        //fixme: margin=1.00000000001 is not actually the legacy default (which
+        //is 1.05). Also, we would like to show the legacy with and without the
+        //sqrt-first-beta-bin fix.
+        const SABSampler::EGridMargin
+          margin{ legacy_oversample ? 10.0 : (1.0+1e-12) };
+        VectD egrid;
+        egrid.push_back(1e-10*sample_ekin.dbl());
+        egrid.push_back(5e-10*sample_ekin.dbl());
+        egrid.push_back(1e-9*sample_ekin.dbl());
+        egrid.push_back(5e-9*sample_ekin.dbl());
+        egrid.push_back(1e-8*sample_ekin.dbl());
+        egrid.push_back(1e-7*sample_ekin.dbl());
+        egrid.push_back(1e-6*sample_ekin.dbl());
+        egrid.push_back(1e-5*sample_ekin.dbl());
+        egrid.push_back(1e-4*sample_ekin.dbl());
+        egrid.push_back(margin.value*(1+1e-12)*sample_ekin.dbl());
+        auto extender = std::make_shared<SAB::SABNullExtender>();
+        auto sampler = SAB::SABIntegrator( sab, &egrid,
+                                           extender, margin ).createSampler();
+
+        const double E_div_kT = sample_ekin.dbl() / sab->temperature().kT();
+
+        VectD alpha, beta;
+        alpha.reserve(nsample);
+        beta.reserve(nsample);
+        for ( std::uint64_t i = 0; i < nsample; ++i ) {
+          auto ab = sampler.sampleAlphaBeta( sample_ekin, rng );
+          alpha.push_back( ab.first );
+          beta.push_back( ab.second );
+        }
+        os << "{\"legacysample\":{\"E\":";
+        streamJSON(os,sample_ekin);
+        os << ",\"E_div_kT\":";
+        streamJSON(os,E_div_kT);
+        os << ",\"kT\":";
+        streamJSON(os,sab->temperature().kT());
+        os << ",\"seed\":";
+        streamJSON(os,seed);
+        os << ",\"nsample\":";
+        streamJSON(os,nsample);
+        os << ",\"alpha\":";
+        streamJSONHugeDblVect(os,std::move(alpha));
+        os << ",\"beta\":";
+        streamJSONHugeDblVect(os,std::move(beta));
+        os << "}}";
+      }
+
+
       void query_impl_sglcell( std::ostream& os, double E_div_kT,
                                double a1, double a2, double b1, double b2,
                                double s11, double s12, double s21, double s22,
@@ -188,18 +360,18 @@ namespace NCRYSTAL_NAMESPACE {
             cell.logS[i] = ( cell.S[i] > 0.0 ? std::log(cell.S[i]) : 0.0 );
         }
         {
-          StableSum sum_full;
+          StableSumKahan sum_full;
           using SCI = StdLogLinCellIntegrator;
           SCI::integrateFullCell(cell,sum_full);
           cellinteg_full = sum_full.sum();
 
-          StrView sv_allschemes(SCI::allIntegSchemesAsStr());
+          StrView sv_allschemes(SABCfg::allIntegSchemesAsStr());
           for ( auto sv_scheme : sv_allschemes.split(';') ) {
-            auto scheme = SCI::str2IntegScheme( sv_scheme );
-            StableSum sum_pb;
+            auto scheme = SABCfg::str2IntegScheme( sv_scheme );
+            StableSumKahan sum_pb;
             SCI::integrateWithinKB( cell, E_div_kT, scheme, sum_pb);
             cellinteg_pb_list.emplace_back(sv_scheme,sum_pb.sum());
-            if ( scheme == SCI::IntegrationScheme::Flex5 )
+            if ( scheme == SABCfg::IntegrationScheme::Flex5 )
               cellinteg_pb_chosen_for_fcsample = sum_pb.sum();
           }
         }
@@ -212,9 +384,8 @@ namespace NCRYSTAL_NAMESPACE {
         const bool useBoundedCellSample = ( cellinteg_pb_chosen_for_fcsample
                                             < 0.1*cellinteg_full );//fixme: thr?
 
-        nc_assert_always(surv.getTouchList().size()==1);
-        nc_assert_always(surv.getCoverList().size()==1);
-        const double E_div_kT_touch = surv.getTouchList().front().first;
+        nc_assert_always(surv.data().size()==1);
+        const double E_div_kT_touch = surv.data().front().e_touch;
         SampleResult samples_fc, samples_bc, samples_ref;
         Optional<double> prob1_fc, prob1_bc;
         auto rng = createBuiltinRNG( seed );
@@ -239,9 +410,9 @@ namespace NCRYSTAL_NAMESPACE {
         SmallVector<double,4> s_v = {s11, s12, s21, s22};
         streamJSON(os,s_v);
         os<<",\"surveyor\":{\"E_div_kT_touch\":";
-        streamJSON(os,surv.getTouchList().front().first);
+        streamJSON(os,surv.data().front().e_touch);
         os<<",\"E_div_kT_cover\":";
-        streamJSON(os,surv.getCoverList().front().first);
+        streamJSON(os,surv.data().front().e_cover);
 
         {
           //Fixme: SABCellEval is not trustworthy -> replace eventually with new
@@ -315,13 +486,26 @@ namespace NCRYSTAL_NAMESPACE {
         streamJSON(os,alpha);
         os<<",\"beta\":";
         streamJSON(os,beta);
-        auto streamCellList = [&os](const SABSurveyor::CellList& cl)
+        //Each entry in a CellList is (E/kT,cell index):
+        using CellList = std::vector<std::pair<double,SABSurveyor::cellidx_t>>;
+        auto sortCellList = [](CellList& cl)
+        {
+          using E = CellList::value_type;
+          std::sort( cl.begin(), cl.end(),
+                     []( const E& a, const E& b )
+                     {
+                       if ( a.first != b.first )
+                         return a.first < b.first;
+                       return a.second.val < b.second.val;
+                     });
+        };
+
+        auto streamCellList = [&os](const CellList& cl)
         {
           nc_assert_always(cl.size()>=1);
           os << '[';
           bool first = true;
           for ( auto& e : cl ) {
-            auto cell_idx = SABSurveyor::unpackCellIdx<unsigned>(e.second);
             if ( first )
               first = false;
             else
@@ -329,34 +513,42 @@ namespace NCRYSTAL_NAMESPACE {
             os<<"[";
             streamJSON(os,e.first);
             os<<',';
-            streamJSON(os,cell_idx.first);
+            streamJSON(os,e.second.unpackAlphaIdx());
             os<<',';
-            streamJSON(os,cell_idx.second);
+            streamJSON(os,e.second.unpackBetaIdx());
             os<<']';
           }
           os << ']';
         };
         os<<",\"list_format\":[\"E_div_kT\",\"cell_ialpha\",\"cell_ibeta\"]";
+        CellList touchList, coverList;
+        {
+          touchList.reserve( surv.data().size() );
+          for ( auto& cc : surv.data() )
+            touchList.emplace_back( cc.e_touch, cc.cellidx );
+          sortCellList( touchList );
+
+          coverList.reserve( surv.data().size() );
+          for ( auto& cc : surv.data() )
+            coverList.emplace_back( cc.e_cover, cc.cellidx );
+          sortCellList( coverList );
+        }
         os<<",\"touch_list\":";
-        streamCellList(surv.getTouchList());
+        streamCellList(touchList);
         os<<",\"cover_list\":";
-        streamCellList(surv.getCoverList());
+        streamCellList(coverList);
         os<<'}';
       }
 
       void query_impl_SABRefEval( std::ostream& os,
-                                  const MatCfg& cfg,
+                                  const std::string& matcfg,
                                   NeutronEnergy eval,
                                   Optional<std::string> atomDisplayLabel,
                                   std::uint64_t nsample )
       {
-        auto info = FactImpl::createInfo(cfg);
-        const DynamicInfo* di = InfoUtils::findDynInfo( info, atomDisplayLabel );
-        auto di_knl = dynamic_cast<const DI_ScatKnl*>(di);
-        if ( !di_knl )
-          NCRYSTAL_THROW(BadInput,"Indicated DynInfo object does not provide"
-                         " S(alpha,beta) kernels.");
-        auto sabdata = extractSABDataFromDynInfo( di_knl, cfg.get_vdoslux() );
+        //Fixme: is this obsolete? Should we remove ths option + the
+        //NCSABRefEval header again?
+        auto sabdata = query_impl_extractSabData( matcfg, atomDisplayLabel );
         SABRefEval<> refeval( sabdata, eval );
         RNG* rngptr = nullptr;
         std::shared_ptr<RNGStream> rngholder;
@@ -450,6 +642,8 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
   constexpr auto sv_surveyor = StrView::make("surveyor");
   constexpr auto sv_sglcell = StrView::make("sglcell");
   constexpr auto sv_integschemes = StrView::make("integschemes");
+  constexpr auto sv_proc = StrView::make("proc");
+  constexpr auto sv_refsample = StrView::make("refsample");
 
   if ( key == sv_refeval ) {
     //query like: ncrystal_query sab refeval 0.025 'bla.ncmat' 1000 ['Al']
@@ -518,8 +712,6 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
                            "ALPHA2,BETA1,BETA2,SA1B1,SA2B1,SA1B2,SA2B2,"
                            "NSAMPLE,SEED], with negative beta values prefixed"
                            " with '@' and NSAMPLE+SEED being optional." );
-    if ( nargs < 9 || nargs > 11 )
-      invalid(usage);
     std::uint64_t nsample = 0;
     std::uint64_t seed = 123456;
     if ( nargs>=10 ) {
@@ -561,17 +753,86 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
       invalid(usage);
     query_impl_sglcell( os, E_div_kT, a1, a2, b1, b2,
                         s11, s12, s21, s22, nsample, seed );
-  } else if ( key == sv_integschemes ) {
-    if ( nargs != 0 )
-      invalid("[\"sab\",\"sglcell\",\"integschemes\"] does"
-              " not support any arguments");
-    streamJSON(os,StrView(StdLogLinCellIntegrator::
-                          allIntegSchemesAsStr()).split(';'));
+  } else if ( key == sv_proc || key == sv_refsample ) {
+    //Almost same usage+parsing of proc/refsample:
+    const bool is_proc = key==sv_proc;
+    const char * usage
+      = ( is_proc
+          ? ( "correct usage: [\"sab\",\"proc\",MATCFGSTR,ATOMDISPLAYLABEL,"
+              "NSAMPLE,SEED,SAMPLE_EVAL,EGRID0,..,EGRIDN]"
+              " (the EGRID pts are optional, and the ATOMDISPLAYLABEL can"
+              " be left as an empty string for monoatomic materials)" )
+          : ( "correct usage: [\"sab\",\"refsample\",MATCFGSTR,"
+              "ATOMDISPLAYLABEL,NSAMPLE,SEED,SAMPLE_EVAL,TYPE] where TYPE is one"
+              " of \"legacy\", \"legacy_oversample\", and \"ref\" (the"
+              " ATOMDISPLAYLABEL can be left as an empty string for monoatomic"
+              " materials)" ) );
+    if ( nargs < 5 )
+      invalid(usage);
+
+    Optional<std::string> atomdsplbl;
+    if ( !arg(1).empty() )
+      atomdsplbl = argstr(1);
+    auto sabdata = query_impl_extractSabData( argstr(0), atomdsplbl );
+
+    auto optns = arg(2).toUInt64();
+    if ( !optns.has_value() )
+      invalid(usage);
+    std::uint64_t nsample = optns.value();
+    auto optsd = arg(3).toUInt64();
+    if ( !optsd.has_value() )
+      invalid(usage);
+    std::uint64_t seed = optsd.value();
+    auto sample_ekin_raw = arg(4).toDbl();
+    if (!sample_ekin_raw.has_value()||!(sample_ekin_raw.value()>=0.0))
+      invalid(usage);
+    NeutronEnergy sample_ekin( DoValidate_t{}, sample_ekin_raw.value() );
+    VectD egrid;
+    bool refsample_type_is_legacy(false);
+    bool legacy_oversample(false);
+    if ( !is_proc ) {
+      if ( nargs != 6 )
+        invalid(usage);
+      //parse TYPE
+      if ( arg(5) == "ref" ) {
+        refsample_type_is_legacy = false;
+      } else if ( arg(5) == "legacy" ) {
+        refsample_type_is_legacy = true;
+      } else if ( arg(5) == "legacy_oversample" ) {
+        refsample_type_is_legacy = true;
+        legacy_oversample = true;
+      } else {
+        invalid(usage);
+      }
+    } else if ( nargs > 5 ) {
+      if (!is_proc)
+        invalid(usage);
+      egrid.reserve(static_cast<std::size_t>(nargs-5));
+      for ( std::size_t i = 5; i < nargs; ++i ) {
+        auto val = arg(i).toDbl();
+        if (!val.has_value()||!(val.value()>0.0))
+          invalid(usage);
+        egrid.push_back(val.value());
+      }
+    }
+    if ( key == sv_proc ) {
+      query_impl_proc( os, std::move(sabdata), std::move(egrid),
+                       nsample, seed, sample_ekin );
+    } else {
+      if ( refsample_type_is_legacy )
+        query_impl_legacysample( os, std::move(sabdata), nsample, seed,
+                                 sample_ekin, legacy_oversample );
+      else
+        query_impl_refsample( os, std::move(sabdata), nsample, seed,
+                              sample_ekin );
+    }
   } else if ( key == sv_list ) {
     if ( nargs != 0 )
       invalid("no arguments should come after: [\"mmc\",\"list\"]");
-    streamJSON( os, std::array<StrView,5>{ sv_integschemes,
+    streamJSON( os, std::array<StrView,7>{ sv_integschemes,
+                                           sv_proc,
                                            sv_refeval,
+                                           sv_refsample,
                                            sv_samplepb,
                                            sv_sglcell,
                                            sv_surveyor } );
