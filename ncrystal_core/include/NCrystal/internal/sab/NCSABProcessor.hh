@@ -28,7 +28,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace SABUtils {
 
-    class SABProcessor final : private MoveOnly {
+    class SABProcessor final : public UniqueID, private MoveOnly {
 
       // Class which processes an S(alpha,beta) table and provides both cross
       // sections and sampling capabilities. In addition to an understanding of
@@ -54,6 +54,8 @@ namespace NCRYSTAL_NAMESPACE {
                     SampleSupport = SampleSupport::YES,
                     StoreExtraDiagnostics = StoreExtraDiagnostics::NO );
 
+      shared_obj<const SABData> sabDataPtr() const;
+
       double kT() const;
 
       //integral of S(alpha,beta) within phasespace of a given neutron energy:
@@ -63,7 +65,7 @@ namespace NCRYSTAL_NAMESPACE {
       CrossSect crossSectionUnitSigmaBound( NeutronEnergy ekin ) const;
 
       //Sample a scattering event in (dE,mu) or (alpha,beta) space, with or
-      //without diagnostics:
+      //without diagnostics (fixme: needed?):
       ScatterOutcomeIsotropic sampleScatter( RNG&, NeutronEnergy ) const;
 
       struct AlphaBetaOutcome {
@@ -78,11 +80,21 @@ namespace NCRYSTAL_NAMESPACE {
       };
       ScatOutcomeDiag sampleScatterDiag( RNG&, NeutronEnergy ) const;
 
-
       bool hasSampleSupport() const;
 
       //fixme: also a streamJSONSummary?
       void toJSON( std::ostream& ) const;
+
+      //Stream information to JSON (appropriate for usage in a Process). If an
+      //optional sigma_scale is provided (which would be the elemental cross
+      //section in a standard monoatomic material), it will be encoded in the
+      //JSON data as well. Likewise, the short description of the method for
+      //extending the table to higher energies can be provided as well,
+      void toJSONProcessInfo( std::ostream&,
+                              Optional<SigmaBound> sigma_scale = NullOpt,
+                              Optional<std::string> extension_method
+                              = NullOpt  ) const;
+
 
       //There is a maximal energy after which the SAB does not reliably cover
       //neutron physics (this is the last point in the internal energy

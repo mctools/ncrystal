@@ -145,6 +145,7 @@ namespace NCRYSTAL_NAMESPACE {
       public:
         using cellidx_t = SABIdx::PackedIndex;
         const SABData& sabData() const { return *m_sab; }
+        shared_obj<const SABData> sabDataPtr() const { return m_sab; }
 
         CellMgr( shared_obj<const SABData> sab )
           : m_sab(std::move(sab))
@@ -270,11 +271,11 @@ namespace NCRYSTAL_NAMESPACE {
           };
           std::vector<CellInfo> cellInfo;
         };
+        CellMgr m_cellmgr;
       private:
         std::vector<BCEnergyPoint> m_bcEptInfo;
         //sample info (indexed by the .bcSampleInfoIndex properties):
         MixedDataVector m_bcSample;
-        CellMgr m_cellmgr;
 
         //Sample a scattering event:
         struct ABRes { double a, b; std::size_t ntries; };
@@ -1176,7 +1177,6 @@ NCS::SABProcessor::EPtInfo NCS::SABProcessor::getEMaxInfo() const
   EPtInfo res;
   res.E_div_kT = sp->m_eGrid.back();
   res.phaseSpaceIntegral = sp_cimpl(m_impl)->m_sIntegral.back();
-
   res.ekin = NeutronEnergy{ res.E_div_kT * sp->m_kT };
   res.crossSectionUnitSigmaBound
     = CrossSect{ res.phaseSpaceIntegral * 0.25 / res.E_div_kT };
@@ -1254,3 +1254,52 @@ const NC::VectD& NCS::SABProcessor::getPhaseSpaceIntegralAtGrid() const
   return sp_cimpl(m_impl)->m_sIntegral;
 }
 
+NC::shared_obj<const NC::SABData> NCS::SABProcessor::sabDataPtr() const
+{
+  return sp_cimpl(m_impl)->m_cellmgr.sabDataPtr();
+}
+
+void NCS::SABProcessor::toJSONProcessInfo( std::ostream& os,
+                                           Optional<SigmaBound> sigma_scale,
+                                           Optional<std::string>
+                                           extension_method ) const
+{
+  const auto sp = sp_cimpl(m_impl);
+  const auto& sab = sp->m_cellmgr.sabData();
+  const auto emax = getEMaxInfo().ekin;
+  const auto negrid = sp->m_eGrid.size();
+  const auto emin = NeutronEnergy{ sp->m_eGrid.front()*sp->m_kT };
+  {
+    std::ostringstream tmp;
+    //tmp << "nalpha="<<sab.alphaGrid().size()<<";nbeta="<<sab.betaGrid().size();
+    tmp << "grid="<<sab.alphaGrid().size()<<"x"<<sab.betaGrid().size();
+    tmp << ";Emax="<<emax;
+    tmp << ";T="<<sab.temperature();
+    tmp << ";M="<<sab.elementMassAMU();
+    if ( extension_method.has_value() && extension_method.value() != "freegas")
+      tmp << ";extend="<<extension_method.value();
+    if ( sigma_scale.has_value() )
+      tmp << ";sigma_free="
+          <<fmt(sigma_scale.value().free(sab.elementMassAMU()).dbl(),"%.4g")
+          <<"barn";
+
+    streamJSONDictEntry( os, "summarystr", tmp.str(), JSONDictPos::FIRST );
+  }
+  streamJSONDictEntry( os, "Emax", emax.dbl()  );
+  streamJSONDictEntry( os, "Emin", emin.dbl()  );
+  streamJSONDictEntry( os, "negrid", negrid  );
+  streamJSONDictEntry( os, "T", sab.temperature().dbl()  );
+  streamJSONDictEntry( os, "M", sab.elementMassAMU().dbl()  );
+  if ( sigma_scale.has_value() ) {
+    streamJSONDictEntry( os, "sigma_bound=",
+                         sigma_scale.value().dbl() );
+    streamJSONDictEntry( os, "sigma_free=",
+                         sigma_scale.value().free(sab.elementMassAMU()).dbl() );
+  }
+  streamJSONDictEntry( os, "nalpha", sab.alphaGrid().size()  );
+  streamJSONDictEntry( os, "nbeta", sab.betaGrid().size()  );
+  if ( extension_method.has_value() )
+    streamJSONDictEntry( os, "extension_method", extension_method.value() );
+  streamJSONDictEntry( os, "sabprocessor_uid",
+                       getUniqueID().value, JSONDictPos::LAST );
+}

@@ -46,6 +46,8 @@ namespace NCRYSTAL_NAMESPACE {
       //at given incident neutron energy:
       virtual CrossSect crossSection(NeutronEnergy) const = 0;
       virtual PairDD sampleAlphaBeta(RNG&, NeutronEnergy) const = 0;
+
+      virtual Optional<std::string> shortName() const { return NullOpt; }
     };
 
     class SABFGExtender : public SABExtender {
@@ -56,6 +58,7 @@ namespace NCRYSTAL_NAMESPACE {
       virtual ~SABFGExtender();
       CrossSect crossSection(NeutronEnergy) const override;
       PairDD sampleAlphaBeta(RNG&, NeutronEnergy) const override;
+      Optional<std::string> shortName() const override { return {"freegas"}; }
     private:
       FreeGasXSProvider m_xsprovider;
       Temperature m_t;
@@ -70,6 +73,7 @@ namespace NCRYSTAL_NAMESPACE {
       virtual ~SABNullExtender(){}
       CrossSect crossSection(NeutronEnergy) const override { return CrossSect{0.0}; }
       PairDD sampleAlphaBeta(RNG&, NeutronEnergy) const override { return {0.0,0.0}; }
+      Optional<std::string> shortName() const override { return {"none"}; }
     };
 
   }
