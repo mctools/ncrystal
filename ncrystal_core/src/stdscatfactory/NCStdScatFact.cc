@@ -31,6 +31,7 @@
 #include "NCrystal/internal/freegas/NCFreeGas.hh"
 #include "NCrystal/internal/elincscatter/NCElIncScatter.hh"
 #include "NCrystal/internal/sabscatter/NCSABScatter.hh"
+#include "NCrystal/internal/sabscatter/NCSABScatterNG.hh"
 #include "NCrystal/internal/sab/NCSABFactory.hh"
 #include "NCrystal/internal/sab/NCSABUCN.hh"
 #include "NCrystal/internal/utils/NCString.hh"
@@ -229,11 +230,26 @@ namespace NCRYSTAL_NAMESPACE {
         if ( !info.hasTemperature() )
           NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires specification of material temperature");
 
+        const auto knllux = cfg.get_knllux();
+
+        static_assert( static_cast<int>(SAB::LegacySABAlgOpts::MIN) == -6, "");
+        static_assert( static_cast<int>(SAB::LegacySABAlgOpts::MAX) == -1, "");
+
+        if ( inelas != "freegas" ) {
+          nc_assert_always( isOneOf(inelas,"dyninfo","vdosdebye" ) );
+          nc_assert_always( knllux >= -6 && knllux <= 6 );
+          if ( ucnmode.has_value() && knllux != -1)
+            NCRYSTAL_THROW(BadInput,
+                           "ucnmode only supported with legacy kernel processing");
+        }
+
         if ( inelas == "dyninfo" ) {
 
           if ( !info.hasDynamicInfo() )
-            NCRYSTAL_THROW(BadInput,"inelas=dyninfo does not work for input without specific dynamic information. It is possible that"
-                           " other modes might work (try e.g. inelas=auto instead).");
+            NCRYSTAL_THROW(BadInput,"inelas=dyninfo does not work for input"
+                           " without specific dynamic information. It is"
+                           " possible that other modes might work (try"
+                           " e.g. inelas=auto instead).");
 
           std::uint32_t vdos2sabExcludeFlag = 0;
           auto specialIgnoreContribs = getUnofficialHack("vdos2sab_ignorecontrib");
@@ -259,36 +275,69 @@ namespace NCRYSTAL_NAMESPACE {
             if ( di->atomData().scatteringXS().dbl() == 0.0 )
               continue;//just ignore components with no scattering cross section
             if (di_scatknl) {
-              components.addfct_cl([di_scatknl,vdoslux,vdos2sabExcludeFlag,ucnmode]()
-              {
-                ProcImpl::ProcComposition::ComponentList complist;
-                const double scale = di_scatknl->fraction();
+              if ( ( knllux >=-6 && knllux <=-1 ) ) {
+                //legacy:
+                components.addfct_cl([di_scatknl,vdoslux,vdos2sabExcludeFlag,ucnmode,knllux]()
+                {
+                  ProcImpl::ProcComposition::ComponentList complist;
+                  const double scale = di_scatknl->fraction();
 
-                auto sabdata = extractSABDataFromDynInfo( di_scatknl, vdoslux,
-                                                          true/*use cache*/,
-                                                          vdos2sabExcludeFlag );
-                if ( !sabdata->boundXS() )
-                  return complist;
+                  auto sabdata = extractSABDataFromDynInfo( di_scatknl, vdoslux,
+                                                            true/*use cache*/,
+                                                            vdos2sabExcludeFlag );
+                  if ( !sabdata->boundXS() )
+                    return complist;
 
-                auto sab_scatter = makeSO<SABScatter>( sabdata, di_scatknl->energyGrid() );
-                if ( !ucnmode.has_value() ) {
-                  complist.emplace_back(scale,std::move(sab_scatter));
-                  return complist;
-                }
-                auto scUCN = UCN::UCNScatter::createWithCache( sabdata, ucnmode.value().threshold );
-                nc_assert(isOneOf(ucnmode.value().mode,UCNMode::Mode::Refine,UCNMode::Mode::Remove,UCNMode::Mode::Only));
-                if ( scUCN->isNull() ) {
-                  //Just the normal process, the UCN process is apparently null.
-                  if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
+                  nc_assert(knllux>=static_cast<int>(SAB::LegacySABAlgOpts::MIN));
+                  nc_assert(knllux<=static_cast<int>(SAB::LegacySABAlgOpts::MAX));
+                  auto legacyopts = static_cast<SAB::LegacySABAlgOpts>(knllux);
+                  auto sabhelper
+                    = SAB::createScatterHelperWithCache( sabdata,
+                                                         di_scatknl->energyGrid(),
+                                                         legacyopts );
+                  auto sab_scatter = makeSO<SABScatter>( std::move(sabhelper) );
+                  if ( !ucnmode.has_value() ) {
                     complist.emplace_back(scale,std::move(sab_scatter));
+                    return complist;
+                  }
+                  nc_assert_always( knllux == -1 );
+                  auto scUCN = UCN::UCNScatter::createWithCache( sabdata, ucnmode.value().threshold );
+                  nc_assert(isOneOf(ucnmode.value().mode,UCNMode::Mode::Refine,UCNMode::Mode::Remove,UCNMode::Mode::Only));
+                  if ( scUCN->isNull() ) {
+                    //Just the normal process, the UCN process is apparently null.
+                    if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
+                      complist.emplace_back(scale,std::move(sab_scatter));
+                    return complist;
+                  }
+                  if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
+                    complist.emplace_back(scale,makeSO<UCN::ExcludeUCNScatter>( sab_scatter, scUCN ));
+                  if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Only ) )
+                    complist.emplace_back(scale,scUCN);
                   return complist;
-                }
-                if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Remove ) )
-                  complist.emplace_back(scale,makeSO<UCN::ExcludeUCNScatter>( sab_scatter, scUCN ));
-                if ( isOneOf( ucnmode.value().mode, UCNMode::Mode::Refine,  UCNMode::Mode::Only ) )
-                  complist.emplace_back(scale,scUCN);
-                return complist;
-              });
+                });
+              } else {
+                nc_assert_always( !ucnmode.has_value() );
+                components.addfct_cl([di_scatknl,vdoslux,knllux,
+                                      vdos2sabExcludeFlag,ucnmode]()
+                {
+                  ProcImpl::ProcComposition::ComponentList complist;
+                  const double scale = di_scatknl->fraction();
+                  auto sabdata = extractSABDataFromDynInfo( di_scatknl, vdoslux,
+                                                            true/*use cache*/,
+                                                            vdos2sabExcludeFlag );
+                  if ( sabdata->boundXS() ) {
+                    nc_assert( knllux >= 0 && knllux <=6  );
+                    auto sabext =
+                      SAB::createSABExtendedWithCache(knllux, sabdata,
+                                                      di_scatknl->energyGrid());
+                    auto scat = makeSO<SABScatterNG>(std::move(sabext),
+                                                     sabdata->boundXS());
+                    complist.emplace_back(scale,std::move(scat));
+                  }
+                  return complist;
+                });
+              }
+
             } else if (dynamic_cast<const DI_Sterile*>(di.get())) {
               continue;//just skip past sterile components
             } else if (dynamic_cast<const DI_FreeGas*>(di.get())) {
@@ -309,12 +358,22 @@ namespace NCRYSTAL_NAMESPACE {
 
         } else {
           nc_assert_always(inelas=="vdosdebye");
+          if ( knllux != -1 )
+            NCRYSTAL_THROW2(BadInput,
+                            "Only legacy (knllux=-1) is supported with"
+                            " inelas="<<inelas<<" mode for now.");//fixme
           if ( ucnmode.has_value() )
-            NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode is not compatible with any ucnmode)");
+            NCRYSTAL_THROW2(BadInput,"inelas="<<inelas
+                            <<" mode is not compatible with any ucnmode)");
           if ( !info.hasDebyeTemperature() )
-            NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires specification of Debye temperature");//TODO: This should be allowed also for elements with actual VDOS
+            NCRYSTAL_THROW2(BadInput,"inelas="<<inelas
+                            <<" mode requires specification of Debye"
+                            " temperature");//TODO: This should be allowed also
+                                            //for elements with actual VDOS
           if ( !info.isCrystalline() || !info.hasAtomInfo() )
-            NCRYSTAL_THROW2(BadInput,"inelas="<<inelas<<" mode requires crystalline material with atomic information");
+            NCRYSTAL_THROW2(BadInput,"inelas="<<inelas
+                            <<" mode requires crystalline material with"
+                            " atomic information");
 
           unsigned ntot = 0.0;
           for ( auto& ai : info.getAtomInfos() )
@@ -339,7 +398,7 @@ namespace NCRYSTAL_NAMESPACE {
         }
       }
 
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////
       //Wrap it up and return:
       return components.finalise_scatter();
     }
