@@ -151,6 +151,28 @@ namespace NCRYSTAL_NAMESPACE {
         double final_k;//needed for adaptive alg
       };
 
+      inline double calc_bu_minus_bl_times_smiddle( bool is_bounded_by_both,
+                                                    double dbpm,
+                                                    double bu,
+                                                    double bl,
+                                                    double smiddle )
+      {
+        //Using inlined function here for calculation which is needed in two
+        //places, and which although simple is a bit tricky.
+
+        nc_assert(bu-bl > -0.01);//could be slightly negative due to
+                                 //numerical instabilities
+        const double bumbl( is_bounded_by_both
+                            ? 2.0*dbpm
+                            : ncmax(0.0,bu-bl) );
+        nc_assert(bumbl >= 0.0 );
+        nc_assert(smiddle >= -1e-9 );
+        const double res = ncmax(0.0,bumbl*smiddle);
+        nc_assert(res >= 0.0);
+        nc_assert(std::isfinite(res));
+        return res;
+      }
+
       class IntegrandOfA final : private NoCopyMove {
       public:
 
@@ -191,7 +213,13 @@ namespace NCRYSTAL_NAMESPACE {
             m_data.emplace_back(s_b1.a[j],s_b1.S[j],s_b2.S[j]);
           }
           nc_assert(m_data.size()==17);
-          nc_assert(m_data.at(0).alpha>m_data.at(1).alpha);
+          //NB: For some very tight regions, it can happen due to floating point
+          //limitations that the region only has an extremely limited alpha
+          //range, leading to m_data.at(0).alpha==m_data.at(1).alpha. The
+          //simplest fix is to simply ignore this, since it will most likely not
+          //lead to any significant changes in the contributions which are ~=
+          //0. Hence, the following asserts allows for equality:
+          nc_assert(m_data.at(0).alpha>=m_data.at(1).alpha);
         }
 
         void evalInitialF17(double* fvals) const {
@@ -224,8 +252,8 @@ namespace NCRYSTAL_NAMESPACE {
         {
           const double a = slice.alpha;
           const double dbpm = std::sqrt( m_4e * a );//NB: Most expensive
-                                                    //per-point calc in this
-                                                    //line? (fixme: revisit with profiling)
+                                                    //per-point calc might be in
+                                                    //this line?
           const double bl( m_is_bounded_by_betaminus ? a - dbpm : m_b1 );
           const double bu( m_is_bounded_by_betaplus ? a + dbpm : m_b2 );
           //To find the contribution we integrate S(a,b) over [bl,bu]. This is
@@ -233,8 +261,8 @@ namespace NCRYSTAL_NAMESPACE {
           const double bmiddle( m_is_bounded_by_both ? a : (bu+bl)*0.5 );
           const double rb = (bmiddle-m_b1)*m_invdb;
           const double smiddle = slice.s_at_b1*(1.0-rb)+slice.s_at_b2*rb;
-          const double bumbl( m_is_bounded_by_both ? 2.0*dbpm : bu-bl );
-          return bumbl * smiddle;
+          return calc_bu_minus_bl_times_smiddle( m_is_bounded_by_both,
+                                                 dbpm, bu, bl, smiddle );
         }
 
         double growK( AlphaInterpMethod aim,
@@ -437,11 +465,12 @@ namespace NCRYSTAL_NAMESPACE {
           double bl(cs.b1), bu(cs.b2);
           const bool is_bounded_on_both_sides ( is_bounded_by_betaminus
                                                 && is_bounded_by_betaplus );
+          const double foure = 4.0*E_div_kT;
           for ( ; itC!=itCE; ++itC ) {
             double Sb1 = *(itSb1++);
             double Sb2 = *(itSb2++);
             double a = *(itA++);
-            double dbpm = 2.0 * std::sqrt( E_div_kT * a );//fixme: can we avoid this??
+            double dbpm = std::sqrt( foure * a );//nb: expensive
             if ( is_bounded_by_betaminus )
               bl = a - dbpm;
             if ( is_bounded_by_betaplus )
@@ -449,23 +478,10 @@ namespace NCRYSTAL_NAMESPACE {
             //To find the contribution we integrate S(a,b) over [bl,bu]. This is
             //easy, since we always interpolate linearly in b:
             const double bmiddle( is_bounded_on_both_sides ? a : (bu+bl)*0.5 );
-#if 0
-            double smiddle = Sb1 + (Sb2-Sb1)*(bmiddle-cs.b1)*invdb;
-#else
             double rb = (bmiddle-cs.b1)*invdb;
             double smiddle = Sb1*(1.0-rb)+Sb2*(rb);
-#endif
-            nc_assert_always(bu-bl > -0.01);//could be slightly negative due to
-                                            //numerical instabilities
-            const double bumbl( is_bounded_on_both_sides
-                                ? 2.0*dbpm
-                                : ncmax(0.0,bu-bl) );
-
-            nc_assert_always(bumbl >= -1e-9 );
-            nc_assert_always(smiddle >= -1e-9 );
-            *itC = ncmax(0.0,bumbl*smiddle);
-            nc_assert_always(*itC >= 0.0);
-            nc_assert_always(std::isfinite(*itC));
+            *itC = calc_bu_minus_bl_times_smiddle( is_bounded_on_both_sides,
+                                                   dbpm, bu, bl, smiddle );
           }
         }
 
@@ -501,12 +517,10 @@ namespace NCRYSTAL_NAMESPACE {
           };
           R17Adaptive r17adapt(i,minlvl,maxlvl,prec);
           contrib = r17adapt.integrate(0.0,1.0);
-          // tgt.add( contrib*cs.a2 );
-          // tgt.add( -contrib*cs.a1 );
           tgt.add( contrib*(cs.a2-cs.a1) );
         } else if ( use_romberg_fixed ) {
           double contrib;
-          nc_assert_always(contrib_at_a[0] >= 0.0);
+          nc_assert(contrib_at_a[0] >= 0.0);
           if ( scheme.npts<17 ) {
             if ( scheme.npts==5 ) {
               contrib = Romberg::fixedOrderIntegration5pts(contrib_at_a);
@@ -522,12 +536,10 @@ namespace NCRYSTAL_NAMESPACE {
               contrib = Romberg::fixedOrderIntegration33pts(contrib_at_a);
             }
           }
-          // tgt.add( contrib*cs.a2 );
-          // tgt.add( -contrib*cs.a1 );
           tgt.add( contrib*(cs.a2-cs.a1) );
         } else if ( scheme.is_simpson ) {
           nc_assert( !use_romberg_adaptive );
-          nc_assert_always(contrib_at_a[0] >= 0.0);
+          nc_assert(contrib_at_a[0] >= 0.0);
           nc_assert( scheme.npts%2==1 && scheme.npts>=3 );
           StableSumKahan ss;
           const unsigned nbins = scheme.npts-1;
@@ -547,20 +559,19 @@ namespace NCRYSTAL_NAMESPACE {
             ss.add( k2 * (*itC) );
           ss.add( k * (*itCL) );
           double contrib = ss.sum();
-          // tgt.add( contrib*cs.a2 );
-          // tgt.add( -contrib*cs.a1 );
           tgt.add( contrib*(cs.a2-cs.a1) );
         } else {
           //Trapezoidal
           nc_assert( !use_romberg_adaptive );
-          nc_assert_always(contrib_at_a[0] >= 0.0);
+          nc_assert(contrib_at_a[0] >= 0.0);
           unsigned nbins = scheme.npts-1;
           double da = (cs.a2-cs.a1)/nbins;
-          nc_assert_always(da>0.0);
+          nc_assert(da>=0.0);//allow harmless da==0 which could happen in very
+                             //tight regions.
           const double * itC = contrib_at_a;
           const double * itCL = itC + nbins;
-          nc_assert_always(itCL < contrib_at_a + scheme.npts);
-          nc_assert_always(*itC >= 0.0);
+          nc_assert(itCL < contrib_at_a + scheme.npts);
+          nc_assert(*itC >= 0.0);
           tgt.add( 0.5 * da * (*itC++) );
           for (; itC!=itCL; ++itC )
             tgt.add( da * (*itC) );
