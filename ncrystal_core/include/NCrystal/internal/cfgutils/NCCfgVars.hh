@@ -231,19 +231,18 @@ namespace NCRYSTAL_NAMESPACE {
       static constexpr auto group = VarGroupId::ScatterBase;
       static constexpr auto description =
         "Setting affecting \"luxury\" level when integrating and sampling"
-        " scattering kernels."
-        " Fixme update this description (goal: 0..6 lux lvl of new models,"
-        " negative for special purpose: -1 legacy, -2 legacy without sqrt "
-        "fix, -3 expensive special purpose ref alg - perhaps just legacy"
-        " with huge egridmargin?)."
+        " inelastic scattering kernels. Currently this parameter is only"
+        " intended to be modified by NCrystal developers and should be"
+        " left at its default value of -1, but this will certainly"
+        " change in the future so stay tuned."
         ;
 
       static constexpr value_type default_value() { return -1; }
       static value_type value_validate( value_type value )
       {
-        if ( value < -3 || value > 6 )
+        if ( value < -6 || value > 6 )
           NCRYSTAL_THROW2(BadInput,name
-                          <<" must be an integral value from -3 to 6");
+                          <<" must be an integral value from -7 to 6");
         return value;
       }
     };
