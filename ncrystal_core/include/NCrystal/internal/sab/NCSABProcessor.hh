@@ -28,7 +28,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace SABUtils {
 
-    class SABProcessor final : public UniqueID, private MoveOnly {
+    class SABProcessor final : public UniqueID {
 
       // Class which processes an S(alpha,beta) table and provides both cross
       // sections and sampling capabilities. In addition to an understanding of
