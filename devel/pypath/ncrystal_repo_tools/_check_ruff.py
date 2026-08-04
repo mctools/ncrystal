@@ -30,6 +30,9 @@ def main():
     #TODO: Work on these introduced with ruff 0.16.1:
     ignore=('UP031,C408,C401,RUF059,SIM102,C400,SIM101,C405,SIM118,C402,'
             'N999,RUF015,C403,C419,B018,PLC0206,PERF102,FURB188')
+    #For ruff 0.15.20 (needed for FreeBSD):
+    ignore += ',E402,E721,E741,F403,E743'
+
     rv = subprocess.run(['ruff','check','--ignore',ignore]
                         + list(all_files_iter('py')),
                         check = False)
