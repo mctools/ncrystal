@@ -36,16 +36,16 @@ more stable in the long rum.
 #NB: reduce imported symbols here a bit in a future release (possibly by
 #wrapping the removed function and placing in obsolete.py);
 from .exceptions import * # noqa F403
-from .core import * # noqa F403
-from .datasrc import * # noqa F403
+from .core import *
+from .datasrc import *
 from .constants import wl2ekin, ekin2wl, ekin2ksq, wl2k, wl2ksq, constant_boltzmann # noqa F401
 from .atomdata import atomDB, iterateAtomDB # noqa F401
 from .cfgstr import normaliseCfg, decodeCfg, generateCfgStrDoc # noqa F401
 from .ncmat import NCMATComposer, formatVectorForNCMAT # noqa F401
 from .plugins import hasFactory, browsePlugins # noqa F401
-from ._testimpl import * # noqa F403
+from ._testimpl import *
 from .vdos import createVDOSDebye, debyeIsotropicMSD, PhononDOSAnalyser, debyeTempFromIsotropicMSD, analyseVDOS # noqa F401
-from .obsolete import * # noqa F403
+from .obsolete import *
 
 #Some modules are left out on purpose (due to esoteric usage or non-standard
 #dependencies that most users might not need):

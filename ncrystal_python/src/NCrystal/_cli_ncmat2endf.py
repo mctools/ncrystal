@@ -19,8 +19,8 @@
 ##                                                                            ##
 ################################################################################
 
-from ._cliimpl import ( create_ArgumentParser,
-                        cli_entry_point )
+from ._cliimpl import cli_entry_point, create_ArgumentParser
+
 
 def climod_metadata():
     return dict(
@@ -48,14 +48,17 @@ examples = [
 ]
 
 def _parseArgs( progname, arglist, return_parser=False ):
-    from .ncmat2endf import ( available_elastic_modes,
-                              default_smin_value,
-                              default_emax_value )
-    from ._common import print
-    from argparse import RawTextHelpFormatter
-    import textwrap
     import json
     import shlex
+    import textwrap
+    from argparse import RawTextHelpFormatter
+
+    from ._common import print
+    from .ncmat2endf import (
+        available_elastic_modes,
+        default_emax_value,
+        default_smin_value,
+    )
 
     helpw = 60
     descrw = helpw + 22
@@ -241,7 +244,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
         for e in ee:
             kv = list(_.strip() for _ in e.split(':',1))
             if not len(kv)==2 or not kv[0]:
-                parser.error(f'Invalid parameter for -m: {repr(e)}')
+                parser.error(f'Invalid parameter for -m: {e!r}')
             args.mdata[kv[0]] = kv[1]
     args.m = None
 
@@ -274,8 +277,7 @@ def create_argparser_for_sphinx( progname ):
 def main( progname, arglist ):
     args = _parseArgs( progname, arglist )
     if args.quiet:
-        from ._common import ( modify_ncrystal_print_fct_ctxmgr,
-                               WarningSpy )
+        from ._common import WarningSpy, modify_ncrystal_print_fct_ctxmgr
         with modify_ncrystal_print_fct_ctxmgr('block'):
             with WarningSpy( block = True ):
                 _main_impl(args)
@@ -312,8 +314,9 @@ def _main_impl( args ):
         args.jsonindex.write_text( r_json )
 
 def gen_metadata_doc():
-    from ._ncmat2endf_impl import _impl_get_metadata_params_and_docs
     import textwrap
+
+    from ._ncmat2endf_impl import _impl_get_metadata_params_and_docs
 
     d = _impl_get_metadata_params_and_docs()
     assert 'LIBNAME' in d

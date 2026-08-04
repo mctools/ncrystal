@@ -313,5 +313,5 @@ def _fix_argparse_action_group_title( parser, oldtitle, newtitle ):
         return
     for ag in _ags:
         if getattr(ag,'title','') == oldtitle:
-            setattr(ag,'title',newtitle)
+            ag.title = newtitle
             return

@@ -24,4 +24,4 @@
 __all__ = ['quick_diffraction_pattern','runsim_diffraction_pattern']
 
 from ._mmc import quick_diffraction_pattern # noqa F401
-from ._mmc import runsim_diffraction_pattern # noqa F401
+from ._mmc import runsim_diffraction_pattern

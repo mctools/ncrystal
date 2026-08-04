@@ -172,7 +172,7 @@ def ncmat2endf( ncmat_cfg, *,
                              outdir = outdir,
                              verbosity = verbosity )
 
-class EndfMetaData():
+class EndfMetaData:
     """Optional MetaData Parameters for the ENDF-6 file describing the origin
        and authorship of the file. For more information see the ENDF-6 format
        manual: https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
@@ -185,8 +185,9 @@ class EndfMetaData():
         (key,value) pairs, or another EndfMetaData object, the associated values
         will be updated accordingly.
         """
-        from ._common import _datetime_now
         import copy
+
+        from ._common import _datetime_now
         from ._ncmat2endf_impl import _metadata_definitions
         self.__data = dict( (k,copy.deepcopy(v['defval']))
                             for k,v in _metadata_definitions.items() )

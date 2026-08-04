@@ -19,9 +19,8 @@
 ##                                                                            ##
 ################################################################################
 
-from ._cliimpl import ( create_ArgumentParser,
-                        cli_entry_point,
-                        print )
+from ._cliimpl import cli_entry_point, create_ArgumentParser, print
+
 
 def climod_metadata():
     return dict(
@@ -177,10 +176,11 @@ def main( progname, arglist ):
 
 def _main_impl( args, do_quiet ):
 
-    from . import cifutils as nc_cifutils
-    from . import _ncmatimpl as nc_ncmatimpl
-    from . import _common as nc_common
     import pathlib
+
+    from . import _common as nc_common
+    from . import _ncmatimpl as nc_ncmatimpl
+    from . import cifutils as nc_cifutils
 
 
     #Trigger gemmi/spglib import error already here (and with nicer SystemExit):

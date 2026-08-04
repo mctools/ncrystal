@@ -27,7 +27,7 @@ Utilities related to plugins and dynamic factories.
 
 def hasFactory(name):
     """Check if a factory of a given name exists"""
-    from ._chooks import _get_raw_cfcts,_str2cstr
+    from ._chooks import _get_raw_cfcts, _str2cstr
     return bool(_get_raw_cfcts()['ncrystal_has_factory'](_str2cstr(name)))
 
 def browsePlugins(dump=False):

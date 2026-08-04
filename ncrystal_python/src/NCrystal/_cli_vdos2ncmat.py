@@ -19,14 +19,13 @@
 ##                                                                            ##
 ################################################################################
 
-from ._cliimpl import ( create_ArgumentParser,
-                        cli_entry_point,
-                        print )
-
-from ._common import write_text
-from .constants import ( constant_planck, constant_boltzmann )
-from .vdos import vdos_units_2_eV
 import pathlib
+
+from ._cliimpl import cli_entry_point, create_ArgumentParser, print
+from ._common import write_text
+from .constants import constant_boltzmann, constant_planck
+from .vdos import vdos_units_2_eV
+
 
 def climod_metadata():
     return dict(

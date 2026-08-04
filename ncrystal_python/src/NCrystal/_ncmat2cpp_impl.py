@@ -64,8 +64,8 @@ def _find_data( key, run_standalone ):
         return dict( name = pathlib.Path(f).name,
                      read_text_function = f.read_text,
                      read_bytes_function = f.read_bytes )
+    from .core import TextData, createTextData
     from .misc import AnyTextData
-    from .core import createTextData,TextData
     if isinstance(key,AnyTextData):
         td = key
         is_textdata = False
@@ -172,8 +172,7 @@ rest of the C++ library, and the enclosing function must be invoked.
 
     wmin=30
     wmax=999999
-    if args.width>wmax:
-        args.width=wmax
+    args.width = min(args.width, wmax)
     if args.width < wmin:
         parser.error('Out of range value of --width (must be at least %i)'%wmin)
 
@@ -438,8 +437,8 @@ def main( progname, arglist ):
 
 if __name__ == '__main__':
     #Running from CMake code to embed the standard data library.
-    import sys
     import os
+    import sys
     progname = os.path.basename(sys.argv[0])
     arglist = sys.argv[1:] + ['--runasstandalonescript']
     main( progname, arglist )

@@ -150,8 +150,9 @@ class capture_print_ctxmgr:
 
 def warn(msg):
     """Emit NCrystalUserWarning via standard warnings.warn function"""
-    from .exceptions import NCrystalUserWarning
     import warnings
+
+    from .exceptions import NCrystalUserWarning
     m = str(msg)
     if _add_warn_counts_to_msgs[0]:
         _add_warn_counts_to_msgs[1] += 1
@@ -330,7 +331,7 @@ def _hill_sort( chemform ):
 
     has_carbon = any( en=='C' for en,c in chemform )
     if not has_carbon:
-        return list( sorted( chemform ) )
+        return sorted( chemform )
     def hillsortkey( e ):
         #if not has carbon, then all in alphabetical order
         #first carbon, then H/D/T, then in alphabetical order
@@ -338,7 +339,7 @@ def _hill_sort( chemform ):
             return ( -999999, e )
         is_hydrogen = ( e[0] in ('H','D','T') or ( e[0].startswith('H') and e[0][1:].isdigit() ) )
         return ( -1, e ) if is_hydrogen else (0, e )
-    return list(sorted(chemform,key=hillsortkey))
+    return sorted(chemform,key=hillsortkey)
 
 def _gcd( *vals ):
     import math
@@ -458,8 +459,8 @@ def download_url( url,
     """Download the provided url. The timeout value is in seconds if given.
     Returns None on network failure if quiet_network_fail is True.
     """
-    import urllib.request
     import urllib.error
+    import urllib.request
     try:
         req = urllib.request.Request(url)
         with urllib.request.urlopen(req, timeout = timeout ) as response:
@@ -544,7 +545,7 @@ def _datetime_now():
     n = datetime.datetime.now()
     return _override_datetime_now[0] or n
 
-class FixedFakeDatetimeNow():
+class FixedFakeDatetimeNow:
     # Context manager to be used in unit tests to modify the returned value from
     # the datetime_now function below, to a fixed value.
     def __enter__(self):

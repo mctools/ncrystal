@@ -26,8 +26,10 @@ directories with data files to the search path, or adding in-memory files.
 
 """
 
-from ._chooks import _get_raw_cfcts,_str2cstr
 import pathlib as _pathlib
+
+from ._chooks import _get_raw_cfcts, _str2cstr
+
 _rawfct = _get_raw_cfcts()
 
 def registerInMemoryFileData(virtual_filename,data):

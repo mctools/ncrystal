@@ -19,10 +19,10 @@
 ##                                                                            ##
 ################################################################################
 
-from ._cliimpl import ( create_ArgumentParser,
-                        cli_entry_point,
-                        print )
 import pathlib
+
+from ._cliimpl import cli_entry_point, create_ArgumentParser, print
+
 
 def climod_metadata():
     return dict(
@@ -116,7 +116,7 @@ def _main_impl( args, wyckoff_print = None ):
                 if _ and _.isdigit() and int(_)!=sg_no:
                     raise RuntimeError(f"Filename indicates a different spacegroup number ({int(_)}) than the one specified in the data ({sg_no}).")
     # Analysis utils:
-    from ._numpy import (_ensure_numpy, _np )
+    from ._numpy import _ensure_numpy, _np
     _ensure_numpy()
     np = _np
     _cell_offsets = np.asarray(list((a,b,c) for a in (-1,0,1) for b in (-1,0,1) for c in (-1,0,1)),dtype=float)

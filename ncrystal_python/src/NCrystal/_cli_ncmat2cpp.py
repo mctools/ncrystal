@@ -21,6 +21,7 @@
 
 from ._cliimpl import cli_entry_point
 
+
 def climod_metadata():
     return dict(
         displaygroup = 'misc',

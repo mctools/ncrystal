@@ -34,9 +34,10 @@ Note that the two last commands above run the same command line script.
 """
 
 def _print_usage():
+    import textwrap
+
     from ._common import print
     from .cli import cli_tool_list
-    import textwrap
     usagestr = textwrap.dedent("""
     Usage: provide name and arguments of NCrystal commandline-tool to run.
 
@@ -50,6 +51,7 @@ def _print_usage():
 
 def _prepare():
     import sys
+
     from ._cliimpl import _resolve_cmd_and_import_climod as _resolve
 
     args = sys.argv[1:]

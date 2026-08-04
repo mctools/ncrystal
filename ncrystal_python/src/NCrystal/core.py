@@ -28,9 +28,9 @@ Scatter, Absorption, TextData, AtomData) and related factory methods.
 
 from .exceptions import ( NCrystalUserWarning, # noqa F401
                           NCException,
-                          NCFileNotFound, # noqa F401
-                          NCDataLoadError, # noqa F401
-                          NCMissingInfo, # noqa F401
+                          NCFileNotFound,
+                          NCDataLoadError,
+                          NCMissingInfo,
                           NCCalcError,
                           NCLogicError,
                           NCBadInput,
@@ -41,12 +41,12 @@ _()
 _=None
 
 from ._chooks import _cstr2str, _get_raw_cfcts, _str2cstr, _get_build_namespace # noqa E402
-from . import constants as _nc_constants # noqa E402
-from ._numpy import _np,_ensure_numpy,_np_linspace # noqa E402
-from . import _coreimpl as _impl # noqa E402
-import enum as _enum # noqa E402
-import ctypes as _ctypes # noqa E402
-import weakref as _weakref # noqa E402
+from . import constants as _nc_constants
+from ._numpy import _np,_ensure_numpy,_np_linspace
+from . import _coreimpl as _impl
+import enum as _enum
+import ctypes as _ctypes
+import weakref as _weakref
 _rawfct = _get_raw_cfcts()
 
 def get_version():
@@ -99,7 +99,7 @@ class AtomData(RCBase):
     """
     def __init__(self,rawobj):
         """internal usage only"""
-        super(AtomData, self).__init__(rawobj)
+        super().__init__(rawobj)
         f=_rawfct['ncrystal_atomdata_getfields'](rawobj)
         self.__m = f['m']
         self.__incxs = f['incxs']
@@ -325,7 +325,7 @@ class Info(RCBase):
             rawobj = cfgstr[1]
         else:
             rawobj = _rawfct['ncrystal_create_info'](_str2cstr(cfgstr))
-        super(Info, self).__init__(rawobj)
+        super().__init__(rawobj)
         self.__dyninfo=None
         self.__atominfo=None
         self.__custom=None
@@ -492,7 +492,6 @@ class Info(RCBase):
         """
         raise NCLogicError('The concept of global Debye temperatures has been removed. Iterate over'
                            +' AtomInfo objects instead and get the Debye temperature values from those.')
-        return None
 
     def hasAtomDebyeTemp(self):
         """Whether AtomInfo objects are present and have Debye temperatures available
@@ -837,7 +836,7 @@ class Info(RCBase):
         """Returns True if .hklInfoType() equals HKLInfoType.SymEqvGroup."""
         return self.hklInfoType() == HKLInfoType.SymEqvGroup
 
-    def dspacingFromHKL(self, h, k, l): # noqa E741
+    def dspacingFromHKL(self, h, k, l):
         """Convenience method, calculating the d-spacing of a given Miller
         index. Calling this incurs the overhead of creating a reciprocal lattice
         matrix from the structure info."""
@@ -936,12 +935,10 @@ class Info(RCBase):
     class DI_Sterile(DynamicInfo):
         """Class indicating atoms for which inelastic neutron scattering is absent
            or disabled."""
-        pass
 
     class DI_FreeGas(DynamicInfo):
         """Class indicating atoms for which inelastic neutron scattering should be
            modelled as scattering on a free gas."""
-        pass
 
     class DI_ScatKnl(DynamicInfo):
         """Base class indicating atoms for which inelastic neutron scattering will
@@ -952,7 +949,7 @@ class Info(RCBase):
 
         def __init__(self,theinfoobj_wr,fr,atomidx,tt):
             """internal usage only"""
-            super(Info.DI_ScatKnl, self).__init__(theinfoobj_wr,fr,atomidx,tt)
+            super().__init__(theinfoobj_wr,fr,atomidx,tt)
             self.__lastknl,self.__lastvdoslux = None,None
 
         def _loadKernel( self, vdoslux = 3 ):
@@ -982,7 +979,7 @@ class Info(RCBase):
 
         def __init__(self,theinfoobj_wr,fr,atomidx,tt):
             """internal usage only"""
-            super(Info.DI_ScatKnlDirect, self).__init__(theinfoobj_wr,fr,atomidx,tt)
+            super().__init__(theinfoobj_wr,fr,atomidx,tt)
 
         def loadKernel( self ):
             """Prepares and returns the scattering kernel in S(alpha,beta) format.
@@ -1008,7 +1005,7 @@ class Info(RCBase):
         """
         def __init__(self,theinfoobj_wr,fr,atomidx,tt):
             """internal usage only"""
-            super(Info.DI_VDOS, self).__init__(theinfoobj_wr,fr,atomidx,tt)
+            super().__init__(theinfoobj_wr,fr,atomidx,tt)
             self.__vdosdata = None
             self.__vdosegrid_expanded = None
             self.__vdosorig = None
@@ -1099,7 +1096,7 @@ class Info(RCBase):
 
         def __init__(self,theinfoobj_wr,fr,atomidx,tt):
             """internal usage only"""
-            super(Info.DI_VDOSDebye, self).__init__(theinfoobj_wr,fr,atomidx,tt)
+            super().__init__(theinfoobj_wr,fr,atomidx,tt)
             self.__vdosdata = None
             self.__debyetemp = None
             self.__vdosegrid_expanded = None
@@ -1416,7 +1413,7 @@ class Absorption(Process):
             rawobj_abs = _rawfct['ncrystal_create_absorption'](_str2cstr(cfgstr))
         self._rawobj_abs = rawobj_abs
         rawobj_proc = _rawfct['ncrystal_cast_abs2proc'](rawobj_abs)
-        super(Absorption, self).__init__(rawobj_proc)
+        super().__init__(rawobj_proc)
 
     def clone(self):
         """Clone object. The clone will be using the same physics models and sharing any
@@ -1445,7 +1442,7 @@ class Scatter(Process):
         else:
             self._rawobj_scat = _rawfct['ncrystal_create_scatter'](_str2cstr(cfgstr))
         rawobj_proc = _rawfct['ncrystal_cast_scat2proc'](self._rawobj_scat)
-        super(Scatter, self).__init__(rawobj_proc)
+        super().__init__(rawobj_proc)
 
 
     def clone(self,rng_stream_index=None,for_current_thread=False):

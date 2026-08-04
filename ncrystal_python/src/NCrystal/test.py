@@ -25,8 +25,9 @@ by running python3 -m NCrystal.test"""
 from ._testimpl import ( test, test_cmdline, test_all ) # noqa F401
 
 if __name__ == '__main__':
-    from . import _testimpl as _tests
     import sys
+
+    from . import _testimpl as _tests
     args=set(sys.argv[1:])
     if '-h' in args or '--help' in args:
         print('Run tests. By default the standard tests if no keywords'

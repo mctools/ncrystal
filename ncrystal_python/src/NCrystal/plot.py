@@ -25,7 +25,7 @@ Utility functions related to plotting.
 
 """
 
-__all__=['plot_xsect','plot_xsects','plot_vdos','plot_knl','PlotContext']
+__all__=['PlotContext', 'plot_knl', 'plot_vdos', 'plot_xsect', 'plot_xsects']
 
 def plot_xsect( material, *, mode='wl',
                 npts=5000, xmin = None, xmax = None, ymin=None, ymax=None,
@@ -54,9 +54,9 @@ def plot_xsect( material, *, mode='wl',
 
     """
     from . import misc as nc_misc
-    from ._numpy import _np_linspace, _np_geomspace, _ensure_numpy
-    from .constants import wl2ekin
     from ._common import _palette_Few as _palette
+    from ._numpy import _ensure_numpy, _np_geomspace, _np_linspace
+    from .constants import wl2ekin
 
     _ensure_numpy()
     matsrc = nc_misc.MaterialSource( material, cfg_params = extra_cfg )
@@ -216,8 +216,9 @@ def plot_vdos( *vdos, unit='meV',
     """
     from . import misc as nc_misc
     from . import vdos as nc_vdos
+
     #from ._common import _palette_Few as _palette
-    from ._numpy import _np_linspace,_ensure_numpy, _np
+    from ._numpy import _ensure_numpy, _np, _np_linspace
     unit_name, unit_value = nc_vdos._parsevdosunit( unit )
 
     #from ._numpy import _np_linspace, _np_geomspace, _np, _ensure_numpy
@@ -394,7 +395,7 @@ def plot_vdos_Gn( Gn, unit = 'meV', logy = False,
             egrid, gnvals, n, label = x
         else:
             return None
-        from ._numpy import _ensure_numpy,_np,_np_linspace
+        from ._numpy import _ensure_numpy, _np, _np_linspace
         _ensure_numpy()
         if len(egrid)==2 and len(gnvals)>2:
             egrid = _np_linspace(egrid[0],egrid[1],len(gnvals))
@@ -639,7 +640,7 @@ class PlotContext:
         """
         for k,v in sorted(self.__excess_args.items()):
             from .exceptions import NCBadInput
-            raise NCBadInput(f'Unsupported argument: {k}={repr(v)}')
+            raise NCBadInput(f'Unsupported argument: {k}={v!r}')
         return self
 
     @property

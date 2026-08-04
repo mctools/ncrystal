@@ -28,13 +28,13 @@ See also: https://github.com/mctools/ncrystal/wiki/minimc
 """
 
 __all__ = [
-    'run',
-    'decode_scenario',
-    'decode_cfgstr',
-    'gen_doc',
-    'tally_info',
     'MMCResults',
     'MMCTallyView',
+    'decode_cfgstr',
+    'decode_scenario',
+    'gen_doc',
+    'run',
+    'tally_info',
 ]
 
 #Wrapper objects for results:

@@ -56,7 +56,7 @@ def atomDB(Z,A=None,throwOnErrors=True):
     obj=__atomdb.get(key,None)
     if obj:
         return obj
-    from ._chooks import _get_raw_cfcts,_str2cstr
+    from ._chooks import _get_raw_cfcts, _str2cstr
     _rawfct = _get_raw_cfcts()
     if strkey:
         rawatomdata=_rawfct['ncrystal_create_atomdata_fromdbstr'](_str2cstr(key))

@@ -19,9 +19,8 @@
 ##                                                                            ##
 ################################################################################
 
-from ._cliimpl import ( create_ArgumentParser,
-                        cli_entry_point,
-                        print, warn )
+from ._cliimpl import cli_entry_point, create_ArgumentParser, print, warn
+
 
 def climod_metadata():
     return dict(
@@ -65,8 +64,8 @@ Example invocations:
           $> {progname_tool} --browse
 
 """
-    from argparse import RawTextHelpFormatter
     import textwrap
+    from argparse import RawTextHelpFormatter
     parser = create_ArgumentParser(prog = progname,
                                    description=descr,
                                    formatter_class=RawTextHelpFormatter)

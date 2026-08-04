@@ -25,13 +25,14 @@ Internal implementation of ncmat2endf.py
 
 """
 
-from ._numpy import _np
-from . import core as nc_core
 from . import constants as nc_constants
+from . import core as nc_core
 from . import vdos as nc_vdos
 from ._common import print as ncprint
 from ._common import warn as ncwarn
 from ._common import write_text as ncwrite_text
+from ._numpy import _np
+
 print = ncprint
 
 #Materials with other processes than the following must be validated by experts
@@ -53,8 +54,10 @@ def import_endfparserpy():
         return _cacheimport[0]
     try:
         import endf_parserpy
-        from endf_parserpy.interpreter.fortran_utils import read_fort_floats
-        from endf_parserpy.interpreter.fortran_utils import write_fort_floats
+        from endf_parserpy.interpreter.fortran_utils import (
+            read_fort_floats,
+            write_fort_floats,
+        )
     except ImportError as e:
         ncprint('ERROR: Could not import endf_parserpy.\n\n'
                 '       Please check that the endf-parserpy package was'
@@ -101,7 +104,7 @@ def _endf_clean(x):
     #
     return _np.unique(_endf_roundoff(x) )
 
-class ElementData():
+class ElementData:
     #
     # Container for nuclear data for a single element or isotope.
     #
@@ -117,7 +120,7 @@ class ElementData():
         self._teff = []
         self._elastic = None
         self._sym = ad.elementName()
-        self._zsymam = '{:3d}-'.format(ad.Z()) + self._sym.ljust(2)+'    '
+        self._zsymam = f'{ad.Z():3d}-' + self._sym.ljust(2)+'    '
         self._za = ad.Z()*1000
 
     @property
@@ -185,7 +188,7 @@ class ElementData():
     def sigma_i(self, x):
         self._sigma_i = x
 
-class NuclearData():
+class NuclearData:
     #
     # Container for nuclear data for a material.
     #
@@ -583,8 +586,9 @@ class NuclearData():
         # TODO: handle multi phase materials
         ncmat_fn = self.__loaded['cfgstr_decoded']['data_name']
         td = nc_core.createTextData(ncmat_fn)
-        from ._ncmatimpl import _extractInitialHeaderCommentsFromNCMATData
         from textwrap import wrap
+
+        from ._ncmatimpl import _extractInitialHeaderCommentsFromNCMATData
         raw = _extractInitialHeaderCommentsFromNCMATData(td)
 
         #We need to rewrap for ENDF_DESCR_MAXW. The following gymnastics allow
@@ -641,7 +645,7 @@ class NuclearData():
 
 
 
-class EndfFile():
+class EndfFile:
     #
     # Container for data for a therma ENDF file.
     # Includes a write() method to create the file using endf-parserpy
@@ -1098,7 +1102,7 @@ def _decodecfg_and_loadobjs( cfgstr ):
     if is_already_loaded_obj( cfgstr ):
         return cfgstr #nothing to do, already loaded
 
-    from .cfgstr import normaliseCfg, decodeCfg, decodecfg_vdoslux
+    from .cfgstr import decodeCfg, decodecfg_vdoslux, normaliseCfg
     from .misc import detect_scattering_components
 
     def cfg_has_explicit_temp( cstr ):
@@ -1166,13 +1170,12 @@ def _impl_ncmat2endf( *,
                       lasym,
                       outdir,
                       verbosity ):
-    from .exceptions import NCBadInput
     from . import core as nc_core
-    from ._common import warn as ncwarn
     from ._common import print as ncprint
+    from ._common import warn as ncwarn
     from ._numpy import _ensure_numpy
-    from .ncmat2endf import ( EndfMetaData,
-                              available_elastic_modes )
+    from .exceptions import NCBadInput
+    from .ncmat2endf import EndfMetaData, available_elastic_modes
     _ensure_numpy()
 
     if not isinstance(verbosity,int) or not ( 0<=verbosity<=3):
@@ -1191,7 +1194,7 @@ def _impl_ncmat2endf( *,
         endf_metadata = _
 
     if elastic_mode not in available_elastic_modes:
-        raise NCBadInput(f'Elastic mode {repr(elastic_mode)}'
+        raise NCBadInput(f'Elastic mode {elastic_mode!r}'
                          f' not in ({available_elastic_modes})')
     if lasym > 0:
         ncwarn( 'Creating non standard S(a,b)'
@@ -1395,7 +1398,7 @@ def _impl_emd_set( now_MMMYY, data, param, value,  ):
                 p = [_.strip() for _ in e.split(':')]
                 if ( not len(p)==2 or not p[0] or not p[1]
                      or not p[1].isdigit() ):
-                    raise NCBadInput(f'Invalid MATNUM value {repr(v)}:'
+                    raise NCBadInput(f'Invalid MATNUM value {v!r}:'
                                      ' must be a dict or string with a'
                                      ' format like "Zn:101,O:102".')
                 d[p[0]]=int(p[1])
@@ -1437,9 +1440,9 @@ def _dump_dict( d, prefix, lvl = 1, snip_output=True ):
             continue
         vs = repr(v)
         if len(vs) < 80:
-            ncprint(f'{prefix}{repr(k)} -> {vs}')
+            ncprint(f'{prefix}{k!r} -> {vs}')
         else:
-            ncprint(f'{prefix}{repr(k)} ->')
+            ncprint(f'{prefix}{k!r} ->')
             snip_output = ( False if k == 'DESCRIPTION' else snip_output )
             _dump_dict(v,prefix+'    ',lvl=lvl+1, snip_output=snip_output)
 

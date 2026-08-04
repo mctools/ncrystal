@@ -26,10 +26,11 @@ Internal implementation details for NCMAT utilities in ncmat.py
 """
 
 __all__ = []
-from . import core as _nc_core
-from . import _common as _nc_common
-import math
 import copy
+import math
+
+from . import _common as _nc_common
+from . import core as _nc_core
 
 _magic_two_space=b'\xc3\x98@'.decode('utf8')
 
@@ -297,6 +298,7 @@ class NCMATComposerImpl:
 
     def find_label( self, element, allow_multi ):
         import numbers
+
         from .atomdata import elementNameToZValue
         def _name2z( name ):
             return elementNameToZValue( name, allow_isotopes = True ) or None
@@ -319,7 +321,7 @@ class NCMATComposerImpl:
             if any( search_Z == z for z in lbl_zval_iter(lbl) ):
                 ll.append( lbl )
 
-        return ( list(sorted(ll))
+        return ( sorted(ll)
                  if allow_multi
                  else ( ll[0] if len(ll)==1 else None ) )
 
@@ -767,7 +769,6 @@ class NCMATComposerImpl:
                             +' value with the "density" cfg-parameter for this material (unless it is to simply scale it)')
         self.__dirty()
         self.__params['atompos'] = dict( pos=pos, occumap=occumap )
-#
     def get_labels( self ):
         #from positions:
         atompos = self.__params.get('atompos',None)
@@ -990,7 +991,7 @@ class NCMATComposerImpl:
             if not fractions and not atompos and len(dyninfos)==1:
                 fractions = {list(dyninfos.keys())[0] : 1.0 }
             if fractions:
-                _lbl_counts = list( sorted( fractions.items()) )
+                _lbl_counts = sorted( fractions.items())
         if not _lbl_counts:
             return None
 
@@ -1012,7 +1013,7 @@ class NCMATComposerImpl:
                 d[k] += v
             else:
                 d[k] = v
-        res = list( sorted( (k,v) for k,v in d.items() ) )
+        res = sorted( (k,v) for k,v in d.items() )
         if as_str:
             return _nc_common.format_chemform( res )
         else:
@@ -1194,7 +1195,7 @@ class NCMATComposerImpl:
             _lbl_counts = list( (lbl,count) for lbl,(_,_,count) in atompos_fractions.items() )
         else:
             assert fractions
-            _lbl_counts = list( sorted( fractions.items()) )
+            _lbl_counts = sorted( fractions.items())
 
         _chem_compos = self.get_chemical_composition( as_str = False)
         _chemform = _nc_common.format_chemform( _chem_compos )
@@ -1807,7 +1808,7 @@ def _reldiff_atompos( spglib_cell1, spglib_cell2 ):
     _,allpos2,idxlist2 = spglib_cell2
     assert len(idxlist1) == len(allpos1)
     assert len(idxlist2) == len(allpos2)
-    if list(sorted(idxlist1)) != list(sorted(idxlist2)) or len(idxlist1)!=len(idxlist2):
+    if sorted(idxlist1) != sorted(idxlist2) or len(idxlist1)!=len(idxlist2):
         return None
 
     def calc_maxdistsq( l1, l2 ):
@@ -1832,8 +1833,8 @@ def _reldiff_atompos( spglib_cell1, spglib_cell2 ):
             return (_remap_fract_pos(p[0]),
                     _remap_fract_pos(p[1]),
                     _remap_fract_pos(p[2]))
-        l1 = list( sorted( fixp(p) for i,p in zip(idxlist1,allpos1) if i == idx ) )#nb: fragile sort order!
-        l2 = list( sorted( fixp(p) for i,p in zip(idxlist2,allpos2) if i == idx ) )#nb: fragile sort order!
+        l1 = sorted( fixp(p) for i,p in zip(idxlist1,allpos1) if i == idx )#nb: fragile sort order!
+        l2 = sorted( fixp(p) for i,p in zip(idxlist2,allpos2) if i == idx )#nb: fragile sort order!
         d = calc_maxdistsq( l1, l2 )
         if d is None:
             return None
@@ -1843,7 +1844,7 @@ def _reldiff_atompos( spglib_cell1, spglib_cell2 ):
 
 def _import_spglib( *, sysexit = False ):
     try:
-        import spglib#both available on pypi and conda-forge
+        import spglib  #both available on pypi and conda-forge
     except ImportError:
         m = ( 'Could not import spglib module needed to standardise and verify crystal structures.'
               +' The spglib package is available on both PyPI ("python3 -mpip install'
@@ -1867,7 +1868,7 @@ def _import_spglib( *, sysexit = False ):
 
 def _import_ase( *, sysexit = False ):
     try:
-        import ase#both available on pypi and conda-forge
+        import ase  #both available on pypi and conda-forge
         import ase.io
     except ImportError:
         m = ( 'Could not import ase module.'
@@ -1881,13 +1882,13 @@ def _import_ase( *, sysexit = False ):
 
 def _spglib_extractsg( spglib_symdata ):
     sd = spglib_symdata
-    sgno = ( getattr(sd,'number')
+    sgno = ( sd.number
              if hasattr(sd,'number')
              else sd['number'] )
-    sgsymb_hermann_mauguin = ( getattr(sd,'international')
+    sgsymb_hermann_mauguin = ( sd.international
                                if hasattr(sd,'international')
                                else sd['international'] )
-    c = ( getattr(sd,'choice')
+    c = ( sd.choice
           if hasattr(sd,'choice')
           else sd.get('choice',None))
     if c:

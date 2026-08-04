@@ -24,6 +24,7 @@
 __all__ = ['quick_diffraction_pattern','runsim_diffraction_pattern']
 
 from ._common import warn as _ncwarn
+
 _ncwarn('The NCrystal._mmc module is obsolete.'
         ' Please use the NCrystal.minimc module instead (more info'
         ' at https://github.com/mctools/ncrystal/wiki/minimc).')

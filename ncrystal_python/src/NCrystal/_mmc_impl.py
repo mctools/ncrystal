@@ -57,7 +57,7 @@ def run( *, resclass, unpack,
     if unpack not in ('dict', 'json', 'dict_jsoncompat', 'object'):
         raise NCBadInput('Invalid value of unpack (must be "dict",'
                          ' "json", "dict_jsoncompat", or "object"):'
-                         f' {repr(unpack)}')
+                         f' {unpack!r}')
     query = ['mmc','run', cfgstr]#, geomcfg, srccfg, enginecfg]
     n_geomsrc = ( ( 1 if geomcfg is not None else 0 )
                   + ( 1 if srccfg is not None else 0 ) )
@@ -228,9 +228,8 @@ def _determine_rebin_factor( current_nbins,
 def _plot_tally( minimcresults_dict, tallyname,
                  do_legend, breakdown, max_nbins, rebin_factor,
                  do_grid, logy, title, kw_plot ):
-    from .plot import PlotContext
-
     from .hist import Hist1D
+    from .plot import PlotContext
     assert isinstance(minimcresults_dict,dict)
     assert minimcresults_dict.get('datatype') == 'NCrystalMiniMCResults_v1'
     assert 'input' in minimcresults_dict
@@ -427,7 +426,6 @@ def _plot_tally( minimcresults_dict, tallyname,
             class FakeHandle:
                 def __repr__(self):
                     return 'FakeHandle'
-                pass
             handles = [FakeHandle() for lbl in label_order]
             labels = [lbl for lbl in label_order]
         else:

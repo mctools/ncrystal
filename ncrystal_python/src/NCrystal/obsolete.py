@@ -27,6 +27,7 @@ Obsolete functions
 
 from ._common import ncgetenv_bool as _ncgetenv_bool
 
+
 def decodecfg_packfact(cfgstr):
     """OBSOLETE FUNCTION (always returns 1.0 now)."""
     from . import _common as nc_common

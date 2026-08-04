@@ -19,9 +19,8 @@
 ##                                                                            ##
 ################################################################################
 
-from ._cliimpl import ( create_ArgumentParser,
-                        cli_entry_point,
-                        print )
+from ._cliimpl import cli_entry_point, create_ArgumentParser, print
+
 
 def climod_metadata():
     return dict(
@@ -33,13 +32,13 @@ def climod_metadata():
 
 
 def parseArgs( progname, arglist, return_parser=False ):
-    from . import minimc as ncmmc
-    from ._mmc_doc import ( doc_subjects,
-                            _scenariocfg_examples )
-    from argparse import RawTextHelpFormatter
-    import textwrap
-    import shlex
     import pathlib
+    import shlex
+    import textwrap
+    from argparse import RawTextHelpFormatter
+
+    from . import minimc as ncmmc
+    from ._mmc_doc import _scenariocfg_examples, doc_subjects
 
     tallylists = ncmmc.tally_info()['flags']
     tallyhistavail_str = ', '.join(tallylists['ALLHISTS'])
@@ -364,8 +363,7 @@ def main( progname, arglist ):
     if args.doc:
         do_quiet = False
     if do_quiet:
-        from ._common import ( modify_ncrystal_print_fct_ctxmgr,
-                               WarningSpy )
+        from ._common import WarningSpy, modify_ncrystal_print_fct_ctxmgr
         with modify_ncrystal_print_fct_ctxmgr('block'):
             with WarningSpy( block = True ):
                 _main_impl(progname,args)

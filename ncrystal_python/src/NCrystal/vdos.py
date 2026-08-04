@@ -21,9 +21,9 @@
 
 """Module with VDOS-related utilities"""
 
-from .constants import constant_planck as _constant_planck
 from .constants import constant_boltzmann as _constant_boltzmann
 from .constants import constant_c as _constant_c
+from .constants import constant_planck as _constant_planck
 
 _is_unit_test = False
 
@@ -42,7 +42,7 @@ vdos_units_2_eV = {
 
 def createVDOSDebye( debye_temperature ):
     """Create simplified VDOS according to the Debye model"""
-    from ._numpy import _np, _ensure_numpy, _np_linspace
+    from ._numpy import _ensure_numpy, _np, _np_linspace
     _ensure_numpy()
     #NB: Must keep function exactly synchronised with createVDOSDebye function
     #in .cc src (although leaving out temperature,boundXS,elementMassAMU args
@@ -83,7 +83,7 @@ def analyseVDOS(emin,emax,density,temperature,atom_mass_amu):
     eV where appropriate.
     """
     from ._chooks import _get_raw_cfcts
-    from ._numpy import _np, _ensure_numpy
+    from ._numpy import _ensure_numpy, _np
     _ensure_numpy()
     density = _np.asarray(density,dtype=float)
     return _get_raw_cfcts()['nc_vdoseval'](emin,emax,density,temperature,atom_mass_amu)
@@ -219,8 +219,8 @@ class PhononDOSAnalyser:
             return
 
         if fmt is None:
-            from .misc import AnyVDOS
             from .core import Info
+            from .misc import AnyVDOS
             def _is_anyvdos(x):
                 return ( isinstance(x,AnyVDOS)
                          or isinstance(x,Info.DI_VDOS)
@@ -594,7 +594,7 @@ class PhononDOSAnalyser:
         plot_kwargs['cfg_params'] = cfg_params
         color = plot_kwargs.get('color')
         lblmap = self.__determine_lblmap( selected, ncmatcomposer, lblmap = lblmap, warn = True )
-        lbls = list(sorted(lblmap.keys()))
+        lbls = sorted(lblmap.keys())
         if not lbls:
             return
         colorder = self.__colorder()
@@ -871,6 +871,7 @@ class PhononDOSAnalyser:
 
     def _parse_threshold( self, value ):
         import numbers
+
         from ._common import _decodeflt
         from .exceptions import NCBadInput
         def impl(x):

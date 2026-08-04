@@ -74,7 +74,7 @@ def _trim_edges_2d( x, y, s, keep_low_y = False ):
     #
     #x columns: axis=0
     #y rows: axis=1
-    from ._numpy import _np, _ensure_numpy
+    from ._numpy import _ensure_numpy, _np
     _ensure_numpy()
 
     assert x.ndim==1

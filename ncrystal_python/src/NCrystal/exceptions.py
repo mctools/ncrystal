@@ -23,24 +23,24 @@
 
 #NB: We also put all of these in __all__ in the main __init__.py:
 
-__all__ = [ 'NCrystalUserWarning',
-            'NCException',
-            'NCFileNotFound',
-            'NCDataLoadError',
-            'NCMissingInfo',
-            'NCCalcError',
-            'NCLogicError',
-            'NCBadInput',
-            'nc_assert' ]
+__all__ = [
+    'NCBadInput',
+    'NCCalcError',
+    'NCDataLoadError',
+    'NCException',
+    'NCFileNotFound',
+    'NCLogicError',
+    'NCMissingInfo',
+    'NCrystalUserWarning',
+    'nc_assert' ]
 
 class NCrystalUserWarning( UserWarning ):
     """UserWarning's emitted from NCrystal code"""
     def __init__(self,*args,**kwargs):
-        super(NCrystalUserWarning, self).__init__(*args,**kwargs)
+        super().__init__(*args,**kwargs)
 
 class NCException(RuntimeError):
     """Base class for all exceptions raised by NCrystal code"""
-    pass
 
 class NCFileNotFound(NCException):
     pass

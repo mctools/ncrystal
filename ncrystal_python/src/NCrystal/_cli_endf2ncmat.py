@@ -19,16 +19,13 @@
 ##                                                                            ##
 ################################################################################
 
-from ._cliimpl import ( create_ArgumentParser,
-                        cli_entry_point,
-                        print,
-                        warn )
+import pathlib
+import warnings
 
 from . import constants as nc_constants
 from . import core as nccore
+from ._cliimpl import cli_entry_point, create_ArgumentParser, print, warn
 
-import warnings
-import pathlib
 
 def climod_metadata():
     return dict(
@@ -274,7 +271,7 @@ def format_endf_block_as_ncmatdyninfo_for_principal_element(parsed_endf_data,tem
     elem_name = parsed_endf_data["element_name_principal"]
 
     #Find block by temperature:
-    temperature_exact,block_idx =  list(sorted((abs(temperature-_["T"]),_["T"],idx) for idx,_ in enumerate(parsed_endf_data['result_datablocks'])))[0][1:]
+    temperature_exact,block_idx =  sorted((abs(temperature-_["T"]),_["T"],idx) for idx,_ in enumerate(parsed_endf_data['result_datablocks']))[0][1:]
     assert abs(temperature_exact-temperature)<1e-6
     temperature=temperature_exact
 
@@ -487,7 +484,7 @@ def main( progname, arglist ):
                 nperline=7
                 t_to_write=list(_ for _ in temperatures_combined if _!=t)
                 for i in range(0,len(t_to_write),nperline):
-                    stdnotice += ('#       '+' '.join((f'{_}K' for _ in t_to_write[i:i+nperline]))+'\n')
+                    stdnotice += ('#       '+' '.join(f'{_}K' for _ in t_to_write[i:i+nperline])+'\n')
             for line in args.filehdr:
                 if line.startswith('NCMAT '):
                     continue

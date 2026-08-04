@@ -28,14 +28,18 @@ the Python API below by expert users.
 
 """
 
-__all__ = ['CIFSource','CIFLoader',
-           'produce_validation_plot',
-           'produce_validation_plots']
+__all__ = [
+    'CIFLoader',
+    'CIFSource',
+    'produce_validation_plot',
+    'produce_validation_plots',
+]
 
 from . import _common as _nc_common
-from . import ncmat as _nc_ncmat
 from . import _ncmatimpl as _nc_ncmatimpl
 from . import core as _nc_core
+from . import ncmat as _nc_ncmat
+
 
 class CIFSource:
 
@@ -83,7 +87,7 @@ class CIFSource:
             self.__fp = _nc_common._lookup_existing_file( pth )
             if self.__fp is None:
                 #Try to look up via NCrystal's TextData infrastructure:
-                from .core import createTextData, NCFileNotFound
+                from .core import NCFileNotFound, createTextData
                 try:
                     td = createTextData(pth)
                     tdname = td.dataSourceName
@@ -452,8 +456,7 @@ def produce_validation_plots( files, verbose_lbls = True, pdf_target = None,
     embed them in a PDF file. Any plot_kwargs will be passed along to the
     produce_validation_plot(..) function.
     """
-    from .plot import ( _import_matplotlib_plt,
-                        _import_matplotlib_pdfpages )
+    from .plot import _import_matplotlib_pdfpages, _import_matplotlib_plt
 
     if pdf_target:
         pdfpages = _import_matplotlib_pdfpages()
@@ -1072,7 +1075,7 @@ def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_d
             if formulas_incompatible(total_composition,actual_expected_formula_dict):
                 s = f'"{expected_formula}"'
                 if remap:
-                    _ = _nc_common.format_chemform( list( sorted(actual_expected_formula_dict.items() ) ) )
+                    _ = _nc_common.format_chemform( sorted(actual_expected_formula_dict.items() ) )
                     s += f' remapped to "{_}"'
                 raise _nc_core.NCBadInput(f'Formula encoded in CIF data ({s}) is not compatible with formula of loaded structure ("{formula}")')
 
@@ -1084,9 +1087,9 @@ def _impl_merge_atoms( atoms ):
     for a in atoms:
         pos = list(a['equivalent_positions'])
         cif_labels = list( a['cif_labels'] )
-        other_metadata = list( sorted( (k,v) for k,v in a.items()
+        other_metadata = sorted( (k,v) for k,v in a.items()
                                        if k not in ('equivalent_positions',
-                                                    'cif_labels') ) )
+                                                    'cif_labels') )
         found = False
         for k,v in ll:
             if k == other_metadata:
@@ -1099,8 +1102,8 @@ def _impl_merge_atoms( atoms ):
     res = []
     for other_metadata, ( pos, cif_labels ) in ll:
         d = dict( (k,v) for k,v in sorted(other_metadata) )
-        d['equivalent_positions'] = list( sorted( pos ) )
-        d['cif_labels'] = list( sorted( cif_labels ) )
+        d['equivalent_positions'] = sorted( pos )
+        d['cif_labels'] = sorted( cif_labels )
         res.append( d )
     return res
 
@@ -1293,7 +1296,7 @@ def _mp_get_cifdata( mpid, quiet = False, apikey = None ):
 
     with _nc_common.WarningSpy(blockfct = lambda msg, cat : cat in ('PendingDeprecationWarning','DeprecationWarning') ):
         try:
-            import mp_api.client#NB: This might trigger a spurious FPE
+            import mp_api.client  #NB: This might trigger a spurious FPE
         except ImportError:
             raise ImportError('Could not import mp_api.client. Installing the mp-api package will most likely'
                               ' fix this (perhaps with a command like "conda install -c conda-forge mp-api"'
@@ -1348,7 +1351,7 @@ def _import_gemmi( *, sysexit = False ):
     if _import_gemmi_cache[0] is not None:
         return _import_gemmi_cache[0], _import_gemmi_cache[1]
     try:
-        import gemmi#both available on pypi and conda-forge
+        import gemmi  #both available on pypi and conda-forge
         import gemmi.cif
     except ImportError:
         m = ( 'Could not import gemmi modules needed to process CIF files.'
@@ -1391,7 +1394,7 @@ def _guess_spacegroup_name( gemmi, s ):
     for k in _guess_keys(s):
         for i in gm.get(k,[]):
             possible_sgnos.add( i )
-    return list(sorted(possible_sgnos))
+    return sorted(possible_sgnos)
 
 def _load_with_gemmi( cifblock, allow_fixup = True ):
     #Load cifblock into gemmi struct. We might perform in-place editing of the
@@ -1558,7 +1561,7 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
 
     #warn if spacegroup setting might be ambiguous:
     if sg.number != 1:
-        _ = list( sorted( (e.number,e.xhm(),e.is_reference_setting()) for e in gemmi.spacegroup_table() if ( e.number==sg.number and ':' in e.xhm())))
+        _ = sorted( (e.number,e.xhm(),e.is_reference_setting()) for e in gemmi.spacegroup_table() if ( e.number==sg.number and ':' in e.xhm()))
         #_ = [ (no,xhm,isref) for no,xhm,isref in _ if isref ]
         if len(_)>1:
             _str = '", "'.join( xhm for no,xhm,isref in _)

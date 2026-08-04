@@ -19,12 +19,12 @@
 ##                                                                            ##
 ################################################################################
 
-import os
 import math
-from ._cliimpl import ( create_ArgumentParser,
-                        cli_entry_point,
-                        print, warn )
+import os
+
 from . import _common as nccommon
+from ._cliimpl import cli_entry_point, create_ArgumentParser, print, warn
+
 
 def climod_metadata():
     return dict(
@@ -70,6 +70,7 @@ def import_optpymod(name):
 
 def parseArgs( progname, arglist, *, return_parser = False ):
     import argparse
+
     from . import core as nccore
 
     if '--mc' in arglist and ( '--help' in arglist or '-h' in arglist ):

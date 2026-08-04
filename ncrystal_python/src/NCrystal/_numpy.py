@@ -23,12 +23,14 @@
 """Internal module providing ctypes-based hooks into the compiled NCrystal
 shared library"""
 
-__all__ = ['_np',
-           '_ensure_numpy',
-           '_np_linspace',
-           '_np_geomspace',
-           '_np_logspace',
-           '_np_trapezoid']
+__all__ = [
+    '_ensure_numpy',
+    '_np',
+    '_np_geomspace',
+    '_np_linspace',
+    '_np_logspace',
+    '_np_trapezoid',
+]
 
 try:
     import numpy as _np

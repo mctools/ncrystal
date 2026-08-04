@@ -36,7 +36,8 @@ def get_data():
 
 def _get_data():
     import io
-    from ._numpy import _np, _ensure_numpy
+
+    from ._numpy import _ensure_numpy, _np
     _ensure_numpy()
     thedata="""
 #Energy      CHali       CHaro       CH2         CH3         NH          NH2         NH3         OH          SH

@@ -22,6 +22,7 @@
 
 from ._cliimpl import cli_entry_point
 
+
 def climod_metadata():
     return dict(
         displaygroup = 'main',
@@ -36,8 +37,8 @@ def create_argparser_for_sphinx( progname ):
 @cli_entry_point
 def main( progname, arglist ):
     import pathlib
-    import subprocess
     import shutil
+    import subprocess
     cmdname='ncrystal-config'
     is_simplebuild_devel = ( pathlib.Path(__file__).parent
                              .joinpath('_is_sblddevel.py').is_file() )

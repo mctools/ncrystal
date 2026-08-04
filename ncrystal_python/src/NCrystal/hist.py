@@ -37,9 +37,11 @@ HistFiller1D: A class which can be used to efficiently histogram data which is
 
 __all__ = ['Hist1D','HistFiller1D']
 
-from ._numpy import _np, _ensure_numpy, _np_linspace
-from .exceptions import NCBadInput, NCCalcError
 import math
+
+from ._numpy import _ensure_numpy, _np, _np_linspace
+from .exceptions import NCBadInput, NCCalcError
+
 
 class Hist1D:
 
@@ -436,10 +438,8 @@ class Hist1D:
             self.__stat_mean = sumwx / sumw
             rms2 = sumwx2 / sumw - (self.__stat_mean)**2
             self.__stat_rms = math.sqrt(abs(rms2))#abs() vs num. issues.
-            if o.__stat_minfilled < self.__stat_minfilled:
-                self.__stat_minfilled = o.__stat_minfilled
-            if o.__stat_maxfilled > self.__stat_maxfilled:
-                self.__stat_maxfilled = o.__stat_maxfilled
+            self.__stat_minfilled = min(self.__stat_minfilled, o.__stat_minfilled)
+            self.__stat_maxfilled = max(self.__stat_maxfilled, o.__stat_maxfilled)
 
         if self.__flow_under is not None:
             self.__flow_under += o.__flow_under

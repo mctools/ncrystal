@@ -21,8 +21,9 @@
 
 """Implementation of the built-in tests."""
 
-__all__ = ['test','test_cmdline','test_all']
+__all__ = ['test', 'test_all', 'test_cmdline']
 from ._common import print as _nc_print
+
 
 def test( verbose = False ):
     """Quick test that NCrystal works as expected in the current installation."""
@@ -125,7 +126,7 @@ def _actualtest( verbose ):
     require( alpc.name == 'PowderBragg' )
     require( isinstance(alpc.name,str) )
     require( alpc.refCount() in (1,2) )
-    require( type(alpc.refCount()) == int ) # noqa E721
+    require( type(alpc.refCount()) == int )
     require( alpc.isNonOriented() )
     #_nc_print(alpc.xsect(wl=4.0))
     require_flteq(1.632435821586171,alpc.crossSectionIsotropic(wl2ekin(4.0)) )
@@ -391,8 +392,8 @@ def _create_pdfpages_inspector( real_pdfpages ):
                           subfcts = [ ('__call__',dict(subfcts=['savefig','close'])) ] )
 
 def _run_cmd( cmd ):
-    import sys
     import subprocess
+    import sys
     sys.stdout.flush()
     sys.stderr.flush()
     try:
@@ -408,8 +409,9 @@ def _run_cmd( cmd ):
     return ok, output
 
 def _test_cmdline_script_availablity( prfct ):
-    import subprocess
     import shutil
+    import subprocess
+
     from .cli import cli_tool_list, cli_tool_lookup
     for t in cli_tool_list():
         c = cli_tool_lookup(t)['shellcmd']
@@ -421,8 +423,9 @@ def _test_cmdline_script_availablity( prfct ):
             raise RuntimeError(f'Command "{c} --help" did not run succesfully!')
 
 def _actual_test_cmdline( verbose ):
-    from .cli import cli_tool_lookup
     import shlex
+
+    from .cli import cli_tool_lookup
     prfct = _get_prfct( verbose )
     prfct('starting testing of cmd-line utilities')
     _test_cmdline_script_availablity( prfct )

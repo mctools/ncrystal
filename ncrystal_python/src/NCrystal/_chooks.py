@@ -23,7 +23,7 @@
 """Internal module providing ctypes-based hooks into the compiled NCrystal
 shared library"""
 
-__all__ = ['_get_raw_cfcts','_str2cstr','_cstr2str']
+__all__ = ['_cstr2str', '_get_raw_cfcts', '_str2cstr']
 
 _rawfcts = [None]
 _namespace = [None]
@@ -65,7 +65,8 @@ _keepalive = []#for python based callback functions which we need to keep alive
 def _load(nclib_filename, ncrystal_namespace_protection ):
 
     import ctypes
-    from ._numpy import _np, _ensure_numpy
+
+    from ._numpy import _ensure_numpy, _np
 
     try:
         _nclib = ctypes.CDLL(nclib_filename)
@@ -123,7 +124,16 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     functions = {}
 
     #Exceptions:
-    from .exceptions import NCException, NCFileNotFound, NCDataLoadError, NCMissingInfo, NCCalcError, NCLogicError, NCBadInput, nc_assert
+    from .exceptions import (
+        NCBadInput,
+        NCCalcError,
+        NCDataLoadError,
+        NCException,
+        NCFileNotFound,
+        NCLogicError,
+        NCMissingInfo,
+        nc_assert,
+    )
     _errmap = {'FileNotFound':NCFileNotFound,
                'DataLoadError':NCDataLoadError,
                'MissingInfo':NCMissingInfo,
@@ -338,7 +348,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         _t = _dbl(float(temperature))
         _vdl = _uint(int(vdoslux))
         _tgtemax = target_emax or 0.0
-        _tgtemax = _dbl( float(_tgtemax if _tgtemax>0.0 else 0.0 ) )
+        _tgtemax = _dbl( float(max(0.0, _tgtemax) ) )
         nalpha, nbeta, suggest_emax = _uint(), _uint(), _dbl()
         agrid, bgrid, sab = _dblp(), _dblp(), _dblp()
         if order_weight_fct:

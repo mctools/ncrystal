@@ -73,8 +73,7 @@ def run( toolname, *arguments ):
     from ._cliimpl import _resolve_cmd_and_import_climod
     climod, argv = _resolve_cmd_and_import_climod( toolname, arguments )
 
-    from ._cliimpl import ( ctxmgr_modify_argparse_creation,
-                            _cli_call_from_pyapi_ctx )
+    from ._cliimpl import _cli_call_from_pyapi_ctx, ctxmgr_modify_argparse_creation
     try:
         with _cli_call_from_pyapi_ctx():
             with ctxmgr_modify_argparse_creation(exit_on_error = False,

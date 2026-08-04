@@ -286,7 +286,7 @@ def _anyvdos_initfmt( data, fmt ):
     p = _anyvdos_preinit( data, fmt )
     #find derived quantities:
     d = {}
-    from ._numpy import _ensure_numpy, _np_linspace, _np, _np_trapezoid
+    from ._numpy import _ensure_numpy, _np, _np_linspace, _np_trapezoid
     _ensure_numpy()
     def _needsexpand( egrid, dos ):
         return len(egrid)==2 and len(dos)>2
@@ -340,7 +340,7 @@ def _anyvdos_init( class_AnyVDOS, anyvdos_extract_d, data, fmt, label ):
             d['label'] += f' ({_})'
         else:
             d['label'] = d['label'][:-1]+f', {_})'
-    from types import MappingProxyType#read-only dict
+    from types import MappingProxyType  #read-only dict
     d['derived'] = MappingProxyType(d['derived'])
     return MappingProxyType( d )
 

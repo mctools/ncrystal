@@ -62,8 +62,8 @@ __copyright__ = "Copyright 2015-2024 %s"%__author__
 __maintainer__ = __author__
 __email__ = "ncrystal-developers@cern.ch"
 
-import sys as _sys
 import os as _os
+import sys as _sys
 
 #Place f-string here to catch python <3.6 in a more obvious way than a syntax error below:
 f'NCrystal does not work with Python2 (or Python3 < v3.8)' #noqa F541

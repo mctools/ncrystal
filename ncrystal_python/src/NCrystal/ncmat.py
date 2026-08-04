@@ -184,8 +184,8 @@ class NCMATComposer:
         function from the NCrystal.hfg2ncmat module. Refer to that function for
         usage instructions.
         """
-        from .hfg2ncmat import _default_debye_temp, hfg2ncmat
         from ._ncmatimpl import NCMATComposerImpl as Impl
+        from .hfg2ncmat import _default_debye_temp, hfg2ncmat
         assert _default_debye_temp()==400.0, "from_hfg default must be updated"
         ncmat = hfg2ncmat( spec = spec,
                            formula = formula,

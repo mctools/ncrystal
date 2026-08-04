@@ -19,9 +19,8 @@
 ##                                                                            ##
 ################################################################################
 
-from ._cliimpl import ( create_ArgumentParser,
-                        cli_entry_point,
-                        print )
+from ._cliimpl import cli_entry_point, create_ArgumentParser, print
+
 
 def climod_metadata():
     return dict(
@@ -123,8 +122,9 @@ def create_argparser_for_sphinx( progname ):
 @cli_entry_point
 def main( progname, arglist ):
     import pathlib
-    from .hfg2ncmat import _default_debye_temp, hfg2ncmat
+
     from ._common import write_text as nc_write_text
+    from .hfg2ncmat import _default_debye_temp, hfg2ncmat
     args = _parseArgs( _default_debye_temp(), progname, arglist )
     do_stdout = args.output=='stdout'
     try:

@@ -24,6 +24,7 @@ __all__ = ['MMCResults','MMCTallyView']
 from ._numpy import _ensure_numpy
 from .exceptions import NCBadInput
 
+
 class MMCResults:
 
     """Convenience class to handle the results of a given MiniMC run, providing

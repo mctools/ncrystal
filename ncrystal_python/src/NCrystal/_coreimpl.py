@@ -42,8 +42,8 @@ class divdos_methods:
             """
             assert 1 <= n <= 99999 and ( nmax is None or n<=nmax<=99999 )
             n2 = int( nmax if nmax is not None else n )
-            from .vdos import extractGn
             from .plot import plot_vdos_Gn
+            from .vdos import extractGn
             def f(_n):
                 return extractGn( n=_n, vdos = _self, mass_amu = _self.atomData.averageMassAMU(),
                                   temperature = _self.temperature, expand_egrid = True,

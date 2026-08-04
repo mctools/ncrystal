@@ -19,9 +19,8 @@
 ##                                                                            ##
 ################################################################################
 
-from ._cliimpl import ( create_ArgumentParser,
-                        cli_entry_point,
-                        print )
+from ._cliimpl import cli_entry_point, create_ArgumentParser, print
+
 
 def climod_metadata():
     return dict(

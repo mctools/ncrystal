@@ -60,7 +60,7 @@ def generateCfgStrDoc( mode = "print" ):
     modeint = modemap.get(mode,None)
     if modeint is None:
         from .exceptions import NCBadInput
-        raise NCBadInput('mode must be one of %s'%list(sorted(modemap.keys())))
+        raise NCBadInput('mode must be one of %s'%sorted(modemap.keys()))
     from ._chooks import _get_raw_cfcts
     _=_get_raw_cfcts()['nc_gencfgdoc'](modeint)
     if mode == 'print':
@@ -73,5 +73,5 @@ def generateCfgStrDoc( mode = "print" ):
 
 def decodecfg_vdoslux(cfgstr):
     """Extract vdoslux value from cfgstr."""
-    from ._chooks import _get_raw_cfcts,_str2cstr
+    from ._chooks import _get_raw_cfcts, _str2cstr
     return int(_get_raw_cfcts()['ncrystal_decodecfg_vdoslux'](_str2cstr(cfgstr)))
