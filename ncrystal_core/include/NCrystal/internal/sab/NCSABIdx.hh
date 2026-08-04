@@ -90,7 +90,7 @@ namespace NCRYSTAL_NAMESPACE {
       NAlpha( const VectD& alphaGrid ) ncnoexceptndebug;
       explicit ncconstexprndebug NAlpha( size_type ) ncnoexceptndebug;
       explicit ncconstexprndebug NAlpha( NAlphaCells ) ncnoexceptndebug;
-      constexpr size_type value() const noexcept { return m_value; }
+      ncconstexprndebug size_type value() const noexcept { return m_value; }
     private:
       size_type m_value;
     };
@@ -105,7 +105,7 @@ namespace NCRYSTAL_NAMESPACE {
       NAlphaCells( const VectD& alphaGrid ) ncnoexceptndebug;
       explicit ncconstexprndebug NAlphaCells( size_type ) ncnoexceptndebug;
       explicit ncconstexprndebug NAlphaCells( NAlpha ) ncnoexceptndebug;
-      constexpr size_type value() const noexcept { return m_value; }
+      ncconstexprndebug size_type value() const noexcept { return m_value; }
     private:
       size_type m_value;
     };
@@ -125,7 +125,7 @@ namespace NCRYSTAL_NAMESPACE {
                                  size_type idxBeta ) ncnoexceptndebug;
       ncconstexprndebug SABIdxT( NAlphaT na,
                                  PackedIndex p ) ncnoexceptndebug;
-      constexpr size_type value() const noexcept { return m_value; }
+      ncconstexprndebug size_type value() const noexcept { return m_value; }
     private:
       size_type m_value;
     };
@@ -149,29 +149,39 @@ namespace NCRYSTAL_NAMESPACE {
     inline ncconstexprndebug NAlphaCells::NAlphaCells( size_type value ) ncnoexceptndebug
       : m_value( value )
     {
+#ifndef NDEBUG
       nc_assert( (m_value+1)<std::numeric_limits<size_type>::max() );
       nc_assert( value>=1 );
+#endif
     }
     inline ncconstexprndebug NAlphaCells::NAlphaCells( NAlpha na ) ncnoexceptndebug
       : NAlphaCells( na.value()-1 )
     {
+#ifndef NDEBUG
       nc_assert( na.value()>1);
+#endif
     }
     inline NAlpha::NAlpha( const VectD& alphaGrid ) ncnoexceptndebug
       : NAlpha( static_cast<size_type>(alphaGrid.size()) )
     {
+#ifndef NDEBUG
       nc_assert( alphaGrid.size()>1);
+#endif
     }
     inline ncconstexprndebug NAlpha::NAlpha( size_type value ) ncnoexceptndebug
       : m_value( value )
     {
+#ifndef NDEBUG
       nc_assert( m_value<std::numeric_limits<size_type>::max() );
       nc_assert( value > 1 );
+#endif
     }
     inline ncconstexprndebug NAlpha::NAlpha( NAlphaCells nac ) ncnoexceptndebug
       : NAlpha( nac.value()+1 )
     {
+#ifndef NDEBUG
       nc_assert( nac.value()>=1);
+#endif
     }
 
     namespace detail {
@@ -226,16 +236,20 @@ namespace NCRYSTAL_NAMESPACE {
     inline ncconstexprndebug std::size_t
     PackedIndex::unpackAlphaIdx() const ncnoexceptndebug
     {
+#ifndef NDEBUG
       nc_assert( static_cast<std::size_t>(detail::packer32_t::unpack1( val ))
                  <= maxAlphaIdx() );
+#endif
       return static_cast<std::size_t>(detail::packer32_t::unpack1( val ));
     }
 
     inline ncconstexprndebug std::size_t
     PackedIndex::unpackBetaIdx() const ncnoexceptndebug
     {
+#ifndef NDEBUG
       nc_assert( static_cast<std::size_t>(detail::packer32_t::unpack2( val ))
                  <= maxBetaIdx() );
+#endif
       return static_cast<std::size_t>(detail::packer32_t::unpack2( val ));
     }
 
@@ -245,8 +259,10 @@ namespace NCRYSTAL_NAMESPACE {
     {
       static_assert( std::is_same<detail::packer32_t::packed_type,
                      PackedIndex::index_t>::value, "" );
+#ifndef NDEBUG
       nc_assert( ialpha <= maxAlphaIdx() );
       nc_assert( ibeta <= maxBetaIdx() );
+#endif
       return PackedIndex{ detail::packer32_t::pack( ialpha, ibeta ) };
     }
 
@@ -272,12 +288,14 @@ namespace NCRYSTAL_NAMESPACE {
                                size_type idxBeta ) ncnoexceptndebug
       : m_value( idxBeta * na.value() + idxAlpha )
     {
+#ifndef NDEBUG
       nc_assert( idxAlpha < static_cast<std::size_t>
                  (std::numeric_limits<std::uint16_t>::max()) );
       nc_assert( idxBeta < static_cast<std::size_t>
                  (std::numeric_limits<std::uint16_t>::max()) );
       nc_assert( m_value < static_cast<std::size_t>
                  (std::numeric_limits<std::uint32_t>::max()) );
+#endif
     }
 
     template<class NAlphaT>
