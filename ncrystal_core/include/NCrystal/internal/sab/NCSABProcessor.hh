@@ -102,7 +102,7 @@ namespace NCRYSTAL_NAMESPACE {
       struct EPtInfo final {
         NeutronEnergy ekin;
         double E_div_kT;
-        double phaseSpaceIntegral;;
+        double phaseSpaceIntegral;
         CrossSect crossSectionUnitSigmaBound;
       };
       EPtInfo getEMaxInfo() const;
