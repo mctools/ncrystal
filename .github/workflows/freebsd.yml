@@ -40,7 +40,7 @@ jobs:
           run: |
             echo "CMAKE_BUILD_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL}"
             echo "CTEST_PARALLEL_LEVEL=${CTEST_PARALLEL_LEVEL}"
-            sudo pkg install -y cmake python3 py311-numpy py311-mpmath py311-matplotlib py311-ase py311-gemmi py311-spglib py311-pyyaml ruff py311-pip
+            sudo pkg install -y cmake python3 py312-numpy py312-mpmath py312-matplotlib py312-ase py312-gemmi py312-spglib py312-pyyaml ruff py312-pip
             ./src/devel/bin/ncdevtool check -n "fix""me"
             #Install deps not available as FreeBSD package:
             INSTALL_ENDF_PARSERPY_CPP=no
@@ -67,11 +67,11 @@ jobs:
         with:
           environment_variables: CMAKE_BUILD_PARALLEL_LEVEL CTEST_PARALLEL_LEVEL
           operating_system: freebsd
-          version: '14.2'
+          version: '15.1'
           run: |
             echo "CMAKE_BUILD_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL}"
             echo "CTEST_PARALLEL_LEVEL=${CTEST_PARALLEL_LEVEL}"
-            sudo pkg install -y cmake python3 py311-pip py311-scikit-build-core py311-numpy py311-mpmath py311-matplotlib py311-ase py311-gemmi py311-spglib py311-pyyaml py311-setuptools ruff
+            sudo pkg install -y cmake python3 py312-pip py312-scikit-build-core py312-numpy py312-mpmath py312-matplotlib py312-ase py312-gemmi py312-spglib py312-pyyaml py312-setuptools ruff
             #Make sure pip --user bin dir is in PATH:
             PATH="/home/runner/.local/bin:${PATH}"
             export PATH
