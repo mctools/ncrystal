@@ -202,7 +202,7 @@ namespace NCRYSTAL_NAMESPACE {
                      || std::is_same<TTwo,std::uint64_t>::value, "" );
       static_assert( std::is_same<TOne,std::uint16_t>::value
                      || std::is_same<TOne,std::uint32_t>::value, "" );
-      static_assert( sizeof(std::size_t) >= sizeof( TTwo ) );
+      static_assert( sizeof(std::size_t) >= sizeof( TTwo ), "" );
       return ( static_cast<TTwo>(val1) << shift ) | static_cast<TTwo>(val2);
     }
 
