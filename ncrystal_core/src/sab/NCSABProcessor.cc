@@ -995,23 +995,22 @@ namespace NCRYSTAL_NAMESPACE {
         std::int32_t sampleIdx = vectAt(m_sampleIdx,idx_E_overlay);
         ABRes alphabeta;
         const double foure = E_div_kT*4.0;
-        auto phaseSpaceNotOK = [&alphabeta,foure]()
+        auto phaseSpaceNotOK = [foure](const ABRes& ab )
         {
-          return ( ncsquare( alphabeta.a - alphabeta.b )
-                   > foure * alphabeta.a );
+          return ( ncsquare( ab.a - ab.b ) > foure * ab.a );
         };
         std::size_t ntries(0);
         if ( sampleIdx < 0 ) {
           std::size_t nCellsTouched = static_cast<std::size_t>(-sampleIdx);
           alphabeta = sampleAlphaBetaFC( rng, E_div_kT, nCellsTouched );
           ntries += alphabeta.ntries;
-          nc_assert( !phaseSpaceNotOK() );
+          nc_assert( !phaseSpaceNotOK(alphabeta) );
         } else {
           const auto& bcEpt = vectAt(m_bcEptInfo,static_cast<std::size_t>(sampleIdx));
           do {
             alphabeta = sampleAlphaBetaBC( rng, E_div_kT_overlay, bcEpt );
             ntries += alphabeta.ntries;
-          } while( phaseSpaceNotOK() );
+          } while( phaseSpaceNotOK(alphabeta) );
         }
         SABProcessor::AlphaBetaOutcome res;
         res.alpha = alphabeta.a;
