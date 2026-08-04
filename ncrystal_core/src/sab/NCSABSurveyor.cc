@@ -64,19 +64,24 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
         T* dst = buffer.get();
 
-        constexpr int BITS_PER_PASS = 16;//NB: BUCKET=2**16 is large, but we
-                                         //allocate on the heap to be safe.
-                                         //We could reduce to 8 if needed, but
-                                         //that was slightly less efficient in
-                                         //profiling.
-        constexpr int TOTAL_PASSES  = ( sizeof(double) * 8 ) / BITS_PER_PASS;
-        constexpr int BUCKETS       = 1 << BITS_PER_PASS;
-        constexpr int MASK          = BUCKETS - 1;
+        //NB: BUCKET=2**16 is large, but we allocate on the heap to be safe.  We
+        //could reduce to 8 if needed, but that was slightly less efficient in
+        //profiling.
+        //We use both macro constants and constexpr constants to appease all
+        //compilers:
+#define NC_BITS_PER_PASS 16
+#define NC_TOTAL_PASSES (( sizeof(double) * 8 ) / NC_BITS_PER_PASS)
+#define NC_BUCKETS (1 << NC_BITS_PER_PASS)
+#define NC_MASK (NC_BUCKETS - 1)
+        constexpr int BITS_PER_PASS = 16;
+        constexpr int TOTAL_PASSES  = NC_TOTAL_PASSES;
+        constexpr int BUCKETS       = NC_BUCKETS;
+        //constexpr int MASK          = NC_MASK;
         auto tmpbuf = ncmake_unique_array_noinit<std::size_t>(2*BUCKETS);
 
         std::size_t * counts = tmpbuf.get();
         std::size_t * offsets = counts + BUCKETS;
-        auto resetCounts = [&counts]() { std::fill_n(counts, BUCKETS,
+        auto resetCounts = [&counts]() { std::fill_n(counts, NC_BUCKETS,
                                                      std::size_t{0}); };
         static_assert( TOTAL_PASSES == 4, "" );
         static_assert( BUCKETS == 65536, "" );
@@ -94,8 +99,8 @@ namespace NCRYSTAL_NAMESPACE {
             static_assert(sizeof(double) == sizeof(std::uint64_t), "");
             std::uint64_t bits;
             std::memcpy(&bits, &v, sizeof(double));
-            int res = (bits >> shift) & MASK;
-            nc_assert( res >= 0 && res < BUCKETS );
+            int res = (bits >> shift) & NC_MASK;
+            nc_assert( res >= 0 && res < NC_BUCKETS );
             return res;
           };
           resetCounts();
