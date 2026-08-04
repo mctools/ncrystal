@@ -20,6 +20,7 @@
 ################################################################################
 
 from .dirs import coreroot as _coreroot
+
 _srcroot = _coreroot / 'src'
 _incroot = _coreroot / 'include'
 
@@ -71,9 +72,9 @@ class Component:
             if not self.hdrfiles:
                 raise SystemExit(f'ERROR empty dir: {hdrdir}')
         else:
-            self.hdrfiles = tuple([])
+            self.hdrfiles = tuple()
 
-        self.hdrfiles_icc = tuple([])#TODO: support?
+        self.hdrfiles_icc = tuple()#TODO: support?
 
         self.direct_depnames = sorted(set(self.depfile.read_text().split()))
         #To be filled later:
@@ -159,8 +160,7 @@ class Component:
 
     def all_file_iter( self ):
         for filelist in [self.hdrfiles,self.srcfiles,self.local_hdrs]:
-            for f in filelist or []:
-                yield f
+            yield from (filelist or [])
 
     def sloc_count( self, headers_only = False ):
         files = self.hdrfiles if headers_only else self.all_file_iter()

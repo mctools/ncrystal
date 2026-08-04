@@ -65,8 +65,8 @@ def check_NCrystal_hh( content, incguards ):
     assert len(incguards) == len(expected_missing) + nvirtualapi
 
 def main():
-    from .srciter import all_files_iter
     from .dirs import coreroot
+    from .srciter import all_files_iter
     from .util import path_is_relative_to
 
     incroot = coreroot.joinpath('include')

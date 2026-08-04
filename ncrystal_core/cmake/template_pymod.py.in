@@ -29,8 +29,8 @@
 _has_shlib_in_scripts_dir = bool('@ncrystal_pymod_shlib_in_scripts@')
 
 def _ncrystal_config_cli_wrapper():
-    import subprocess
     import pathlib
+    import subprocess
     import sys
     f = pathlib.Path(__file__).parent.joinpath('data','bin','ncrystal-config')
     a = sys.argv[:]
@@ -41,7 +41,7 @@ def _ncrystal_config_cli_wrapper():
         lp = libpath().parent
         a.append('+')
         a.append(str(lp))
-    rv = subprocess.run( a )
+    rv = subprocess.run( a, check = False )
     raise SystemExit(rv.returncode)
 
 def version():

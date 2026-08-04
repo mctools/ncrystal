@@ -68,9 +68,10 @@ def graph_to_dot( graph, fix_size = False ):
 
 def render_dot_file( dot_str, fmt='png' ):
 
+    import pathlib
     import shutil
     import subprocess
-    import pathlib
+
     from .util import work_in_tmpdir
 
     cmd_dot = shutil.which('dot')
@@ -91,9 +92,10 @@ def render_dot_file( dot_str, fmt='png' ):
         return pathlib.Path(f3).read_bytes()
 
 def display_image_data( data, fmt ):
-    import matplotlib.pyplot as plt
-    import matplotlib.image as mpimg
     from io import BytesIO
+
+    import matplotlib.image as mpimg
+    import matplotlib.pyplot as plt
     fh = BytesIO(data)
     img = mpimg.imread(fh,fmt)
     plt.imshow(img)
@@ -172,8 +174,9 @@ def main( parser ):
 
     args = parser.parse_args()
 
-    from .core_components import load_components
     import math
+
+    from .core_components import load_components
     graph = Graph()
     n2c = load_components()
     if args.stat == 'sloc':
@@ -231,7 +234,6 @@ def main( parser ):
     fmt = 'png'
     data = render_dot_file( graph.get_as_dot_content(), fmt )
     display_image_data( data, fmt )
-    return
 #
 #    try:
 #        import networkx as nx

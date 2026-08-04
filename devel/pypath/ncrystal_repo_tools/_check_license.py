@@ -61,10 +61,12 @@ def do_check( files, allowed_file_hdr_list, *,
     return all_ok
 
 def main():
+    from .license import (
+        licenseblurb_data_with_ansic_comments,
+        licenseblurb_data_with_doubledash_comments,
+        licenseblurb_data_with_hash_comments,
+    )
     from .srciter import all_files_iter
-    from .license import ( licenseblurb_data_with_doubledash_comments,
-                           licenseblurb_data_with_hash_comments,
-                           licenseblurb_data_with_ansic_comments )
     lbcpp = '\n' + licenseblurb_data_with_doubledash_comments()
     lbh = '\n' + licenseblurb_data_with_hash_comments()
     lbansic = '\n' + licenseblurb_data_with_ansic_comments()

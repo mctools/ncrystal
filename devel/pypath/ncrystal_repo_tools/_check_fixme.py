@@ -21,8 +21,8 @@
 
 def main():
     search_str = 'f' + 'i' + 'x' + 'm' + 'e'
-    from .srciter import all_files_iter
     from .dirs import reporoot
+    from .srciter import all_files_iter
     hits = []
     #Ignore well-known false positives:
     whitelist = {

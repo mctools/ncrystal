@@ -23,6 +23,7 @@
 
 import fnmatch
 
+
 def main_grep( parser ):
     parser.init( 'Grep though files for specified PATTERNS.' )
     grepfindreplace_addargs( parser, is_grep = True )
@@ -195,8 +196,9 @@ def iter_repo_files( types = None, pathfilter = None ):
 
     patterns = types or []
     if 'HELP' in patterns:
-        from .srciter import special_patterns_db
         import shlex
+
+        from .srciter import special_patterns_db
         print('The following special types are predefined for convenience, and')
         print('also provide an idea of the syntax otherwise supported:')
         print()

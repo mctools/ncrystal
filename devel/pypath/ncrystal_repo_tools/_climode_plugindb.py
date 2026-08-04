@@ -25,8 +25,9 @@ def short_description():
     return f'Extract information about plugins from {dbfilerelpath}'
 
 def load_and_check_data():
-    from .dirs import reporoot
     import yaml
+
+    from .dirs import reporoot
     with reporoot.joinpath(dbfilerelpath).open() as fh:
         data =yaml.safe_load(fh)
     errmsg = _prepare_data_and_check_errors( data )
@@ -101,7 +102,7 @@ def _prepare_data_and_check_errors( data ):
             if k1 in boolean_keys:
                 _type,_type_str = bool, 'bool'
             if not isinstance(v1,_type):
-                return f'value for {k0}.{k1}={repr(v1)} is not a {_type_str}'
+                return f'value for {k0}.{k1}={v1!r} is not a {_type_str}'
         assert 'description' in v0
         v0['description'] = textwrap.fill(v0['description'],9999999)
         if v0['github_repo_key'].count('/')!=1:
@@ -195,11 +196,11 @@ def _www_plugin_sort( e ):
         )
 
 def _produce_wiki( data ):
-    from builtins import print as _orig_print
     import io
+    from builtins import print as _orig_print
     out_buf = io.StringIO()
     def print(*a,**kw):
-        return _orig_print(*a, file=out_buf, *kw)
+        return _orig_print(*a, file=out_buf, *kw) # noqa B026
     def printdd(a):
         import textwrap
         print(textwrap.dedent(a))

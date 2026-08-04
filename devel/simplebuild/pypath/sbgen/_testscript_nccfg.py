@@ -22,6 +22,7 @@
 
 import pathlib
 import subprocess
+
 from simplebuild.cfg import dirs
 
 rv = subprocess.run(['sb_nccmd_config','-s'],

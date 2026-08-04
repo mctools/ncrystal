@@ -130,4 +130,3 @@ def main( parser ):
                       args.pathmode,
                       withcore = args.withcore,
                       showincs_to_comp = args.showincs )
-    return

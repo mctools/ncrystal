@@ -21,6 +21,7 @@
 
 from contextlib import contextmanager as _ctxmgr
 
+
 @_ctxmgr
 def work_in_tmpdir():
     """Context manager for working in a temporary directory (automatically
@@ -52,9 +53,9 @@ def run_test( script, verbose ):
     print(" .. running test %s"%name)
     pypath = script.parent.parent.joinpath('pypath')
     assert pypath.is_dir()
+    import os
     import subprocess
     import sys
-    import os
     env = os.environ.copy()
     prepend_to_path_var( env, 'PYTHONPATH', pypath )
     #Needed for windows, leaving them on all the time for now:
@@ -67,7 +68,7 @@ def run_test( script, verbose ):
         rv = subprocess.run( [sys.executable, str(script)],
                              env = env,
                              capture_output = True,
-                              )
+                             check = False )
         def print_output():
             snip = not verbose
             print_lines_with_snipping(rv.stdout,prefix='stdout: ', snip = snip)
@@ -133,11 +134,11 @@ def extract_needs_statement( pyfile ):
 
 def try_cfg_with_cmake_project(verbose):
     #Return true if able to use CMake with C and CXX compilers.
-    import shutil
-    import shlex
-    import subprocess
-    import pathlib
     import os
+    import pathlib
+    import shlex
+    import shutil
+    import subprocess
     cmake_cmd = shutil.which('cmake')
     if not cmake_cmd:
         return False
@@ -156,7 +157,7 @@ def try_cfg_with_cmake_project(verbose):
         print(end='',flush=True)
         rv = subprocess.run(([cmake_cmd,'-S','src','-B','bld']
                              +shlex.split(os.environ.get('CMAKE_ARGS',''))),
-                            capture_output=not verbose)
+                            capture_output=not verbose,check=False)
         print(end='',flush=True)
     return rv.returncode == 0
 
@@ -177,11 +178,11 @@ def prepare_needs( scripts, verbose ):
     for dep in sorted(alldeps):
         deppretty = 'cmake (with compilers)' if dep=='cmake' else dep
         print(f"Checking for presence of {deppretty}...",end='',flush=True)
-        def mark( ok ):
+        def mark( ok, _dep = dep ):
             if ok:
                 print(' yes')
             else:
-                absent.add( dep )
+                absent.add( _dep )
                 print(' no')
         if dep == 'cmake':
             #special, must try to tiny cmake project with C and C++
@@ -215,8 +216,8 @@ def prepare_needs( scripts, verbose ):
 
 
 def parse_args():
-    from argparse import ArgumentParser, RawTextHelpFormatter
     import textwrap
+    from argparse import ArgumentParser, RawTextHelpFormatter
     def wrap(t,w=59):
         return textwrap.fill( ' '.join(t.split()), width=w )
 

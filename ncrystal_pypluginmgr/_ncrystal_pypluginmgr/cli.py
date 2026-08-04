@@ -43,9 +43,7 @@ def stdmode():
             if datadir.is_dir() and any( True for p in datadir.iterdir() ):
                 datadirs.add( (pymodname, str(datadir.resolve().absolute())) )
 
-    entries = []
-    for p in sorted(plugins):
-        entries.append( p )
+    entries = sorted(plugins)
     nmnp = len(modnameprefix)
     for n,d in sorted(datadirs):
         entries.append( ':DATA:%s:%s'%(n[nmnp:],d) )

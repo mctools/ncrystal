@@ -21,8 +21,8 @@
 ################################################################################
 
 import os
-import platform
 import pathlib
+import platform
 import subprocess
 
 if platform.system() == 'Darwin':

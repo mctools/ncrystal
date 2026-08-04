@@ -27,9 +27,9 @@
 
 def _run( nthreads, src_cfgstr, geom_cfgstr, mat_cfgstr ):
     assert nthreads>=1
+    import shlex
     import subprocess
     import time
-    import shlex
     cmd = ['sb_ncdev_minimcbench',
            str(nthreads),
            src_cfgstr, geom_cfgstr, mat_cfgstr ]
@@ -85,8 +85,8 @@ def run_test_jobs( nthreads_max,
 
 if __name__=='__main__':
     import argparse
-    import pathlib
     import json
+    import pathlib
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', type=float,
                         help='Statistics in each job (e.g. -n 1e7)',

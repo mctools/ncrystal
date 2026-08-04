@@ -19,8 +19,9 @@
 ##                                                                            ##
 ################################################################################
 
-import pathlib
 import fnmatch
+import pathlib
+
 
 def _path_to_str( path ):
     s = str(path).replace('\\','/')#map win seps to unix
@@ -56,8 +57,7 @@ def _all_files_iter_impl( currentdir, patternset, gitignore ):
             #files:
             if p.name=='.git':
                 continue#always ignore
-            for f in _all_files_iter_impl( p, patternset, gitignore ):
-                yield f
+            yield from _all_files_iter_impl(p, patternset, gitignore)
         else:
             if not patternset.accepts( p ):
                 continue

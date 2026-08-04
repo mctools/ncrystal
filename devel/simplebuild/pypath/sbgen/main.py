@@ -19,11 +19,12 @@
 ##                                                                            ##
 ################################################################################
 
-from .file import add_file, create_files
+import itertools
+import os
+
 from . import dirs
 from .cfg import cfg
-import os
-import itertools
+from .file import add_file, create_files
 
 _pydep2sblddep = { 'ase':'ASE',
                    'gemmi':'Gemmi',

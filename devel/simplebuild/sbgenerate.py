@@ -23,6 +23,7 @@
 # (from (../pypath/ncrystal_repo_tools) available:
 import pathlib
 import sys
+
 d = pathlib.Path(__file__).resolve().absolute().parent
 d1 = d / 'pypath'
 d2 = d.parent / 'pypath'

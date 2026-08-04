@@ -22,8 +22,9 @@
 dbfilerelpath = 'devel/dependency_database.yml'
 
 def load_depdb():
-    from .dirs import reporoot
     import yaml
+
+    from .dirs import reporoot
     with reporoot.joinpath(dbfilerelpath).open() as fh:
         data = yaml.safe_load(fh)
     errmsg, data = _prepare_data_and_check_errors( data )
@@ -74,10 +75,11 @@ def _handle_ADD( pkgname, part2deplist ):
 
 _cmdcache=[{}]
 def _handle_CMD( pkgname, part2deplist ):
-    from .dirs import reporoot
-    import subprocess
     import json
+    import subprocess
     import sys
+
+    from .dirs import reporoot
     for part,deplist in sorted(part2deplist.items()):
         for i in range(len(deplist)):
             if not deplist[i].startswith('CMD'):
@@ -91,7 +93,7 @@ def _handle_CMD( pkgname, part2deplist ):
                 cmd.append(e)
             cmd = tuple(str(e) for e in cmd)
             if cmd not in _cmdcache[0]:
-                rv = subprocess.run(cmd,capture_output=True)
+                rv = subprocess.run(cmd,capture_output=True,check=False)
                 if rv.stderr or rv.returncode != 0:
                     import shlex
                     raise SystemExit('CMD failed: %s'%shlex.join(cmd))

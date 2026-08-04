@@ -40,8 +40,8 @@ def gathertestdeps():
     return needs
 
 def fixreqfiles():
-    from .depdb import load_depdb
     from ._check_deps import check_env_files
+    from .depdb import load_depdb
     db = load_depdb()
     check_env_files( db, fix = True )
 

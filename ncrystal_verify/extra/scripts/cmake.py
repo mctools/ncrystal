@@ -32,8 +32,8 @@ def get_downstream_project_files():
     ]
 
 def get_ncrystal_shlibdir():
-    import subprocess
     import pathlib
+    import subprocess
     rv = subprocess.run(['ncrystal-config','--show','shlibdir'],
                         check = True,
                         capture_output=True)
@@ -43,13 +43,14 @@ def get_ncrystal_shlibdir():
     return ld
 
 def main():
-    from NCTestUtils.common import work_in_tmpdir
+    import os
+    import pathlib
+    import platform
+    import shlex
     import shutil
     import subprocess
-    import pathlib
-    import shlex
-    import platform
-    import os
+
+    from NCTestUtils.common import work_in_tmpdir
     is_osx = False
     is_win = False
     if platform.system() == 'Darwin':

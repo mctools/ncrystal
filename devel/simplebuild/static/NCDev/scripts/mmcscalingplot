@@ -179,8 +179,8 @@ def plot_results_jobtime(results):
 
 if __name__=='__main__':
     import json
-    import pathlib
     import os
+    import pathlib
     import sys
     data = json.loads(pathlib.Path(os.path.expanduser(sys.argv[1])).read_text())
     plot_results(data,use_seen_rates=True)

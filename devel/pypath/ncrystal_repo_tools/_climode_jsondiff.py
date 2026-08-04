@@ -31,10 +31,10 @@ def get_gitfile_contents(commit_hash, file_path):
     ).stdout
 
 def show_through_colordiff_or_print( content, force=False ):
-    import subprocess
-    import shutil
-    import sys
     import os
+    import shutil
+    import subprocess
+    import sys
     cmd = ( shutil.which('colordiff')
             if (force or os.isatty(sys.stdout.fileno()))
             else None )
@@ -50,11 +50,11 @@ def show_through_colordiff_or_print( content, force=False ):
         p.wait()
 
 def main( parser ):
-    import pathlib
-    import json
-    import pprint
     import difflib
     import io
+    import json
+    import pathlib
+    import pprint
 
     parser.init(short_description()
                 +'. If the colordiff command is available,'

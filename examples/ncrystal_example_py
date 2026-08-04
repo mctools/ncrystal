@@ -20,8 +20,9 @@
 ##                                                                            ##
 ################################################################################
 
-import NCrystal
 import math
+
+import NCrystal
 
 #Create and use powdered aluminium:
 

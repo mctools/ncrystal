@@ -42,8 +42,8 @@ and then loading the NCrystal library and calling ensurePluginsLoaded().
 """
 
 def main():
-    import sys
     import os
+    import sys
     args = sys.argv[1:]
     if not args:
         from .cli import main
@@ -83,8 +83,8 @@ def main():
         raise SystemExit('ERROR: plugin missing (weird that it was'
                          ' not detected earlier: %s'%missing)
 
-    import NCrystal.datasrc as nds
     import NCrystal.core as nccore
+    import NCrystal.datasrc as nds
     files_to_test = []
     for f in nds.browseFiles(factory='plugins'):
         if f.name.split('/')[0] in testlist:

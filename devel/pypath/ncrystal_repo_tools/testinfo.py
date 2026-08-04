@@ -21,8 +21,8 @@
 
 
 def load():
-    from .srciter import all_files_iter
     from .dirs import testroot
+    from .srciter import all_files_iter
     py = set( all_files_iter( '*.py', root = testroot.joinpath('scripts') ) )
     scripts = {}
     for f in py:

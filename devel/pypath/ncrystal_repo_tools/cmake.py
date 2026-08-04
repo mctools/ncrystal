@@ -19,13 +19,14 @@
 ##                                                                            ##
 ################################################################################
 
-from . import dirs
-import subprocess
 import os
+import platform
 import shlex
 import shutil
-import platform
+import subprocess
 from pathlib import Path as plPath
+
+from . import dirs
 
 cmakerunner_modes = ('ctest','install','buildonly')
 
@@ -92,7 +93,8 @@ class CMakeRunner:
         rv = subprocess.run( cmd,
                              cwd=cwd,
                              env=env,
-                             capture_output=capture_output )
+                             capture_output=capture_output,
+                             check = False )
         if rv.returncode!=0:
             raise RuntimeError(f'Command failed: {cmdstr}')
         if capture_output:

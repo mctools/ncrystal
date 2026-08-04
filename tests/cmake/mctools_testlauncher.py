@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 ################################################################################
 ##                                                                            ##
@@ -23,12 +22,12 @@
 # Utility script needed by mctools_testutils.cmake for launching tests and
 # comparing with reference output.
 
-import sys
 import pathlib
-import shutil
-import shlex
 import platform
+import shlex
+import shutil
 import subprocess
+import sys
 
 is_windows = (platform.system() == 'Windows')
 ENCODING = sys.stdout.encoding
@@ -52,7 +51,8 @@ def run( app_file, reflogfile = None ):
                         encoding=ENCODING,
                         errors='backslashreplace',
                         capture_output = True,
-                        cwd = wd )
+                        cwd = wd,
+                        check = False )
     sys.stdout.flush()
     sys.stderr.flush()
     print("MCTools TestLauncher done running command.")

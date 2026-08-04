@@ -89,7 +89,7 @@ def main():
 
     import_sibling_module(mode=mode).main( parser )
 
-class NCDevUtilsArgParser():
+class NCDevUtilsArgParser:
 
     def __init__(self, *, cliname, modename, args ):
         self.__parser = None

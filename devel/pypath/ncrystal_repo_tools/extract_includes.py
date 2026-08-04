@@ -50,7 +50,8 @@ def get_include_staments_from_file( path, *,
         import subprocess
         rv = subprocess.run( ['grep','.*#.*include.*"..*"',
                               str(path.absolute())],
-                             capture_output = True )
+                             capture_output = True,
+                             check = False )
         #grep exit code of 1 simply indicates no hits
         if rv.returncode not in (0,1) or rv.stderr:
             raise RuntimeError('grep command failed')

@@ -56,8 +56,7 @@ def search_files( name2comp, filename ):
     return info
 
 def determine_moves( info ):
-    from .dirs import ( coreroot_include,
-                        coreroot_src )
+    from .dirs import coreroot_include, coreroot_src
 
     tgtcomp_name = info['tgtcomp_name']
     tgtdir_hdr = coreroot_include.joinpath( f'NCrystal/internal/{tgtcomp_name}'
@@ -119,10 +118,9 @@ def main( parser ):
     )
 
     args = parser.parse_args()
-    setattr(args,'comp',args.TARGETCOMP)
+    args.comp = args.TARGETCOMP
 
-    from .core_components import ( load_components,
-                                   is_valid_component_name )
+    from .core_components import is_valid_component_name, load_components
     from .dirs import coreroot_src
 
     if not args.comp or not is_valid_component_name(args.comp):
@@ -168,8 +166,8 @@ def main( parser ):
             print("Would replace:")
         for k,v in replacements:
             print()
-            print(f"       {repr(k)}")
-            print(f"  with {repr(v)}")
+            print(f"       {k!r}")
+            print(f"  with {v!r}")
         print()
         return
 

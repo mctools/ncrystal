@@ -21,6 +21,7 @@
 
 from contextlib import contextmanager as _ctxmgr
 
+
 def get_nprocs( nice_factor = 0.9 ):
     import os
     if hasattr(os,'sched_getaffinity'):
@@ -38,8 +39,8 @@ def get_nprocs( nice_factor = 0.9 ):
 def change_dir( path ):
     """Context manager for working in a directory (automatically
     created if doesn't exist) and then switching back"""
-    import pathlib
     import os
+    import pathlib
 
     the_cwd = os.getcwd()
     p = pathlib.Path(path)
@@ -49,7 +50,6 @@ def change_dir( path ):
         yield
     finally:
         os.chdir( the_cwd )
-    return
 
 @_ctxmgr
 def work_in_tmpdir():

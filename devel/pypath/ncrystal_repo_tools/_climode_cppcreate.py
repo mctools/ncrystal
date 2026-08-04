@@ -45,8 +45,7 @@ def main( parser ):
 
     args = parser.parse_args()
 
-    from .core_components import ( load_components,
-                                   is_valid_component_name )
+    from .core_components import is_valid_component_name, load_components
     from .dirs import coreroot, devpymoddir
 
     if not args.comp or not is_valid_component_name(args.comp):

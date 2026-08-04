@@ -19,9 +19,11 @@
 ##                                                                            ##
 ################################################################################
 
-from . import dirs
 import os
 import stat
+
+from . import dirs
+
 
 def chmod_x( path ):
     st = os.stat(path)

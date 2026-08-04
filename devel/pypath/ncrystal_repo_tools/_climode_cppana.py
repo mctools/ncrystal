@@ -25,8 +25,8 @@ def short_description():
 
 def main( parser ):
     from .core_components import load_components
-    from .extract_includes import get_include_staments_from_file as getinc
     from .dirs import coreroot, coreroot_include
+    from .extract_includes import get_include_staments_from_file as getinc
 
     parser.init( """Analyse C++ code dependencies by looking for include
     statements in daughter components to header files in mother components.""" )
@@ -64,8 +64,7 @@ def main( parser ):
             return comp.hdrfiles
     else:
         def get_files( comp ):
-            for f in comp.all_file_iter():
-                yield f
+            yield from comp.all_file_iter()
 
     incstatements_prefixes = tuple(
         f'NCrystal/internal/{n}/' if name2comp[n].is_internal else f'NCrystal/{n}/'

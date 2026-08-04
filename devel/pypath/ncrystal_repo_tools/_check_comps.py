@@ -74,8 +74,7 @@ def check_include_statements( name2comp ):
         current = set(c.direct_depnames)
 
         #Remove self includes:
-        if c.name in directly_included_comps:
-            directly_included_comps.remove(c.name)
+        directly_included_comps.discard(c.name)
 
         if current == directly_included_comps:
             continue

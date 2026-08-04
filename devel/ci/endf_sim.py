@@ -22,13 +22,15 @@
 import numpy as np
 import openmc
 
+
 def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
                             suffix='.00', ace_filename=None, temp=None,
                             emax=None, zaids=None, njoy_exec='njoy'):
     import os
-    import subprocess
-    import shutil
     import pathlib
+    import shutil
+    import subprocess
+
     import endf_parserpy
 
     natural_isotopes={
@@ -232,9 +234,7 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
             zaids = ' '.join(isotope_list)
         else:
             # If not, use the decomposition in natural isotopes
-            zaids = ( natural_isotopes[za]
-                      if za in natural_isotopes.keys()
-                      else f"{za}" )
+            zaids = natural_isotopes.get(za, f"{za}")
     if emax is None:
         emax = endf_dic[1][451]['EMAX']
         if emax <= 0:
@@ -277,7 +277,8 @@ stop
     delete_tapes()
     create_dummy_endf_file('tape20')
     shutil.copyfile(endf_tsl, 'tape31')
-    result = subprocess.run([njoy_exec], input=txt, capture_output=True, text=True)
+    result = subprocess.run([njoy_exec], input=txt,
+                            capture_output=True, text=True, check=False)
     assert result.stdout.find('error')==-1, f'Error in NJOY:\n{result.stdout}'
     assert result.returncode == 0, f'NJOY not executed correctly\n{result.stderr}'
     assert ( os.path.isfile('tape51')
@@ -421,8 +422,9 @@ def convert_openmc_ncrystal_to_ace(cfg, matname, elastic_mode):
     m = openmc.Material()
 
     # Generate ENDF-6 file
-    from NCrystal import ncmat2endf
     import os
+
+    from NCrystal import ncmat2endf
 
     outxml = os.environ['OPENMC_CROSS_SECTIONS']
     openmc_datalib = openmc.data.DataLibrary.from_xml(outxml)

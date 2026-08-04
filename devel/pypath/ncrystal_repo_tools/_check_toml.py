@@ -56,7 +56,9 @@ def _actual_load_data(subpath):
 def describe( data ):
     return '<root>/%s'%data['__srcloc__']
 
-def cmp_common_entries( keypath, dict1, dict2, allow_diff = [] ):
+def cmp_common_entries( keypath, dict1, dict2, allow_diff = None ):
+    if allow_diff is None:
+        allow_diff = []
     d1, d2 = dict1, dict2
     for k in keypath.split('.'):
         d1, d2 = d1[k], d2[k]
@@ -68,9 +70,9 @@ def cmp_common_entries( keypath, dict1, dict2, allow_diff = [] ):
             print()
             print(f'Inconsistency found in key "{keypath}.{k}:"')
             print()
-            print(f'   {describe(dict1)} has value: {repr(d1[k])}')
+            print(f'   {describe(dict1)} has value: {d1[k]!r}')
             print()
-            print(f'   {describe(dict2)} has value: {repr(d2[k])}')
+            print(f'   {describe(dict2)} has value: {d2[k]!r}')
             print()
             ok = False
     if not ok:
@@ -255,8 +257,8 @@ def _check_project_scripts_impl( data, *, cli_scripts, extra ):
     return False
 
 def check_all_toml_parsing():
-    from .srciter import all_files_iter
     from .dirs import reporoot
+    from .srciter import all_files_iter
     from .toml import parse_toml
     for f in all_files_iter('toml'):
         print("  Trying to simply load %s"%f.relative_to(reporoot))

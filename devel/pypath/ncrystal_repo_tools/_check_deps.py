@@ -26,8 +26,8 @@ def check_deps_in_toml_files(db):
     from .dirs import reporoot
     version = reporoot.joinpath('VERSION').read_text().strip()
 
-    from .dirs import reporoot
     from .depdb import load_part2deplist_from_pyproject_toml
+    from .dirs import reporoot
 
     def deplist_to_pyprojtoml_fmt( deplist ):
         res = []
@@ -63,8 +63,10 @@ def check_deps_in_toml_files(db):
 
 
 def check_env_files(db, *, fix = False):
-    from .depdb import ( produce_expected_requirements_txt_files,
-                         produce_expected_conda_yml_files )
+    from .depdb import (
+        produce_expected_conda_yml_files,
+        produce_expected_requirements_txt_files,
+    )
     from .dirs import reporoot
     expected = produce_expected_requirements_txt_files(db)
     expected.update( produce_expected_conda_yml_files(db) )

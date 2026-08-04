@@ -43,7 +43,8 @@ def _invoke( cmdname, args, env, block = False):
     import subprocess
     cmd = _find_sbcmd( cmdname )
     ev = subprocess.run([cmd]+args, env = env,
-                        capture_output = block )
+                        capture_output = block,
+                        check = False)
     if ev.returncode != 0:
         if block:
             print( ev.stderr.decode() )
@@ -51,6 +52,7 @@ def _invoke( cmdname, args, env, block = False):
 
 def mainsb( mode, is_debug, parser ):
     import os
+
     from .dirs import reporoot
     args = parser.get_raw_args()
     allow_long_tests = False

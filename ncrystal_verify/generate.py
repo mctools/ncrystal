@@ -126,8 +126,8 @@ def handle_extra_data( srcdir, targetdir ):
         safe_copy_file( f, targetdir )
 
 def main():
-    import sys
     import pathlib
+    import sys
     srcroot = pathlib.Path(__file__).parent
     reporoot = srcroot.parent
     sys.path.insert(0,str(reporoot.joinpath('devel','pypath')))

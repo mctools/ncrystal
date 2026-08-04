@@ -31,8 +31,8 @@ ignore_list_nonascii = set([
 
 def main():
 
-    from .srciter import all_files_iter
     from .dirs import reporoot
+    from .srciter import all_files_iter
     #For log files (and indeed all files) we simply test the size:
     max_size_kb_log = 300
     max_size_kb_other = 60

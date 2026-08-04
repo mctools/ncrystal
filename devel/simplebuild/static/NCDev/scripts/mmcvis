@@ -28,6 +28,7 @@
 
 import math
 
+
 def parse_printouts( lines ):
     import json
     c = 'NCMMCPRINTSTEP::'
@@ -42,8 +43,8 @@ def parse_printouts( lines ):
     return out
 
 def collect( n, seed0, cfgstr, geomcfg, srccfg ):
-    from NCrystalDev.minimc import run
     from NCrystalDev._common import capture_print_ctxmgr
+    from NCrystalDev.minimc import run
     results = []
     for irun in range(n):
         seed = seed0 + irun*117#not strictly OK, but good enough for
@@ -75,7 +76,7 @@ def plot_xz( *, geom_r, neutrons, colmode, do_pdf ):
     import matplotlib.pyplot as plt
     fig,ax = plt.subplots()
     #ax.set_facecolor('grey')
-    import matplotlib.patches as patches
+    from matplotlib import patches
     geom = patches.Circle((0.0, 0.0),
                           radius=geom_r,
                           edgecolor='black',

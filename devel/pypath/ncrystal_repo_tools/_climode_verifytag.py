@@ -31,9 +31,10 @@ def extract_version( pattern, tagstr ):
         return mo.groups()[0]
 
 def _get_git_version_tag( pattern ):
-    from .dirs import reporoot
-    import subprocess
     import shutil
+    import subprocess
+
+    from .dirs import reporoot
     if not shutil.which('git'):
         raise SystemExit('Error: git command not found')
     p = subprocess.run( ['git','tag','--points-at','HEAD'],

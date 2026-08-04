@@ -20,8 +20,10 @@
 ##                                                                            ##
 ################################################################################
 
-import sys
 import pathlib
+import sys
+
 sys.path.insert(0,str(pathlib.Path(__file__).parent.parent.joinpath('pypath')))
 import ncrystal_repo_tools._cli_ncdevtool as mod
+
 mod.main()

@@ -34,10 +34,10 @@ def main( parser ):
     )
     args = parser.parse_args()
 
-    from .util import work_in_tmpdir
-    from .cmake import CMakeRunner
-    from .util import get_nprocs
     import shutil
+
+    from .cmake import CMakeRunner
+    from .util import get_nprocs, work_in_tmpdir
     if not shutil.which('cppcheck'):
         raise SystemExit('Error: cppcheck command missing')
 
