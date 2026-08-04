@@ -166,7 +166,7 @@ class NCMATComposerImpl:
                         fmt='ncmat'
                     elif 'loop_' in data and '_atom_site' in data:
                         fmt='cif'
-                elif data.startswith('codid::') or data.startswith('mpid::') or data.lower().endswith('.cif'):
+                elif data.startswith(('codid::','mpid::')) or data.lower().endswith('.cif'):
                     fmt='cif'
                 elif data.lower().endswith('.ncmat'):
                     fmt='cfgstr'
@@ -820,7 +820,7 @@ class NCMATComposerImpl:
             return formatVectorForNCMAT(name,values,_magic_two_space)
 
         def transform_msd_to_vdosdebye( lbl, dyninfo ):
-            if not dyninfo or not dyninfo.get('ditype','') == 'msd':
+            if not dyninfo or dyninfo.get('ditype','') != 'msd':
                 return dyninfo
             d = {}
             d['ditype'] = 'vdosdebye'
@@ -989,7 +989,8 @@ class NCMATComposerImpl:
             fractions = self.__params.get('fractions')
             dyninfos = self.__params.get('dyninfos')
             if not fractions and not atompos and len(dyninfos)==1:
-                fractions = {list(dyninfos.keys())[0] : 1.0 }
+                fractions = {next(iter(dyninfos.keys())) : 1.0 }
+
             if fractions:
                 _lbl_counts = sorted( fractions.items())
         if not _lbl_counts:
@@ -1032,7 +1033,8 @@ class NCMATComposerImpl:
             line.append( str(order_high) )
         if mode is not None:
             line.append(mode)
-        old = [e for e in self.__params.get('unofficial_hacks',[]) if ( e and not e[0]=='vdos2sab_ignorecontrib' ) ]
+        old = [ e for e in self.__params.get('unofficial_hacks',[])
+                if ( e and e[0] != 'vdos2sab_ignorecontrib' ) ]
         self.__dirty()
         self.__params['unofficial_hacks'] = old  + [ line ]
 
@@ -1084,8 +1086,7 @@ class NCMATComposerImpl:
 
         if not is_crystal and len(dyninfos)==1 and not fractions:
             #in case of a single dyninfo we can assume the fraction is 1.0
-            fractions = {list(dyninfos.keys())[0] : 1.0 }
-
+            fractions = {next(iter(dyninfos.keys())) : 1.0 }
 
         atompos_fractions = None if not is_crystal else self.__determine_atompos_fractions( atompos )
         if atompos_fractions and fractions:

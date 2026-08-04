@@ -198,7 +198,7 @@ def results_check_compat_impl( _self, other, threshold, errfct ):
 
 def _validate_mmcresults_dict(data):
     #Very brief high-level validation:
-    if not data.get('datatype') == 'NCrystalMiniMCResults_v1':
+    if data.get('datatype') != 'NCrystalMiniMCResults_v1':
         return False
     return set(data.keys()) == set(['datatype','input','output'])
 

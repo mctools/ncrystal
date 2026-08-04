@@ -365,9 +365,9 @@ class Hist1D:
         title will not be updated. Returns self.
         """
         o = other_hist
-        self.__xmin == o.__xmin
-        self.__xmax == o.__xmax
-        self.__nbins == o.__nbins
+        self.__xmin = o.__xmin
+        self.__xmax = o.__xmax
+        self.__nbins = o.__nbins
         self.__stat_integral = o.__stat_integral
         self.__stat_rms = o.__stat_rms
         self.__stat_mean = o.__stat_mean

@@ -220,6 +220,7 @@ Basic parameters related to scattering processes:
   coh_elas
   incoh_elas
   inelas
+  knllux
   sans
   scatfactory
   vdoslux
@@ -343,6 +344,15 @@ Basic parameters related to scattering processes:
                  used to force a pure free-gas scattering model). The "external"
                  mode implies usage of an externally provided cross-section
                  curve with an isotropic-elastic scattering model.
+
+  knllux:
+    Type: integer
+    Default value: -1
+    Description: Setting affecting "luxury" level when integrating and sampling
+                 inelastic scattering kernels. Currently this parameter is only
+                 intended to be modified by NCrystal developers and should be
+                 left at its default value of -1, but this will certainly change
+                 in the future so stay tuned.
 
   sans:
     Type: boolean

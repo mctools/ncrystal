@@ -23,7 +23,7 @@
 # NEEDS: numpy mpmath
 #
 import mpmath # noqa F401
-import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.enable_fpe
 import NCTestUtils.stabilise_ncpprint # noqa F401
 from NCTestUtils.sabcelleval import RefCell
 from NCrystalDev._common import ncpprint

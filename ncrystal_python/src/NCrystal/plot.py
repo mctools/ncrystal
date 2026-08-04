@@ -192,7 +192,7 @@ def plot_xsects( *materials, **plotkwargs ):
     col_ordered = _get_col_ordered()
     for i,m in enumerate(mats):
         plotkwargs['color'] = col_ordered[i%len(col_ordered)]
-        plotkwargs['labelfct'] = lambda _ : m.plotlabel
+        plotkwargs['labelfct'] = lambda _, capture=m.plotlabel : capture
         if i+1 == len(mats):
             #the last:
             plotkwargs['logy'] = do['logy']
@@ -233,6 +233,7 @@ def plot_vdos( *vdos, unit='meV',
             if v.has_orig:
                 ll.append( (v, True ) )
         vdoslist = ll
+    del vdos
 
     pctx = PlotContext(**kw_plot).check_unused()
 
@@ -351,7 +352,7 @@ def plot_knl( kernel, do_grid = True, logz=False, phasespace_curves = None,
     alpha_minus = _np.vectorize(lambda *a : alpha_limits(*a)[0])
     alpha_plus = _np.vectorize(lambda *a : alpha_limits(*a)[1])
     def kin_curve( E_div_kT ):
-        b0, b1 = b0,b1=max(beta.min(),-E_div_kT),beta.max()
+        b0, b1 = max(beta.min(),-E_div_kT),beta.max()
         #Smoother curve by putting more points around beta=0, less points
         #further out (actually, we could improve this alg when
         #ekin_div_kT>>1):
@@ -545,11 +546,14 @@ class PlotContext:
 
         if plot_context is not None:
             if do_show is not None:
-                return err('explicit do_show not supported with plot_context')
+                err('explicit do_show not supported with plot_context')
+                return
             if axis is not None:
-                return err('do not provide both plot_context and axis')
+                err('do not provide both plot_context and axis')
+                return
             if plt is not None:
-                return err('do not provide both plot_context and plt')
+                err('do not provide both plot_context and plt')
+                return
             #Done, just adopt contents ("move semantics"):
             self.__axisgen = plot_context.__axisgen
             self.__pltgen = plot_context.__pltgen
@@ -559,7 +563,8 @@ class PlotContext:
             return
 
         if (plt is not None) and (axis is not None):
-            return err('do not provide both axis and plt')
+            err('do not provide both axis and plt')
+            return
 
         #Setup on-demand access to plt object:
         if plt:

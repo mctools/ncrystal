@@ -22,7 +22,7 @@
 
 # NEEDS: numpy matplotlib
 
-#gives problems with matplotlib: import NCTestUtils.enable_fpe # noqa F401
+#gives problems with matplotlib: import NCTestUtils.enable_fpe
 import NCTestUtils.reprint_escaped_warnings # noqa F401
 import NCrystalDev as NC
 import NCrystalDev.cli as nc_cli
@@ -135,12 +135,12 @@ def main():
         test_cli(['Al_sg225.ncmat;vdoslux=1;temp=1000K','--pdf'])
 
     test_cli(['--cfg',
-              'phases<0.65*Al_sg225.ncmat&0.35'
-              '*MgO_sg225_Periclase.ncmat>;temp=100K'])
+              ('phases<0.65*Al_sg225.ncmat&0.35'
+               '*MgO_sg225_Periclase.ncmat>;temp=100K')])
 
     test_cli(['--phases',
-              'phases<0.65*Al_sg225.ncmat&0.35'
-              '*MgO_sg225_Periclase.ncmat>;temp=100K'])
+              ('phases<0.65*Al_sg225.ncmat&0.35'
+               '*MgO_sg225_Periclase.ncmat>;temp=100K')])
 
     test_cli(['Al_sg225.ncmat;temp=10 K;vdoslux=1',
               'Al_sg225.ncmat;vdoslux=1;temp=10K',

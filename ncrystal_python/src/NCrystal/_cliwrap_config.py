@@ -46,5 +46,5 @@ def main( progname, arglist ):
         cmdname = 'sb_nccmd_config'
     cmd = shutil.which( cmdname )
     assert cmd, f'{cmdname} command not found!'
-    rv = subprocess.run( [cmd]+arglist[:] )
+    rv = subprocess.run( [cmd]+arglist[:], check=False )
     raise SystemExit(rv.returncode)

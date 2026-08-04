@@ -355,12 +355,10 @@ def files2cppcode(infiles,
             raw_data_bytes = data['read_bytes_function']()
             out += [ prefix+'  static const std::array<std::uint8_t,%i> rawdata {'%(len(raw_data_bytes)+1)]
             n = len(raw_data_bytes)
-            n_on_current_line = 0
             delim,currentline='',''
             _prefstr = prefix+'    '
             ndatawidth = width-len(_prefstr)
             for c in raw_data_bytes:
-                ++n_on_current_line
                 currentline += delim + str(c)
                 delim = ','
                 if len(currentline)>=ndatawidth:

@@ -22,12 +22,14 @@
 
 # NEEDS: numpy
 
-from NCTestUtils.common import print_text_file_with_snipping
+import pathlib
+import sys
+
 import NCrystalDev as NC
 import NCrystalDev.cli as nccli
 import numpy as np
-import pathlib
-import sys
+from NCTestUtils.common import print_text_file_with_snipping
+
 do_plot = '--plot' in sys.argv[1:]
 if do_plot:
     import matplotlib.pyplot as plt #noqa E402

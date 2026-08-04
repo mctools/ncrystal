@@ -24,6 +24,7 @@
 import numpy as np
 from NCrystalDev.hist import HistFiller1D
 
+
 def main():
     hist_test = HistFiller1D( 20, -10.0, 10.0, title='test' )
     for i in range(4):

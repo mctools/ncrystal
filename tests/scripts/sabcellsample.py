@@ -25,65 +25,10 @@
 import NCTestUtils.enable_fpe # noqa F401
 from NCTestUtils.env import ncsetenv
 from NCrystalDev.misc import evaluate_query as ncquery
-from NCrystalDev.hist import HistFiller1D
+#from NCrystalDev.hist import HistFiller1D
 from NCTestUtils.stat import kolmogorov_smirnov_pvalue
+from NCTestUtils.sabsampleutils import Samples, onedim_projections
 import numpy as np
-
-hist1d_nbins = 70
-
-onedim_projections = [('a',lambda a,b:a),
-                      ('b',lambda a,b:b),
-                      ('amb',lambda a,b:(a-b)),
-                      ('apb',lambda a,b:(a+b))]
-
-class Samples:
-
-    def __init__( self, name, hists_template = None ):
-        self.name = name
-        self.ntries = 0
-        self.n = 0
-        self.__hists = {}
-        self.__hists_template = hists_template
-
-    def clone_empty( self, name ):
-        assert self.__hists_template is not None, "fill before clone_empty"
-        return Samples( name, self.__hists_template )
-
-    def AR( self ):
-        assert self.ntries >= self.n
-        return ( self.n / self.ntries ) if self.ntries else None
-
-    def __init_template( self, avals, bvals, ntries ):
-        def _bi(x):
-            if not len(x)>0:
-                return (10,0.0,1.0)
-            xmin,xmax,nbins = x.min(),x.max(),hist1d_nbins
-            dx = max(xmax-xmin,1e-199)/nbins
-            return ( nbins, xmin-dx, xmax+dx )
-        self.__hists_template = []
-        for title, fct in onedim_projections:
-            self.__hists_template.append( (title,fct,
-                                           HistFiller1D(_bi(fct(avals,bvals)),
-                                                        title=title)))
-    def add_data( self, avals, bvals, ntries ):
-        avals = np.asarray(avals,dtype=float)
-        bvals = np.asarray(bvals,dtype=float)
-        if self.__hists_template is None:
-            self.__init_template(avals, bvals, ntries)
-        for title, fct, htemplate in self.__hists_template:
-            h=htemplate.clone_empty()
-            h.fill(fct(avals,bvals))
-            if title not in self.__hists:
-                self.__hists[title] = h
-            else:
-                self.__hists[title].add_contents( h )
-        assert len(avals)==len(bvals)
-        if ntries is not None:
-            self.ntries += ntries
-        self.n += len(avals)
-
-    def create_hist( self, key ):
-        return self.__hists[key].to_hist1d()
 
 _seed_vals = [12345]
 def testcell(*,E_div_kT, alpha, beta, svals = None,
@@ -214,9 +159,9 @@ def testcell(*,E_div_kT, alpha, beta, svals = None,
             print_pvalline('worst',min(p for k,p in pvdict.items()))
 
     if do_plot:
-        from NCTestUtils.sabcelleval import plot_celleval
-        from NCrystalDev.plot import PlotContext
         import matplotlib.pyplot as plt
+        from NCrystalDev.plot import PlotContext
+        from NCTestUtils.sabcelleval import plot_celleval
         fig, axes = plt.subplots(2, 3, figsize=(12, 6))
 
         title='s11=%g, s12=%g, s21=%g, s22=%g'%tuple(res['S'])
@@ -256,10 +201,10 @@ def testcell(*,E_div_kT, alpha, beta, svals = None,
             hstd = hists['std']
             halt = hists['alt']
             hmp = hists.get('mp')
-            for k in hists.keys():
-                if k!='ref' and hists[k].integral>0.0:
-                    hists[k].scale( (href.binwidth*href.integral)
-                                    /(hists[k].binwidth*hists[k].integral) )
+            for k,v in hists.items():
+                if k!='ref' and v.integral>0.0:
+                    v.scale( (href.binwidth*href.integral)
+                                    /(v.binwidth*v.integral) )
             pval = hstd.check_compat(href,return_pval=True,check=False)
             pval_alt = ( hstd.check_compat(halt,return_pval=True,check=False)
                          if altsampled_ok else None )
@@ -427,6 +372,14 @@ def main(do_plot,luxlvl,mplvl,test_select):
         #fine:
         #dict(E_div_kT=0.01,alpha=(5.5-1e-12,5.5),beta=(5,5.92),
         #     svals=[1.0,0.009,1.0,0.009]),
+
+        dict( E_div_kT=39.58561183871582 * 0 + 40,
+              alpha=(158.28456094789,160.60010716438572),
+              beta=(-2.2701714000978403e-14,-2.1202501083299951e-17),
+              svals=[ 0.028331793397541188,
+                      0.027532855700519738,
+                      0.027532855700519426,
+                      0.026748257342144074 ] ),
 
     ]
 

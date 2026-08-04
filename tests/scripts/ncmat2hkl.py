@@ -22,16 +22,19 @@
 
 # NEEDS: numpy
 
-import NCrystalDev as NC
-from NCTestUtils.common import fix_ncrystal_version_printouts
-import NCrystalDev.cli as nc_cli
-import pathlib
 import contextlib
+import pathlib
 import shlex
-from NCTestUtils.common import ( print_text_file_with_snipping,
-                                 ensure_error,
-                                 work_in_tmpdir,
-                                 fmt_args_as_str )
+
+import NCrystalDev as NC
+import NCrystalDev.cli as nc_cli
+from NCTestUtils.common import (
+    ensure_error,
+    fix_ncrystal_version_printouts,
+    fmt_args_as_str,
+    print_text_file_with_snipping,
+    work_in_tmpdir,
+)
 
 #default is to encode numbers in produced .laz/.lau files with 14 digits of
 #precision (%.14g), but for robustness of the unit test we reduce this in any

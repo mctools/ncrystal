@@ -105,8 +105,8 @@ def main():
     assert h1 == h3
     assert ( h1.contents == h3.contents ).all()
     assert ( h1.contents != h2.contents ).all()
-    assert not ( h1 == h2 )
-    assert not ( tallymu_1 == tallymu_2 )
+    assert h1 != h2
+    assert tallymu_1 != tallymu_2
 
 
 if __name__ == '__main__':

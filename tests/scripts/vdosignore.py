@@ -24,8 +24,8 @@
 
 # Dedicated test for various plotting code, to increase test coverage.
 import NCrystalDev.core as nccore
-from NCrystalDev.ncmat import NCMATComposer
 from NCrystalDev._numpy import _np_linspace
+from NCrystalDev.ncmat import NCMATComposer
 from NCTestUtils.env import ncsetenv
 
 ncmatfile = 'Al_sg225.ncmat'

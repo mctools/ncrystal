@@ -42,7 +42,7 @@ NC.setDefaultRandomGenerator(None)#better test reproducibility
 
 
 #conversions
-for f in 'ekin2wl wl2ekin ekin2ksq wl2k wl2ksq'.split():
+for f in ['ekin2wl', 'wl2ekin', 'ekin2ksq', 'wl2k', 'wl2ksq']:
     for val in 0.5, 1.0, 2.0, 0.0, float('inf'):
         print(f'Conversion: NC.{f}({val}) = {getattr(NC,f)(val):.14g}')
 
@@ -109,7 +109,6 @@ myprint("... same with xsect method3: %g barn"%calc_scatfactsc.xsect( direction=
 myprint("A few generated scattering angles using the full 3d vector interface:")
 _iii = [0]
 def test_genscatter(scatter,wl,indir):
-    global _iii
     _iii[0] += 1
     select = _iii[0]%4
     if select == 0:
@@ -187,7 +186,7 @@ try:
         myprint("Caught NCCalcError!:")
         myprint('  Type    : ',e.__class__.__name__)
         myprint('  Message : ',e.message)
-except Exception:
+except Exception: #noqa BLE001
     pass
 assert not caught
 myprint("Did not catch exception! (as expected)")
@@ -240,7 +239,7 @@ try:
 except UnicodeEncodeError:
     #file system encoding does not allow our special character - avoid test
     #failure by falling back to ascii name:
-    dirname=u'asciidir_testXabc'
+    dirname='asciidir_testXabc'
     testdir=pathlib.Path() / dirname
     testdir.mkdir()
 assert testdir.is_dir()

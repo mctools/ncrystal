@@ -77,7 +77,7 @@ def main(do_plot, do_update):
     assert tallied_stats['count'] == ntot[0]
 
     #convert to Hist1D:
-    for k in hists.keys():
+    for k in hists:
         hists[k] = hists[k].to_hist1d()
 
     print()

@@ -332,6 +332,18 @@ Test loading of :>>>phases<0.1*unicodedir_test䔀abc{{NATIVEPATHSEP}}Al_sg225.nc
                   'name': 'inelas',
                   'type': 'string'},
                  {'allowed_input_units': None,
+                  'default_value': -1,
+                  'default_value_str': '-1',
+                  'description': 'Setting affecting "luxury" level when '
+                                 'integrating and sampling inelastic '
+                                 'scattering kernels. Currently this parameter '
+                                 'is only intended to be modified by NCrystal '
+                                 'developers and should be left at its default '
+                                 'value of -1, but this will certainly change '
+                                 'in the future so stay tuned.',
+                  'name': 'knllux',
+                  'type': 'integer'},
+                 {'allowed_input_units': None,
                   'default_value': True,
                   'default_value_str': '1',
                   'description': 'Control presence of SANS models.  Note that '

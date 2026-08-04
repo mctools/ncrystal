@@ -243,7 +243,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
     for ee in args.mdata_kvlist or []:
         for e in ee:
             kv = list(_.strip() for _ in e.split(':',1))
-            if not len(kv)==2 or not kv[0]:
+            if len(kv)!=2 or not kv[0]:
                 parser.error(f'Invalid parameter for -m: {e!r}')
             args.mdata[kv[0]] = kv[1]
     args.m = None
@@ -278,9 +278,8 @@ def main( progname, arglist ):
     args = _parseArgs( progname, arglist )
     if args.quiet:
         from ._common import WarningSpy, modify_ncrystal_print_fct_ctxmgr
-        with modify_ncrystal_print_fct_ctxmgr('block'):
-            with WarningSpy( block = True ):
-                _main_impl(args)
+        with modify_ncrystal_print_fct_ctxmgr('block'), WarningSpy( block = True ):
+            _main_impl(args)
     else:
         _main_impl(args)
 

@@ -28,7 +28,7 @@ from NCrystalDev.minimc_objects import MMCResults, MMCTallyView
 from NCrystalDev.hist import Hist1D
 from NCrystalDev.exceptions import NCBadInput, NCCalcError
 from NCTestUtils.env import ncsetenv
-import NCTestUtils.dirs as dirs
+from NCTestUtils import dirs
 from NCTestUtils.common import ensure_error
 import NCTestUtils.reprint_escaped_warnings # noqa F401
 import pprint
@@ -132,11 +132,11 @@ def main(do_plot, do_update):
     resA_ref2 = ncmmc.MMCResults(reffileA.read_text())
     resB_ref = ncmmc.MMCResults(reffileB)
     print("Testing equality")
-    assert not (resA_ref==117)
-    assert (resA_ref==resA_ref)
+    assert not (resA_ref==117) # noqa SIM201
+    assert (resA_ref==resA_ref) # noqa PLR0124
     assert (resA_ref==resA_ref2)
     assert (resA_ref!=resB_ref)
-    assert not (resA_ref==resB_ref)
+    assert not (resA_ref==resB_ref) #noqa SIM201
     assert resA_ref.tally('theta')==resA_ref.tally('theta')
     assert resA_ref.tally('theta')==resA_ref2.tally('theta')
     assert resA_ref.tally('theta') is not None
@@ -284,8 +284,8 @@ def main(do_plot, do_update):
     with ensure_error(TypeError,'Do not create MMCTallyView objects directly'):
         MMCTallyView( {'foo':'bar'} )
     assert resA.tally('theta').mother is resA
-    assert not ( resA == resB )
-    assert not ( resV0 == resV3 )
+    assert not ( resA == resB ) #noqa SIM201
+    assert not ( resV0 == resV3 ) #noqa SIM201
     print("some tally units and short descriptions:")
     for t in resV3.tallies:
         print(repr(t.name),repr(t.unit),repr(t.short_description))

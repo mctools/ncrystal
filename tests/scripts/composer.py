@@ -20,9 +20,11 @@
 ##                                                                            ##
 ################################################################################
 
+import pathlib
+
 import NCrystalDev as NC
 from NCTestUtils.common import ensure_error
-import pathlib
+
 
 def main():
     print('\n\n  ================> He Ne gas example\n\n')

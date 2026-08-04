@@ -113,15 +113,19 @@ def main(do_lux, do_plot):
         mu_expected = 1.0 - 2.0 * sinthetabragg**2
 
 
-        def sample_and_check_n(thehist,n):
-            ekin_final, outdir = scatterproc.scatter(direction=indir, wl=wl,
+        def sample_and_check_n( thehist,
+                                n,
+                                _indir=indir,
+                                _mu_expected = mu_expected,
+                                _wl = wl ):
+            ekin_final, outdir = scatterproc.scatter(direction=_indir, wl=_wl,
                                                      repeat=n)
             #Check energy:
-            assert (abs(ekin2wl(ekin_final)-wl)<1e-7).all()
+            assert (abs(ekin2wl(ekin_final)-_wl)<1e-7).all()
             #Check mu:
-            assert (abs(calc_mu(indir,outdir)-mu_expected)<1e-7).all()
+            assert (abs(calc_mu(_indir,outdir)-_mu_expected)<1e-7).all()
             #Check azimuthal:
-            phi = calc_azimuthal( indir, outdir )
+            phi = calc_azimuthal( _indir, outdir )
             assert not np.isnan(phi).any()
             assert -np.pi < phi.min() < -0.9*np.pi
             assert np.pi*0.9 < phi.max() < np.pi

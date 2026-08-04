@@ -33,7 +33,7 @@ def query_print( key, load = True ):
     print( "===============================================================" )
     print( "===============================================================" )
     print( "===============================================================" )
-    print( f"=== NC.createTextData( {repr(key)} ===" )
+    print( f"=== NC.createTextData( {key!r} ===" )
     td = NC.createTextData(key)
     print( "=== Printing line by line ===" )
     for line in td:

@@ -560,7 +560,8 @@ class PhononDOSAnalyser:
                     if regn is not None:
                         lblcomments+=[f'npts={regn}']
                 lblcomment = ','.join(lblcomments)
-                plot_kwargs['labelfct'] = lambda lbl : f'{lbl} ({lblcomment})'
+                plot_kwargs['labelfct'] = ( lambda lbl, capture=lblcomment
+                                            : f'{lbl} ({capture})' )
                 color_offset += len(selected)
                 o = self if t is None else self.apply_cutoff( t, *selected )
                 if regn is not None:
@@ -611,7 +612,8 @@ class PhononDOSAnalyser:
                 c.set_dyninfo_vdos( lblmap[lbl], comment = 'From PhononDOSAnalyser', **o.get_dyninfo_args(lbl) )
             if not color:
                 plot_kwargs['color'] = colorder[iplot%len(colorder)]
-            plot_kwargs['labelfct'] = lambda x : thr_description
+            plot_kwargs['labelfct'] = ( lambda x, capture=thr_description
+                                        : capture )
             c.plot_xsect( **plot_kwargs, **pctx.kwargs_subcontext() )
 
         t = 'DOS cutoff effect'

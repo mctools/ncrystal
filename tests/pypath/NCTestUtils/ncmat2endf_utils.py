@@ -19,20 +19,20 @@
 ##                                                                            ##
 ################################################################################
 
-from NCrystalDev.ncmat2endf import ncmat2endf
+import NCrystalDev.atomdata as nc_atomdata
+import NCrystalDev.cli as nc_cli
+import NCrystalDev.constants as nc_constants
+import NCrystalDev.core as nc_core
+import NCrystalDev.ncmat as nc_ncmat
+import NCrystalDev.vdos as nc_vdos
+from NCrystalDev._common import fixed_fake_datetime_now
 from NCrystalDev._ncmat2endf_impl import _endf_clean
 from NCrystalDev._numpy import _np
 from NCrystalDev.exceptions import NCBadInput
-from NCrystalDev._common import fixed_fake_datetime_now
+from NCrystalDev.ncmat2endf import ncmat2endf
 
-import NCrystalDev.cli as nc_cli
-import NCrystalDev.core as nc_core
-import NCrystalDev.constants as nc_constants
-import NCrystalDev.atomdata as nc_atomdata
-import NCrystalDev.vdos as nc_vdos
-import NCrystalDev.ncmat as nc_ncmat
-from .common import ( print_text_file_with_snipping,
-                      require_flteq )
+from .common import print_text_file_with_snipping, require_flteq
+
 
 @fixed_fake_datetime_now
 def test_cfg( cfg, check_teff=False,

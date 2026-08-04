@@ -24,16 +24,17 @@
 
 # Dedicated test for various plotting code, to increase test coverage.
 
-from NCrystalDev.ncmat import NCMATComposer
-import NCrystalDev.plot as ncplot
 import NCrystalDev.core as nccore
+import NCrystalDev.plot as ncplot
 import NCrystalDev.vdos as ncvdos
-from NCrystalDev.misc import AnyVDOS
-from NCTestUtils.env import ncsetenv
+import NCTestUtils.reprint_escaped_warnings  # noqa F401
 from NCrystalDev._numpy import _np_linspace
-from NCTestUtils.common import ensure_error
-import NCTestUtils.reprint_escaped_warnings # noqa F401
 from NCrystalDev.exceptions import NCBadInput, NCLogicError
+from NCrystalDev.misc import AnyVDOS
+from NCrystalDev.ncmat import NCMATComposer
+from NCTestUtils.common import ensure_error
+from NCTestUtils.env import ncsetenv
+
 
 def main(do_plot):
     if not do_plot:

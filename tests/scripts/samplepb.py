@@ -27,8 +27,8 @@
 
 
 def samplepb(x0,y0,x1,y1,nsample):
-    from NCrystalDev.misc import evaluate_query as ncquery
     import numpy as np
+    from NCrystalDev.misc import evaluate_query as ncquery
     res = ncquery( [ 'sab','samplepb',
                      str(x0),str(y0),str(x1),str(y1),str(nsample) ] )
     s = res['samples']
@@ -50,8 +50,8 @@ def plot_samples(axis,x0,y0,x1,y1,nsample, **plotkwargs):
     return details
 
 def plot_pb(axis,xmax,n = 10000, **plotkwargs):
-    from NCrystalDev._numpy import _np_linspace
     import numpy as np
+    from NCrystalDev._numpy import _np_linspace
     x = _np_linspace( 0.0, xmax, n )
     sx = np.sqrt(x)
     ym = (sx-1.0)**2

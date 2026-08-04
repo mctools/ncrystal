@@ -21,6 +21,7 @@
 
 import math
 
+
 class TestRNG:
     #Very simplistic and unscientific RNG, exclusively to be used for unit test
     #reproducibility (we could have used NCrystal's own proper RNG, but we do

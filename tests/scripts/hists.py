@@ -22,13 +22,15 @@
 
 # NEEDS: numpy
 
+import math
+
 from NCrystalDev.exceptions import NCBadInput, NCCalcError
 from NCrystalDev.hist import Hist1D
-from NCTestUtils.hists import Hist1Dcpp
-from NCTestUtils.randutils import TestRNG
 from NCTestUtils.common import ensure_error
 from NCTestUtils.env import ncsetenv
-import math
+from NCTestUtils.hists import Hist1Dcpp
+from NCTestUtils.randutils import TestRNG
+
 
 def main(do_plot):
     if not do_plot:
@@ -339,7 +341,7 @@ def main(do_plot):
                       mean=hist.mean,
                       rms=hist.rms )
         okall = True
-        for k in ref.keys():
+        for k in ref:
             v, vref = hvals[k], ref[k]
             ok = abs(v-vref)<1e-10
             print("  -> Stat: %s = %g (ref) %g (hist) %s"%( k, vref, v,

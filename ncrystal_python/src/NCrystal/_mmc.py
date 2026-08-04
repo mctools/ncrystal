@@ -77,11 +77,11 @@ def quick_diffraction_pattern( cfgstr, *,
         return t1-t0, res
 
     if nstat is None or nstat=='auto':
-        for nstat in [1e4,1e5,1e6,1e7]:
-            t,res = simfct(nstat,cfgstr)
+        for nstattest in [1e4,1e5,1e6,1e7]:
+            t,res = simfct(nstattest,cfgstr)
             #Usually, end within a second in total, but in worst cases, up to
             #10seconds:
-            if ( t>0.1 and nstat >= 1e6 ) or t>1.0:
+            if ( t>0.1 and nstattest >= 1e6 ) or t>1.0:
                 break
     else:
         t,res=simfct(nstat,cfgstr)

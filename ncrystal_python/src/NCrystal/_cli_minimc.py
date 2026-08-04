@@ -256,7 +256,7 @@ format.
             parser.error(f'Output directory not found: {p.parent}')
         p = p.absolute()
         stem, sufs = p.stem, p.suffixes
-        if ( not stem or stem.startswith('.') or stem.startswith('-')
+        if ( not stem or stem.startswith(('.','-'))
              or ( sufs[-2:]!=['.json','.gz'] and sufs[-1:] != ['.json'] ) ):
              parser.error('Invalid filename (must end with'
                           f' .json or .json.gz): {p.name}')
@@ -339,7 +339,7 @@ format.
         args.tally=None
     else:
         #At this point, merely test that all entries are valid TallyFlags:
-        t = set([ e.strip() for e in args.tally.split(',')] )
+        t = {e.strip() for e in args.tally.split(',')}
         a = set(tallylists['ALL'])
         if t-a:
             parser.error('Unsupported tally flag: %s'%((t-a).pop()))
@@ -364,9 +364,8 @@ def main( progname, arglist ):
         do_quiet = False
     if do_quiet:
         from ._common import WarningSpy, modify_ncrystal_print_fct_ctxmgr
-        with modify_ncrystal_print_fct_ctxmgr('block'):
-            with WarningSpy( block = True ):
-                _main_impl(progname,args)
+        with modify_ncrystal_print_fct_ctxmgr('block'), WarningSpy( block = True ):
+            _main_impl(progname,args)
     else:
         _main_impl(progname,args)
 

@@ -33,7 +33,7 @@ def get_all_vals():
         if isinstance(v,float):
             yield k,v
 for k,v in sorted(get_all_vals()):
-    print( f"NCrystal.constants.{k} = {repr(v)}" )
+    print( f"NCrystal.constants.{k} = {v!r}" )
 
 def reldiff( x, y ):
     if math.isinf(x):

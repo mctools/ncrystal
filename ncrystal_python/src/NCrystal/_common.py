@@ -71,9 +71,7 @@ def ncgetenv( name, defval = None ):
 
 def ncgetenv_bool( name ):
     v = ncgetenv( name )
-    if v is None or v=='0':
-        return False
-    return True
+    return not (v is None or v=='0')
 
 def ncgetenv_int( name, defval ):
     assert isinstance( defval, int)
@@ -470,18 +468,19 @@ def download_url( url,
             return None
         if wrap_exception:
             from .exceptions import NCException
-            raise NCException(f'Error downloading url "{url}": {e}')
+            raise NCException(f'Error downloading url "{url}": {e}') from e
         else:
-            raise e
+            raise
     if decode_as_utf8_str:
         try:
             data = data.decode('utf8')
         except UnicodeDecodeError as e:
             if wrap_exception:
                 from .exceptions import NCException
-                raise NCException(f'Error decoding url to utf8 data "{url}": {e}')
+                raise NCException('Error decoding url to utf8 data'
+                                  f' "{url}": {e}') from e
             else:
-                raise e
+                raise
     return data
 
 def _decodeflt(s):
@@ -542,7 +541,7 @@ _override_datetime_now = [ None ]
 def _datetime_now():
     """Returns datetime.datetime.now() but possibly intercepted for unit tests"""
     import datetime
-    n = datetime.datetime.now()
+    n = datetime.datetime.now(datetime.timezone.utc)
     return _override_datetime_now[0] or n
 
 class FixedFakeDatetimeNow:
@@ -616,7 +615,7 @@ def copy_and_deobjectify_data( data ):
 
 def _frexp10(x):
     import math
-    exp = int(math.floor(math.log10(abs(x))))
+    exp = math.floor(math.log10(abs(x)))
     return x / 10**exp, exp
 
 def _latex_format(x):

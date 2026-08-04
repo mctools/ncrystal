@@ -30,7 +30,7 @@ from pathlib import Path as _Path
 _pymoddir = _Path(__file__).resolve().absolute().parent
 
 def _find_data_dir():
-    from .modeinfo import is_simplebuild_mode, is_ncrystalverify_mode
+    from .modeinfo import is_ncrystalverify_mode, is_simplebuild_mode
     if is_simplebuild_mode():
         import os
         ddir = _Path(os.environ['SBLD_DATA_DIR'])/'NCTestUtils'
@@ -60,7 +60,7 @@ def get_named_test_data_dir(name, for_updates = False ):
     else:
         if not name:
             return test_data_dir
-        from .modeinfo import is_simplebuild_mode, is_ncrystalverify_mode
+        from .modeinfo import is_ncrystalverify_mode, is_simplebuild_mode
         if is_simplebuild_mode():
             import os
             ddir = _Path(os.environ['SBLD_DATA_DIR'])/f'NCTestData_{name}'

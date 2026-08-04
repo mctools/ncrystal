@@ -122,7 +122,7 @@ def create_ArgumentParser( *args, **kwargs ):
         #formatting:
         orig_format_act_invoc = parser.formatter_class._format_action_invocation
         def _format_action_invocation(self, action):
-            if action.option_strings and not action.nargs == 0:
+            if action.option_strings and action.nargs != 0:
                 default = self._get_default_metavar_for_optional(action)
                 args_string = self._format_args(action, default)
                 return ', '.join(action.option_strings) + ' ' + args_string
@@ -231,7 +231,7 @@ def cli_entry_point(func):
                 func( progname, arglist )
             except NCException as e:
                 if warn_escape:
-                    raise e
+                    raise
                 n=e.__class__.__name__
                 if n.startswith('NC'):
                     n = n[2:]
@@ -239,7 +239,7 @@ def cli_entry_point(func):
                                                  str(e) or '<unknown>')) from e
             except Exception as e:
                 if warn_escape:
-                    raise e
+                    raise
                 raise SystemExit('ERROR: %s'%(str(e) or '<unknown>')) from e
     return mainfct
 

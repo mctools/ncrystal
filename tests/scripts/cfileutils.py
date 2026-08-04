@@ -85,7 +85,8 @@ def test2():
                   '.',
                   '',
                   '/',
-                  './'#os.path.basename of this is empty
+                  './\\',
+                  './',#os.path.basename of this is empty
                   '\\',
                   '/some/where//\\bla.txt',
                   'some\\where/bla.txt',
@@ -139,9 +140,9 @@ def test2():
                 return dict(pathlib=pobj.name)
             for refsrc, refbasename in decode_refbn(p).items():
                 if refbasename != nc_basename:
-                    raise SystemExit(f"basename({repr(p)}) mismatch:"
-                                     f" ncrystal={repr(nc_basename)}"
-                                     f" {refsrc}={repr(refbasename)}")
+                    raise SystemExit(f"basename({p!r}) mismatch:"
+                                     f" ncrystal={nc_basename!r}"
+                                     f" {refsrc}={refbasename!r}")
 
             _isabs = lib.nctest_path_is_absolute( p )
             for fct in fctnames_same_is_absolute:
@@ -201,22 +202,22 @@ def test4():
         assert nonnative_sep not in res
         expected = expected.replace('/',native_sep)
         if res != expected:
-            raise SystemExit(f'NCrystal::dirname({repr(path)}) gave'
-                             f' {repr(res)} and not the'
-                             f' expected {repr(expected)}.')
+            raise SystemExit(f'NCrystal::dirname({path!r}) gave'
+                             f' {res!r} and not the'
+                             f' expected {expected!r}.')
 
     def testbn(path,expected):
         res=lib.nctest_basename(path)
         res_view=lib.nctest_basename_view(path)
         if res != res_view:
-            raise SystemExit(f'NCrystal::basename({repr(path)})={repr(res)}'
+            raise SystemExit(f'NCrystal::basename({path!r})={res!r}'
                              ' and '
-                             f' NCrystal::basename_view({repr(path)})'
-                             f'={repr(res_view)} differ!!')
+                             f' NCrystal::basename_view({path!r})'
+                             f'={res_view!r} differ!!')
         if res != expected:
-            raise SystemExit(f'NCrystal::basename({repr(path)}) gave'
-                             f' {repr(res)} and not the'
-                             f' expected {repr(expected)}.')
+            raise SystemExit(f'NCrystal::basename({path!r}) gave'
+                             f' {res!r} and not the'
+                             f' expected {expected!r}.')
 
     testdirname(".",".")
     testbn(".","")
@@ -272,9 +273,9 @@ def test4():
         res_view=lib.nctest_fileextension_view(path)
         assert res == res_view
         if res != expected:
-            raise SystemExit(f'NCrystal::fileextension({repr(path)}) gave'
-                             f' {repr(res)} and not the'
-                             f' expected {repr(expected)}.')
+            raise SystemExit(f'NCrystal::fileextension({path!r}) gave'
+                             f' {res!r} and not the'
+                             f' expected {expected!r}.')
 
     testext("../bla/hej.txt","txt")
     testext("../bla/hej.lala.txt","txt")
@@ -311,7 +312,7 @@ def test5( workdir ):
         assert not fabs.exists()
         symlink = finfo.get('symlink','')
         is_dir = bool(finfo.get('is_dir'))
-        print(f'-->  Creating test file {repr(f)}'
+        print(f'-->  Creating test file {f!r}'
               f' (is_dir={is_dir}, is_symlink={bool(symlink)})')
         if symlink:
             #might have is_dir True
@@ -352,9 +353,9 @@ def test5( workdir ):
 
         if not real_path0:
             print( 'ERROR: real_path returns empty (fails) for:')
-            print( f"  arg: {repr(str(fabs_resolved))} (fabs_resolved)")
-            print( f"  fabs= {repr(str(fabs))}")
-            print( f"  cwd= {repr(str(os.getcwd()))}")
+            print( f"  arg: {str(fabs_resolved)!r} (fabs_resolved)")
+            print( f"  fabs= {str(fabs)!r}")
+            print( f"  cwd= {str(os.getcwd())!r}")
             raise SystemExit(1)
 
         transforms = [ str,
@@ -380,18 +381,18 @@ def test5( workdir ):
 
                 if lib.nctest_is_same_file(ftest,str(fabs_resolved)) != bool(not is_dir):
                     raise SystemExit("is_same_file does not return True"
-                                     f" for {repr(ftest)} vs "
-                                     f"{repr(str(fabs_resolved))}")
+                                     f" for {ftest!r} vs "
+                                     f"{str(fabs_resolved)!r}")
                 assert lib.nctest_is_same_file(ftest,str(fabs_resolved)) == bool(not is_dir)
                 assert lib.nctest_is_same_file(str(fabs_resolved),ftest) == bool(not is_dir)
 
                 rp_ftest = lib.nctest_real_path( ftest )
-                if not real_path0 == rp_ftest:
+                if real_path0 != rp_ftest:
                     print( 'ERROR: real_path(ftest) results unexpected for:')
-                    print( f"  ftest: {repr(str(ftest))}")
-                    print( f"  cwd= {repr(str(os.getcwd()))}")
-                    print( f"  expected= {repr(str(real_path0))}")
-                    print( f"  got     = {repr(str(rp_ftest))}")
+                    print( f"  ftest: {str(ftest)!r}")
+                    print( f"  cwd= {str(os.getcwd())!r}")
+                    print( f"  expected= {str(real_path0)!r}")
+                    print( f"  got     = {str(rp_ftest)!r}")
                     raise SystemExit(1)
                 assert real_path0 == rp_ftest
 
@@ -412,12 +413,12 @@ def test5( workdir ):
                     assert pPath(fabs_resolved).samefile( fabs )
                     if not pPath(fabs_resolved).samefile( pPath(real_path0) ):
                         print( 'ERROR: pathlib.Path.samefile_file False for:')
-                        print( f"  arg1: {repr(str(fabs_resolved))} (fabs_resolved)")
-                        print( f"  arg2: {repr(real_path0)} (real_path0)")
-                        print( f"  fabs= {repr(str(fabs))}")
-                        print( f"  fin= {repr(str(fin))}")
-                        print( f"  ftest= {repr(str(ftest))}")
-                        print( f"  cwd= {repr(str(os.getcwd()))}")
+                        print( f"  arg1: {str(fabs_resolved)!r} (fabs_resolved)")
+                        print( f"  arg2: {real_path0!r} (real_path0)")
+                        print( f"  fabs= {str(fabs)!r}")
+                        print( f"  fin= {str(fin)!r}")
+                        print( f"  ftest= {str(ftest)!r}")
+                        print( f"  cwd= {str(os.getcwd())!r}")
                         raise SystemExit(1)
                     assert pPath(fabs_resolved).samefile( real_path0 )
         fabs_prev = fabs
@@ -436,7 +437,7 @@ def test_dirsymlinks( workdir ):
             #test.
             return False
         else:
-            raise SystemExit(f'failed to create symlink: {repr(f)}')
+            raise SystemExit(f'failed to create symlink: {f!r}')
 
     def ensure_is_file(f):
         assert not lib.nctest_is_dir(f)

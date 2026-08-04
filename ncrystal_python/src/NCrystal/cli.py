@@ -75,10 +75,11 @@ def run( toolname, *arguments ):
 
     from ._cliimpl import _cli_call_from_pyapi_ctx, ctxmgr_modify_argparse_creation
     try:
-        with _cli_call_from_pyapi_ctx():
-            with ctxmgr_modify_argparse_creation(exit_on_error = False,
-                                                 redirect_stderr_to_stdout = True):
-                climod.main( argv )
+        with _cli_call_from_pyapi_ctx(), ctxmgr_modify_argparse_creation(
+                exit_on_error=False,
+                redirect_stderr_to_stdout=True,
+        ):
+            climod.main(argv)
     except SystemExit as e:
         #Map SystemExit to either a clean return or a RuntimeError.
         if str(e) in ('','0'):

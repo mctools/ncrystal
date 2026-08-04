@@ -87,7 +87,7 @@ dependencies:
   gemmi:
     min_version: "0.6.1"
   ruff:
-    min_version: "0.8.1"
+    min_version: "0.16.1"
     import_check: null
     cmd_check: ruff
   #cmake:

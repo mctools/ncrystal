@@ -135,9 +135,9 @@ def testncmat( verbose ):
                                   else (True,data) )
         print(f'\n\n==> Test {i}')
         #print_sep()
-        def show_data():
+        def show_data(_data=data):
             print(">>>TEST DATA Begin:")
-            print(data)
+            print(_data)
             print(">>>TEST DATA End:")
         if verbose:
             show_data()
@@ -177,8 +177,8 @@ def testncmat( verbose ):
             print(f"Loading {testdirname}/{f.name}")
             tryParseNCMATFromPath( f )
 
-    from NCrystalDev.datasrc import browseFiles
     from NCrystalDev import createTextData
+    from NCrystalDev.datasrc import browseFiles
     for f in sorted(f.fullKey for f in  browseFiles(factory='stdlib')):
         print(f"Loading {f}")
         data = createTextData(f).rawData

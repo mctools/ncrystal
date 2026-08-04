@@ -26,7 +26,10 @@ def main():
     ruff = shutil.which('ruff')
     if not ruff:
         raise SystemExit('ERROR: ruff command not available')
-    rv = subprocess.run(['ruff','check']
+    #TODO: Work on these introduced with ruff 0.16.1:
+    ignore=('UP031,C408,C401,RUF059,SIM102,C400,SIM101,C405,SIM118,C402,'
+            'N999,RUF015,C403,C419,B018,PLC0206,PERF102')
+    rv = subprocess.run(['ruff','check','--ignore',ignore]
                         + list(all_files_iter('py')) )
     if rv.returncode!=0:
         raise SystemExit(1)

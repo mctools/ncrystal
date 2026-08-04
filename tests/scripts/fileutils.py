@@ -68,7 +68,8 @@ def test2():
                   '.',
                   '',
                   '/',
-                  './'#os.path.basename of this is empty
+                  './\\',
+                  './',#os.path.basename of this is empty
                   '\\',
                   '/some/where//\\bla.txt',
                   'some\\where/bla.txt',
@@ -106,9 +107,9 @@ def test2():
                 return dict(pathlib=pathlib.PurePosixPath(p).name)
         for refsrc, refbasename in decode_refbn(p).items():
             if refbasename != nc_basename:
-                raise SystemExit(f"basename({repr(p)}) mismatch:"
-                                 f" ncrystal={repr(nc_basename)}"
-                                 f" {refsrc}={repr(refbasename)}")
+                raise SystemExit(f"basename({p!r}) mismatch:"
+                                 f" ncrystal={nc_basename!r}"
+                                 f" {refsrc}={refbasename!r}")
 
         assert ( lib.nctest_path_is_absolute( lib.nctest_normalise( p ) )
                  == lib.nctest_path_is_absolute( p ) ), "normalisation alters is_absolute"
@@ -227,9 +228,9 @@ def test4():
     def testbn(path,expected):
         res=lib.nctest_basename(path)
         if res != expected:
-            raise SystemExit(f'NCrystal::basename({repr(path)}) gave'
-                             f' {repr(res)} and not the'
-                             f' expected {repr(expected)}.')
+            raise SystemExit(f'NCrystal::basename({path!r}) gave'
+                             f' {res!r} and not the'
+                             f' expected {expected!r}.')
     testbn("","")
     testbn("hej","hej")
     testbn("hej.txt","hej.txt")
@@ -254,9 +255,9 @@ def test4():
     def testext(path,expected):
         res=lib.nctest_getfileext(path)
         if res != expected:
-            raise SystemExit(f'NCrystal::getfileext({repr(path)}) gave'
-                             f' {repr(res)} and not the'
-                             f' expected {repr(expected)}.')
+            raise SystemExit(f'NCrystal::getfileext({path!r}) gave'
+                             f' {res!r} and not the'
+                             f' expected {expected!r}.')
 
     testext("../bla/hej.txt","txt")
     testext("../bla/hej.lala.txt","txt")

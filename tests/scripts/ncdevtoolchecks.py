@@ -24,15 +24,16 @@
 
 def main():
     import pathlib
-    import sys
     import subprocess
+    import sys
 
     reporoot = pathlib.Path(__file__).resolve().parent.parent.parent
     ncdevtool = reporoot.joinpath('devel','bin','ncdevtool')
     assert ncdevtool.is_file()
 
     rv = subprocess.run( [ sys.executable or 'python3', '-BI',
-                           ncdevtool, 'check', '-n','fix'+'me' ] )
+                           ncdevtool, 'check', '-n','fix'+'me' ],
+                         check = False )
     if rv.returncode != 0:
         raise SystemExit("Check failed")
     print("All checks passed")

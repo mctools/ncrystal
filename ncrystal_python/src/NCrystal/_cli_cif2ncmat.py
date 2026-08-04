@@ -149,7 +149,7 @@ present script.  """,descrw)+f"""\n\nExample invocations:
     ll=[]
     for c in args.atomdata:
         p = c.replace(':',' ').split()
-        if not len(p)==5 or not p[1].endswith('u') or not p[2].endswith('fm') or not p[3].endswith('b') or not p[4].endswith('b'):
+        if len(p)!=5 or not p[1].endswith('u') or not p[2].endswith('fm') or not p[3].endswith('b') or not p[4].endswith('b'):
             parser.error('invalid --atomdata syntax in "%s"'%c)
         ll.append( (p[0],' '.join(p[1:]) ) )
     args.atomdata = ll

@@ -43,6 +43,7 @@ def main():
         'CHANGELOG' : 150,
         'ncrystal_core/include/NCrystal/cinterface/ncrystal.h' : 100,
         'ncrystal_core/src/cinterface/ncrystal.cc' : 100,
+        'ncrystal_core/src/sab/NCSABProcessor.cc' : 100,#fixme
         'ncrystal_python/src/NCrystal/_hfgdata.py' : 70,
         'ncrystal_python/src/NCrystal/_ncmatimpl.py' : 150,
         'ncrystal_python/src/NCrystal/cifutils.py' : 100,

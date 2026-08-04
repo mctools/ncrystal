@@ -25,6 +25,7 @@
 from NCrystalDev.misc import evaluate_query as ncquery
 from NCTestUtils.mpmathctx import get_mpmath_context
 
+
 def mp_integrate01_kpowx( k, mp ):
     k = mp.mpf(k)
     if k == 1:

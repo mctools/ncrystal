@@ -208,7 +208,7 @@ def getVDOSFromTXT(fn):
         for ll in fh:
             if ll.startswith('#') and 'unit' in ll:
                 _=ll.split('#',1)[1].split(':',1)
-                if not len(_)==2:
+                if len(_)!=2:
                     continue
                 unit=_[1].strip()
                 if unit not in units_2_fact.keys():

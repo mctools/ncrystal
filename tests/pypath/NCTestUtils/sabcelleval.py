@@ -134,9 +134,9 @@ def draw_alpha_beta_grid(alphagrid,betagrid,**kw_plot):
     return pctx.finalise( do_grid = False )
 
 def plot_celleval( data, do_title=True, **kw_plot ):
-    from NCrystalDev.plot import PlotContext
-    from NCrystalDev._numpy import _np_linspace
     import numpy as np
+    from NCrystalDev._numpy import _np_linspace
+    from NCrystalDev.plot import PlotContext
 
     pctx = PlotContext(**kw_plot).check_unused()
     draw_alpha_beta_grid( alphagrid = data['alpha'],
@@ -473,8 +473,8 @@ def _find_integration_ranges( E_div_kT, alpha, beta ):
     return dict( ranges = res, E_div_kT = E_div_kT )
 
 def _brute_force_integral_impl( E_div_kT, alpha, beta, svals, n ):
-    from NCrystalDev._numpy import _np_linspace
     import numpy as np
+    from NCrystalDev._numpy import _np_linspace
     e, (a1, a2), (b1, b2) = E_div_kT, alpha, beta
     assert not np.isinf(e)
     if b2 <= -e:

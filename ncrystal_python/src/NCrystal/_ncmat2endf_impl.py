@@ -965,7 +965,8 @@ class EndfFile:
         desc.append('Comments from NCMAT file:')
         desc.append('')
         for line in data.comments:
-            desc.append(line)
+            #Ruff 0.16.1 seems to have a false positive in the next line:
+            desc.append(line)# noqa: PERF402
         desc.append(ENDF_DESCR_MAXW*'*')
 
         if any( len(line) > ENDF_DESCR_MAXW for line in desc ):
@@ -1205,7 +1206,7 @@ def _impl_ncmat2endf( *,
     supported_comps = ['inelas','coh_elas','incoh_elas']
     unsupported_comps = set(loaded['scat_comps']) - set(supported_comps)
     if unsupported_comps:
-        c = list(unsupported_comps)[0]
+        c = next(iter(unsupported_comps))
         raise NCBadInput(f'Materials with scattering component "{c}" can not'
                          ' be represented in the ENDF format')
 
@@ -1352,7 +1353,7 @@ _metadata_definitions = dict(
 def _impl_get_metadata_params_and_docs():
     d = {}
     from .ncmat2endf import EndfMetaData
-    for k, v in _metadata_definitions.items():
+    for k in _metadata_definitions.keys():
         doc = getattr(EndfMetaData,k.lower()).__doc__
         assert doc is not None
         d[k] = ' '.join(doc.strip().split())

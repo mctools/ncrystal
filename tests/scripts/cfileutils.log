@@ -376,7 +376,71 @@ Testing get_current_working_dir...
    mctools_drive_letter = ""
    mctools_expand_path = ".//"
 
-11 Testing path "/some/where//\bla.txt":
+11 Testing path "./":
+   mctools_dirname = "."
+   mctools_basename = ""
+   mctools_basename_view = ""
+   mctools_fileextension = ""
+   mctools_fileextension_view = ""
+   mctools_is_file = "0"
+   mctools_is_dir = "1"
+   mctools_exists = "1"
+   mctools_path_is_absolute = "0"
+   mctools_path_is_relative = "1"
+   mctools_pathseps_platform = "./"
+   mctools_pathseps_generic = "./"
+   mctools_drive_letter = ""
+   mctools_expand_path = "./"
+
+11 Testing path "\\?\./":
+   mctools_dirname = "."
+   mctools_basename = ""
+   mctools_basename_view = ""
+   mctools_fileextension = ""
+   mctools_fileextension_view = ""
+   mctools_is_file = "0"
+   mctools_is_dir = "1"
+   mctools_exists = "1"
+   mctools_path_is_absolute = "0"
+   mctools_path_is_relative = "1"
+   mctools_pathseps_platform = "//?/./"
+   mctools_pathseps_generic = "//?/./"
+   mctools_drive_letter = ""
+   mctools_expand_path = "./"
+
+12 Testing path "\":
+   mctools_dirname = "/"
+   mctools_basename = ""
+   mctools_basename_view = ""
+   mctools_fileextension = ""
+   mctools_fileextension_view = ""
+   mctools_is_file = "0"
+   mctools_is_dir = "1"
+   mctools_exists = "1"
+   mctools_path_is_absolute = "1"
+   mctools_path_is_relative = "0"
+   mctools_pathseps_platform = "/"
+   mctools_pathseps_generic = "/"
+   mctools_drive_letter = ""
+   mctools_expand_path = "/"
+
+12 Testing path "\\?\\":
+   mctools_dirname = "/"
+   mctools_basename = ""
+   mctools_basename_view = ""
+   mctools_fileextension = ""
+   mctools_fileextension_view = ""
+   mctools_is_file = "0"
+   mctools_is_dir = "1"
+   mctools_exists = "1"
+   mctools_path_is_absolute = "1"
+   mctools_path_is_relative = "0"
+   mctools_pathseps_platform = "//?//"
+   mctools_pathseps_generic = "//?//"
+   mctools_drive_letter = ""
+   mctools_expand_path = "/"
+
+13 Testing path "/some/where//\bla.txt":
    mctools_dirname = "/some/where"
    mctools_basename = "bla.txt"
    mctools_basename_view = "bla.txt"
@@ -392,7 +456,7 @@ Testing get_current_working_dir...
    mctools_drive_letter = ""
    mctools_expand_path = "/some/where///bla.txt"
 
-11 Testing path "\\?\/some/where//\bla.txt":
+13 Testing path "\\?\/some/where//\bla.txt":
    mctools_dirname = "/some/where"
    mctools_basename = "bla.txt"
    mctools_basename_view = "bla.txt"
@@ -408,7 +472,7 @@ Testing get_current_working_dir...
    mctools_drive_letter = ""
    mctools_expand_path = "/some/where///bla.txt"
 
-12 Testing path "some\where/bla.txt":
+14 Testing path "some\where/bla.txt":
    mctools_dirname = "some/where"
    mctools_basename = "bla.txt"
    mctools_basename_view = "bla.txt"
@@ -424,7 +488,7 @@ Testing get_current_working_dir...
    mctools_drive_letter = ""
    mctools_expand_path = "some/where/bla.txt"
 
-12 Testing path "\\?\some\where/bla.txt":
+14 Testing path "\\?\some\where/bla.txt":
    mctools_dirname = "some/where"
    mctools_basename = "bla.txt"
    mctools_basename_view = "bla.txt"
@@ -440,7 +504,7 @@ Testing get_current_working_dir...
    mctools_drive_letter = ""
    mctools_expand_path = "some/where/bla.txt"
 
-13 Testing path "/some/where/../bla.txt":
+15 Testing path "/some/where/../bla.txt":
    mctools_dirname = "/some/where/.."
    mctools_basename = "bla.txt"
    mctools_basename_view = "bla.txt"
@@ -456,7 +520,7 @@ Testing get_current_working_dir...
    mctools_drive_letter = ""
    mctools_expand_path = "/some/where/../bla.txt"
 
-13 Testing path "\\?\/some/where/../bla.txt":
+15 Testing path "\\?\/some/where/../bla.txt":
    mctools_dirname = "/some/where/.."
    mctools_basename = "bla.txt"
    mctools_basename_view = "bla.txt"
@@ -472,7 +536,7 @@ Testing get_current_working_dir...
    mctools_drive_letter = ""
    mctools_expand_path = "/some/where/../bla.txt"
 
-14 Testing path "some/where/../bla.txt":
+16 Testing path "some/where/../bla.txt":
    mctools_dirname = "some/where/.."
    mctools_basename = "bla.txt"
    mctools_basename_view = "bla.txt"
@@ -488,7 +552,7 @@ Testing get_current_working_dir...
    mctools_drive_letter = ""
    mctools_expand_path = "some/where/../bla.txt"
 
-14 Testing path "\\?\some/where/../bla.txt":
+16 Testing path "\\?\some/where/../bla.txt":
    mctools_dirname = "some/where/.."
    mctools_basename = "bla.txt"
    mctools_basename_view = "bla.txt"
@@ -504,7 +568,7 @@ Testing get_current_working_dir...
    mctools_drive_letter = ""
    mctools_expand_path = "some/where/../bla.txt"
 
-15 Testing path "../bla.txt":
+17 Testing path "../bla.txt":
    mctools_dirname = ".."
    mctools_basename = "bla.txt"
    mctools_basename_view = "bla.txt"
@@ -520,7 +584,7 @@ Testing get_current_working_dir...
    mctools_drive_letter = ""
    mctools_expand_path = "../bla.txt"
 
-15 Testing path "\\?\../bla.txt":
+17 Testing path "\\?\../bla.txt":
    mctools_dirname = ".."
    mctools_basename = "bla.txt"
    mctools_basename_view = "bla.txt"

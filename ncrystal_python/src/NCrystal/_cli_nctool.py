@@ -396,7 +396,6 @@ def std_main( progname, arglist ):
 
     if args.pdf:
         _,_,pdf = import_npplt(True)
-        import datetime
         try:
             d = pdf.infodict()
         except AttributeError:
@@ -406,8 +405,10 @@ def std_main( progname, arglist ):
         d['Author'] = 'NCrystal %s (via nctool)'%nccore.get_version()
         d['Subject'] = 'NCrystal plots'
         d['Keywords'] = 'NCrystal'
-        d['CreationDate'] = datetime.datetime.today()
-        d['ModDate'] = datetime.datetime.today()
+        from ._common import _datetime_now
+        today = _datetime_now()
+        d['CreationDate'] = today
+        d['ModDate'] = today
         pdf.close()
         print("created %s"%_pdffilename)
 
@@ -901,7 +902,7 @@ class Cfg:
         if comp not in self._sc:
             from . import core as nccore
             extra_cfg = comp2cfgpars(comp)
-            cstr = ';'.join([self._cfgstr,extra_cfg])
+            cstr = f'{self._cfgstr};{extra_cfg}'
             try:
                 sc = nccore.createScatter(cstr)
             except nccore.NCException:

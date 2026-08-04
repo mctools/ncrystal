@@ -36,7 +36,7 @@ for vdoslux in (0,3):
       if 'Liquid' in ncfile.name:
         continue
       itest += 1
-      if not itest%43==0:
+      if itest%43 != 0:
         continue
       cfgstr=f'{ncfile.name};temp={temp};vdoslux={vdoslux}'
       info=NC.createInfo(cfgstr)

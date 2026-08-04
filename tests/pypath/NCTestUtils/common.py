@@ -24,6 +24,8 @@
 """
 
 import contextlib as _contextlib
+
+
 @_contextlib.contextmanager
 def work_in_tmpdir():
     """Context manager for working in a temporary directory (automatically
@@ -79,10 +81,10 @@ class ensure_error:
         if self.__ev is not None and val != self.__ev:
             raise SystemExit(f'Expected {exc_type.__name__} did not have'
                              ' the correct value (expected'
-                             f' {repr(self.__ev)} got {repr(val)}).!')
+                             f' {self.__ev!r} got {val!r}).!')
 
         pf = _resolve_print_fct(self.__printfct)
-        pf(f"Caught expected {exc_type.__name__}({repr(val)})")
+        pf(f"Caught expected {exc_type.__name__}({val!r})")
         return True
 
 @_contextlib.contextmanager
@@ -98,7 +100,7 @@ def change_random_seed( seed ):
 
 def fmt_args_as_str( *args, **kwargs ):
     return ', '.join( [ repr(a) for a in args ]
-                      + [ f'{k}={repr(v)}' for k,v in sorted(kwargs.items()) ] )
+                      + [ f'{k}={v!r}' for k,v in sorted(kwargs.items()) ] )
 
 def print_text_file_with_snipping(content,
                                   nstart=30,
@@ -146,8 +148,8 @@ def explicit_unicode_str(s):
     return ''.join( explicit_unicode_char(c) for c in s)
 
 def fix_ncrystal_version_printouts( filtermap = None ):
-    import NCrystalDev._common as nc_common
     import NCrystalDev as NC
+    import NCrystalDev._common as nc_common
     orig = nc_common.get_ncrystal_print_fct()
     if filtermap is None:
         filtermap = ( 'NCrystal v%s'%NC.__version__,

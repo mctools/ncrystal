@@ -22,8 +22,7 @@
 
 import NCrystalDev as NC
 import NCrystalDev.mcstasutils as ncm
-
-import NCTestUtils.enable_testdatapath # noqa F401
+import NCTestUtils.enable_testdatapath  # noqa F401
 
 ncversion = NC.__version__
 for cfg in ( ('phases<0.9*stdlib::Al_sg225.ncma'

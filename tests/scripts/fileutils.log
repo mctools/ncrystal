@@ -83,42 +83,56 @@ Testing ncgetcwd...
    NCrystal::path_is_absolute = "0"
    NCrystal::normalise = "."
 
-10 Testing path "/some/where//\bla.txt":
+10 Testing path "./":
+   NCrystal::dirname = "."
+   NCrystal::basename = ""
+   NCrystal::getfileext = ""
+   NCrystal::path_is_absolute = "0"
+   NCrystal::normalise = "."
+
+11 Testing path "\":
+   NCrystal::dirname = "/"
+   NCrystal::basename = ""
+   NCrystal::getfileext = ""
+   NCrystal::path_is_absolute = "1"
+   NCrystal::normalise = "/"
+
+12 Testing path "/some/where//\bla.txt":
    NCrystal::dirname = "/some/where"
    NCrystal::basename = "bla.txt"
    NCrystal::getfileext = "txt"
    NCrystal::path_is_absolute = "1"
    NCrystal::normalise = "/some/where/bla.txt"
 
-11 Testing path "some\where/bla.txt":
+13 Testing path "some\where/bla.txt":
    NCrystal::dirname = "some/where"
    NCrystal::basename = "bla.txt"
    NCrystal::getfileext = "txt"
    NCrystal::path_is_absolute = "0"
    NCrystal::normalise = "some/where/bla.txt"
 
-12 Testing path "/some/where/../bla.txt":
+14 Testing path "/some/where/../bla.txt":
    NCrystal::dirname = "/some"
    NCrystal::basename = "bla.txt"
    NCrystal::getfileext = "txt"
    NCrystal::path_is_absolute = "1"
    NCrystal::normalise = "/some/bla.txt"
 
-13 Testing path "some/where/../bla.txt":
+15 Testing path "some/where/../bla.txt":
    NCrystal::dirname = "some"
    NCrystal::basename = "bla.txt"
    NCrystal::getfileext = "txt"
    NCrystal::path_is_absolute = "0"
    NCrystal::normalise = "some/bla.txt"
 
-14 Testing path "../bla.txt":
+16 Testing path "../bla.txt":
    NCrystal::dirname = ".."
    NCrystal::basename = "bla.txt"
    NCrystal::getfileext = "txt"
    NCrystal::path_is_absolute = "0"
    NCrystal::normalise = "../bla.txt"
 
-15 Testing path "/test/bla/":
+17 Testing path "/test/bla/":
    NCrystal::dirname = "/test"
    NCrystal::basename = "bla"
    NCrystal::getfileext = ""

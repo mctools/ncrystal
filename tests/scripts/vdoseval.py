@@ -22,9 +22,9 @@
 
 # NEEDS: mpmath numpy
 
+import mpmath
 import NCrystalDev as NC
 
-import mpmath
 mp = mpmath.mp
 mp.dps = 200
 mpf = mp.mpf

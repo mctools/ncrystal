@@ -41,6 +41,7 @@
 
 import ctypes
 
+
 class Lib:
     def __init__( self, test_shlib_name ):
         self.__name = _normalise_testmod_name( test_shlib_name )
@@ -83,7 +84,7 @@ class Lib:
                                   *argtypes,
                                   libobj = self )
         fct.__name__ = fctname
-        assert not hasattr(self,fctname),f'Fct {repr(fctname)} already added!'
+        assert not hasattr(self,fctname),f'Fct {fctname!r} already added!'
         self.__fcts.add( (fctname,restype,argtypes) )
         setattr(self,fctname,fct)
 
@@ -166,7 +167,7 @@ def _ctypes_load_testmod( test_shlib_name ):
     return _load_lib_with_ctypes(libpath)
 
 def _ctypes_create_fct( lib, fctname, restype, *argtypes, libobj = None ):
-    from NCrystalDev._chooks import _str2cstr, _cstr2str
+    from NCrystalDev._chooks import _cstr2str, _str2cstr
     do_check_errors = libobj and not fctname.startswith('nctestdetail_')
 
     def resolve_type( tpe ):
@@ -206,8 +207,9 @@ def _normalise_testmod_name(name):
     return name if name.startswith('TestMod_') else f'TestMod_{name}'
 
 def _find_testmod(name):
-    import pathlib
     import os
+    import pathlib
+
     from .modeinfo import is_simplebuild_mode
     tln = _normalise_testmod_name(name)
     if is_simplebuild_mode():
@@ -225,8 +227,8 @@ def _find_testmod_sbld( name ):
     if name.startswith('TestMod_'):
         name = name[8:]
     name = name if name.startswith('NCTestMod_') else f'NCTestMod_{name}'
-    import pathlib
     import os
+    import pathlib
     d = pathlib.Path(os.environ['SBLD_LIB_DIR'])
     assert d.is_dir()
     bn = f'libPKG__{name}'

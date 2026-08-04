@@ -157,7 +157,7 @@ def minimc_unittest( *,
         subdir, key = key.split('/')
         assert subdir and key
     else:
-        subdir, key = None, key
+        subdir = None
 
     reffile = get_named_test_data_dir(
         subdir,

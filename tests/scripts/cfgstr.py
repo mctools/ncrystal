@@ -45,7 +45,7 @@ def main():
                ('phases<0.4*C_sg227_Diamond.ncmat'
                 '&0.6*C_sg227_Diamond.ncmat>;temp=380K'),
               ]:
-        print(f"Decoding cfg {repr(c)}:")
+        print(f"Decoding cfg {c!r}:")
         pprint.pprint(nc_cfgstr.decodeCfg(c),
                       indent=4,
                       sort_dicts=False)

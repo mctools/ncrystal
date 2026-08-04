@@ -22,9 +22,10 @@
 
 # NEEDS: numpy mpmath
 
+import mpmath
 import NCrystalDev as NC
 from NCTestUtils.pwlindistmoments import PWLinDistMoments
-import mpmath
+
 mp = mpmath.mp
 mp.dps = 100
 mpf = mp.mpf
@@ -52,8 +53,8 @@ def test(cfgstr):
         if not hasattr(di,'extract_Gn'):
             print('  Ignoring unsuitable dyninfo type.')
             continue
-        def calcgn(n):
-            return di.extract_Gn(n, expand_egrid=False, without_xsect=True)
+        def calcgn(n,_di = di):
+            return _di.extract_Gn(n, expand_egrid=False, without_xsect=True)
         for n in [ 1, 2, 5, 8, 20, 50 ]:
             #TDOO: This is slow, since we redo the whole procedure for each n!
             #We should provide a way to get multiple Gns in one call to the C++

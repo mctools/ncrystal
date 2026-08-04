@@ -20,9 +20,11 @@
 ##                                                                            ##
 ################################################################################
 
-import NCrystalDev._clientry as ncclientry
-import shlex
 import pprint
+import shlex
+
+import NCrystalDev._clientry as ncclientry
+
 
 def ncrystalcmd(*args):
     argv = ['/some/where/ncrystal']+[str(e) for e in args]

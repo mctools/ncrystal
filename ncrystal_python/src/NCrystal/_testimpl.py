@@ -306,7 +306,7 @@ def _fmtvalue( x, *, ndigits = _fmtvalue_default_ndigits ):
         return s+'.0' if ( s.isdigit() or s[0]=='-' and s[1:].isdigit() ) else s
     return repr(x)
 
-def _fmtcall(fctname,args=tuple(),kwargs={}):
+def _fmtcall(fctname,args=tuple(),kwargs=None):
     import numbers
     def _fmt(a):
         if isinstance(a,numbers.Real):
@@ -320,6 +320,8 @@ def _fmtcall(fctname,args=tuple(),kwargs={}):
             return s
         return 'Object[%s]'%a.name if isinstance(a,CallInspector) else pruneaddr(repr(a))
     ll = [ _fmt(a) for a in args ]
+    if kwargs is None:
+        kwargs = {}
     ll += [ '%s=%s'%(k,_fmt(v)) for k,v in sorted(kwargs.items()) ]
     a=','.join(ll)
     return f'{fctname}({a})'
@@ -418,7 +420,8 @@ def _test_cmdline_script_availablity( prfct ):
         prfct(f"Testing availability of command: {c}")
         if not shutil.which(c):
             raise RuntimeError(f'Command {c} not found!')
-        ev = subprocess.run( [c,'--help'], capture_output = True )
+        ev = subprocess.run( [c,'--help'], capture_output = True,
+                             check = False )
         if ev.returncode != 0:
             raise RuntimeError(f'Command "{c} --help" did not run succesfully!')
 

@@ -24,6 +24,7 @@
 import NCrystalDev as NC
 from NCTestUtils.common import ensure_error
 
+
 def main():
     print('\n\n  ================> Al example 1\n\n')
 

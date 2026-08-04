@@ -27,18 +27,15 @@ import NCrystalDev as NC
 
 _rngstate1 = [99]
 def rng1():
-    global _rngstate1
     _rngstate1[0] = (_rngstate1[0]+1)%100
     return 0.01*(_rngstate1[0]+1)
 _rngstate2 = [99]
 def rng2():
-    global _rngstate2
     _rngstate2[0] = (_rngstate2[0]+1)%100
     return 0.01*(_rngstate2[0]+1)
 
 def nc_use_rng(n=1):
     #bkgd=none => PowderBragg => 1rng/call:
-    global _sc
     _sc=NC.createScatter("Al_sg225.ncmat;dcutoff=1.5;bkgd=none")
     [_sc.sampleScatterIsotropic(NC.wl2ekin(3.5)) for i in range(n)]
     print("  -> NCrystal consumed %i rngs"%n)

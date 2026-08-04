@@ -812,8 +812,7 @@ class Info(RCBase):
 
         """
         from ._hklobjects import _iter_hklobjects
-        for o in _iter_hklobjects(self):
-            yield o
+        yield from _iter_hklobjects(self)
 
     def getBraggThreshold(self):
         """Get Bragg threshold in Aa (returns None if non-crystalline). This
@@ -1786,8 +1785,9 @@ def directLoad( data, cfg_params='', *, dtype='',
 
     if not dtype and any_data.name and '.' in any_data.name:
         p = any_data.name.split('.')
-        if len(p)>=2 and p[-1] and p[-1].isalpha() and p[-1] not in ('gz','tgz','bz2','zip','tar'):
-            dtype = dtype
+        if ( len(p)>=2 and p[-1] and p[-1].isalpha()
+             and p[-1] not in ('gz','tgz','bz2','zip','tar') ):
+            dtype = p[-1]
 
     rawi,raws,rawa = _rawfct['multicreate_direct']( content,
                                                     dtype,

@@ -29,9 +29,11 @@
 # This tests validates the precision of our chisq_cdf function, in the context
 # of it's usage for checking histogram compatibility via p-pvalues.
 
+import time
+
 from NCrystalDev.hist import _chisq_cdf as nc_chisq_cdf
 from scipy.stats import chi2 as scipy_chi2
-import time
+
 
 def validate(x,k):
     if x<0.1:
@@ -71,7 +73,7 @@ def main():
     print("Checking x=0")
     for k in kvals:
         validate(0.0,k)#x=0.0
-        n+=1
+        n+=1 # noqa SIM113
 
     for k in kvals:
         print(f"Checking k={k} with {len(xvals)} x values.")

@@ -26,10 +26,10 @@ import NCTestUtils.enable_fpe # noqa F401
 
 def main():
     #Try to test all tallies:
+    from NCrystalDev.constants import wl2ekin
     from NCrystalDev.core import enableFactoryThreads
     from NCrystalDev.minimc import tally_info
     from NCTestUtils.minimc_ref import main_minimc_unittest_stdsphere as m
-    from NCrystalDev.constants import wl2ekin
 
     enableFactoryThreads(3)
     tallies = ('de', 'e', 'l', 'mu', 'nscat', 'nscat_uw', 'q', 'theta', 'w')

@@ -22,10 +22,12 @@
 
 # NEEDS: numpy ase
 
+import shlex
+
 import NCrystalDev as NC
 import NCrystalDev.cli as nc_cli
 from NCTestUtils.common import ensure_error
-import shlex
+
 
 def test_cli( args ):
     if isinstance(args,str):

@@ -273,7 +273,7 @@ def _anyvdos_preinit( data, fmt ):
         else:
             eg = _np.asarray( eg, dtype = float )
         return dict( dos = ( eg, dens ) )
-    assert not fmt == 'NCrystal.AnyVDOS'#should have been handled in calling code
+    assert fmt != 'NCrystal.AnyVDOS'#should have been handled in calling code
     if fmt not in allfmts:
         from .exceptions import NCBadInput
         s='"%s"'%('", "'.join(allfmts))
@@ -352,8 +352,8 @@ def detect_scatcomps( standard_comp_types, matsrc ):
                          ' with preloaded material sources')
     res=[]
     for ct in standard_comp_types:
-        def load(extra = None):
-            p = f'comp={ct}'
+        def load(extra = None,captured_ct=ct):
+            p = f'comp={captured_ct}'
             if extra is not None:
                 p += f';{extra}'
             return matsrc.load( extra_cfg_params = p,
@@ -369,7 +369,7 @@ def detect_scatcomps( standard_comp_types, matsrc ):
                 m = load('vdoslux=0')
             except NCCalcError as e:
                 if not str(e).startswith('VDOS expansion too slow'):
-                    raise e
+                    raise
                 m = None
         if not m:
             m = load()

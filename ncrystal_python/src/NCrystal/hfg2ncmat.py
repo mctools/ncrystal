@@ -101,7 +101,7 @@ def hfg2ncmat( spec,
                formula, *,
                density,
                title,
-               debyetemp = _default_debye_temp(),
+               debyetemp = None,
                verbose = True,
                notrim = False ):
     """Function which can be used to generate NCMAT data for hydrogen-rich
@@ -150,6 +150,9 @@ contribution from hydrogen atoms (unless verbose=False).
     #ncrystal_hfg2ncmat command-line app!
 
     from ._hfgdata import get_data as hfg_get_data
+
+    if debyetemp is None:
+        debyetemp = _default_debye_temp()
 
     if verbose:
         from ._common import print
@@ -262,7 +265,7 @@ contribution from hydrogen atoms (unless verbose=False).
             breakdown+=[(di.fraction*sigma,key)]
     sigma_tot = sum(s for s,k in breakdown)
     print("Contribution breakdown based on composition:")
-    for s,key in reversed(sorted(breakdown)):
+    for s,key in sorted(breakdown,reverse=True):
         print ("  Contribution to bound scattering XS from %s is %5.2f %%"%(key.ljust(14),s*100.0/sigma_tot))
         if key=='H (incoherent)':
             contrib_incH = s/sigma_tot

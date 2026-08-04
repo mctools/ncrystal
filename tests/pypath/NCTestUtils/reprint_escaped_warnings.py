@@ -32,6 +32,7 @@ warning framework from silencing repeated warnings.
 __all__=[]
 
 import warnings
+
 import NCrystalDev._common as _c
 
 _c._add_warn_counts_to_msgs[0] = True

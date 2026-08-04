@@ -36,7 +36,6 @@ def climod_metadata():
 
 __pynecache=[None]
 def import_pyne():
-    global __pynecache
     if __pynecache[0] is not None:
         return __pynecache[0]
 
@@ -271,7 +270,8 @@ def format_endf_block_as_ncmatdyninfo_for_principal_element(parsed_endf_data,tem
     elem_name = parsed_endf_data["element_name_principal"]
 
     #Find block by temperature:
-    temperature_exact,block_idx =  sorted((abs(temperature-_["T"]),_["T"],idx) for idx,_ in enumerate(parsed_endf_data['result_datablocks']))[0][1:]
+    temperature_exact,block_idx =  min( ( abs(temperature-_["T"]),_["T"], idx )
+                                           for idx,_ in enumerate(parsed_endf_data['result_datablocks']))[1:]
     assert abs(temperature_exact-temperature)<1e-6
     temperature=temperature_exact
 
@@ -388,7 +388,7 @@ Input ENDF files can for instance be downloaded from:
     if not args.secondary:
         args.ENDFFILE2=None
     else:
-        if not args.secondary.count(':')==1:
+        if args.secondary.count(':')!=1:
             parser.error('Argument to --secondary must contain exactly one semicolon (:)')
         sn,fr2 = args.secondary.split(':',1)
         args.secondary = True
@@ -454,7 +454,7 @@ def main( progname, arglist ):
     else:
         temperatures_combined = temperatures1
 
-    temperatures_combined=sorted(list(set(temperatures_combined)))
+    temperatures_combined=sorted(set(temperatures_combined))
     for t in (args.ignoretemp or []):
         removed=False
         for _ in temperatures_combined:

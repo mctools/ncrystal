@@ -201,8 +201,9 @@ def _search_nccfgapp( cmdname ):
     #Try to query ncrystal-config script:
     import subprocess
     try:
-        res = subprocess.run([cmdname,'--show','shlibpath','namespace','version'],
-                             capture_output=True)
+        res = subprocess.run( [cmdname,'--show','shlibpath',
+                               'namespace','version'],
+                              capture_output=True, check=False )
     except FileNotFoundError:
         return None
 

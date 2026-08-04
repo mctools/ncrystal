@@ -917,7 +917,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
                                   and user_rv=='error' ) else 1 )
                     if rv == 2 and not cb_errors:
                         cb_errors.append(None)
-            except BaseException as exc:
+            except BaseException as exc: # noqa: BLE001
                 rv = 2
                 cb_errors.append(exc)
                 del exc #maybe not needed, but exc.__traceback__ references the

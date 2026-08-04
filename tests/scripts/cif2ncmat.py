@@ -22,18 +22,21 @@
 
 # NEEDS: gemmi spglib ase
 
+import contextlib
+import pathlib
+import shlex
 from argparse import ArgumentError
 
-import NCTestUtils.enable_fpe # noqa F401
-import NCTestUtils.reprint_escaped_warnings # noqa F401
-import NCTestUtils.enable_testdatapath # noqa F401
+import NCTestUtils.enable_fpe
+import NCTestUtils.enable_testdatapath
+import NCTestUtils.reprint_escaped_warnings  # noqa F401
+from NCTestUtils.common import (
+    ensure_error,
+    print_text_file_with_snipping,
+    work_in_tmpdir,
+)
 from NCTestUtils.env import ncsetenv
-from NCTestUtils.common import ( print_text_file_with_snipping,
-                                 ensure_error,
-                                 work_in_tmpdir )
-import pathlib
-import contextlib
-import shlex
+
 
 def create_fake_onlinedb_cache_dir():
     #create fake NCRYSTAL_ONLINEDB_CACHEDIR and populate with 3 entries, so we are

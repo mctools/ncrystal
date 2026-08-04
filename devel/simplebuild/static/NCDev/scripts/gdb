@@ -63,6 +63,8 @@ fi
 
 
 if [ $NAME == gdb ]; then
+    #Avoid annoying infinite download of debug info:
+    export DEBUGINFOD_URLS=
     if [ $DORUN == 1 ]; then
         DORUN=' -ex run'
     else

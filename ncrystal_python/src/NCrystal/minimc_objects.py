@@ -297,9 +297,7 @@ class MMCResults:
             def errfct( errmsg ):
                 return errmsg
         errmsg = results_check_compat_impl(self,other,threshold,errfct)
-        if errmsg:
-            return False
-        return True
+        return not errmsg
 
 class MMCTallyView:
 

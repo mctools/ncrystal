@@ -22,14 +22,18 @@
 
 # NEEDS: numpy
 
-import NCrystalDev as NC
-import NCrystalDev.cli as nc_cli
-from NCTestUtils.common import ( print_text_file_with_snipping,
-                                 ensure_error,
-                                 work_in_tmpdir )
-import shlex
 import contextlib
 import pathlib
+import shlex
+
+import NCrystalDev as NC
+import NCrystalDev.cli as nc_cli
+from NCTestUtils.common import (
+    ensure_error,
+    print_text_file_with_snipping,
+    work_in_tmpdir,
+)
+
 
 def test_cli( args, *, nstart = 30, nend = 20,
               outfile = None, in_tmp_dir = True ):

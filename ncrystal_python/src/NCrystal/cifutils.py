@@ -106,28 +106,33 @@ class CIFSource:
 
         if hasattr(data,'__fspath__'):
             _setfp(data)
-            return check_status()
+            check_status()
+            return
         if hasattr( data, 'startswith' ):
             str_to_sb = ( lambda s : s ) if not hasattr(data,'decode') else ( lambda s : s.encode() )
 
             if data.startswith(str_to_sb('codid::')) and data[7:].isdigit():
                 self.__codid = int(data[7:])
-                return check_status()
+                check_status()
+                return
             if data.startswith(str_to_sb('mpid::')) and data[6:].isdigit():
                 self.__mpid = int(data[6:])
-                return check_status()
+                check_status()
+                return
         if isinstance( data, str ):
             if '\n' in data.strip():
                 self.__textdata = data
             else:
                 _setfp(data)
-            return check_status()
+            check_status()
+            return
         if isinstance( data, bytes ):
             if b'\n' in data.strip():
                 self.__textdata = data.decode()
             else:
                 _setfp(data)
-            return check_status()
+            check_status()
+            return
         check_status()
 
     @property
@@ -671,7 +676,7 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
         plt.plot(wls,mc.scatter.xsect(wl=wls),
                  label=fix_lbl_for_plt(lbl),
                  linewidth=lw,
-                 alpha=0.5 if i==0 else 0.5,
+                 alpha=0.5,#was: 0.5 if i==0 else 0.5,
                  color = col_ordered[i] if i<len(col_ordered) else None,
                  dashes = [] if i==0 else [4 if len(cmps)>2 else 2,2]+[2,2]*i)
     if len(natoms_all)>1:
@@ -714,7 +719,7 @@ def _extract_descr_from_cif( raw_cif_dict, cifsrc, ciftextdata ):
             if altkeys:
                 return extract( altkeys[0], *altkeys[1:], expectlist = expectlist )
             return [] if expectlist else ''
-        s = list( d[key] for _,d in sorted(raw_cif_dict.items()) if key in d)[0]
+        s = next( d[key] for _,d in sorted(raw_cif_dict.items()) if key in d )
         if not expectlist:
             if s is None:
                 return ''
@@ -950,12 +955,11 @@ def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_d
         else:
             _extracted_description = ['Anonymous CIF data']
     if _extracted_description:
-        ncmat.add_comments(['Structure converted (with NCrystal'
-                            '.cifutils module) from:',''])
+        ncmat.add_comments([('Structure converted (with NCrystal'
+                             '.cifutils module) from:'),''])
 
         _thedescr = _extracted_description
         if remap_str:
-            src.actual_mpid
             _codidurl = _codid2url(src.actual_codid) if src.actual_codid else None
             _mpidurl = _mpid2url(src.actual_mpid) if src.actual_mpid else None
             if _codidurl and _codidurl in _thedescr:
@@ -1042,9 +1046,9 @@ def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_d
             f1,f2 = _tmp(f1),_tmp(f2)
             if f1 == f2:
                 return False
-            if not set(f1.keys())==set(f2.keys()):
+            if set(f1.keys()) != set(f2.keys()):
                 return True
-            kref = list(f1.keys())[0]
+            kref = next(iter(f1.keys()))
             assert f1[kref] > 0.0 and f2[kref]>0.0
             f2scale = f1[kref]/f2[kref]
             tol = 1e-2#not tighter to avoid false positives!
@@ -1302,13 +1306,14 @@ def _mp_get_cifdata( mpid, quiet = False, apikey = None ):
                               ' fix this (perhaps with a command like "conda install -c conda-forge mp-api"'
                               ' or "python3 -mpip install mp-api").')
 
-    with _nc_common.WarningSpy(blockfct = lambda msg,cat : msg.lower().startswith('mpcontribs-client not installed') ):
-        with mp_api.client.MPRester(apikey) as mpr:
-            s = mpr.get_structure_by_material_id( f'mp-{mpid}', conventional_unit_cell=True )
-            #If we do no use the symprec argument in the next line, we will get a an unrefined P1 structure:
-            result = s.to(fmt='cif',symprec=1e-4, significant_figures=15, angle_tolerance=5.0, refine_struct=True)
-            #But we want to sanity check that this refinement gives the same spacegroup result as listed in the MP database:
-            mp_expected_sg_number = s.get_space_group_info()[1]
+    with _nc_common.WarningSpy(
+            blockfct= ( lambda msg, cat : msg.lower()
+                        .startswith('mpcontribs-client not installed') ) ), mp_api.client.MPRester(apikey) as mpr:
+        s = mpr.get_structure_by_material_id( f'mp-{mpid}', conventional_unit_cell=True )
+        #If we do no use the symprec argument in the next line, we will get a an unrefined P1 structure:
+        result = s.to(fmt='cif',symprec=1e-4, significant_figures=15, angle_tolerance=5.0, refine_struct=True)
+        #But we want to sanity check that this refinement gives the same spacegroup result as listed in the MP database:
+        mp_expected_sg_number = s.get_space_group_info()[1]
     sg_checked = False
     errmsg = f'Unable to reliably determine spacegroup when trying to retrieve structure for mp-{mpid} from materialsproject.org'
     for ll in result.splitlines():
@@ -1485,6 +1490,7 @@ def _update_spacegroup_in_cifblock( cifblock, sg, use_xhm = True ):
 
 def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merge_equiv, override_spacegroup = None ):
 
+    from itertools import chain
     from math import fsum as _math_fsum
 
     result = {}
@@ -1574,7 +1580,9 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
                                 ' loading this file.')
 
     _ = cif_block_with_structure.find(['_atom_type_number_in_cell'])
-    _ = sum((sum(([e] for e in ll),[]) for ll in _),[]) if _ else []
+    #was: _ = sum((sum(([e] for e in ll),[]) for ll in _),[]) if _ else []
+    #but replaced with:
+    _ = list(chain.from_iterable(_)) if _ else []
     if _ and not any( e is None for e in _ ):
         expected_tot_atom_in_orig_cell = sum(float(e) for e in _)
     else:
