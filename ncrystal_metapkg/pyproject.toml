@@ -52,5 +52,5 @@ all = [ 'ase>=3.23.0', 'endf-parserpy>=0.14.3', 'gemmi>=0.6.1',
         'matplotlib>=3.6.0', 'spglib>=2.1.0' ]
 devel = [ 'PyYAML>=6.0.0', 'ase>=3.23.0', 'cppcheck', 'endf-parserpy>=0.14.3',
           'gemmi>=0.6.1','matplotlib>=3.6.0', 'mpmath>=1.3.0', 'numpy>=1.22',
-          'pybind11>=2.11.0', 'ruff>=0.8.1', 'simple-build-system>=1.6.0',
+          'pybind11>=2.11.0', 'ruff>=0.16.1', 'simple-build-system>=1.6.0',
           'spglib>=2.1.0', 'tomli>=2.0.0; python_version < "3.11"' ]
