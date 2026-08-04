@@ -88,9 +88,9 @@ namespace NCRYSTAL_NAMESPACE {
     ncnodiscard17 constexpr size_type size() const noexcept { return m_size; }
     ncnodiscard17 constexpr bool empty() const noexcept { return m_size==0; }
     constexpr size_type capacity() const noexcept { return NMAX; }
-    constexpr void shrink_to_fit() const noexcept {}
-    constexpr void reserve( size_type ) const {}
-    constexpr void reserve_hint( size_type ) const {}
+    void shrink_to_fit() const noexcept {}
+    void reserve( size_type ) const noexcept {}
+    void reserve_hint( size_type ) const noexcept {}
 
     //fixme: remove?
     constexpr bool isLocalStorage() const noexcept { return true; }
