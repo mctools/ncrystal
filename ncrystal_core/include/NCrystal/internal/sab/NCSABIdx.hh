@@ -88,8 +88,8 @@ namespace NCRYSTAL_NAMESPACE {
     public:
       using size_type = std::size_t;
       NAlpha( const VectD& alphaGrid ) ncnoexceptndebug;
-      explicit constexpr NAlpha( size_type ) ncnoexceptndebug;
-      explicit constexpr NAlpha( NAlphaCells ) ncnoexceptndebug;
+      explicit ncconstexprndebug NAlpha( size_type ) ncnoexceptndebug;
+      explicit ncconstexprndebug NAlpha( NAlphaCells ) ncnoexceptndebug;
       constexpr size_type value() const noexcept { return m_value; }
     private:
       size_type m_value;
@@ -103,8 +103,8 @@ namespace NCRYSTAL_NAMESPACE {
       //Strongly typed NAlphaCells ("alphaGrid.size()-1")
       using size_type = std::size_t;
       NAlphaCells( const VectD& alphaGrid ) ncnoexceptndebug;
-      explicit constexpr NAlphaCells( size_type ) ncnoexceptndebug;
-      explicit constexpr NAlphaCells( NAlpha ) ncnoexceptndebug;
+      explicit ncconstexprndebug NAlphaCells( size_type ) ncnoexceptndebug;
+      explicit ncconstexprndebug NAlphaCells( NAlpha ) ncnoexceptndebug;
       constexpr size_type value() const noexcept { return m_value; }
     private:
       size_type m_value;
@@ -146,13 +146,13 @@ namespace NCRYSTAL_NAMESPACE {
     {
       nc_assert( alphaGrid.size()>1);
     }
-    inline constexpr NAlphaCells::NAlphaCells( size_type value ) ncnoexceptndebug
+    inline ncconstexprndebug NAlphaCells::NAlphaCells( size_type value ) ncnoexceptndebug
       : m_value( value )
     {
       nc_assert( (m_value+1)<std::numeric_limits<size_type>::max() );
       nc_assert( value>=1 );
     }
-    inline constexpr NAlphaCells::NAlphaCells( NAlpha na ) ncnoexceptndebug
+    inline ncconstexprndebug NAlphaCells::NAlphaCells( NAlpha na ) ncnoexceptndebug
       : NAlphaCells( na.value()-1 )
     {
       nc_assert( na.value()>1);
@@ -162,13 +162,13 @@ namespace NCRYSTAL_NAMESPACE {
     {
       nc_assert( alphaGrid.size()>1);
     }
-    inline constexpr NAlpha::NAlpha( size_type value ) ncnoexceptndebug
+    inline ncconstexprndebug NAlpha::NAlpha( size_type value ) ncnoexceptndebug
       : m_value( value )
     {
       nc_assert( m_value<std::numeric_limits<size_type>::max() );
       nc_assert( value > 1 );
     }
-    inline constexpr NAlpha::NAlpha( NAlphaCells nac ) ncnoexceptndebug
+    inline ncconstexprndebug NAlpha::NAlpha( NAlphaCells nac ) ncnoexceptndebug
       : NAlpha( nac.value()+1 )
     {
       nc_assert( nac.value()>=1);
