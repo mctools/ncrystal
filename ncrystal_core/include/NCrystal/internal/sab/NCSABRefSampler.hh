@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/interfaces/NCSABData.hh"
+#include "NCrystal/internal/sab/NCSABExtender.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -38,11 +39,24 @@ namespace NCRYSTAL_NAMESPACE {
     //                                                  //
     //////////////////////////////////////////////////////
 
-    //Sample multiple (alpha,beta) values at once:
-    std::pair<VectD,VectD> refSampleAlphaBeta( RNG&,
-                                               const SABData&,
-                                               double E_div_kT,
-                                               std::uint64_t nsample );
+    //Sample multiple (alpha,beta) values at once. At energies beyond what is
+    //covered by the sabdata ("Emax"), it is optionally possible to sample with
+    //a SABExtender by providing a RefSampleExtension object:
+    struct RefSampleExtension {
+      //Extender (default is a free-gas extender).
+      //NB: MUST HAVE SigmaBound=1!! (fixme enshrine in types)
+      std::shared_ptr<SAB::SABExtender> extender = nullptr;
+      //Emax (0eV means autodetect, with suggestedEMax from the SABData or an
+      //expensive SABProcessor initialisation).
+      NeutronEnergy emax = NeutronEnergy{0.0};
+    };
+
+    std::pair<VectD,VectD>
+    refSampleAlphaBeta( RNG&,
+                        shared_obj<const SABData>,
+                        double E_div_kT,
+                        std::uint64_t nsample,
+                        Optional<RefSampleExtension> = NullOpt);
 
   }
 }

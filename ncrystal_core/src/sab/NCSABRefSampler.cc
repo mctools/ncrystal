@@ -21,6 +21,7 @@
 #include "NCrystal/internal/sab/NCSABRefSampler.hh"
 #include "NCrystal/internal/sab/NCSABCellInteg.hh"
 #include "NCrystal/internal/sab/NCSABCellSample.hh"
+#include "NCrystal/internal/sab/NCSABProcessor.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 
@@ -267,22 +268,91 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
+
+namespace NCRYSTAL_NAMESPACE {
+
+  namespace SABRef {
+    namespace {
+      Optional<RefSampleExtension> prepareExtension( shared_obj<const SABData> sab,
+                                                     double E_div_kT,
+                                                     Optional<RefSampleExtension> opt_ext )
+      {
+        if ( !opt_ext.has_value() )
+          return NullOpt;//has to be explicitly requested
+        RefSampleExtension res = opt_ext.value();
+        if ( res.emax.dbl() == 0.0 ) {
+          //ok, must detect:
+          if ( sab->suggestedEmax() > 0.0 ) {
+            res.emax = NeutronEnergy( sab->suggestedEmax() );
+          } else {
+            //The expensive way:
+            using SP = SABUtils::SABProcessor;
+            auto cfg =  SABCfg::createConfig( SABCfg::sablux_max_luxury - 1 );//fixme: -1?
+            SP sp( cfg, sab, nullptr, SP::SampleSupport::NO );
+            res.emax = sp.getEMaxInfo().ekin;
+          }
+        }
+        NeutronEnergy ekin( E_div_kT * sab->temperature().kT() );
+        if ( ekin <= res.emax )
+          return NullOpt;//extension not relevant
+        if ( res.extender == nullptr )
+          res.extender = makeSO<SAB::SABFGExtender>( sab->temperature(),
+                                                     sab->elementMassAMU(),
+                                                     SigmaBound{1.0} );
+        return res;
+      }
+    }
+  }
+}
+
 std::pair<NC::VectD,NC::VectD>
 NC::SABRef::refSampleAlphaBeta( RNG& rng,
-                                const SABData& sab,
+                                shared_obj<const SABData> sab,
                                 double E_div_kT,
-                                std::uint64_t nsample )
+                                std::uint64_t nsample,
+                                Optional<RefSampleExtension> opt_extension )
 {
-  auto analysedEpt = analyseEPt( sab, E_div_kT );
+  //Check if we need to use an extension or impose an EMax on the cell-based
+  //processing:
+  opt_extension = prepareExtension(sab,E_div_kT,opt_extension);
+
+  const double kT = sab->temperature().kT();
+  double E_div_kT_cell = E_div_kT;
+  if ( opt_extension.has_value() ) {
+    E_div_kT_cell = opt_extension.value().emax.dbl() / kT;
+    nc_assert( E_div_kT_cell < E_div_kT );//or prepareExtension would not
+                                                 //have returned a value
+    nc_assert( E_div_kT_cell > 0.0 );
+  }
+
+  //Analyse requested energy point (but not beyond emax:
+  auto analysedEpt = analyseEPt( sab, E_div_kT_cell );
   const std::size_t ncells = analysedEpt.contrib_cells.size();
+
+  //Find the probability for events to be covered by the extender (if any):
+
+  double probabilityExtension(0.0);
+  if ( opt_extension.has_value() ) {
+    auto& ext = opt_extension.value();
+    nc_assert( ext.extender != nullptr );
+    const double ext_xs_Ecell
+      = ext.extender->crossSection(ext.emax).dbl();
+    const double ext_xs_E
+      = ext.extender->crossSection(NeutronEnergy(E_div_kT*kT)).dbl();
+    double extS = 4.0 * ( ext_xs_E*E_div_kT - ext_xs_Ecell*E_div_kT_cell );
+    probabilityExtension = extS / ( extS + analysedEpt.cumul.back() );
+  }
+  nc_assert( probabilityExtension >= 0.0 && probabilityExtension <= 1.0 );
 
   //Now count how many are sampled in each cell, so we can afterwards do the
   //actual sampling one cell at a time:
   std::vector<std::size_t> cellcount( ncells, 0 );
-  for ( std::uint64_t i = 0; i < nsample; ++i )
-    ++vectAt( cellcount, pickRandIdxByWeight( rng, analysedEpt.cumul ) );
+  for ( std::uint64_t i = 0; i < nsample; ++i ) {
+    if ( probabilityExtension <= 0.0 || rng() >= probabilityExtension )
+      ++vectAt( cellcount, pickRandIdxByWeight( rng, analysedEpt.cumul ) );
+  }
 
-  //Now do the actual sampling:
+  //Now do the actual sampling - first in cells:
   std::pair<NC::VectD,NC::VectD> res;
   auto& a = res.first;
   auto& b = res.second;
@@ -310,7 +380,7 @@ NC::SABRef::refSampleAlphaBeta( RNG& rng,
       }
     } else {
       //crossing => use RefCellSampler
-      SABUtils::RefCellSampler rcs( cell, E_div_kT );
+      SABUtils::RefCellSampler rcs( cell, E_div_kT_cell );
       while ( n ) {
         auto ab = rcs.sampleAlphaBeta( rng );
         a.push_back(ab.alpha);
@@ -320,7 +390,24 @@ NC::SABRef::refSampleAlphaBeta( RNG& rng,
     }
   }
 
-  //Finally, shuffle results to not get them ordered by cell:
+  //Now do the sampling in the extended region (if any):
+  if ( a.size() < nsample ) {
+    const NeutronEnergy ekin{ E_div_kT * kT };
+    nc_assert(opt_extension.has_value());
+    const auto& ext = opt_extension.value();
+    nc_assert( ext.extender!=nullptr );
+    nc_assert( ekin > ext.emax );
+    const double fourecell = 4.0 * E_div_kT_cell;
+    while ( a.size() < nsample ) {
+      auto ab = ext.extender->sampleAlphaBeta(rng, ekin );
+      if ( ncsquare( ab.first - ab.second ) >= fourecell * ab.first ) {
+        a.push_back(ab.first);
+        b.push_back(ab.second);
+      }
+    }
+  }
+
+  //Finally, shuffle results to not get them ordered by cell (or extension):
   randShuffle( rng, a, b);
   return res;
 }
