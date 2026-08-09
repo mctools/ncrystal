@@ -978,6 +978,7 @@ namespace NCRYSTAL_NAMESPACE {
       SABProcessor::AlphaBetaOutcome
       SABProcImpl::sampleAlphaBeta( RNG& rng, NeutronEnergy ekin ) const
       {
+        nc_assert( canSample() );
         //Find the index of the first value in the energy grid whose value exceeds
         //ekin (or the last value if ekin>=m_eGrid.back()):
         const double E_div_kT = ekin.dbl()*m_invkT;
@@ -1166,7 +1167,7 @@ NC::CrossSect NCS::SABProcessor::crossSectionUnitSigmaBound( NeutronEnergy ekin 
   //fixme: keep synchronized with getEMaxInfo()
   auto sp = sp_cimpl(m_impl);
   const double Sint = sp->phaseSpaceIntegral(ekin);
-  const double kTdiv4 = sp->m_kT * 0.25;
+  const double kTdiv4 = sp->m_kT * 0.25;//fixme: cache?
   return CrossSect{ Sint * kTdiv4 / ekin.dbl() };
 }
 
@@ -1270,7 +1271,7 @@ void NCS::SABProcessor::toJSONProcessInfo( std::ostream& os,
   const auto emin = NeutronEnergy{ sp->m_eGrid.front()*sp->m_kT };
   {
     std::ostringstream tmp;
-    tmp << "grid="<<sab.alphaGrid().size()<<"x"<<sab.betaGrid().size();
+    tmp << "nalpha="<<sab.alphaGrid().size()<<";nbeta="<<sab.betaGrid().size();
     tmp << ";Emax="<<emax;
     tmp << ";T="<<sab.temperature();
     tmp << ";M="<<sab.elementMassAMU();
@@ -1278,8 +1279,7 @@ void NCS::SABProcessor::toJSONProcessInfo( std::ostream& os,
       tmp << ";extend="<<extension_method.value();
     if ( sigma_scale.has_value() )
       tmp << ";sigma_free="
-          <<fmt(sigma_scale.value().free(sab.elementMassAMU()).dbl(),"%.4g")
-          <<"barn";
+          <<sigma_scale.value().free(sab.elementMassAMU());
 
     streamJSONDictEntry( os, "summarystr", tmp.str(), JSONDictPos::FIRST );
   }
