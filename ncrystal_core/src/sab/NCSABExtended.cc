@@ -22,6 +22,21 @@
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
 
+namespace NCRYSTAL_NAMESPACE {
+  namespace SABUtils {
+    namespace {
+      inline double sIntegralFromXS( CrossSect xs,
+                                     NeutronEnergy ekin,
+                                     double invkT )
+      {
+        return xs.dbl() * ekin.dbl() * 4.0 * invkT;
+      }
+
+    }
+  }
+}
+
+
 NCS::SABExtended::SABExtended( shared_obj<const SABProcessor> p,
                                shared_obj<const SAB::SABExtender> e )
   : m_p( std::move(p) ),
@@ -29,20 +44,16 @@ NCS::SABExtended::SABExtended( shared_obj<const SABProcessor> p,
     m_kT( m_p->kT() ),
     m_invkT( 1.0 / m_kT )
 {
-  if (!m_p->hasSampleSupport())
-    NCRYSTAL_THROW(BadInput,"SABExtended can not use a SABProcessor"
-                   " without sampling support enabled.");
-
   nc_assert(!m_p->getEDivKTGrid().empty());
   nc_assert(!m_p->getPhaseSpaceIntegralAtGrid().empty());
   auto emaxInfo = m_p->getEMaxInfo();
   m_emax = emaxInfo.ekin;
   //Initialise constants needed for high-E extrapolation (see comments below
   //where they are being used):
-  const double extenderXS_emax = m_e->crossSection(m_emax).dbl();
-  const double tableXS_emax = emaxInfo.crossSectionUnitSigmaBound.dbl();
-  m_kExtension = ( tableXS_emax - extenderXS_emax ) * m_emax.dbl();
-  m_extSAtEmax = 4.0 * m_emax.dbl() * extenderXS_emax;
+  const auto extenderXS_emax = m_e->crossSection(m_emax);
+  const auto tableXS_emax = emaxInfo.crossSectionUnitSigmaBound;
+  m_kExtension = ( tableXS_emax.dbl() - extenderXS_emax.dbl() ) * m_emax.dbl();
+  m_extSAtEmax = sIntegralFromXS( extenderXS_emax, m_emax, m_invkT );
   m_tableSAtEmax = emaxInfo.phaseSpaceIntegral;
 }
 
@@ -83,13 +94,14 @@ NC::PairDD NCS::SABExtended::scatABHighE( RNG& rng, NeutronEnergy ekin ) const
   //emax boundary. This is on average a small O(10%) slowdown for events with
   //ekin in [emax,1*1,emax], but this is preferable to having rare events with
   //truly abysmal efficiency.
+
   const NeutronEnergy near_emax{ m_emax.dbl() * 1.1};//1.1 => slowdown is
                                                      //O(10%), but tail events
                                                      //are kept at
                                                      //O(1/(1.1-1))=O(10)
                                                      //samplings.
   if ( ekin < near_emax ) {
-    const double four_E_div_kT = 4.0 * m_emax.dbl() * m_invkT;
+    const double four_E_div_kT = 4.0 * ekin.dbl() * m_invkT;
 #  ifndef NDEBUG
     int nloop = 0;
 #  endif
@@ -100,22 +112,24 @@ NC::PairDD NCS::SABExtended::scatABHighE( RNG& rng, NeutronEnergy ekin ) const
         return ab;
     }
   }
-  nc_assert( ekin.dbl() >= near_emax.dbl()*(1.0-1e-12) );
 
-  //////////////////////////////////////////////////////////////////////////
-  // Figure out and do a random check against the probability of sampling //
-  // (alpha,beta) point inside the E=m_emax kinematic boundary. This      //
-  // probability is given by comparing the relative S-integral (which are //
-  // proportional to sigma(E)*E).                                         //
-  //////////////////////////////////////////////////////////////////////////
+  //Ok, we are well above emax:
+  nc_assert( ekin.dbl() >= near_emax.dbl() );
+
+  /////////////////////////////////////////////////////////////////////////
+  // Figure out and do a random choice against the probability of        //
+  // sampling (alpha,beta) point inside the E=m_emax kinematic boundary. //
+  // This probability is given by comparing the relative S-integrals     //
+  // (which are proportional to sigma(E)*E).                             //
+  /////////////////////////////////////////////////////////////////////////
 
   {
     //xs = sigma_bound * sintegral / 4E, so with sigma_bound==1barn (as we
     //require here), we get sintegral = 4*E*xs
-    const double extS = 4.0 * ekin.dbl() * m_e->crossSection(ekin).dbl();
+    const double extS = sIntegralFromXS(m_e->crossSection(ekin), ekin, m_invkT);
     nc_assert( extS >= m_extSAtEmax );
-    const double extContrib = extS - m_extSAtEmax;
-    if ( rng() * ( m_tableSAtEmax+extContrib) < m_tableSAtEmax ) {
+    const double extContrib = (extS - m_extSAtEmax);
+    if ( rng() * ( m_tableSAtEmax+extContrib) <= m_tableSAtEmax ) {
       //results end up in central region, covered by the SABProcessor:
       auto ab = m_p->sampleScatterAlphaBeta( rng, m_emax );
       return { ab.alpha, ab.beta };
@@ -128,13 +142,13 @@ NC::PairDD NCS::SABExtended::scatABHighE( RNG& rng, NeutronEnergy ekin ) const
   //////////////////////////////////////////////////////////////////////////
 
 #ifndef NDEBUG
-  int nloop(0);
+  int nloop2(0);
 #endif
-  const double foure = 4*m_emax.dbl();
+  const double fouremax_div_kT = 4*m_emax.dbl()*m_invkT;
   while ( true ) {
-    nc_assert(nloop++<1000);
+    nc_assert(nloop2++<1000);
     auto ab = m_e->sampleAlphaBeta(rng,ekin);
-    if ( !( ncsquare( ab.first - ab.second ) < foure*ab.first ) )
+    if ( !( ncsquare( ab.first - ab.second ) < fouremax_div_kT*ab.first ) )
       return ab;
   }
 }
@@ -161,16 +175,25 @@ NCS::SABExtended::sampleScatter( RNG& rng, NeutronEnergy ekin ) const
 
 NC::shared_obj<const NC::SABUtils::SABExtended>
 NC::SABUtils::
+SABExtended::createWithFGExtender( shared_obj<const SABProcessor> processor )
+{
+  //fixme: inconsistent namespaces
+  auto sab = processor->sabDataPtr();
+  auto ext = makeSO<SAB::SABFGExtender>( sab->temperature(),
+                                         sab->elementMassAMU(),
+                                         SigmaBound{1.0} );
+  return makeSO<SABUtils::SABExtended>( std::move(processor), std::move(ext) );
+}
+
+
+NC::shared_obj<const NC::SABUtils::SABExtended>
+NC::SABUtils::
 SABExtended::createWithFGExtender( const SABCfg::Cfg& cfg,
                                    shared_obj<const SABData> sab,
                                    std::shared_ptr<const VectD> egrid )
 {
-  //fixme: inconsistent namespaces
-  auto ext = makeSO<SAB::SABFGExtender>( sab->temperature(),
-                                         sab->elementMassAMU(),
-                                         SigmaBound{1.0} );
-  auto processor = makeSO<SABUtils::SABProcessor>( cfg,
-                                                   std::move(sab),
-                                                   std::move(egrid) );
-  return makeSO<SABUtils::SABExtended>( std::move(processor), std::move(ext) );
+  return
+    createWithFGExtender( makeSO<SABUtils::SABProcessor>( cfg,
+                                                          std::move(sab),
+                                                          std::move(egrid) ) );
 }

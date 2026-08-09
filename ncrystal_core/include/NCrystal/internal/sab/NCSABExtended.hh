@@ -42,8 +42,11 @@ namespace NCRYSTAL_NAMESPACE {
       SABExtended( shared_obj<const SABProcessor>,
                    shared_obj<const SAB::SABExtender> );
 
-      //Convenience function for initialising directly from SABData and using a
-      //free-gas extension:
+      //Convenience function for initialising using a free-gas extension and/or
+      //directly from SABData:
+      static shared_obj<const SABExtended>
+      createWithFGExtender( shared_obj<const SABProcessor> );
+
       static shared_obj<const SABExtended>
       createWithFGExtender( const SABCfg::Cfg&,
                             shared_obj<const SABData>,
