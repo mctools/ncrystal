@@ -153,6 +153,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     //
     //Default values of Cfg objects are already right for sablux==3, so we just
     //repeat them here to make it easier to get an overview.
+    static_assert( sablux_default_luxury == 3, "" );
     nc_assert( c.integScheme == IntegrationScheme::Flex9);
     nc_assert( c.integSchemeDetermineEGrid == IntegrationScheme::Flex5);
     nc_assert( c.integSchemeBCSample == IntegrationScheme::Flex9 );

@@ -93,6 +93,7 @@ namespace NCRYSTAL_NAMESPACE {
     ////////////////////////////////////////////
 
     constexpr double sablux_max_luxury = 6;
+    constexpr double sablux_default_luxury = 3;
     Cfg createConfig( int sablux );
 
   }
