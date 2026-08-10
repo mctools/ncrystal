@@ -25,8 +25,9 @@
 #include "NCrystal/internal/sab/NCSABCellInteg.hh"
 #include "NCrystal/internal/sab/NCSABCellSample.hh"
 #include "NCrystal/internal/sab/NCSABRefSampler.hh"
-#include "NCrystal/internal/sab/NCSABExtender.hh"
-#include "NCrystal/internal/sab/NCSABIntegrator.hh"//legacy
+#include "NCrystal/internal/sab/NCSABExtended.hh"
+#include "NCrystal/internal/sab/NCSABFactory.hh"
+#include "NCrystal/internal/sab/NCSABIntegrator.hh"
 #include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
 #include "NCrystal/internal/extd_utils/NCInfoUtils.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
@@ -191,23 +192,15 @@ namespace NCRYSTAL_NAMESPACE {
                             VectD egrid,
                             std::uint64_t nsample,
                             std::uint64_t seed,
-                            NeutronEnergy sample_ekin )
+                            NeutronEnergy sample_ekin,
+                            int knllux )
       {
-        const double sablux = 3;//FIXME: As parameter!
-        auto cfg = SABCfg::createConfig(sablux);
-        SABProcessor sp( cfg,
-                         std::move(sab),
-                         std::make_shared<VectD>( std::move(egrid) ),
-                         ( nsample > 0
-                           ? SABProcessor::SampleSupport::YES
-                           : SABProcessor::SampleSupport::NO ),
-                         SABProcessor::StoreExtraDiagnostics::YES );
-        nc_assert_always( sp.hasSampleSupport() == (nsample>0) );
-
-        //fixme: also call sp.phaseSpaceIntegral( NeutronEnergy ) const => to check interpolation
-        //       (we can simply call with custom egrid to get the non-interpolated values at those points).
+        if ( knllux < 0 )
+          knllux = SABCfg::sablux_default_luxury;
+        auto spe = SAB::createSABExtendedWithCache( knllux, sab,
+                                                    std::make_shared<VectD>( std::move(egrid) ) );
         os << "{\"sabproc\":";
-        sp.toJSON(os);
+        spe->processor().toJSON(os);
         os << ",\"sample\":";
         if ( !nsample ) {
           streamJSON(os,json_null_t{});
@@ -215,35 +208,19 @@ namespace NCRYSTAL_NAMESPACE {
           return;
         }
         auto rng = createBuiltinRNG( seed );
-        VectD a, b, ekin, mu;
+        VectD a, b;//, ekin, mu;
         a.reserve(nsample);
         b.reserve(nsample);
-        ekin.reserve(nsample);
-        mu.reserve(nsample);
         ++nsample;
-        std::uint64_t ntries = 0;
-        const std::uint64_t ntries_limit = 100*nsample;//fixme tighten?
-        const std::uint64_t ntries_sgl = 1000;//fixme tighten?
         while (nsample-- > 1) {
-          auto evt =sp.sampleScatterDiag(rng,sample_ekin);
-          nc_assert_always( evt.alphabeta.ntries < ntries_sgl );
-          ntries += evt.alphabeta.ntries;
-          a.push_back( evt.alphabeta.alpha );
-          b.push_back( evt.alphabeta.beta );
-          ekin.push_back( evt.ekinmu.ekin.dbl() );
-          mu.push_back( evt.ekinmu.mu.dbl() );
-          nc_assert_always( ntries < ntries_limit );
+          auto evt =spe->sampleScatterAlphaBeta(rng,sample_ekin);
+          a.push_back( evt.first );
+          b.push_back( evt.second );
         }
         os << "{\"alpha\":";
         streamJSONHugeDblVect(os,std::move(a));
         os << ",\"beta\":";
         streamJSONHugeDblVect(os,std::move(b));
-        os << ",\"ekin\":";
-        streamJSONHugeDblVect(os,std::move(ekin));
-        os << ",\"mu\":";
-        streamJSONHugeDblVect(os,std::move(mu));
-        os << ",\"ntries\":";
-        streamJSON(os,ntries);
         os << "}}";
       }
 
@@ -255,7 +232,8 @@ namespace NCRYSTAL_NAMESPACE {
       {
         auto rng = createBuiltinRNG( seed );
         const double E_div_kT = sample_ekin.dbl() / sab->temperature().kT();
-        auto ab = SABRef::refSampleAlphaBeta( rng, sab, E_div_kT, nsample );
+        auto ab = SABRef::refSampleAlphaBeta( rng, sab, E_div_kT, nsample,
+                                              SABRef::RefSampleExtension{} );
         os << "{\"refsample\":{\"E\":";
         streamJSON(os,sample_ekin);
         os << ",\"E_div_kT\":";
@@ -281,31 +259,13 @@ namespace NCRYSTAL_NAMESPACE {
                                     bool legacy_oversample )
       {
         auto rng = createBuiltinRNG( seed );
-        //teeny tiny E-values are cheaper, and we only really need the one at
-        //sample_ekin:
-
-        //fixme: margin=1.00000000001 is not actually the legacy default (which
-        //is 1.05). Also, we would like to show the legacy with and without the
-        //sqrt-first-beta-bin fix.
-        const SABSampler::EGridMargin
-          margin{ legacy_oversample ? 10.0 : (1.0+1e-12) };
-        VectD egrid;
-        egrid.push_back(1e-10*sample_ekin.dbl());
-        egrid.push_back(5e-10*sample_ekin.dbl());
-        egrid.push_back(1e-9*sample_ekin.dbl());
-        egrid.push_back(5e-9*sample_ekin.dbl());
-        egrid.push_back(1e-8*sample_ekin.dbl());
-        egrid.push_back(1e-7*sample_ekin.dbl());
-        egrid.push_back(1e-6*sample_ekin.dbl());
-        egrid.push_back(1e-5*sample_ekin.dbl());
-        egrid.push_back(1e-4*sample_ekin.dbl());
-        egrid.push_back(margin.value*(1+1e-12)*sample_ekin.dbl());
-        auto extender = std::make_shared<SAB::SABNullExtender>();
-        auto sampler = SAB::SABIntegrator( sab, &egrid,
-                                           extender, margin ).createSampler();
-
+        auto scathelper = SAB::
+          createScatterHelperWithCache( sab, nullptr,
+                                        ( legacy_oversample
+                                          ? SAB::LegacySABAlgOpts::OVERSAMPLE10
+                                          : SAB::LegacySABAlgOpts::DEFAULT ) );
+        auto& sampler = scathelper->sampler;
         const double E_div_kT = sample_ekin.dbl() / sab->temperature().kT();
-
         VectD alpha, beta;
         alpha.reserve(nsample);
         beta.reserve(nsample);
@@ -774,6 +734,7 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
     if ( !arg(1).empty() )
       atomdsplbl = argstr(1);
     auto sabdata = query_impl_extractSabData( argstr(0), atomdsplbl );
+    const int knllux = MatCfg(argstr(0)).get_knllux();
 
     auto optns = arg(2).toUInt64();
     if ( !optns.has_value() )
@@ -817,7 +778,7 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
     }
     if ( key == sv_proc ) {
       query_impl_proc( os, std::move(sabdata), std::move(egrid),
-                       nsample, seed, sample_ekin );
+                       nsample, seed, sample_ekin, knllux );
     } else {
       if ( refsample_type_is_legacy )
         query_impl_legacysample( os, std::move(sabdata), nsample, seed,
