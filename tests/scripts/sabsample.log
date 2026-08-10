@@ -1,0 +1,66 @@
+
+=============>
+=============> Launching test 1
+=============>
+
+
+=============>
+=============> Launching test 2
+=============>
+
+
+=============>
+=============> Launching test 3
+=============>
+
+NCrystal WARNING: Discarding 476 edges of provided kernel data due to missing S values.
+
+=============>
+=============> Launching test 4
+=============>
+
+
+=============>
+=============> Launching test 5
+=============>
+
+
+=============>
+=============> Launching test 6
+=============>
+
+
+=============>
+=============> Launching test 7
+=============>
+
+
+=============>
+=============> Launching test 8
+=============>
+
+
+=============>
+=============> Launching test 9
+=============>
+
+
+=============>
+=============> Launching test 10
+=============>
+
+
+=============>
+=============> Final summary
+=============>
+
+P-value for test #1 : OK
+P-value for test #2 : OK
+P-value for test #3 : OK
+P-value for test #4 : OK
+P-value for test #5 : OK
+P-value for test #6 : OK
+P-value for test #7 : OK
+P-value for test #8 : OK
+P-value for test #9 : OK
+P-value for test #10 : OK
