@@ -25,10 +25,9 @@
 import NCTestUtils.enable_fpe # noqa F401
 from NCTestUtils.env import ncsetenv
 from NCrystalDev.misc import evaluate_query as ncquery
-from NCrystalDev.hist import HistFiller1D
 from NCTestUtils.stat import kolmogorov_smirnov_pvalue
 from NCTestUtils.sabsampleutils import Samples, onedim_projections
-import NCTestUtils.sabsampleutils as sabsampleutils
+from NCTestUtils import sabsampleutils
 from dataclasses import dataclass
 from typing import Optional
 import numpy as np
@@ -45,7 +44,7 @@ class SampleResults:
     method: str
     alpha: np.ndarray
     beta: np.ndarray
-    egrid_div_kT : Optional[np.ndarray] = None
+    egrid_div_kT : Optional[np.ndarray] = None # noqa FA100
 
 sample_methods =  ['ref','std','legacy','legacy_oversample','vdoslux5']
 def dosample_query( method, ekin, nsamples, cfgstr, atomlbl, egrid = None ):
@@ -114,7 +113,7 @@ def test( *,cfgstr,ekin, atomlbl='',
     pvals, pvals_worst = pval_from_samples( s_std, s_ref )
 
     if verbose:
-        print(f"KS unbinned pval (std vs. ref):")
+        print("KS unbinned pval (std vs. ref):")
         def print_pvalline(k,p):
             print("   %s : %.4g%%"%(k.rjust(3),p*100))
         for k,p in pvals.items():
@@ -128,11 +127,10 @@ def test( *,cfgstr,ekin, atomlbl='',
 
     if do_plot:
         import matplotlib.pyplot as plt
-        from NCrystalDev.plot import PlotContext
-        from NCTestUtils.sabcelleval import plot_celleval
-        import NCrystalDev.core as nccore
         import NCrystalDev.cfgstr as nccfgstr
+        import NCrystalDev.core as nccore
         from NCrystalDev._numpy import _np_linspace
+        from NCrystalDev.plot import PlotContext
         fig, axes = plt.subplots(2, 3, figsize=(12, 6))
         fig.suptitle(cfgstr + (f' ({atomlbl})' if atomlbl else '')+f' {float(ekin):g}eV')
 
@@ -148,7 +146,7 @@ def test( *,cfgstr,ekin, atomlbl='',
             di = info.dyninfos[0]
         kT = di.temperature*constant_boltzmann
         s_std_emax_div_kT = s_std_egrid_div_kT[-1]
-        s_std_emax = s_std_emax_div_kT * kT
+        #s_std_emax = s_std_emax_div_kT * kT
         E_div_kT = float(ekin) / kT
         if hasattr(di,'analyseVDOS'):
             vdoslux = nccfgstr.decodecfg_vdoslux(cfgstr)
@@ -226,11 +224,11 @@ def test( *,cfgstr,ekin, atomlbl='',
                          agrid = sab['alpha'],
                          bgrid = sab['beta'] )
 
-        plot2dcell( axes[0,0],s_std.alpha,s_std.beta,f'sampled (std)',
+        plot2dcell( axes[0,0],s_std.alpha,s_std.beta,'sampled (std)',
                     emax_div_kT = s_std_emax_div_kT,
                     **common2d,  )
         #NB: The ref plot will also get egrid from s_std:
-        plot2dcell( axes[1,0],s_ref.alpha,s_ref.beta,f'sampled (ref)',
+        plot2dcell( axes[1,0],s_ref.alpha,s_ref.beta,'sampled (ref)',
                     emax_div_kT = s_std_emax_div_kT,
                     **common2d )
 
@@ -256,7 +254,7 @@ def test( *,cfgstr,ekin, atomlbl='',
                      'vdoslux5':'red',
                      'std':'none' }
             assert set(colors.keys()) == set(sample_methods)
-            hstd.plot(label=f'std',
+            hstd.plot(label='std',
                       color=colors['std'],
                       **pctx.kwargs_subcontext())
             for k,v in hists.items():
@@ -323,6 +321,17 @@ def main(do_plot,luxlvl,test_select):
 
         dict( cfgstr='stdlib::Al_sg225.ncmat', ekin='25e-10' ),
         #ref is too slow dict( cfgstr='stdlib::Al_sg225.ncmat', ekin='25e-10' ),
+
+        dict( cfgstr='stdlib::Al_sg225.ncmat', ekin='15' ),
+
+        dict( cfgstr='solid::H/1gcm3;vdoslux=5', ekin='15' ),
+
+        dict( cfgstr='solid::H/1gcm3;vdoslux=0', ekin='2' ),
+
+        dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;knllux=6',atomlbl='H',#fixme: also 'C'
+              ekin='15'#fixme: also something extreme, like 10000
+             ),
+
     ]
     npvals_tot = 0
     pvals = []
