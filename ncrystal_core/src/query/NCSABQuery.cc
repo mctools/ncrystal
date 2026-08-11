@@ -197,8 +197,16 @@ namespace NCRYSTAL_NAMESPACE {
       {
         if ( knllux < 0 )
           knllux = SABCfg::sablux_default_luxury;
-        auto spe = SAB::createSABExtendedWithCache( knllux, sab,
-                                                    std::make_shared<VectD>( std::move(egrid) ) );
+
+        //Create with diagnostics:
+        auto sp = makeSO<SABProcessor>
+          ( SABCfg::createConfig(knllux),
+            sab,
+            std::make_shared<VectD>( std::move(egrid) ),
+            SABProcessor::SampleSupport::YES,
+            SABProcessor::StoreExtraDiagnostics::YES );
+        auto spe = SABExtended::createWithFGExtender( sp );
+
         os << "{\"sabproc\":";
         spe->processor().toJSON(os);
         os << ",\"sample\":";
