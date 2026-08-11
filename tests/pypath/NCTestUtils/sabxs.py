@@ -24,6 +24,7 @@ import NCrystalDev.core as nccore
 from NCrystalDev._numpy import _np_geomspace, _np_linspace
 from NCrystalDev.constants import constant_boltzmann, wl2ekin
 
+
 def run( testgroup ):
     from .xs import XSMonitor
     def testlist_filtered():
