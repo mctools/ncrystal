@@ -603,27 +603,66 @@ namespace NCRYSTAL_NAMESPACE {
                             std::shared_ptr<const VectD> requested_egrid )
       {
         const auto scheme = cfg.integSchemeDetermineEGrid;
-        const auto npts = cfg.egrid_npts;
+        static_assert( std::is_same<decltype(cfg.egrid_npts),unsigned>
+                       ::value, "" );
+        auto npts = static_cast<std::size_t>( cfg.egrid_npts );
 
         //fixme: major cleanup needed
         Optional<NeutronEnergy> suggestedEMax_by_egrid;
+        Optional<NeutronEnergy> suggestedEMin_by_egrid;
 
         if ( requested_egrid && !requested_egrid->empty() ) {
+          const auto& re = *requested_egrid;
           //fixme: more sanity checks
           const double invkT = 1.0/sab.temperature().kT();
-          nc_assert_always(requested_egrid->size()!=2);
-          if ( requested_egrid->size() == 1 ) {
-            suggestedEMax_by_egrid = NeutronEnergy{ requested_egrid->front() };
-          } else if ( requested_egrid->size() == 3 ) {
-            return geomspace(requested_egrid->at(0)*invkT,
-                             requested_egrid->at(1)*invkT,
-                             static_cast<std::size_t>(requested_egrid->at(2)));
+          if ( re.size() == 1 ) {
+            suggestedEMax_by_egrid = NeutronEnergy{ re.front() };
+          } else if ( re.size() == 3 ) {
+            //fixme: the NCMAT spec says that this should give points
+            //distributed "evenly in logarithmic space". Perhaps we can solve
+            //this merely by updating the language in the spec, to be a bit more
+            //loose?
+
+            // { emin or 0, emax or 0, npts or 0 }
+            if ( re.at(0) != 0.0 )
+              suggestedEMin_by_egrid = NeutronEnergy{ re.at(0) };
+            if ( re.at(1) != 0.0 )
+              suggestedEMax_by_egrid = NeutronEnergy{ re.at(1) };
+            if ( re.at(2) != 0.0 ) {
+              npts = static_cast<std::size_t>(re.at(2));
+              if ( (double)npts != re.at(2) || npts < 10  )
+                NCRYSTAL_THROW2(BadInput,"Invalid egrid npts (must be"
+                                " integral value, at least 10): "<<re.at(2));
+            }
           } else {
+            //complete egrid given directly by request, so in this case we
+            //simply honour it and return it directly (we can only assume that
+            //the users know what they are doing):
+            if ( !( re.size() > 10 ) )
+              NCRYSTAL_THROW2(BadInput,"Invalid requested egrid (must have"
+                              " length 1, 3, or >=10)");
             VectD res;
-            res.reserve( requested_egrid->size() );
-            for ( auto e : *requested_egrid )
+            res.reserve( re.size() );
+            for ( auto e : re )
               res.push_back( e * invkT );
             return res;
+          }
+        }
+
+        {
+          nc_assert_always( npts >= 10 );
+          if ( suggestedEMax_by_egrid.has_value() )
+            suggestedEMax_by_egrid.value().validate();
+          if ( suggestedEMin_by_egrid.has_value() )
+            suggestedEMin_by_egrid.value().validate();
+          if ( suggestedEMax_by_egrid.has_value()
+               && suggestedEMin_by_egrid.has_value()
+               && !( suggestedEMax_by_egrid.value()
+                     > suggestedEMin_by_egrid.value() ) ) {
+            NCRYSTAL_THROW2(BadInput,"egrid: emax ("
+                            <<suggestedEMax_by_egrid.value()
+                            <<") not greater than emin ("
+                            <<suggestedEMin_by_egrid.value()<<")");
           }
         }
 
@@ -643,6 +682,9 @@ namespace NCRYSTAL_NAMESPACE {
         E_min_max.second = ( suggestedEMax.has_value()
                              ? suggestedEMax.value()
                              : determineEMax( sab.temperature(), sIntByEtouch.sint, sIntByEtouch.e ) );
+
+        if ( suggestedEMin_by_egrid.has_value() )
+          suggestedEMin = suggestedEMin_by_egrid;
 
         if ( suggestedEMin.has_value() ) {
           E_min_max.first = suggestedEMin.value();
@@ -698,7 +740,8 @@ namespace NCRYSTAL_NAMESPACE {
                                             //simplicity just use lin-in-sqrt(E)
                                             //for the lower 5% of epts (or we
                                             //can detect)
-          nc_assert( npts >= 80 );
+          if ( npts < 80 )
+            npts = 80;
           const std::size_t n = npts-n_lowe;
           constexpr double lowE_factor = 1e-4;
           final_egrid.reserve(n+n_lowe);
