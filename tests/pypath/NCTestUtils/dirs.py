@@ -44,7 +44,7 @@ def _find_data_dir():
 test_data_dir = _find_data_dir()
 
 def get_named_test_data_dir(name, for_updates = False ):
-    #name of subdir of /tests/data, None means test_data_dir itself.  Set for
+    #name of subdir of /tests/data, None means test_data_dir itself.  Set
     #for_updates to True if running a test script in "--update" mode, where the
     #script will afterwards (over)write one or more files in it.
     tdir = test_data_dir
@@ -95,3 +95,26 @@ def _test_data_dir_for_updates():
     if not tdir.is_dir():
         return False
     return tdir
+
+#Encode things like cfg-strings to/from strings that are problematic for
+#filesystems (a bit like urlencode). Specifically we only allow alphanumeric
+#characters and a few others, and '%' will be used as an escape character.
+
+_enc_allowed = set(b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+                   b"0123456789-_")
+
+def encode_safe(s: str) -> str:
+    return ''.join( chr(x) if x in _enc_allowed else f'%{x:02X}'
+                    for x in s.encode('utf-8') )
+
+def decode_safe(name: str) -> str:
+    ba = bytearray()
+    i = 0
+    while i < len(name):
+        if name[i] == '%':
+            ba.append(int(name[i+1:i+3], 16))
+            i += 3
+        else:
+            ba.append(ord(name[i]))
+            i += 1
+    return ba.decode('utf-8')
