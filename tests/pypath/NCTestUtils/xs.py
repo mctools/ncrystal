@@ -107,13 +107,33 @@ class XSMonitor:
                       " Developers: If expected, --update after investigating"
                       f" with: --plot {testkey} ")
             else:
-                rd = _reldiff( xsvals, ref_xsvals ).max()
+                rda = _reldiff( xsvals, ref_xsvals )
+                rd = rda.max()
                 if rd>self.__test_rdtol:
                     badtests.add((rd,testkey))
                     print(f"ERROR: reference cross sections for {testkey} are"
                           " inconsistent at the reldiff={rd:g} level."
                           " Developers: If expected, consider --update after"
                           f" investigating with: --plot {testkey} ")
+                    print('Data dump:')
+                    print('               Eref                  E            XSref               XS  XSreldiff')
+                    def fmt(v, n=10):
+                        return f"{v:.{n}g}".rjust(n+6)#+7 if can be negative
+                    for i in range(len(xsvals)):
+                        ref_estr = fmt(ref_evals[i],12)
+                        estr = fmt(evals[i],12)
+                        if estr==ref_estr:
+                            estr = '            <same>'
+                        rdval = rda[i]
+                        rdstr = fmt(rdval,4)
+                        if rdval>self.__test_rdtol:
+                            rdstr+=' <-- problem'
+                        print(f' {ref_estr}'
+                              f' {estr}'
+                              f' {fmt(ref_xsvals[i],10)}'
+                              f' {fmt(xsvals[i],10)}'
+                              f' {rdstr}')
+
             if self.__do_plot:
                 evals_lux = set(evals)
                 evals_lux |= set(_np_linspace(evals[0],evals[-1],5000))
