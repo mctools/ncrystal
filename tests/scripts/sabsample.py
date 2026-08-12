@@ -297,10 +297,6 @@ def main(do_plot,luxlvl,test_select):
 
         dict( cfgstr='stdlib::Al_sg225.ncmat;knllux=6',ekin='1000.5'),#fixme: also something normal
 
-        dict( cfgstr='/home/tkittel/work/repos/ncrystal/venv/lib/python3.12/site-packages/ncrystal_plugin_LiquidHeliumData/data/LiquidHelium_T0.8K_Effective.ncmat;knllux=1',
-              ekin='0.5'
-             ),
-
         dict( cfgstr='stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=2;knllux=1',
               atomlbl='H',
               ekin='0.0016694736654149164'#7Aa
