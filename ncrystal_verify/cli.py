@@ -71,6 +71,7 @@ def run_test( script, verbose ):
                              check = False )
         def print_output():
             snip = not verbose
+            snip = False#FIXME
             print_lines_with_snipping(rv.stdout,prefix='stdout: ', snip = snip)
             print_lines_with_snipping(rv.stderr,prefix='stderr: ', snip = snip)
 
