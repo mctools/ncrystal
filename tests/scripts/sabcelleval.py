@@ -74,7 +74,11 @@ def evalcell(*,E_div_kT, alpha, beta, svals = None, do_plot=False ):
                    for name, v
                    in res['cellintegral']['phasespace_integral'] )
     def fmtprec(v):
-        return '%g'%v if do_plot else '%.1g'%v
+        if do_plot:
+            return '%g'%v
+        if v < 1e-14:
+            return '<1e-14'
+        return '%.1g'%v
 
     for prec, v, name in vals:
         print(f" {name.rjust(10)} : {v:.11g}  [precision lvl {fmtprec(prec)}]")

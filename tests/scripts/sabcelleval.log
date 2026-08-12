@@ -64,16 +64,16 @@ mpmath reference phasespace integral: 0.00431504211068699
 mpmath reference full integral: 0.00738658124984015
 bruteforce/mpref precision (full integral): 5.20686e-17
 bruteforce/mpref precision (phasespace integral): 1.81278e-07
-     Flex17 : 0.0043150421107  [precision lvl 4e-16]
-  Romberg17 : 0.0043150421107  [precision lvl 4e-16]
-      Flex9 : 0.0043150421107  [precision lvl 4e-16]
-   Romberg9 : 0.0043150421107  [precision lvl 4e-16]
-  Romberg33 : 0.0043150421107  [precision lvl 1e-15]
-      Flex5 : 0.0043150421107  [precision lvl 2e-15]
-   Romberg5 : 0.0043150421107  [precision lvl 2e-15]
-     Flex33 : 0.0043150421107  [precision lvl 2e-15]
-  Simpson33 : 0.0043150421107  [precision lvl 3e-15]
-     Flex65 : 0.0043150421107  [precision lvl 4e-15]
+     Flex17 : 0.0043150421107  [precision lvl <1e-14]
+  Romberg17 : 0.0043150421107  [precision lvl <1e-14]
+      Flex9 : 0.0043150421107  [precision lvl <1e-14]
+   Romberg9 : 0.0043150421107  [precision lvl <1e-14]
+  Romberg33 : 0.0043150421107  [precision lvl <1e-14]
+      Flex5 : 0.0043150421107  [precision lvl <1e-14]
+   Romberg5 : 0.0043150421107  [precision lvl <1e-14]
+     Flex33 : 0.0043150421107  [precision lvl <1e-14]
+  Simpson33 : 0.0043150421107  [precision lvl <1e-14]
+     Flex65 : 0.0043150421107  [precision lvl <1e-14]
   Simpson17 : 0.0043150421107  [precision lvl 2e-14]
    Simpson9 : 0.0043150421107  [precision lvl 4e-13]
    Simpson5 : 0.0043150421107  [precision lvl 6e-12]
@@ -84,7 +84,7 @@ bruteforce/mpref precision (phasespace integral): 1.81278e-07
     Trapez5 : 0.004315027626  [precision lvl 3e-06]
     Trapez3 : 0.0043149841719  [precision lvl 1e-05]
     Trapez2 : 0.004314810357  [precision lvl 5e-05]
- full integral : 0.0073865812498 [precision lvl 5e-17]
+ full integral : 0.0073865812498 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 2
@@ -148,9 +148,9 @@ mpmath reference phasespace integral: 0.485808991661554
 mpmath reference full integral: 1
 bruteforce/mpref precision (full integral): 0
 bruteforce/mpref precision (phasespace integral): 2.07559e-06
-     Flex33 : 0.48580899166  [precision lvl 1e-16]
-     Flex65 : 0.48580899166  [precision lvl 1e-16]
-  Romberg33 : 0.48580899166  [precision lvl 1e-16]
+     Flex33 : 0.48580899166  [precision lvl <1e-14]
+     Flex65 : 0.48580899166  [precision lvl <1e-14]
+  Romberg33 : 0.48580899166  [precision lvl <1e-14]
      Flex17 : 0.48580899166  [precision lvl 2e-13]
   Romberg17 : 0.48580899166  [precision lvl 2e-13]
       Flex9 : 0.48580899155  [precision lvl 2e-10]
@@ -168,7 +168,7 @@ bruteforce/mpref precision (phasespace integral): 2.07559e-06
     Trapez5 : 0.48534216447  [precision lvl 0.001]
     Trapez3 : 0.48394470392  [precision lvl 0.004]
     Trapez2 : 0.47839783948  [precision lvl 0.02]
- full integral : 1 [precision lvl 0]
+ full integral : 1 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 3
@@ -232,9 +232,9 @@ mpmath reference phasespace integral: 2.02254443224775
 mpmath reference full integral: 4.90920765499678
 bruteforce/mpref precision (full integral): 2.42769e-07
 bruteforce/mpref precision (phasespace integral): 1.19289e-06
-     Flex65 : 2.0225444322  [precision lvl 9e-17]
-  Romberg33 : 2.0225444322  [precision lvl 1e-16]
-     Flex33 : 2.0225444322  [precision lvl 4e-16]
+     Flex65 : 2.0225444322  [precision lvl <1e-14]
+  Romberg33 : 2.0225444322  [precision lvl <1e-14]
+     Flex33 : 2.0225444322  [precision lvl <1e-14]
      Flex17 : 2.0225444322  [precision lvl 1e-13]
   Romberg17 : 2.0225444322  [precision lvl 1e-13]
       Flex9 : 2.0225444305  [precision lvl 9e-10]
@@ -252,7 +252,7 @@ bruteforce/mpref precision (phasespace integral): 1.19289e-06
     Trapez5 : 2.0280841147  [precision lvl 0.003]
     Trapez3 : 2.044673077  [precision lvl 0.01]
     Trapez2 : 2.1105168334  [precision lvl 0.04]
- full integral : 4.909207655 [precision lvl 2e-16]
+ full integral : 4.909207655 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 4
@@ -323,7 +323,7 @@ mpmath reference phasespace integral: 51.4298180234971
 mpmath reference full integral: 80.5
 bruteforce/mpref precision (full integral): 0
 bruteforce/mpref precision (phasespace integral): 1.45145e-05
-     Flex65 : 51.429818023  [precision lvl 2e-17]
+     Flex65 : 51.429818023  [precision lvl <1e-14]
      Flex33 : 51.429818023  [precision lvl 3e-14]
   Romberg33 : 51.429817863  [precision lvl 3e-09]
   Simpson33 : 51.429808432  [precision lvl 2e-07]
@@ -343,7 +343,7 @@ bruteforce/mpref precision (phasespace integral): 1.45145e-05
     Trapez5 : 51.125916952  [precision lvl 0.006]
     Trapez3 : 50.275876477  [precision lvl 0.02]
     Trapez2 : 47.310302931  [precision lvl 0.08]
- full integral : 80.5 [precision lvl 0]
+ full integral : 80.5 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 5
@@ -410,7 +410,7 @@ mpmath reference phasespace integral: 6.63076828180442
 mpmath reference full integral: 28.75
 bruteforce/mpref precision (full integral): 0
 bruteforce/mpref precision (phasespace integral): 3.65013e-05
-     Flex65 : 6.6307682818  [precision lvl 3e-16]
+     Flex65 : 6.6307682818  [precision lvl <1e-14]
      Flex33 : 6.6307682818  [precision lvl 4e-13]
   Romberg33 : 6.6307682805  [precision lvl 2e-10]
      Flex17 : 6.6307680431  [precision lvl 4e-08]
@@ -430,7 +430,7 @@ bruteforce/mpref precision (phasespace integral): 3.65013e-05
     Trapez5 : 6.5601784033  [precision lvl 0.01]
     Trapez3 : 6.3551177516  [precision lvl 0.04]
     Trapez2 : 5.5980762114  [precision lvl 0.2]
- full integral : 28.75 [precision lvl 0]
+ full integral : 28.75 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 6
@@ -501,7 +501,7 @@ mpmath reference phasespace integral: 62.9986293010252
 mpmath reference full integral: 70.15
 bruteforce/mpref precision (full integral): 1.22457e-16
 bruteforce/mpref precision (phasespace integral): 1.7802e-05
-     Flex65 : 62.998629301  [precision lvl 5e-17]
+     Flex65 : 62.998629301  [precision lvl <1e-14]
      Flex33 : 62.998629301  [precision lvl 2e-14]
   Romberg33 : 62.998629301  [precision lvl 7e-12]
      Flex17 : 62.998629228  [precision lvl 1e-09]
@@ -521,7 +521,7 @@ bruteforce/mpref precision (phasespace integral): 1.7802e-05
     Trapez5 : 62.978037919  [precision lvl 0.0003]
     Trapez3 : 62.917683234  [precision lvl 0.001]
     Trapez2 : 62.689237929  [precision lvl 0.005]
- full integral : 70.15 [precision lvl 1e-16]
+ full integral : 70.15 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 7
@@ -610,7 +610,7 @@ bruteforce/mpref precision (phasespace integral): 2.77438e-05
     Trapez5 : 112.82972673  [precision lvl 0.004]
     Trapez3 : 111.95181099  [precision lvl 0.01]
     Trapez2 : 109.29223158  [precision lvl 0.04]
- full integral : 162 [precision lvl 0]
+ full integral : 162 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 8
@@ -692,7 +692,7 @@ mpmath reference phasespace integral: 30.7313544754617
 mpmath reference full integral: 33
 bruteforce/mpref precision (full integral): 0
 bruteforce/mpref precision (phasespace integral): 1.27077e-05
-     Flex65 : 30.731354475  [precision lvl 5e-15]
+     Flex65 : 30.731354475  [precision lvl <1e-14]
      Flex33 : 30.731354475  [precision lvl 3e-12]
   Romberg33 : 30.731268992  [precision lvl 3e-06]
   Simpson33 : 30.731247652  [precision lvl 3e-06]
@@ -712,7 +712,7 @@ bruteforce/mpref precision (phasespace integral): 1.27077e-05
     Trapez5 : 30.70944596  [precision lvl 0.0007]
     Trapez3 : 30.657462051  [precision lvl 0.002]
     Trapez2 : 30.491978927  [precision lvl 0.008]
- full integral : 33 [precision lvl 0]
+ full integral : 33 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 9
@@ -776,7 +776,7 @@ mpmath reference phasespace integral: 18.2625846089321
 mpmath reference full integral: 126.25
 bruteforce/mpref precision (full integral): 1.12561e-16
 bruteforce/mpref precision (phasespace integral): 9.58457e-05
-     Flex65 : 18.262584609  [precision lvl 2e-16]
+     Flex65 : 18.262584609  [precision lvl <1e-14]
      Flex33 : 18.262584609  [precision lvl 1e-13]
   Romberg33 : 18.262584608  [precision lvl 5e-11]
      Flex17 : 18.262584462  [precision lvl 8e-09]
@@ -796,7 +796,7 @@ bruteforce/mpref precision (phasespace integral): 9.58457e-05
     Trapez5 : 18.237526257  [precision lvl 0.001]
     Trapez3 : 18.165042188  [precision lvl 0.005]
     Trapez2 : 17.898979486  [precision lvl 0.02]
- full integral : 126.25 [precision lvl 0]
+ full integral : 126.25 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 10
@@ -860,7 +860,7 @@ mpmath reference phasespace integral: 116.862637627569
 mpmath reference full integral: 619.787466443343
 bruteforce/mpref precision (full integral): 2.42769e-07
 bruteforce/mpref precision (phasespace integral): 0.000124163
-     Flex65 : 116.86263763  [precision lvl 9e-17]
+     Flex65 : 116.86263763  [precision lvl <1e-14]
      Flex33 : 116.86263763  [precision lvl 2e-14]
   Romberg33 : 116.86263763  [precision lvl 7e-12]
      Flex17 : 116.86263749  [precision lvl 1e-09]
@@ -880,7 +880,7 @@ bruteforce/mpref precision (phasespace integral): 0.000124163
     Trapez5 : 118.1371131  [precision lvl 0.01]
     Trapez3 : 121.92285846  [precision lvl 0.04]
     Trapez2 : 136.52404014  [precision lvl 0.2]
- full integral : 619.78746644 [precision lvl 2e-16]
+ full integral : 619.78746644 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 11
@@ -954,13 +954,13 @@ mpmath reference phasespace integral: 0.0426516407721626
 mpmath reference full integral: 11.5
 bruteforce/mpref precision (full integral): 0
 bruteforce/mpref precision (phasespace integral): 0.000226035
-     Flex17 : 0.042651640772  [precision lvl 5e-17]
-      Flex9 : 0.042651640772  [precision lvl 5e-17]
-  Romberg17 : 0.042651640772  [precision lvl 5e-17]
-   Romberg9 : 0.042651640772  [precision lvl 5e-17]
-     Flex65 : 0.042651640772  [precision lvl 2e-16]
-  Romberg33 : 0.042651640772  [precision lvl 2e-16]
-     Flex33 : 0.042651640772  [precision lvl 3e-16]
+     Flex17 : 0.042651640772  [precision lvl <1e-14]
+      Flex9 : 0.042651640772  [precision lvl <1e-14]
+  Romberg17 : 0.042651640772  [precision lvl <1e-14]
+   Romberg9 : 0.042651640772  [precision lvl <1e-14]
+     Flex65 : 0.042651640772  [precision lvl <1e-14]
+  Romberg33 : 0.042651640772  [precision lvl <1e-14]
+     Flex33 : 0.042651640772  [precision lvl <1e-14]
   Simpson33 : 0.042651640772  [precision lvl 2e-13]
       Flex5 : 0.042651640772  [precision lvl 2e-12]
    Romberg5 : 0.042651640772  [precision lvl 2e-12]
@@ -974,7 +974,7 @@ bruteforce/mpref precision (phasespace integral): 0.000226035
     Trapez5 : 0.042651270049  [precision lvl 9e-06]
     Trapez3 : 0.042650157999  [precision lvl 3e-05]
     Trapez2 : 0.042645711605  [precision lvl 0.0001]
- full integral : 11.5 [precision lvl 0]
+ full integral : 11.5 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 12
@@ -1044,13 +1044,13 @@ mpmath reference phasespace integral: 0.0428922795181991
 mpmath reference full integral: 23
 bruteforce/mpref precision (full integral): 0
 bruteforce/mpref precision (phasespace integral): 0.000472801
-     Flex17 : 0.042892279518  [precision lvl 7e-17]
-  Romberg17 : 0.042892279518  [precision lvl 7e-17]
-     Flex33 : 0.042892279518  [precision lvl 9e-17]
-  Romberg33 : 0.042892279518  [precision lvl 9e-17]
-     Flex65 : 0.042892279518  [precision lvl 3e-16]
-      Flex9 : 0.042892279518  [precision lvl 6e-16]
-   Romberg9 : 0.042892279518  [precision lvl 6e-16]
+     Flex17 : 0.042892279518  [precision lvl <1e-14]
+  Romberg17 : 0.042892279518  [precision lvl <1e-14]
+     Flex33 : 0.042892279518  [precision lvl <1e-14]
+  Romberg33 : 0.042892279518  [precision lvl <1e-14]
+     Flex65 : 0.042892279518  [precision lvl <1e-14]
+      Flex9 : 0.042892279518  [precision lvl <1e-14]
+   Romberg9 : 0.042892279518  [precision lvl <1e-14]
   Simpson33 : 0.042892279518  [precision lvl 3e-13]
       Flex5 : 0.042892279518  [precision lvl 3e-12]
    Romberg5 : 0.042892279518  [precision lvl 3e-12]
@@ -1064,7 +1064,7 @@ bruteforce/mpref precision (phasespace integral): 0.000472801
     Trapez5 : 0.042891883299  [precision lvl 9e-06]
     Trapez3 : 0.042890694778  [precision lvl 4e-05]
     Trapez2 : 0.042885942713  [precision lvl 0.0001]
- full integral : 23 [precision lvl 0]
+ full integral : 23 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 13
@@ -1138,7 +1138,7 @@ mpmath reference phasespace integral: 0.347311186934125
 mpmath reference full integral: 132.25
 bruteforce/mpref precision (full integral): 0
 bruteforce/mpref precision (phasespace integral): 0.0438553
-     Flex65 : 0.34731118693  [precision lvl 3e-16]
+     Flex65 : 0.34731118693  [precision lvl <1e-14]
      Flex33 : 0.34731118693  [precision lvl 4e-12]
   Romberg33 : 0.34731070349  [precision lvl 1e-06]
   Simpson33 : 0.34730944173  [precision lvl 5e-06]
@@ -1158,7 +1158,7 @@ bruteforce/mpref precision (phasespace integral): 0.0438553
     Trapez5 : 0.34320919564  [precision lvl 0.01]
     Trapez3 : 0.33337998811  [precision lvl 0.04]
     Trapez2 : 0.30343572715  [precision lvl 0.1]
- full integral : 132.25 [precision lvl 0]
+ full integral : 132.25 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 14
@@ -1232,11 +1232,11 @@ mpmath reference phasespace integral: 0.443550658271123
 mpmath reference full integral: 56.4558880324629
 bruteforce/mpref precision (full integral): 2.42769e-07
 bruteforce/mpref precision (phasespace integral): 0.000688333
-     Flex17 : 0.44355065827  [precision lvl 1e-16]
-  Romberg17 : 0.44355065827  [precision lvl 1e-16]
-  Romberg33 : 0.44355065827  [precision lvl 1e-16]
-     Flex33 : 0.44355065827  [precision lvl 2e-16]
-     Flex65 : 0.44355065827  [precision lvl 5e-16]
+     Flex17 : 0.44355065827  [precision lvl <1e-14]
+  Romberg17 : 0.44355065827  [precision lvl <1e-14]
+  Romberg33 : 0.44355065827  [precision lvl <1e-14]
+     Flex33 : 0.44355065827  [precision lvl <1e-14]
+     Flex65 : 0.44355065827  [precision lvl <1e-14]
       Flex9 : 0.44355065827  [precision lvl 3e-13]
    Romberg9 : 0.44355065827  [precision lvl 3e-13]
   Simpson33 : 0.44355065796  [precision lvl 7e-10]
@@ -1252,7 +1252,7 @@ bruteforce/mpref precision (phasespace integral): 0.000688333
     Trapez5 : 0.44170584491  [precision lvl 0.004]
     Trapez3 : 0.43617525667  [precision lvl 0.02]
     Trapez2 : 0.41411053161  [precision lvl 0.07]
- full integral : 56.455888032 [precision lvl 2e-16]
+ full integral : 56.455888032 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 15
@@ -1318,11 +1318,11 @@ mpmath reference phasespace integral: 0.537066933133751
 mpmath reference full integral: 1.65
 bruteforce/mpref precision (full integral): 1.34572e-16
 bruteforce/mpref precision (phasespace integral): 1.14427e-05
-  Romberg33 : 0.53706693313  [precision lvl 1e-16]
-     Flex33 : 0.53706693313  [precision lvl 1e-16]
-     Flex17 : 0.53706693313  [precision lvl 3e-16]
-  Romberg17 : 0.53706693313  [precision lvl 3e-16]
-     Flex65 : 0.53706693313  [precision lvl 7e-16]
+  Romberg33 : 0.53706693313  [precision lvl <1e-14]
+     Flex33 : 0.53706693313  [precision lvl <1e-14]
+     Flex17 : 0.53706693313  [precision lvl <1e-14]
+  Romberg17 : 0.53706693313  [precision lvl <1e-14]
+     Flex65 : 0.53706693313  [precision lvl <1e-14]
       Flex9 : 0.53706693313  [precision lvl 7e-13]
    Romberg9 : 0.53706693313  [precision lvl 7e-13]
   Simpson33 : 0.53706693334  [precision lvl 4e-10]
@@ -1338,7 +1338,7 @@ bruteforce/mpref precision (phasespace integral): 1.14427e-05
     Trapez5 : 0.54123119907  [precision lvl 0.008]
     Trapez3 : 0.55372142098  [precision lvl 0.03]
     Trapez2 : 0.60364377915  [precision lvl 0.1]
- full integral : 1.65 [precision lvl 0]
+ full integral : 1.65 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 16
@@ -1408,9 +1408,9 @@ mpmath reference phasespace integral: 0.0949193205340862
 mpmath reference full integral: 90.1870918519305
 bruteforce/mpref precision (full integral): 3.02412e-07
 bruteforce/mpref precision (phasespace integral): 0.000682683
-     Flex65 : 0.094919320534  [precision lvl 6e-17]
-  Romberg33 : 0.094919320534  [precision lvl 6e-17]
-     Flex33 : 0.094919320534  [precision lvl 9e-17]
+     Flex65 : 0.094919320534  [precision lvl <1e-14]
+  Romberg33 : 0.094919320534  [precision lvl <1e-14]
+     Flex33 : 0.094919320534  [precision lvl <1e-14]
      Flex17 : 0.094919320534  [precision lvl 6e-13]
   Romberg17 : 0.094919320534  [precision lvl 6e-13]
       Flex9 : 0.094919320344  [precision lvl 2e-09]
@@ -1428,7 +1428,7 @@ bruteforce/mpref precision (phasespace integral): 0.000682683
     Trapez5 : 0.094754198686  [precision lvl 0.002]
     Trapez3 : 0.094264806394  [precision lvl 0.007]
     Trapez2 : 0.092389732265  [precision lvl 0.03]
- full integral : 90.187091852 [precision lvl 1e-16]
+ full integral : 90.187091852 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 17
@@ -1491,7 +1491,7 @@ mpmath reference phasespace integral: 1.93070087833542e-15
 mpmath reference full integral: 1.99793221830376e-15
 bruteforce/mpref precision (full integral): 0.149733
 bruteforce/mpref precision (phasespace integral): 0.150041
-     Flex65 : 1.9307008783e-15  [precision lvl 2e-16]
+     Flex65 : 1.9307008783e-15  [precision lvl <1e-14]
      Flex33 : 1.9307008783e-15  [precision lvl 7e-13]
      Flex17 : 1.930704193e-15  [precision lvl 2e-06]
       Flex9 : 1.9313537487e-15  [precision lvl 0.0003]
@@ -1511,7 +1511,7 @@ bruteforce/mpref precision (phasespace integral): 0.150041
    Simpson3 : 1.4818676872e-13  [precision lvl 8e+01]
     Trapez3 : 2.2228015307e-13  [precision lvl 1e+02]
     Trapez2 : 4.4456030615e-13  [precision lvl 2e+02]
- full integral : 1.9979322183e-15 [precision lvl 1e-17]
+ full integral : 1.9979322183e-15 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 18
@@ -1574,7 +1574,7 @@ mpmath reference phasespace integral: 1.93070087833538e-14
 mpmath reference full integral: 1.99793221830376e-14
 bruteforce/mpref precision (full integral): 0.0187583
 bruteforce/mpref precision (phasespace integral): 0.0191132
-     Flex65 : 1.9307008783e-14  [precision lvl 3e-16]
+     Flex65 : 1.9307008783e-14  [precision lvl <1e-14]
      Flex33 : 1.9307008783e-14  [precision lvl 4e-14]
      Flex17 : 1.9307008787e-14  [precision lvl 2e-10]
       Flex5 : 1.9307013324e-14  [precision lvl 2e-07]
@@ -1594,7 +1594,7 @@ bruteforce/mpref precision (phasespace integral): 0.0191132
    Simpson3 : 1.4818676878e-13  [precision lvl 7]
     Trapez3 : 2.2228015312e-13  [precision lvl 1e+01]
     Trapez2 : 4.4456030615e-13  [precision lvl 2e+01]
- full integral : 1.9979322183e-14 [precision lvl 9e-18]
+ full integral : 1.9979322183e-14 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 19
@@ -1657,7 +1657,7 @@ mpmath reference phasespace integral: 1.93070087833345e-14
 mpmath reference full integral: 1.99793221830376e-14
 bruteforce/mpref precision (full integral): 0.0187583
 bruteforce/mpref precision (phasespace integral): 0.0191132
-     Flex65 : 1.9307008783e-14  [precision lvl 2e-16]
+     Flex65 : 1.9307008783e-14  [precision lvl <1e-14]
      Flex33 : 1.9307008783e-14  [precision lvl 4e-14]
      Flex17 : 1.9307008787e-14  [precision lvl 2e-10]
       Flex5 : 1.9307013324e-14  [precision lvl 2e-07]
@@ -1677,7 +1677,7 @@ bruteforce/mpref precision (phasespace integral): 0.0191132
    Simpson3 : 1.4818676878e-13  [precision lvl 7]
     Trapez3 : 2.2228015312e-13  [precision lvl 1e+01]
     Trapez2 : 4.4456030615e-13  [precision lvl 2e+01]
- full integral : 1.9979322183e-14 [precision lvl 9e-18]
+ full integral : 1.9979322183e-14 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 20
@@ -1747,8 +1747,8 @@ mpmath reference phasespace integral: 0.00360478667121468
 mpmath reference full integral: 72.9869564125436
 bruteforce/mpref precision (full integral): 1.38125e-05
 bruteforce/mpref precision (phasespace integral): 0.00127509
-     Flex33 : 0.0036047866712  [precision lvl 2e-15]
-     Flex65 : 0.0036047866712  [precision lvl 2e-15]
+     Flex33 : 0.0036047866712  [precision lvl <1e-14]
+     Flex65 : 0.0036047866712  [precision lvl <1e-14]
      Flex17 : 0.0036047867061  [precision lvl 1e-08]
       Flex9 : 0.003604799341  [precision lvl 4e-06]
       Flex5 : 0.0036059554362  [precision lvl 0.0003]
@@ -1767,7 +1767,7 @@ bruteforce/mpref precision (phasespace integral): 0.00127509
    Simpson3 : 0.021975903237  [precision lvl 5]
     Trapez3 : 0.031023722753  [precision lvl 8]
     Trapez2 : 0.058167181303  [precision lvl 2e+01]
- full integral : 72.986956413 [precision lvl 1e-16]
+ full integral : 72.986956413 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 21
@@ -1841,7 +1841,7 @@ mpmath reference phasespace integral: 0.819110275858251
 mpmath reference full integral: 447.234091742688
 bruteforce/mpref precision (full integral): 5.84686e-07
 bruteforce/mpref precision (phasespace integral): 0.0545871
-     Flex65 : 0.81911027586  [precision lvl 2e-16]
+     Flex65 : 0.81911027586  [precision lvl <1e-14]
      Flex33 : 0.81911027586  [precision lvl 1e-12]
      Flex17 : 0.81911026271  [precision lvl 2e-08]
       Flex9 : 0.81910987808  [precision lvl 5e-07]
@@ -1861,7 +1861,7 @@ bruteforce/mpref precision (phasespace integral): 0.0545871
    Simpson3 : 0.89572949479  [precision lvl 0.09]
     Trapez3 : 0.93396759891  [precision lvl 0.1]
     Trapez2 : 1.0486819113  [precision lvl 0.3]
- full integral : 447.23409174 [precision lvl 2e-19]
+ full integral : 447.23409174 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 22
@@ -1927,8 +1927,8 @@ mpmath reference phasespace integral: 0.0189648012460709
 mpmath reference full integral: 0.0196208157655321
 bruteforce/mpref precision (full integral): 8.79795e-07
 bruteforce/mpref precision (phasespace integral): 5.95761e-05
-     Flex65 : 0.018964801246  [precision lvl 4e-17]
-     Flex33 : 0.018964801246  [precision lvl 3e-15]
+     Flex65 : 0.018964801246  [precision lvl <1e-14]
+     Flex33 : 0.018964801246  [precision lvl <1e-14]
   Romberg33 : 0.018964801247  [precision lvl 2e-11]
      Flex17 : 0.018964802117  [precision lvl 5e-08]
   Romberg17 : 0.018964802117  [precision lvl 5e-08]
@@ -1947,7 +1947,7 @@ bruteforce/mpref precision (phasespace integral): 5.95761e-05
     Trapez5 : 0.021005033491  [precision lvl 0.1]
     Trapez3 : 0.026651586135  [precision lvl 0.4]
     Trapez2 : 0.044452557478  [precision lvl 1]
- full integral : 0.019620815766 [precision lvl 3e-17]
+ full integral : 0.019620815766 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 23
@@ -2013,8 +2013,8 @@ mpmath reference phasespace integral: 0.0192679571166957
 mpmath reference full integral: 0.0199344740108756
 bruteforce/mpref precision (full integral): 8.87471e-07
 bruteforce/mpref precision (phasespace integral): 6.02396e-05
-     Flex65 : 0.019267957117  [precision lvl 3e-16]
-     Flex33 : 0.019267957117  [precision lvl 4e-15]
+     Flex65 : 0.019267957117  [precision lvl <1e-14]
+     Flex33 : 0.019267957117  [precision lvl <1e-14]
   Romberg33 : 0.019267957117  [precision lvl 3e-11]
      Flex17 : 0.019267958037  [precision lvl 5e-08]
   Romberg17 : 0.019267958037  [precision lvl 5e-08]
@@ -2033,7 +2033,7 @@ bruteforce/mpref precision (phasespace integral): 6.02396e-05
     Trapez5 : 0.021358505623  [precision lvl 0.1]
     Trapez3 : 0.027140583492  [precision lvl 0.4]
     Trapez2 : 0.045341599054  [precision lvl 1]
- full integral : 0.019934474011 [precision lvl 8e-17]
+ full integral : 0.019934474011 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 24
@@ -2099,8 +2099,8 @@ mpmath reference phasespace integral: 0.000195130121472511
 mpmath reference full integral: 0.000201753490962626
 bruteforce/mpref precision (full integral): 8.4745e-07
 bruteforce/mpref precision (phasespace integral): 0.000188246
-     Flex65 : 0.00019513012147  [precision lvl 3e-16]
-     Flex33 : 0.00019513012147  [precision lvl 3e-15]
+     Flex65 : 0.00019513012147  [precision lvl <1e-14]
+     Flex33 : 0.00019513012147  [precision lvl <1e-14]
   Romberg33 : 0.00019513012148  [precision lvl 2e-11]
      Flex17 : 0.00019513012908  [precision lvl 4e-08]
   Romberg17 : 0.00019513012908  [precision lvl 4e-08]
@@ -2119,7 +2119,7 @@ bruteforce/mpref precision (phasespace integral): 0.000188246
     Trapez5 : 0.000215384917  [precision lvl 0.1]
     Trapez3 : 0.00027159143354  [precision lvl 0.4]
     Trapez2 : 0.00044988919562  [precision lvl 1]
- full integral : 0.00020175349096 [precision lvl 2e-16]
+ full integral : 0.00020175349096 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 25
@@ -2182,8 +2182,8 @@ mpmath reference phasespace integral: 1.89622518773895e-11
 mpmath reference full integral: 1.96225600674731e-11
 bruteforce/mpref precision (full integral): 0.00118675
 bruteforce/mpref precision (phasespace integral): 0.00154803
-     Flex65 : 1.8962251877e-11  [precision lvl 5e-16]
-     Flex33 : 1.8962251877e-11  [precision lvl 3e-15]
+     Flex65 : 1.8962251877e-11  [precision lvl <1e-14]
+     Flex33 : 1.8962251877e-11  [precision lvl <1e-14]
   Romberg33 : 1.8962251878e-11  [precision lvl 2e-11]
      Flex17 : 1.896225275e-11  [precision lvl 5e-08]
   Romberg17 : 1.896225275e-11  [precision lvl 5e-08]
@@ -2202,7 +2202,7 @@ bruteforce/mpref precision (phasespace integral): 0.00154803
     Trapez5 : 2.1003145989e-11  [precision lvl 0.1]
     Trapez3 : 2.6651334504e-11  [precision lvl 0.4]
     Trapez2 : 4.4456030615e-11  [precision lvl 1]
- full integral : 1.9622560067e-11 [precision lvl 4e-17]
+ full integral : 1.9622560067e-11 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 26
@@ -2265,8 +2265,8 @@ mpmath reference phasespace integral: 1.92653823242933e-11
 mpmath reference full integral: 1.99362461972171e-11
 bruteforce/mpref precision (full integral): 0.00119491
 bruteforce/mpref precision (phasespace integral): 0.00155619
-     Flex65 : 1.9265382324e-11  [precision lvl 7e-18]
-     Flex33 : 1.9265382324e-11  [precision lvl 3e-15]
+     Flex65 : 1.9265382324e-11  [precision lvl <1e-14]
+     Flex33 : 1.9265382324e-11  [precision lvl <1e-14]
   Romberg33 : 1.9265382325e-11  [precision lvl 3e-11]
      Flex17 : 1.9265383246e-11  [precision lvl 5e-08]
   Romberg17 : 1.9265383246e-11  [precision lvl 5e-08]
@@ -2285,7 +2285,7 @@ bruteforce/mpref precision (phasespace integral): 0.00155619
     Trapez5 : 2.1356606354e-11  [precision lvl 0.1]
     Trapez3 : 2.7140351396e-11  [precision lvl 0.4]
     Trapez2 : 4.5345151227e-11  [precision lvl 1]
- full integral : 1.9936246197e-11 [precision lvl 4e-17]
+ full integral : 1.9936246197e-11 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 27
@@ -2348,8 +2348,8 @@ mpmath reference phasespace integral: 1.94981725453992e-13
 mpmath reference full integral: 2.01771426965394e-13
 bruteforce/mpref precision (full integral): 0.00115207
 bruteforce/mpref precision (phasespace integral): 0.00151336
-     Flex65 : 1.9498172545e-13  [precision lvl 3e-16]
-     Flex33 : 1.9498172545e-13  [precision lvl 2e-15]
+     Flex65 : 1.9498172545e-13  [precision lvl <1e-14]
+     Flex33 : 1.9498172545e-13  [precision lvl <1e-14]
   Romberg33 : 1.9498172546e-13  [precision lvl 2e-11]
      Flex17 : 1.9498173303e-13  [precision lvl 4e-08]
   Romberg17 : 1.9498173303e-13  [precision lvl 4e-08]
@@ -2368,7 +2368,7 @@ bruteforce/mpref precision (phasespace integral): 0.00151336
     Trapez5 : 2.152116614e-13  [precision lvl 0.1]
     Trapez3 : 2.7135111302e-13  [precision lvl 0.4]
     Trapez2 : 4.4945046952e-13  [precision lvl 1]
- full integral : 2.0177142697e-13 [precision lvl 1e-16]
+ full integral : 2.0177142697e-13 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 28
@@ -2431,8 +2431,8 @@ mpmath reference phasespace integral: 1.87052920911521e-13
 mpmath reference full integral: 1.93566523644637e-13
 bruteforce/mpref precision (full integral): 0.00123396
 bruteforce/mpref precision (phasespace integral): 0.00159523
-     Flex65 : 1.8705292091e-13  [precision lvl 3e-16]
-     Flex33 : 1.8705292091e-13  [precision lvl 4e-15]
+     Flex65 : 1.8705292091e-13  [precision lvl <1e-14]
+     Flex33 : 1.8705292091e-13  [precision lvl <1e-14]
   Romberg33 : 1.8705292092e-13  [precision lvl 3e-11]
      Flex17 : 1.8705293166e-13  [precision lvl 6e-08]
   Romberg17 : 1.8705293166e-13  [precision lvl 6e-08]
@@ -2451,7 +2451,7 @@ bruteforce/mpref precision (phasespace integral): 0.00159523
     Trapez5 : 2.0818658467e-13  [precision lvl 0.1]
     Trapez3 : 2.6645536819e-13  [precision lvl 0.4]
     Trapez2 : 4.485613489e-13  [precision lvl 1]
- full integral : 1.9356652364e-13 [precision lvl 6e-17]
+ full integral : 1.9356652364e-13 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 29
@@ -2517,9 +2517,9 @@ mpmath reference phasespace integral: 2.09432670061294e-15
 mpmath reference full integral: 3e-15
 bruteforce/mpref precision (full integral): 9.09946e-17
 bruteforce/mpref precision (phasespace integral): 1.42951e-07
-     Flex65 : 2.0943267006e-15  [precision lvl 2e-16]
-  Romberg33 : 2.0943267006e-15  [precision lvl 8e-16]
-     Flex33 : 2.0943267006e-15  [precision lvl 1e-15]
+     Flex65 : 2.0943267006e-15  [precision lvl <1e-14]
+  Romberg33 : 2.0943267006e-15  [precision lvl <1e-14]
+     Flex33 : 2.0943267006e-15  [precision lvl <1e-14]
      Flex17 : 2.0943267006e-15  [precision lvl 1e-12]
   Romberg17 : 2.0943267006e-15  [precision lvl 1e-12]
       Flex9 : 2.0943266986e-15  [precision lvl 1e-09]
@@ -2537,7 +2537,7 @@ bruteforce/mpref precision (phasespace integral): 1.42951e-07
     Trapez5 : 2.0920004672e-15  [precision lvl 0.001]
     Trapez3 : 2.0850469723e-15  [precision lvl 0.004]
     Trapez2 : 2.0575822389e-15  [precision lvl 0.02]
- full integral : 3e-15 [precision lvl 4e-17]
+ full integral : 3e-15 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 30
@@ -2607,9 +2607,9 @@ mpmath reference phasespace integral: 2.09432670205189e-15
 mpmath reference full integral: 3e-15
 bruteforce/mpref precision (full integral): 9.09946e-17
 bruteforce/mpref precision (phasespace integral): 1.42264e-07
-     Flex33 : 2.0943267021e-15  [precision lvl 8e-15]
-  Romberg33 : 2.0943267021e-15  [precision lvl 8e-15]
-     Flex65 : 2.0943267021e-15  [precision lvl 9e-15]
+     Flex33 : 2.0943267021e-15  [precision lvl <1e-14]
+  Romberg33 : 2.0943267021e-15  [precision lvl <1e-14]
+     Flex65 : 2.0943267021e-15  [precision lvl <1e-14]
      Flex17 : 2.094326702e-15  [precision lvl 1e-12]
   Romberg17 : 2.094326702e-15  [precision lvl 1e-12]
       Flex9 : 2.0943267001e-15  [precision lvl 1e-09]
@@ -2627,7 +2627,7 @@ bruteforce/mpref precision (phasespace integral): 1.42264e-07
     Trapez5 : 2.0920004695e-15  [precision lvl 0.001]
     Trapez3 : 2.0850469775e-15  [precision lvl 0.004]
     Trapez2 : 2.0575822551e-15  [precision lvl 0.02]
- full integral : 3e-15 [precision lvl 4e-17]
+ full integral : 3e-15 [precision lvl <1e-14]
 
 =============>
 =============> Launching test 31
@@ -2698,7 +2698,7 @@ mpmath reference phasespace integral: 2.12468617607493e-28
 mpmath reference full integral: 5.29222940909789e-27
 bruteforce/mpref precision (full integral): 0.000353372
 bruteforce/mpref precision (phasespace integral): 0.00455462
-     Flex65 : 2.1246861761e-28  [precision lvl 2e-16]
+     Flex65 : 2.1246861761e-28  [precision lvl <1e-14]
      Flex33 : 2.1246861761e-28  [precision lvl 4e-14]
      Flex17 : 2.1246861765e-28  [precision lvl 2e-10]
       Flex5 : 2.1246866751e-28  [precision lvl 2e-07]
@@ -2718,4 +2718,4 @@ bruteforce/mpref precision (phasespace integral): 0.00455462
    Simpson3 : 3.263419465e-27  [precision lvl 1e+01]
     Trapez3 : 4.8951291975e-27  [precision lvl 2e+01]
     Trapez2 : 9.7902583949e-27  [precision lvl 5e+01]
- full integral : 5.2922294091e-27 [precision lvl 3e-17]
+ full integral : 5.2922294091e-27 [precision lvl <1e-14]
