@@ -62,7 +62,7 @@ namespace NCRYSTAL_NAMESPACE {
           NCRYSTAL_THROW(BadInput,"Indicated DynInfo object does not provide"
                          " S(alpha,beta) kernels.");
         return extractSABDataFromDynInfo( di_knl, cfg.get_vdoslux() );
-      };
+      }
 
       struct SampleResult {
         VectD a;
