@@ -103,16 +103,17 @@ class XSMonitor:
             ref_evals, ref_xsvals = self.load_ref(teststr)
             if _reldiff(evals,ref_evals).max() > self.__test_rdtol:
                 badtests.add((None,testkey))
-                print(f"ERROR: reference e-grid for {testkey} is inconsistent"
-                      " (perhaps --update after investigating with:"
-                      f" --plot {testkey} ")
+                print(f"ERROR: reference e-grid for {testkey} is inconsistent."
+                      " Developers: If expected, --update after investigating"
+                      f" with: --plot {testkey} ")
             else:
                 rd = _reldiff( xsvals, ref_xsvals ).max()
                 if rd>self.__test_rdtol:
                     badtests.add((rd,testkey))
                     print(f"ERROR: reference cross sections for {testkey} are"
-                          " inconsistent (perhaps --update after investigating"
-                          f" with: --plot {testkey} ")
+                          " inconsistent at the reldiff={rd:g} level."
+                          " Developers: If expected, consider --update after"
+                          f" investigating with: --plot {testkey} ")
             if self.__do_plot:
                 evals_lux = set(evals)
                 evals_lux |= set(_np_linspace(evals[0],evals[-1],5000))
