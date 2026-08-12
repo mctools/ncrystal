@@ -1176,12 +1176,6 @@ namespace NCRYSTAL_NAMESPACE {
         os << '}';
       }
 
-      inline SABProcImpl* sp_impl( void * implptr ) noexcept
-      {
-        assert(implptr!=nullptr);//no exceptions
-        return static_cast<SABProcImpl*>(implptr);
-      }
-
       inline const SABProcImpl* sp_cimpl( const void* implptr ) noexcept
       {
         assert(implptr!=nullptr);//no exceptions
