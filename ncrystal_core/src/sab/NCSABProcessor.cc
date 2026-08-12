@@ -1176,15 +1176,15 @@ namespace NCRYSTAL_NAMESPACE {
         os << '}';
       }
 
-      inline SABProcImpl* sp_impl( void * implptr )
+      inline SABProcImpl* sp_impl( void * implptr ) noexcept
       {
-        nc_assert(implptr!=nullptr);
+        assert(implptr!=nullptr);//no exceptions
         return static_cast<SABProcImpl*>(implptr);
       }
 
-      inline const SABProcImpl* sp_cimpl( const void* implptr )
+      inline const SABProcImpl* sp_cimpl( const void* implptr ) noexcept
       {
-        nc_assert(implptr!=nullptr);
+        assert(implptr!=nullptr);//no exceptions
         return static_cast<const SABProcImpl*>(implptr);
       }
 
@@ -1194,7 +1194,11 @@ namespace NCRYSTAL_NAMESPACE {
 
 NCS::SABProcessor::~SABProcessor()
 {
-  delete sp_impl(m_impl);
+  if ( m_impl ) {
+    SABProcImpl* sp = static_cast<SABProcImpl*>(m_impl);
+    delete sp;
+    m_impl = nullptr;
+  }
 }
 
 
