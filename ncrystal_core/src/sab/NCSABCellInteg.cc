@@ -32,10 +32,47 @@ namespace NCRYSTAL_NAMESPACE {
 
       enum class AlphaInterpMethod { LOG, LIN };
 
+      static void integrateFullSubCell( const CellData& entire_cell,
+                                        const CellData& c,
+                                        StableSumKahan& tgt )
+      {
+        const CellData& ce = entire_cell;
+        using M = AlphaInterpMethod;
+        const M method_b1( ncmin(ce.S[0],ce.S[1]) ? M::LOG : M::LIN );
+        const M method_b2( ncmin(ce.S[2],ce.S[3]) ? M::LOG : M::LIN );
+
+        //This function should not be called in case of pure LOG:
+        nc_assert( method_b1==M::LIN || method_b2==M::LIN );
+
+        const double f = 0.5 * (c.b2-c.b1);
+        nc_assert( f >= 0.0 );
+        const double halfda = 0.5*(c.a2-c.a1);
+        nc_assert( halfda >= 0.0 );
+
+        double c1, c2;
+
+        if ( method_b1 == M::LIN )
+          c1 = halfda*(c.S[0]+c.S[1]);
+        else
+          c1 = integrateAlphaInterval_fast(c.a1,c.S[0],c.a2,c.S[1],
+                                           c.logS[0],c.logS[1]);
+        nc_assert( c1 >= 0.0 );
+        tgt.add( f * c1 );
+
+        if ( method_b2 == M::LIN )
+          c2 = halfda*(c.S[2]+c.S[3]);
+        else
+          c2 = integrateAlphaInterval_fast(c.a1,c.S[2],c.a2,c.S[3],
+                                           c.logS[2],c.logS[3]);
+        nc_assert( c2 >= 0.0 );
+        tgt.add( f * c2 );
+      }
+
       class BetaEdgeData final : private NoCopyMove {
         //Helper class which is used to keep track of S and log(S) at the
         //alpha-edges during loop over regions. This helps reduce number of
-        //std::log calls.
+        //std::log calls. It always interpolates based on the original cell, so
+        //there is no risk of confusing linear and log interpolation.
         double m_a, m_S, m_logS;
         const CellData* m_cell;
         int m_soffset;
@@ -607,11 +644,12 @@ void NCS::StdLogLinCellIntegrator::integrateWithinKB( const CellData& c,
   BetaEdgeData atb2( &c, 2, r0.alpha_up );
 
   CellData subcell;//subcell belonging to a given region.
+  const bool no_linear_interpolation = ( ncmin( c.S[0], c.S[1],
+                                                c.S[2], c.S[3] ) > 0.0 );
   //subcells ALWAYS have the full beta-range (we can't split cells at fixed beta
   //in the given interpolation scheme).
   subcell.b1 = c.b1;
   subcell.b2 = c.b2;
-
   for ( auto iregion : ncrange(surv.regions().size() ) ) {
     auto& r = regions.at(iregion);
     nc_assert( r.alpha_up > r.alpha_low );
@@ -635,14 +673,21 @@ void NCS::StdLogLinCellIntegrator::integrateWithinKB( const CellData& c,
     //Now evaluate region:
     if ( !(r.is_bounded_by_betaminus || r.is_bounded_by_betaplus ) ) {
       //region is fully rectangular, extending over entire [b1,b2] range!
-      integrateFullCell( subcell, tgt );
+      if ( no_linear_interpolation ) {
+        //No risk that interpolation has faked S[i]>0 when it started as S[i]=0.
+        nclikely
+        integrateFullCell( subcell, tgt );
+      } else {
+        //Need to retain original schemes:
+        integrateFullSubCell( c, subcell, tgt );
+      }
       continue;
     }
 
-    impl_numIntRegion( c, subcell, E_div_kT, scheme,
-                       r.is_bounded_by_betaminus,
-                       r.is_bounded_by_betaplus,
-                       tgt );
+    nclikely impl_numIntRegion( c, subcell, E_div_kT, scheme,
+                                r.is_bounded_by_betaminus,
+                                r.is_bounded_by_betaplus,
+                                tgt );
   }
 }
 
