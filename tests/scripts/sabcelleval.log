@@ -2479,7 +2479,7 @@ Results from C++:
                   'phasespace_integral': [['Flex5', 2.09432605978e-15],
                                           ['Flex9', 2.09432669862e-15],
                                           ['Flex17', 2.09432670061e-15],
-                                          ['Flex33', 2.09432670061e-15],
+                                          ['Flex33', 2.09432670058e-15],
                                           ['Flex65', 2.09432670061e-15],
                                           ['Romberg5', 2.09432605978e-15],
                                           ['Romberg9', 2.09432669862e-15],
@@ -2517,11 +2517,11 @@ mpmath reference phasespace integral: 2.09432670061294e-15
 mpmath reference full integral: 3e-15
 bruteforce/mpref precision (full integral): 9.09946e-17
 bruteforce/mpref precision (phasespace integral): 1.42951e-07
-     Flex65 : 2.0943267006e-15  [precision lvl <1e-14]
   Romberg33 : 2.0943267006e-15  [precision lvl <1e-14]
-     Flex33 : 2.0943267006e-15  [precision lvl <1e-14]
+     Flex65 : 2.0943267006e-15  [precision lvl 9e-13]
      Flex17 : 2.0943267006e-15  [precision lvl 1e-12]
   Romberg17 : 2.0943267006e-15  [precision lvl 1e-12]
+     Flex33 : 2.0943267006e-15  [precision lvl 1e-11]
       Flex9 : 2.0943266986e-15  [precision lvl 1e-09]
    Romberg9 : 2.0943266986e-15  [precision lvl 1e-09]
   Simpson33 : 2.0943266985e-15  [precision lvl 1e-09]
