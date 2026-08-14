@@ -287,16 +287,19 @@ namespace NCRYSTAL_NAMESPACE {
 
         double contrib(const AlphaSlice& slice) const
         {
+          nc_assert(m_b2>m_b1);
           const double a = slice.alpha;
           const double dbpm = std::sqrt( m_4e * a );//NB: Most expensive
                                                     //per-point calc might be in
                                                     //this line?
           const double bl( m_is_bounded_by_betaminus ? a - dbpm : m_b1 );
           const double bu( m_is_bounded_by_betaplus ? a + dbpm : m_b2 );
+
           //To find the contribution we integrate S(a,b) over [bl,bu]. This is
           //easy, since we always interpolate linearly in b:
           const double bmiddle( m_is_bounded_by_both ? a : (bu+bl)*0.5 );
-          const double rb = (bmiddle-m_b1)*m_invdb;
+          nc_assert(valueInInterval(-0.001,1.001,(bmiddle-m_b1)*m_invdb));
+          const double rb = ncclamp((bmiddle-m_b1)*m_invdb,0.0,1.0);
           const double smiddle = slice.s_at_b1*(1.0-rb)+slice.s_at_b2*rb;
           return calc_bu_minus_bl_times_smiddle( m_is_bounded_by_both,
                                                  dbpm, bu, bl, smiddle );
