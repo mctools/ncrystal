@@ -68,7 +68,12 @@ namespace NCRYSTAL_NAMESPACE {
 
       static void integrateFullCell( const CellData& c, StableSumKahan& tgt )
       {
-        double f = 0.5 * (c.b2-c.b1);
+#ifndef NDEBUG
+        for ( auto i : ncrange(4) )
+          nc_assert_always( c.S[i]==0.0
+                            || floateq( std::log(c.S[i]),c.logS[i]) );
+#endif
+        const double f = 0.5 * (c.b2-c.b1);
         nc_assert( f >= 0.0 );
         const double c1 = integrateAlphaInterval_fast(c.a1,c.S[0],c.a2,c.S[1],
                                                       c.logS[0],c.logS[1]);
