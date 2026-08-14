@@ -65,6 +65,11 @@
 
 
 =============>
+=============> Launching test 14
+=============>
+
+
+=============>
 =============> Final summary
 =============>
 
@@ -81,3 +86,4 @@ P-value for test #10 : OK
 P-value for test #11 : OK
 P-value for test #12 : OK
 P-value for test #13 : OK
+P-value for test #14 : OK

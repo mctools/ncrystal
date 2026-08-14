@@ -328,6 +328,8 @@ def main(do_plot,luxlvl,test_select):
               ekin='15'#fixme: also something extreme, like 10000
              ),
 
+        dict( cfgstr='stdlib::Be_sg194.ncmat', ekin='10' ),
+
     ]
     npvals_tot = 0
     pvals = []
