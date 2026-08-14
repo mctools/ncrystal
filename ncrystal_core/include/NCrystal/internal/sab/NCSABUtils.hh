@@ -234,11 +234,11 @@ NCrystal::SABUtils::interpolate_loglin_fast2_NEW(double a, double fa,
   const double bma = b - a;
   nc_assert( bma > 0.0 );
   const double midpoint = 0.5 * ( b + a );
-  auto flexexp = [](double x)
+  auto flexexp = [](double xx)
   {
     //exp_smallarg_approx has 7th order Taylor, which might be faster than a
     //library call.
-    return ncabs(x)<0.02 ? exp_smallarg_approx(x) : std::exp(x);
+    return ncabs(xx)<0.02 ? exp_smallarg_approx(xx) : std::exp(xx);
   };
   PairDD res;
   if ( x < midpoint ) {
