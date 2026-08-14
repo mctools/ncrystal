@@ -103,6 +103,12 @@ def test_list_gen( testgroup ):
             for vdoslux in vdoslux_vals_used:
                 for knllux in knllux_vals:
                     c = f.fullKey
+                    if c == 'stdlib::Li2O_sg225_LithiumOxide.ncmat':
+                        if t!=10:
+                            continue
+                        import NCTestUtils.enable_testdatapath # noqa F401
+                        c = f'Li2O_sg225_LithiumOxide_vdoslux{vdoslux}_temp10K.ncmat'
+
                     if t is not None:
                         c+=f';temp={t}'
                     c+=f';vdoslux={vdoslux}'
