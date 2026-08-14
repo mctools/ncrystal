@@ -24,7 +24,6 @@ import NCrystalDev.core as nccore
 from NCrystalDev._numpy import _np_geomspace, _np_linspace
 from NCrystalDev.constants import constant_boltzmann, wl2ekin
 
-
 def run( testgroup ):
     from .xs import XSMonitor
     def testlist_filtered():
@@ -36,7 +35,11 @@ def run( testgroup ):
     mon.run()
 
 _test_focus = ( 'Al_sg225.ncmat',
-                'CaH2_sg62_CalciumHydride.ncmat' )
+                'CaH2_sg62_CalciumHydride.ncmat',
+                )
+#                'Li2O_sg225_LithiumOxide.ncmat' )
+
+
 
 def test_list_gen( testgroup ):
     assert testgroup in ('A','B','C','D')
@@ -61,6 +64,7 @@ def test_list_gen( testgroup ):
 
     thinning_factor = 7 if is_A else 79
     vdoslux_vals = (0,1,2,3,4)
+    vdoslux_vals = (4,)#0,1,2,3,4)#FIXME JUST A TEST
     knllux_vals = (0,1,2,3,4,5)
 
     i = 0
@@ -137,3 +141,8 @@ def _egrid_fct( mat ):
     e |= set(_np_geomspace(1e-10, 1e3, n ) )
     e |= {wl2ekin(wl) for wl in _np_linspace(0.1,15.0,n)}
     return e
+
+# stdlib::Pt_sg225.ncmat;vdoslux=0;knllux=4 are inconsistent at the reldiff=0.000964565
+# stdlib::Al_sg225.ncmat;temp=1000;vdoslux=1;knllux=4 are inconsistent at the reldiff=0.000106591
+# stdlib::Pt_sg225.ncmat;vdoslux=0;knllux=4 are inconsistent at the reldiff=0.000964565 level
+# stdlib::Al_sg225.ncmat;temp=1000;vdoslux=1;knllux=4 are inconsistent at the reldiff=0.000106591

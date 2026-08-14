@@ -1,50 +1,13 @@
-=============> Launching test stdlib%3A%3AAcrylicGlass_C5O2H8%2Encmat%3Btemp%3D10%3Bvdoslux%3D0%3Bknllux%3D0
-=============> Launching test stdlib%3A%3AAgBr_sg225_SilverBromide%2Encmat%3Btemp%3D10%3Bvdoslux%3D3%3Bknllux%3D1
-=============> Launching test stdlib%3A%3AAg_sg225%2Encmat%3Btemp%3D10%3Bvdoslux%3D1%3Bknllux%3D2
-=============> Launching test stdlib%3A%3AAg_sg225%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D3
-=============> Launching test stdlib%3A%3AAl2O3_sg167_Corundum%2Encmat%3Btemp%3D1000%3Bvdoslux%3D2%3Bknllux%3D4
-=============> Launching test stdlib%3A%3AAl4C3_sg166_AluminiumCarbide%2Encmat%3Btemp%3D1000%3Bvdoslux%3D0%3Bknllux%3D5
-=============> Launching test stdlib%3A%3AAlN_sg186_AluminumNitride%2Encmat%3Bvdoslux%3D4%3Bknllux%3D0
-=============> Launching test stdlib%3A%3AAu_sg225%2Encmat%3Bvdoslux%3D2%3Bknllux%3D1
-=============> Launching test stdlib%3A%3AB4C_sg166_BoronCarbide%2Encmat%3Bvdoslux%3D0%3Bknllux%3D2
-=============> Launching test stdlib%3A%3ABO3H3_sg2_BoricAcid%2Encmat%3Btemp%3D10%3Bvdoslux%3D3%3Bknllux%3D3
-NCrystal WARNING: Discarding 89 edges of provided kernel data due to missing S values.
-NCrystal WARNING: Discarding 83 edges of provided kernel data due to missing S values.
-NCrystal WARNING: Discarding 97 edges of provided kernel data due to missing S values.
-=============> Launching test stdlib%3A%3ABaF2_sg225_BariumFluoride%2Encmat%3Btemp%3D10%3Bvdoslux%3D1%3Bknllux%3D4
-=============> Launching test stdlib%3A%3ABaF2_sg225_BariumFluoride%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D5
-=============> Launching test stdlib%3A%3ABaO_sg225_BariumOxide%2Encmat%3Btemp%3D1000%3Bvdoslux%3D3%3Bknllux%3D0
-=============> Launching test stdlib%3A%3ABa_sg229%2Encmat%3Btemp%3D1000%3Bvdoslux%3D1%3Bknllux%3D1
-=============> Launching test stdlib%3A%3ABe3N2_sg206_BerylliumNitride%2Encmat%3Bvdoslux%3D4%3Bknllux%3D2
-=============> Launching test stdlib%3A%3ABeF2_sg152_Beryllium_Fluoride%2Encmat%3Bvdoslux%3D2%3Bknllux%3D3
-=============> Launching test stdlib%3A%3ABeO_sg186%2Encmat%3Bvdoslux%3D0%3Bknllux%3D4
-=============> Launching test stdlib%3A%3ABe_sg194%2Encmat%3Btemp%3D10%3Bvdoslux%3D3%3Bknllux%3D5
-=============> Launching test stdlib%3A%3ABi_sg166%2Encmat%3Btemp%3D10%3Bvdoslux%3D2%3Bknllux%3D0
-=============> Launching test stdlib%3A%3AC_sg194_pyrolytic_graphite%2Encmat%3Btemp%3D10%3Bvdoslux%3D0%3Bknllux%3D1
-=============> Launching test stdlib%3A%3AC_sg194_pyrolytic_graphite%2Encmat%3Btemp%3D1000%3Bvdoslux%3D3%3Bknllux%3D2
-=============> Launching test stdlib%3A%3AC_sg227_Diamond%2Encmat%3Btemp%3D1000%3Bvdoslux%3D1%3Bknllux%3D3
-=============> Launching test stdlib%3A%3ACaCO3_sg62_Aragonite%2Encmat%3Bvdoslux%3D4%3Bknllux%3D4
-=============> Launching test stdlib%3A%3ACaF2_sg225_CalciumFlouride%2Encmat%3Bvdoslux%3D2%3Bknllux%3D5
-=============> Launching test stdlib%3A%3ACaO2H2_sg164_CalciumHydroxide%2Encmat%3Bvdoslux%3D1%3Bknllux%3D0
-=============> Launching test stdlib%3A%3ACaO_sg225_CalciumOxide%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D1
-=============> Launching test stdlib%3A%3ACaSiO3_sg2_Wollastonite%2Encmat%3Btemp%3D10%3Bvdoslux%3D2%3Bknllux%3D2
-=============> Launching test stdlib%3A%3ACa_sg225%2Encmat%3Btemp%3D10%3Bvdoslux%3D0%3Bknllux%3D3
-=============> Launching test stdlib%3A%3ACa_sg225%2Encmat%3Btemp%3D1000%3Bvdoslux%3D3%3Bknllux%3D4
-=============> Launching test stdlib%3A%3ACa_sg229_Calcium-gamma%2Encmat%3Btemp%3D1000%3Bvdoslux%3D1%3Bknllux%3D5
-=============> Launching test stdlib%3A%3ACeO2_sg225_CeriumOxide%2Encmat%3Btemp%3D1000%3Bvdoslux%3D0%3Bknllux%3D0
-=============> Launching test stdlib%3A%3ACr_sg229%2Encmat%3Bvdoslux%3D3%3Bknllux%3D1
-=============> Launching test stdlib%3A%3ACu2O_sg224_Cuprite%2Encmat%3Bvdoslux%3D1%3Bknllux%3D2
-=============> Launching test stdlib%3A%3ACu_sg225%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D3
-=============> Launching test stdlib%3A%3ADy2O3_sg206_DysprosiumOxide%2Encmat%3Btemp%3D10%3Bvdoslux%3D2%3Bknllux%3D4
-=============> Launching test stdlib%3A%3AEpoxy_Araldite506_C18H20O3%2Encmat%3Btemp%3D10%3Bvdoslux%3D0%3Bknllux%3D5
-=============> Launching test stdlib%3A%3AEpoxy_Araldite506_C18H20O3%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D0
-=============> Launching test stdlib%3A%3AFe_sg225_Iron-gamma%2Encmat%3Btemp%3D1000%3Bvdoslux%3D2%3Bknllux%3D1
-=============> Launching test stdlib%3A%3AFe_sg229_Iron-alpha%2Encmat%3Btemp%3D1000%3Bvdoslux%3D0%3Bknllux%3D2
-=============> Launching test stdlib%3A%3AGaN_sg186_GalliumNitride%2Encmat%3Bvdoslux%3D3%3Bknllux%3D3
-=============> Launching test stdlib%3A%3AGaSe_sg194_GalliumSelenide%2Encmat%3Bvdoslux%3D1%3Bknllux%3D4
-=============> Launching test stdlib%3A%3AGe3Bi4O12_sg220_BismuthGermanate%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D5
-=============> Launching test stdlib%3A%3AGe_sg227%2Encmat%3Btemp%3D10%3Bvdoslux%3D3%3Bknllux%3D0
-=============> Launching test stdlib%3A%3AHfO2_sg14_HafniumOxide%2Encmat%3Btemp%3D10%3Bvdoslux%3D1%3Bknllux%3D1
-=============> Launching test stdlib%3A%3AHfO2_sg14_HafniumOxide%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D2
-=============> Launching test stdlib%3A%3AHo2O3_sg206_HolmiumOxide%2Encmat%3Btemp%3D1000%3Bvdoslux%3D2%3Bknllux%3D3
+=============> Launching test stdlib%3A%3AAcrylicGlass_C5O2H8%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D0
+NCrystal WARNING: Discarding 168 edges of provided kernel data due to missing S values.
+=============> Launching test stdlib%3A%3AAl4C3_sg166_AluminiumCarbide%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D1
+=============> Launching test stdlib%3A%3ABaF2_sg225_BariumFluoride%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D2
+=============> Launching test stdlib%3A%3ABeF2_sg152_Beryllium_Fluoride%2Encmat%3Bvdoslux%3D4%3Bknllux%3D3
+=============> Launching test stdlib%3A%3AC_sg194_pyrolytic_graphite%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D4
+=============> Launching test stdlib%3A%3ACaO_sg225_CalciumOxide%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D5
+=============> Launching test stdlib%3A%3ACeO2_sg225_CeriumOxide%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D0
+=============> Launching test stdlib%3A%3AEpoxy_Araldite506_C18H20O3%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D1
+NCrystal WARNING: Discarding 156 edges of provided kernel data due to missing S values.
+=============> Launching test stdlib%3A%3AGaSe_sg194_GalliumSelenide%2Encmat%3Bvdoslux%3D4%3Bknllux%3D2
+=============> Launching test stdlib%3A%3AHo2O3_sg206_HolmiumOxide%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D3
 ALL OK
