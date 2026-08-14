@@ -112,7 +112,7 @@ class XSMonitor:
                 if rd>self.__test_rdtol:
                     badtests.add((rd,testkey))
                     print(f"ERROR: reference cross sections for {testkey} are"
-                          " inconsistent at the reldiff={rd:g} level."
+                          f" inconsistent at the reldiff={rd:g} level."
                           " Developers: If expected, consider --update after"
                           f" investigating with: --plot {testkey} ")
                     print('Data dump:')
