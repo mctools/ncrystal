@@ -226,13 +226,11 @@ namespace NCRYSTAL_NAMESPACE {
             m_4e(4.0 * i.E_div_kT),
             m_a2minusa1( i.a2 - i.a1 ),
             m_b1(i.b1), m_b2(i.b2), m_invdb(1.0/(i.b2-i.b1)),
-            m_is_bounded_by_betaminus(i.is_bounded_by_betaminus),
-            m_is_bounded_by_betaplus(i.is_bounded_by_betaplus),
             m_is_bounded_by_both( i.is_bounded_by_betaminus
                                   && i.is_bounded_by_betaplus )
         {
           //only for crossed cells:
-          nc_assert( m_is_bounded_by_betaminus ||  m_is_bounded_by_betaplus );
+          nc_assert( i.is_bounded_by_betaminus ||  i.is_bounded_by_betaplus );
           nc_assert( (i.b2-i.b1) > 0.0 );
           //We always initialise to 4 levels (16 bins, 17 pts) with the points
           //in reverse order (the reverse order makes it easy to ignore the
@@ -352,8 +350,6 @@ namespace NCRYSTAL_NAMESPACE {
         double m_a2minusa1;
         double m_b1, m_b2, m_invdb;
         double m_stepcache_at_b1, m_stepcache_at_b2;
-        bool m_is_bounded_by_betaminus;
-        bool m_is_bounded_by_betaplus;
         bool m_is_bounded_by_both;
       };
 
