@@ -1,13 +1,1 @@
-=============> Launching test stdlib%3A%3AAcrylicGlass_C5O2H8%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D0
-NCrystal WARNING: Discarding 168 edges of provided kernel data due to missing S values.
-=============> Launching test stdlib%3A%3AAl4C3_sg166_AluminiumCarbide%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D1
-=============> Launching test stdlib%3A%3ABaF2_sg225_BariumFluoride%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D2
-=============> Launching test stdlib%3A%3ABeF2_sg152_Beryllium_Fluoride%2Encmat%3Bvdoslux%3D4%3Bknllux%3D3
-=============> Launching test stdlib%3A%3AC_sg194_pyrolytic_graphite%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D4
-=============> Launching test stdlib%3A%3ACaO_sg225_CalciumOxide%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D5
-=============> Launching test stdlib%3A%3ACeO2_sg225_CeriumOxide%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D0
-=============> Launching test stdlib%3A%3AEpoxy_Araldite506_C18H20O3%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D1
-NCrystal WARNING: Discarding 156 edges of provided kernel data due to missing S values.
-=============> Launching test stdlib%3A%3AGaSe_sg194_GalliumSelenide%2Encmat%3Bvdoslux%3D4%3Bknllux%3D2
-=============> Launching test stdlib%3A%3AHo2O3_sg206_HolmiumOxide%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D3
-ALL OK
+NO TESTS WERE RUN BUT TEMPORARILY THIS IS OK

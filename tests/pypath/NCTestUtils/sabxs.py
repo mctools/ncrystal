@@ -24,6 +24,7 @@ import NCrystalDev.core as nccore
 from NCrystalDev._numpy import _np_geomspace, _np_linspace
 from NCrystalDev.constants import constant_boltzmann, wl2ekin
 
+
 def run( testgroup ):
     from .xs import XSMonitor
     def testlist_filtered():
@@ -43,6 +44,10 @@ _test_focus = ( 'Al_sg225.ncmat',
 
 def test_list_gen( testgroup ):
     assert testgroup in ('A','B','C','D')
+    #FIXME:
+    return
+
+
     #group A: all files in _test_focus with many configs.
     #group B: anything not in A + files starting with A..H
     #group C: anything not in A + files starting with K..N

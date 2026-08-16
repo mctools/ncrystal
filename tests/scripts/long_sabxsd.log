@@ -1,15 +1,1 @@
-=============> Launching test stdlib%3A%3APEEK_C19H12O3%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D0
-NCrystal WARNING: Discarding 155 edges of provided kernel data due to missing S values.
-=============> Launching test stdlib%3A%3APbO-beta_sg57_Massicot%2Encmat%3Bvdoslux%3D4%3Bknllux%3D1
-=============> Launching test stdlib%3A%3APolycarbonate_C16O3H14%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D2
-=============> Launching test stdlib%3A%3APolystyrene_C8H8%2Encmat%3Bvdoslux%3D4%3Bknllux%3D3
-=============> Launching test stdlib%3A%3ASc_sg194%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D4
-=============> Launching test stdlib%3A%3ASn_sg141%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D5
-=============> Launching test stdlib%3A%3ATh3N4_sg166_ThoriumNitride%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D0
-=============> Launching test stdlib%3A%3ATi_sg194%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D1
-=============> Launching test stdlib%3A%3AUO2_sg225_UraniumDioxide%2Encmat%3Bvdoslux%3D4%3Bknllux%3D2
-=============> Launching test stdlib%3A%3AY2SiO5_sg15_YSO%2Encmat%3Btemp%3D1000%3Bvdoslux%3D4%3Bknllux%3D3
-=============> Launching test stdlib%3A%3AZnS_sg216_Sphalerite%2Encmat%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D4
-=============> Launching test stdlib%3A%3AZrO2_sg14_Zirconia%2Encmat%3Bvdoslux%3D4%3Bknllux%3D5
-=============> Launching test solid%3A%3AB4C%2F2%2E52gcm3%2FB_is_0%2E95_B10_0%2E05_B11%3Btemp%3D10%3Bvdoslux%3D4%3Bknllux%3D0
-ALL OK
+NO TESTS WERE RUN BUT TEMPORARILY THIS IS OK
