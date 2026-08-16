@@ -62,8 +62,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.06}
 mpmath reference phasespace integral: 0.00431504211068699
 mpmath reference full integral: 0.00738658124984015
-bruteforce/mpref precision (full integral): 5.20686e-17
-bruteforce/mpref precision (phasespace integral): 1.81278e-07
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 1.81e-07
      Flex17 : 0.0043150421107  [precision lvl <1e-14]
   Romberg17 : 0.0043150421107  [precision lvl <1e-14]
       Flex9 : 0.0043150421107  [precision lvl <1e-14]
@@ -146,8 +146,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 1.5}
 mpmath reference phasespace integral: 0.485808991661554
 mpmath reference full integral: 1
-bruteforce/mpref precision (full integral): 0
-bruteforce/mpref precision (phasespace integral): 2.07559e-06
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 2.08e-06
      Flex33 : 0.48580899166  [precision lvl <1e-14]
      Flex65 : 0.48580899166  [precision lvl <1e-14]
   Romberg33 : 0.48580899166  [precision lvl <1e-14]
@@ -230,8 +230,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 1.5}
 mpmath reference phasespace integral: 2.02254443224775
 mpmath reference full integral: 4.90920765499678
-bruteforce/mpref precision (full integral): 2.42769e-07
-bruteforce/mpref precision (phasespace integral): 1.19289e-06
+bruteforce/mpref precision (full integral): 2.43e-07
+bruteforce/mpref precision (phasespace integral): 1.19e-06
      Flex65 : 2.0225444322  [precision lvl <1e-14]
   Romberg33 : 2.0225444322  [precision lvl <1e-14]
      Flex33 : 2.0225444322  [precision lvl <1e-14]
@@ -321,8 +321,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 2.0}
 mpmath reference phasespace integral: 51.4298180234971
 mpmath reference full integral: 80.5
-bruteforce/mpref precision (full integral): 0
-bruteforce/mpref precision (phasespace integral): 1.45145e-05
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 1.45e-05
      Flex65 : 51.429818023  [precision lvl <1e-14]
      Flex33 : 51.429818023  [precision lvl 3e-14]
   Romberg33 : 51.429817863  [precision lvl 3e-09]
@@ -408,8 +408,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 2.0}
 mpmath reference phasespace integral: 6.63076828180442
 mpmath reference full integral: 28.75
-bruteforce/mpref precision (full integral): 0
-bruteforce/mpref precision (phasespace integral): 3.65013e-05
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 3.65e-05
      Flex65 : 6.6307682818  [precision lvl <1e-14]
      Flex33 : 6.6307682818  [precision lvl 4e-13]
   Romberg33 : 6.6307682805  [precision lvl 2e-10]
@@ -499,8 +499,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 2.0}
 mpmath reference phasespace integral: 62.9986293010252
 mpmath reference full integral: 70.15
-bruteforce/mpref precision (full integral): 1.22457e-16
-bruteforce/mpref precision (phasespace integral): 1.7802e-05
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 1.78e-05
      Flex65 : 62.998629301  [precision lvl <1e-14]
      Flex33 : 62.998629301  [precision lvl 2e-14]
   Romberg33 : 62.998629301  [precision lvl 7e-12]
@@ -588,8 +588,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 2.0}
 mpmath reference phasespace integral: 113.258671769062
 mpmath reference full integral: 162
-bruteforce/mpref precision (full integral): 0
-bruteforce/mpref precision (phasespace integral): 2.77438e-05
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 2.77e-05
      Flex65 : 113.25867177  [precision lvl 6e-14]
      Flex33 : 113.25867177  [precision lvl 3e-11]
   Romberg33 : 113.25527057  [precision lvl 3e-05]
@@ -690,8 +690,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 2.0}
 mpmath reference phasespace integral: 30.7313544754617
 mpmath reference full integral: 33
-bruteforce/mpref precision (full integral): 0
-bruteforce/mpref precision (phasespace integral): 1.27077e-05
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 1.27e-05
      Flex65 : 30.731354475  [precision lvl <1e-14]
      Flex33 : 30.731354475  [precision lvl 3e-12]
   Romberg33 : 30.731268992  [precision lvl 3e-06]
@@ -774,8 +774,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 2.0}
 mpmath reference phasespace integral: 18.2625846089321
 mpmath reference full integral: 126.25
-bruteforce/mpref precision (full integral): 1.12561e-16
-bruteforce/mpref precision (phasespace integral): 9.58457e-05
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 9.58e-05
      Flex65 : 18.262584609  [precision lvl <1e-14]
      Flex33 : 18.262584609  [precision lvl 1e-13]
   Romberg33 : 18.262584608  [precision lvl 5e-11]
@@ -858,8 +858,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 2.0}
 mpmath reference phasespace integral: 116.862637627569
 mpmath reference full integral: 619.787466443343
-bruteforce/mpref precision (full integral): 2.42769e-07
-bruteforce/mpref precision (phasespace integral): 0.000124163
+bruteforce/mpref precision (full integral): 2.43e-07
+bruteforce/mpref precision (phasespace integral): 0.000124
      Flex65 : 116.86263763  [precision lvl <1e-14]
      Flex33 : 116.86263763  [precision lvl 2e-14]
   Romberg33 : 116.86263763  [precision lvl 7e-12]
@@ -952,8 +952,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 1e-05}
 mpmath reference phasespace integral: 0.0426516407721626
 mpmath reference full integral: 11.5
-bruteforce/mpref precision (full integral): 0
-bruteforce/mpref precision (phasespace integral): 0.000226035
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 0.000226
      Flex17 : 0.042651640772  [precision lvl <1e-14]
       Flex9 : 0.042651640772  [precision lvl <1e-14]
   Romberg17 : 0.042651640772  [precision lvl <1e-14]
@@ -1042,8 +1042,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 1e-05}
 mpmath reference phasespace integral: 0.0428922795181991
 mpmath reference full integral: 23
-bruteforce/mpref precision (full integral): 0
-bruteforce/mpref precision (phasespace integral): 0.000472801
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 0.000473
      Flex17 : 0.042892279518  [precision lvl <1e-14]
   Romberg17 : 0.042892279518  [precision lvl <1e-14]
      Flex33 : 0.042892279518  [precision lvl <1e-14]
@@ -1136,8 +1136,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 1e-05}
 mpmath reference phasespace integral: 0.347311186934125
 mpmath reference full integral: 132.25
-bruteforce/mpref precision (full integral): 0
-bruteforce/mpref precision (phasespace integral): 0.0438553
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 0.0439
      Flex65 : 0.34731118693  [precision lvl <1e-14]
      Flex33 : 0.34731118693  [precision lvl 4e-12]
   Romberg33 : 0.34731070349  [precision lvl 1e-06]
@@ -1230,8 +1230,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 1e-05}
 mpmath reference phasespace integral: 0.443550658271123
 mpmath reference full integral: 56.4558880324629
-bruteforce/mpref precision (full integral): 2.42769e-07
-bruteforce/mpref precision (phasespace integral): 0.000688333
+bruteforce/mpref precision (full integral): 2.43e-07
+bruteforce/mpref precision (phasespace integral): 0.000688
      Flex17 : 0.44355065827  [precision lvl <1e-14]
   Romberg17 : 0.44355065827  [precision lvl <1e-14]
   Romberg33 : 0.44355065827  [precision lvl <1e-14]
@@ -1316,8 +1316,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.01}
 mpmath reference phasespace integral: 0.537066933133751
 mpmath reference full integral: 1.65
-bruteforce/mpref precision (full integral): 1.34572e-16
-bruteforce/mpref precision (phasespace integral): 1.14427e-05
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 1.14e-05
   Romberg33 : 0.53706693313  [precision lvl <1e-14]
      Flex33 : 0.53706693313  [precision lvl <1e-14]
      Flex17 : 0.53706693313  [precision lvl <1e-14]
@@ -1406,8 +1406,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 1e-05}
 mpmath reference phasespace integral: 0.0949193205340862
 mpmath reference full integral: 90.1870918519305
-bruteforce/mpref precision (full integral): 3.02412e-07
-bruteforce/mpref precision (phasespace integral): 0.000682683
+bruteforce/mpref precision (full integral): 3.02e-07
+bruteforce/mpref precision (phasespace integral): 0.000683
      Flex65 : 0.094919320534  [precision lvl <1e-14]
   Romberg33 : 0.094919320534  [precision lvl <1e-14]
      Flex33 : 0.094919320534  [precision lvl <1e-14]
@@ -1489,8 +1489,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.01}
 mpmath reference phasespace integral: 1.93070087833542e-15
 mpmath reference full integral: 1.99793221830376e-15
-bruteforce/mpref precision (full integral): 0.149733
-bruteforce/mpref precision (phasespace integral): 0.150041
+bruteforce/mpref precision (full integral): 0.15
+bruteforce/mpref precision (phasespace integral): 0.15
      Flex65 : 1.9307008783e-15  [precision lvl <1e-14]
      Flex33 : 1.9307008783e-15  [precision lvl 7e-13]
      Flex17 : 1.930704193e-15  [precision lvl 2e-06]
@@ -1572,8 +1572,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.01}
 mpmath reference phasespace integral: 1.93070087833538e-14
 mpmath reference full integral: 1.99793221830376e-14
-bruteforce/mpref precision (full integral): 0.0187583
-bruteforce/mpref precision (phasespace integral): 0.0191132
+bruteforce/mpref precision (full integral): 0.0188
+bruteforce/mpref precision (phasespace integral): 0.0191
      Flex65 : 1.9307008783e-14  [precision lvl <1e-14]
      Flex33 : 1.9307008783e-14  [precision lvl 4e-14]
      Flex17 : 1.9307008787e-14  [precision lvl 2e-10]
@@ -1655,8 +1655,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.01}
 mpmath reference phasespace integral: 1.93070087833345e-14
 mpmath reference full integral: 1.99793221830376e-14
-bruteforce/mpref precision (full integral): 0.0187583
-bruteforce/mpref precision (phasespace integral): 0.0191132
+bruteforce/mpref precision (full integral): 0.0188
+bruteforce/mpref precision (phasespace integral): 0.0191
      Flex65 : 1.9307008783e-14  [precision lvl <1e-14]
      Flex33 : 1.9307008783e-14  [precision lvl 4e-14]
      Flex17 : 1.9307008787e-14  [precision lvl 2e-10]
@@ -1745,8 +1745,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 1e-05}
 mpmath reference phasespace integral: 0.00360478667121468
 mpmath reference full integral: 72.9869564125436
-bruteforce/mpref precision (full integral): 1.38125e-05
-bruteforce/mpref precision (phasespace integral): 0.00127509
+bruteforce/mpref precision (full integral): 1.38e-05
+bruteforce/mpref precision (phasespace integral): 0.00128
      Flex33 : 0.0036047866712  [precision lvl <1e-14]
      Flex65 : 0.0036047866712  [precision lvl <1e-14]
      Flex17 : 0.0036047867061  [precision lvl 1e-08]
@@ -1839,8 +1839,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 1e-05}
 mpmath reference phasespace integral: 0.819110275858251
 mpmath reference full integral: 447.234091742688
-bruteforce/mpref precision (full integral): 5.84686e-07
-bruteforce/mpref precision (phasespace integral): 0.0545871
+bruteforce/mpref precision (full integral): 5.85e-07
+bruteforce/mpref precision (phasespace integral): 0.0546
      Flex65 : 0.81911027586  [precision lvl <1e-14]
      Flex33 : 0.81911027586  [precision lvl 1e-12]
      Flex17 : 0.81911026271  [precision lvl 2e-08]
@@ -1925,8 +1925,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.01}
 mpmath reference phasespace integral: 0.0189648012460709
 mpmath reference full integral: 0.0196208157655321
-bruteforce/mpref precision (full integral): 8.79795e-07
-bruteforce/mpref precision (phasespace integral): 5.95761e-05
+bruteforce/mpref precision (full integral): 8.8e-07
+bruteforce/mpref precision (phasespace integral): 5.96e-05
      Flex65 : 0.018964801246  [precision lvl <1e-14]
      Flex33 : 0.018964801246  [precision lvl <1e-14]
   Romberg33 : 0.018964801247  [precision lvl 2e-11]
@@ -2011,8 +2011,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.01}
 mpmath reference phasespace integral: 0.0192679571166957
 mpmath reference full integral: 0.0199344740108756
-bruteforce/mpref precision (full integral): 8.87471e-07
-bruteforce/mpref precision (phasespace integral): 6.02396e-05
+bruteforce/mpref precision (full integral): 8.87e-07
+bruteforce/mpref precision (phasespace integral): 6.02e-05
      Flex65 : 0.019267957117  [precision lvl <1e-14]
      Flex33 : 0.019267957117  [precision lvl <1e-14]
   Romberg33 : 0.019267957117  [precision lvl 3e-11]
@@ -2097,8 +2097,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.01}
 mpmath reference phasespace integral: 0.000195130121472511
 mpmath reference full integral: 0.000201753490962626
-bruteforce/mpref precision (full integral): 8.4745e-07
-bruteforce/mpref precision (phasespace integral): 0.000188246
+bruteforce/mpref precision (full integral): 8.47e-07
+bruteforce/mpref precision (phasespace integral): 0.000188
      Flex65 : 0.00019513012147  [precision lvl <1e-14]
      Flex33 : 0.00019513012147  [precision lvl <1e-14]
   Romberg33 : 0.00019513012148  [precision lvl 2e-11]
@@ -2180,8 +2180,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.01}
 mpmath reference phasespace integral: 1.89622518773895e-11
 mpmath reference full integral: 1.96225600674731e-11
-bruteforce/mpref precision (full integral): 0.00118675
-bruteforce/mpref precision (phasespace integral): 0.00154803
+bruteforce/mpref precision (full integral): 0.00119
+bruteforce/mpref precision (phasespace integral): 0.00155
      Flex65 : 1.8962251877e-11  [precision lvl <1e-14]
      Flex33 : 1.8962251877e-11  [precision lvl <1e-14]
   Romberg33 : 1.8962251878e-11  [precision lvl 2e-11]
@@ -2263,8 +2263,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.01}
 mpmath reference phasespace integral: 1.92653823242933e-11
 mpmath reference full integral: 1.99362461972171e-11
-bruteforce/mpref precision (full integral): 0.00119491
-bruteforce/mpref precision (phasespace integral): 0.00155619
+bruteforce/mpref precision (full integral): 0.00119
+bruteforce/mpref precision (phasespace integral): 0.00156
      Flex65 : 1.9265382324e-11  [precision lvl <1e-14]
      Flex33 : 1.9265382324e-11  [precision lvl <1e-14]
   Romberg33 : 1.9265382325e-11  [precision lvl 3e-11]
@@ -2346,8 +2346,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.01}
 mpmath reference phasespace integral: 1.94981725453992e-13
 mpmath reference full integral: 2.01771426965394e-13
-bruteforce/mpref precision (full integral): 0.00115207
-bruteforce/mpref precision (phasespace integral): 0.00151336
+bruteforce/mpref precision (full integral): 0.00115
+bruteforce/mpref precision (phasespace integral): 0.00151
      Flex65 : 1.9498172545e-13  [precision lvl <1e-14]
      Flex33 : 1.9498172545e-13  [precision lvl <1e-14]
   Romberg33 : 1.9498172546e-13  [precision lvl 2e-11]
@@ -2429,8 +2429,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.01}
 mpmath reference phasespace integral: 1.87052920911521e-13
 mpmath reference full integral: 1.93566523644637e-13
-bruteforce/mpref precision (full integral): 0.00123396
-bruteforce/mpref precision (phasespace integral): 0.00159523
+bruteforce/mpref precision (full integral): 0.00123
+bruteforce/mpref precision (phasespace integral): 0.0016
      Flex65 : 1.8705292091e-13  [precision lvl <1e-14]
      Flex33 : 1.8705292091e-13  [precision lvl <1e-14]
   Romberg33 : 1.8705292092e-13  [precision lvl 3e-11]
@@ -2515,8 +2515,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.2812650004}
 mpmath reference phasespace integral: 2.09432670061294e-15
 mpmath reference full integral: 3e-15
-bruteforce/mpref precision (full integral): 9.09946e-17
-bruteforce/mpref precision (phasespace integral): 1.42951e-07
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 1.43e-07
   Romberg33 : 2.0943267006e-15  [precision lvl <1e-14]
      Flex65 : 2.0943267006e-15  [precision lvl 9e-13]
      Flex17 : 2.0943267006e-15  [precision lvl 1e-12]
@@ -2605,8 +2605,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.2812650005}
 mpmath reference phasespace integral: 2.09432670205189e-15
 mpmath reference full integral: 3e-15
-bruteforce/mpref precision (full integral): 9.09946e-17
-bruteforce/mpref precision (phasespace integral): 1.42264e-07
+bruteforce/mpref precision (full integral): <1e-14
+bruteforce/mpref precision (phasespace integral): 1.42e-07
      Flex33 : 2.0943267021e-15  [precision lvl <1e-14]
   Romberg33 : 2.0943267021e-15  [precision lvl <1e-14]
      Flex65 : 2.0943267021e-15  [precision lvl <1e-14]
@@ -2696,8 +2696,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.000395856}
 mpmath reference phasespace integral: 2.12468617607493e-28
 mpmath reference full integral: 5.29222940909789e-27
-bruteforce/mpref precision (full integral): 0.000353372
-bruteforce/mpref precision (phasespace integral): 0.00455462
+bruteforce/mpref precision (full integral): 0.000353
+bruteforce/mpref precision (phasespace integral): 0.00455
      Flex65 : 2.1246861761e-28  [precision lvl <1e-14]
      Flex33 : 2.1246861761e-28  [precision lvl 4e-14]
      Flex17 : 2.1246861765e-28  [precision lvl 2e-10]
@@ -2790,8 +2790,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.00403533919978}
 mpmath reference phasespace integral: 2.76657204839612
 mpmath reference full integral: 3.47638221350458
-bruteforce/mpref precision (full integral): 9.81452e-09
-bruteforce/mpref precision (phasespace integral): 1.41524e-06
+bruteforce/mpref precision (full integral): 9.81e-09
+bruteforce/mpref precision (phasespace integral): 1.42e-06
   Romberg33 : 2.7665720484  [precision lvl <1e-14]
      Flex17 : 2.7665720484  [precision lvl <1e-14]
   Romberg17 : 2.7665720484  [precision lvl <1e-14]
@@ -2884,8 +2884,8 @@ Brute force results (n=1000):
  'phasespace_E_div_kT': 0.00403533919978}
 mpmath reference phasespace integral: 1.53230625959535e-52
 mpmath reference full integral: 1.97162954575148e-52
-bruteforce/mpref precision (full integral): 2.95765e-08
-bruteforce/mpref precision (phasespace integral): 1.87559e-06
+bruteforce/mpref precision (full integral): 2.96e-08
+bruteforce/mpref precision (phasespace integral): 1.88e-06
      Flex17 : 1.5323062596e-52  [precision lvl <1e-14]
      Flex65 : 1.5323062596e-52  [precision lvl <1e-14]
   Romberg17 : 1.5323062596e-52  [precision lvl <1e-14]

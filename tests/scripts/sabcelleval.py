@@ -31,6 +31,7 @@ from NCTestUtils.env import ncsetenv
 from NCrystalDev.misc import evaluate_query as ncquery
 
 def evalcell(*,E_div_kT, alpha, beta, svals = None, do_plot=False ):
+
     a1, a2 = alpha
     b1, b2 = beta
     if svals is None:
@@ -55,8 +56,16 @@ def evalcell(*,E_div_kT, alpha, beta, svals = None, do_plot=False ):
 
     bfprec_fullint = float(abs(bfres['full_integral']/mprefval_fullint-1))
     bfprec_psint = float(abs(bfres['phasespace_integral']/mprefval-1))
-    print(f"bruteforce/mpref precision (full integral): {bfprec_fullint:g}")
-    print(f"bruteforce/mpref precision (phasespace integral): {bfprec_psint:g}")
+    def fmtprecbf(v):
+        if do_plot:
+            return '%g'%v
+        if v < 1e-14:
+            return '<1e-14'
+        return '%.3g'%v
+
+
+    print(f"bruteforce/mpref precision (full integral): {fmtprecbf(bfprec_fullint)}")
+    print(f"bruteforce/mpref precision (phasespace integral): {fmtprecbf(bfprec_psint)}")
     assert bfres['phasespace_integral'] <= bfres['full_integral']
 
     tgt_bfrec_fullint = 0.005
@@ -73,6 +82,7 @@ def evalcell(*,E_div_kT, alpha, beta, svals = None, do_plot=False ):
     vals = sorted( ( float(abs(v/mprefval-1)), v, name )
                    for name, v
                    in res['cellintegral']['phasespace_integral'] )
+
     def fmtprec(v):
         if do_plot:
             return '%g'%v
