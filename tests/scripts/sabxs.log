@@ -28,6 +28,8 @@
 =============> Launching test O_from_Li2O%2Encmat%3Bvdoslux%3D2%3Bknllux%3D2
 =============> Launching test O_from_Li2O%2Encmat%3Bvdoslux%3D2%3Bknllux%3D3
 =============> Launching test O_from_Li2O%2Encmat%3Bvdoslux%3D2%3Bknllux%3D4
+=============> Launching test Li_from_Li2O%2Encmat%3Bvdoslux%3D3%3Bknllux%3D4
+=============> Launching test Li_from_Li2O%2Encmat%3Bvdoslux%3D4%3Bknllux%3D4
 =============> Launching test O_from_Li2O%2Encmat%3Bvdoslux%3D3%3Bknllux%3D4
 =============> Launching test O_from_Li2O%2Encmat%3Bvdoslux%3D4%3Bknllux%3D4
 ALL OK

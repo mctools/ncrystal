@@ -72,7 +72,6 @@ def test_list_gen( testgroup ):
             'O_from_Li2O.ncmat;vdoslux=1;knllux=3',
             'O_from_Li2O.ncmat;vdoslux=1;knllux=4',
 
-
             'Li_from_Li2O.ncmat;vdoslux=2;knllux=0',
             'Li_from_Li2O.ncmat;vdoslux=2;knllux=1',
             'Li_from_Li2O.ncmat;vdoslux=2;knllux=2',
@@ -85,6 +84,8 @@ def test_list_gen( testgroup ):
             'O_from_Li2O.ncmat;vdoslux=2;knllux=3',
             'O_from_Li2O.ncmat;vdoslux=2;knllux=4',
 
+            'Li_from_Li2O.ncmat;vdoslux=3;knllux=4',
+            'Li_from_Li2O.ncmat;vdoslux=4;knllux=4',
             'O_from_Li2O.ncmat;vdoslux=3;knllux=4',
             'O_from_Li2O.ncmat;vdoslux=4;knllux=4',
         ]
