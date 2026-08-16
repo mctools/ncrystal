@@ -45,6 +45,33 @@ _test_focus = ( 'Al_sg225.ncmat',
 def test_list_gen( testgroup ):
     assert testgroup in ('A','B','C','D')
 
+    if testgroup=='B':
+        yield from [
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=0;knllux=0',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=0;knllux=1',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=0;knllux=2',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=0;knllux=3',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=0;knllux=4',
+
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=1;knllux=0',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=1;knllux=1',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=1;knllux=2',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=1;knllux=3',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=1;knllux=4',
+
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2;knllux=0',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2;knllux=1',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2;knllux=2',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2;knllux=3',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2;knllux=4',
+
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=3;knllux=0',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=3;knllux=1',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=3;knllux=2',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=3;knllux=3',
+            'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=3;knllux=4',
+            ]
+
     if testgroup=='A':
         import NCTestUtils.enable_testdatapath # noqa F401
         yield from [
