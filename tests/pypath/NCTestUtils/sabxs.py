@@ -44,6 +44,53 @@ _test_focus = ( 'Al_sg225.ncmat',
 
 def test_list_gen( testgroup ):
     assert testgroup in ('A','B','C','D')
+
+    if testgroup=='A':
+        import NCTestUtils.enable_testdatapath # noqa F401
+        yield from [
+            'Li_from_Li2O.ncmat;vdoslux=0;knllux=0',
+            'Li_from_Li2O.ncmat;vdoslux=0;knllux=1',
+            'Li_from_Li2O.ncmat;vdoslux=0;knllux=2',
+            'Li_from_Li2O.ncmat;vdoslux=0;knllux=3',
+            'Li_from_Li2O.ncmat;vdoslux=0;knllux=4',
+
+            'O_from_Li2O.ncmat;vdoslux=0;knllux=0',
+            'O_from_Li2O.ncmat;vdoslux=0;knllux=1',
+            'O_from_Li2O.ncmat;vdoslux=0;knllux=2',
+            'O_from_Li2O.ncmat;vdoslux=0;knllux=3',
+            'O_from_Li2O.ncmat;vdoslux=0;knllux=4',
+
+            'Li_from_Li2O.ncmat;vdoslux=1;knllux=0',
+            'Li_from_Li2O.ncmat;vdoslux=1;knllux=1',
+            'Li_from_Li2O.ncmat;vdoslux=1;knllux=2',
+            'Li_from_Li2O.ncmat;vdoslux=1;knllux=3',
+            'Li_from_Li2O.ncmat;vdoslux=1;knllux=4',
+
+            'O_from_Li2O.ncmat;vdoslux=1;knllux=0',
+            'O_from_Li2O.ncmat;vdoslux=1;knllux=1',
+            'O_from_Li2O.ncmat;vdoslux=1;knllux=2',
+            'O_from_Li2O.ncmat;vdoslux=1;knllux=3',
+            'O_from_Li2O.ncmat;vdoslux=1;knllux=4',
+
+
+            'Li_from_Li2O.ncmat;vdoslux=2;knllux=0',
+            'Li_from_Li2O.ncmat;vdoslux=2;knllux=1',
+            'Li_from_Li2O.ncmat;vdoslux=2;knllux=2',
+            'Li_from_Li2O.ncmat;vdoslux=2;knllux=3',
+            'Li_from_Li2O.ncmat;vdoslux=2;knllux=4',
+
+            'O_from_Li2O.ncmat;vdoslux=2;knllux=0',
+            'O_from_Li2O.ncmat;vdoslux=2;knllux=1',
+            'O_from_Li2O.ncmat;vdoslux=2;knllux=2',
+            'O_from_Li2O.ncmat;vdoslux=2;knllux=3',
+            'O_from_Li2O.ncmat;vdoslux=2;knllux=4',
+
+            'O_from_Li2O.ncmat;vdoslux=3;knllux=4',
+            'O_from_Li2O.ncmat;vdoslux=4;knllux=4',
+        ]
+
+
+
     #FIXME:
     return
 
