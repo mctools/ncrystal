@@ -56,7 +56,7 @@ def test(cfgstr):
         def calcgn(n,_di = di):
             return _di.extract_Gn(n, expand_egrid=False, without_xsect=True)
         for n in [ 1, 2, 5, 8, 20, 50 ]:
-            #TDOO: This is slow, since we redo the whole procedure for each n!
+            #TODO: This is slow, since we redo the whole procedure for each n!
             #We should provide a way to get multiple Gns in one call to the C++
             #layer! This actually makes the test very slow for Debug builds!
             egrid,d = calcgn(n)
@@ -65,14 +65,19 @@ def test(cfgstr):
 
 def main():
     PWLinDistMoments.unit_test(mp)
+    import NCTestUtils.enable_testdatapath # noqa F401
     for filename in ('Au_sg225',
                      'Polyethylene_CH2',
                      'LiH_sg225_LithiumHydride',
-                     'C_sg194_pyrolytic_graphite' ):
+                     'C_sg194_pyrolytic_graphite',
+                     'customdirs::Li_from_Li2O'
+                     ):
         for temp in (10,600):
             for vdoslux in (0,3):
-                test(f'stdlib::{filename}.ncmat'
-                     f';temp={temp:g}K'
+                n = ( f'stdlib::{filename}.ncmat'
+                      if not '::' in filename
+                      else f'{filename}.ncmat' )
+                test(f'{n};temp={temp:g}K'
                      ';comp=inelas'
                      f';vdoslux={vdoslux}')
 
