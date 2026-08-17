@@ -129,7 +129,7 @@ NC::VDOSGn::TruncAndThinningParams::TruncAndThinningParams(TruncAndThinningChoic
   : TruncAndThinningParams()
 {
   if (choice == TruncAndThinningChoices::Disabled)
-    minOrder = -1;
+    minThinOrder = minTruncOrder = -1;
 }
 
 NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
@@ -176,7 +176,8 @@ NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
   }
 
   nc_assert_always( valueInInterval(0.0,0.1,m_ttpars.truncationThreshold) );
-  nc_assert_always( m_ttpars.minOrder >= -1 );
+  nc_assert_always( m_ttpars.minThinOrder >= -1 );
+  nc_assert_always( m_ttpars.minTruncOrder >= -1 );
 
   //Discard excess zeroes at edges for G1, keeping at most a single entry with 0
   //at each edge. This might in particular happen at very low energies where the
@@ -203,9 +204,10 @@ NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
 
   if (s_verbose_vdosgn)
     NCRYSTAL_MSG("VDOSGn constructed (input spectrum size: "<<G1spectrum.size()
-                 <<", truncation/thinning with minOrder="<<ttpars.minOrder
-                 <<" thinNBins="<<ttpars.thinNBins
-                 <<" truncationThreshold="<<ttpars.truncationThreshold
+                 <<", thinning with minOrder="<<ttpars.minThinOrder
+                 <<" and thinNBins="<<ttpars.thinNBins
+                 <<", truncation with minOrder="<<ttpars.minTruncOrder
+                 <<" and truncationThreshold="<<ttpars.truncationThreshold
                  <<")");
 }
 
@@ -438,42 +440,46 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
   auto orig_npts_result = phonon_spe.size();
 
   unsigned long extraThinFactor = 1;
-  if ( m_ttpars.minOrder >= 0 && order.value() >= static_cast<unsigned>(m_ttpars.minOrder) ) {
-    //We should do truncation and/or thinning at this order.
-    if (m_ttpars.truncationThreshold > 0 ) {
-      // => do truncation
-      const double spec_max = *std::max_element(phonon_spe.begin(),phonon_spe.end());
-      const double spec_cutoff = m_ttpars.truncationThreshold * spec_max;
-      std::size_t ifront(0), iback(phonon_spe.size()-1);
-      for (;ifront<iback;++ifront) {
-        if (phonon_spe.at(ifront)>spec_cutoff)
-          break;
-      }
-      for (;iback>ifront;--iback) {
-        if (phonon_spe.at(iback)>spec_cutoff)
-          break;
-      }
-      if (iback>ifront) {
-        VectD truncated_spec(phonon_spe.begin()+ifront,phonon_spe.begin()+iback+1);
-        truncated_spec.swap(phonon_spe);
-      }
-      start_energy += ifront*dt;
+  if ( m_ttpars.minTruncOrder >= 0
+       && m_ttpars.truncationThreshold > 0.0
+       && order.value() >= static_cast<unsigned>(m_ttpars.minTruncOrder) ) {
+    // => do truncation
+    const double spec_max = *std::max_element(phonon_spe.begin(),phonon_spe.end());
+    const double spec_cutoff = m_ttpars.truncationThreshold * spec_max;
+    std::size_t ifront(0), iback(phonon_spe.size()-1);
+    for (;ifront<iback;++ifront) {
+      if (phonon_spe.at(ifront)>spec_cutoff)
+        break;
     }
-    if ( m_ttpars.thinNBins > 0 && phonon_spe.size() > m_ttpars.thinNBins ) {
-      // => do thinning
-      while ( phonon_spe.size() > m_ttpars.thinNBins*extraThinFactor)
-        extraThinFactor *= 2;//always orders of 2, allows for on-demand thinning
-                             //later (above) without incompatible fractions of
-                             //thinFactors.
-      if ( extraThinFactor >= 8 && order.value() <= static_cast<unsigned>(m_ttpars.minOrder*2) ) {
-        //Make brutal thinning slightly less brutal for orders between minOrder
-        //and (minOrder-1)*2:
-        extraThinFactor /= 2;
-      }
+    for (;iback>ifront;--iback) {
+      if (phonon_spe.at(iback)>spec_cutoff)
+        break;
+    }
+    if (iback>ifront) {
+      VectD truncated_spec(phonon_spe.begin()+ifront,phonon_spe.begin()+iback+1);
+      truncated_spec.swap(phonon_spe);
+    }
+    start_energy += ifront*dt;
+  }
 
-      phonon_spe = thinVector( extraThinFactor, phonon_spe );
-      dt *= extraThinFactor;
+  if ( m_ttpars.minThinOrder >= 0
+       && m_ttpars.thinNBins > 0
+       && order.value() >= static_cast<unsigned>(m_ttpars.minThinOrder)
+       && phonon_spe.size() > static_cast<std::size_t>(m_ttpars.thinNBins) ) {
+    // => do thinning
+    while ( phonon_spe.size() > m_ttpars.thinNBins*extraThinFactor)
+      extraThinFactor *= 2;//always orders of 2, allows for on-demand thinning
+                           //later (above) without incompatible fractions of
+                           //thinFactors.
+    if ( extraThinFactor >= 8
+         && order.value() <= static_cast<unsigned>(m_ttpars.minThinOrder*2) ) {
+      //Make brutal thinning slightly less brutal for orders between
+      //minThinOrder and (minThinOrder-1)*2:
+      extraThinFactor /= 2;
     }
+
+    phonon_spe = thinVector( extraThinFactor, phonon_spe );
+    dt *= extraThinFactor;
   }
 
   if (s_verbose_vdosgn) {

@@ -79,10 +79,12 @@ namespace NCRYSTAL_NAMESPACE {
     //choices for truncation/thinning.
     enum class TruncAndThinningChoices { Default, Disabled };
     struct TruncAndThinningParams {
-      int minOrder = 5;//Below this order, no truncation or thinning takes place
-                       //(0=always, -1=never)
+      int minThinOrder = 5;//Below this order, thinning takes place
+                           //(0=always, -1=never)
       unsigned thinNBins = 1000;//double binwidth whenever number of bins
                                 //exceeds this value (0 disables)
+      int minTruncOrder = 0;//Below this order, no truncation takes place
+                           //(0=always, -1=never)
       double truncationThreshold = 1e-14;//trim ranges to remove negligible
                                          //noise at edges (0 disables)
       TruncAndThinningParams(TruncAndThinningChoices);
