@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2026 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+# Small script which replaces VDOS with expanded kernels, to be able to
+# investigate things like KNl processing without also depending on any cross
+# platform issues in vdos expansions.
+
+import NCrystalDev.cfgstr as nccfgstr
+import NCrystalDev.core as nccore
+from NCrystalDev.ncmat import NCMATComposer
+
+
+def main( cfgstr, outfile, keep_header = True ):
+    cfgstr = nccfgstr.normaliseCfg(cfgstr)
+    info = nccore.createInfo(cfgstr)
+    vdoslux = nccfgstr.decodecfg_vdoslux(cfgstr)
+    c = NCMATComposer()
+    c.add_comments(f'Material based on cfgstr: "{cfgstr}"',True)
+    c.add_comments('Any VDOS entries in the original file has been'
+                   f' expanded to full kernels using vdoslux={vdoslux}.',True)
+    c.add_comments('Any non-dyninfo based physics has simply been discarded.',
+                   True)
+    nfrozen = 0
+    for di in info.dyninfos:
+        if not isinstance( di, nccore.Info.DI_VDOS ):
+            c.set_dyninfo_from_object( di.lbl, di, fraction = di.fraction )
+            continue
+        nfrozen += 1
+        knl = di.loadKernel( vdoslux = vdoslux )
+        egrid = [ knl['suggestedEmax'] ]
+        if len(knl['egrid'])>0:
+            egrid = knl['egrid']
+        c.set_dyninfo_scatknl( di.lbl,
+                               alphagrid = knl['alpha'],
+                               betagrid = knl['beta'],
+                               temperature = knl['temperature'],
+                               sab = knl['sab'],
+                               comment=f'frozen at vdoslux={vdoslux}',
+                               egrid = egrid,
+                               fraction = di.fraction )
+
+    c.set_density(info.density)
+    c.write( outfile )
+    print(f"Replaced {nfrozen} vdos curves with expanded"
+          f" kernels at vdoslux={vdoslux}")
+    print(f"Wrote: {outfile}")
+
+if __name__=='__main__':
+    import sys
+    assert len(sys.argv)==3
+    main( cfgstr = sys.argv[1],
+          outfile = sys.argv[2] )

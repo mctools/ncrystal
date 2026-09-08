@@ -42,6 +42,8 @@ namespace NCRYSTAL_NAMESPACE {
                   double egrid_binwidth,
                   unsigned long thinFactor );
       double interpolateDensity(double energy) const;
+      void interpolateDensityMany(Span<const double>, VectD&, VectD&) const;
+
       const VectD& getSpectrum() const { return m_spec; }
       double getEGridLower() const {return m_egrid_lower;}
       double getEGridUpper() const {return m_egrid_upper;}
@@ -104,6 +106,109 @@ double NC::VDOSGnData::interpolateDensity(double energy) const
   return (*valptr) * (1.0-f) +  f * (*(valptr+1));
 }
 
+void NC::VDOSGnData::interpolateDensityMany( Span<const double> energy,
+                                             VectD& out,
+                                             VectD& workbuf) const
+{
+#ifndef NDEBUG
+  nc_assert(energy.size() <
+            static_cast<std::size_t>(1000000000));
+
+  const std::size_t npts = m_spec.size();
+
+  nc_assert(npts >= 2);
+  nc_assert(m_spec_size_minus_2 == npts - 2);
+  nc_assert(std::isfinite(m_egrid_lower));
+  nc_assert(std::isfinite(m_egrid_upper));
+  nc_assert(std::isfinite(m_egrid_binwidth));
+  nc_assert(m_egrid_binwidth > 0.0);
+  nc_assert(std::isfinite(m_egrid_invbinwidth));
+  nc_assert(m_egrid_upper >= m_egrid_lower);
+
+  nc_assert( nc_is_grid( energy ) );
+  for (std::size_t i = 0; i < energy.size(); ++i) {
+    nc_assert(std::isfinite(energy[i]));
+    if (i != 0)
+      nc_assert(energy[i - 1] < energy[i]);
+  }
+
+  for (std::size_t i = 0; i < npts; ++i)
+    nc_assert(std::isfinite(vectAt(m_spec, i)));
+
+  const auto no_overlap = [](const double* a, std::size_t an,
+                             const double* b, std::size_t bn) {
+    const std::uintptr_t ab =
+        reinterpret_cast<std::uintptr_t>(a);
+    const std::uintptr_t ae = ab + an * sizeof(double);
+    const std::uintptr_t bb =
+        reinterpret_cast<std::uintptr_t>(b);
+    const std::uintptr_t be = bb + bn * sizeof(double);
+
+    return ae <= bb || be <= ab;
+  };
+
+  nc_assert(no_overlap(
+      energy.data(), energy.size(), out.data(), out.size()));
+  nc_assert(no_overlap(
+      energy.data(), energy.size(), workbuf.data(), workbuf.size()));
+  nc_assert(no_overlap(
+      out.data(), out.size(), workbuf.data(), workbuf.size()));
+#endif
+
+  const std::size_t n = energy.size();
+
+  out.assign(n, 0.0);
+  workbuf.resize(2 * n);
+
+  const double* ncrestrict ep = energy.data();
+  double* ncrestrict op = out.data();
+  double* ncrestrict buf_f = workbuf.data();
+  double* ncrestrict buf_ix = buf_f + n;
+
+  const auto first = std::lower_bound(
+      energy.begin(), energy.end(), m_egrid_lower);
+  const auto last = std::upper_bound(
+      first, energy.end(), m_egrid_upper);
+
+  const std::size_t beg =
+      static_cast<std::size_t>(first - energy.begin());
+  const std::size_t end =
+      static_cast<std::size_t>(last - energy.begin());
+
+  for (std::size_t i = beg; i < end; ++i) {
+    const double a =
+        (ep[i] - m_egrid_lower) * m_egrid_invbinwidth;
+    const double fa = std::floor(a);
+    const std::size_t ix = ncmin(
+        m_spec_size_minus_2, static_cast<std::size_t>(fa));
+
+    buf_f[i] = a - fa;
+    buf_ix[i] = static_cast<double>(ix);
+  }
+
+  for (std::size_t i = beg; i < end; ++i) {
+    const double f = buf_f[i];
+    const std::size_t ix =
+        static_cast<std::size_t>(buf_ix[i]);
+
+    op[i] = vectAt(m_spec, ix) * (1.0 - f);
+  }
+
+  for (std::size_t i = beg; i < end; ++i) {
+    const double f = buf_f[i];
+    const std::size_t ix =
+        static_cast<std::size_t>(buf_ix[i]);
+
+    op[i] += f * vectAt(m_spec, ix + 1);
+  }
+
+#ifndef NDEBUG
+  for (std::size_t i = 0; i < energy.size(); ++i)
+    nc_assert(op[i] == interpolateDensity(energy[i]));
+#endif
+}
+
+
 struct NC::VDOSGn::Impl {
   Impl(const VDOSEval& vde, TruncAndThinningParams);
   std::deque<VDOSGnData> m_gndata;//deque, to not change address of VDOSGnData
@@ -128,8 +233,9 @@ struct NC::VDOSGn::Impl {
 NC::VDOSGn::TruncAndThinningParams::TruncAndThinningParams(TruncAndThinningChoices choice)
   : TruncAndThinningParams()
 {
-  if (choice == TruncAndThinningChoices::Disabled)
-    minThinOrder = minTruncOrder = -1;
+  if (choice == TruncAndThinningChoices::Disabled) {
+    minThinOrder = minThinAgressiveOrder = minTruncOrder = -1;
+  }
 }
 
 NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
@@ -177,6 +283,7 @@ NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
 
   nc_assert_always( valueInInterval(0.0,0.1,m_ttpars.truncationThreshold) );
   nc_assert_always( m_ttpars.minThinOrder >= -1 );
+  nc_assert_always( m_ttpars.minThinAgressiveOrder >= -1 );
   nc_assert_always( m_ttpars.minTruncOrder >= -1 );
 
   //Discard excess zeroes at edges for G1, keeping at most a single entry with 0
@@ -206,6 +313,9 @@ NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
     NCRYSTAL_MSG("VDOSGn constructed (input spectrum size: "<<G1spectrum.size()
                  <<", thinning with minOrder="<<ttpars.minThinOrder
                  <<" and thinNBins="<<ttpars.thinNBins
+                 <<" and more agressive thinning with minOrder="
+                 <<ttpars.minThinAgressiveOrder
+                 <<" and thinNBins="<<ttpars.thinAgressiveNBins
                  <<", truncation with minOrder="<<ttpars.minTruncOrder
                  <<" and truncationThreshold="<<ttpars.truncationThreshold
                  <<")");
@@ -246,6 +356,12 @@ void NC::VDOSGn::growMaxOrder( Order target_n )
 double NC::VDOSGn::eval( Order n, double energy ) const
 {
   return m_impl->accessAtOrder(n).interpolateDensity(energy);
+}
+
+void NC::VDOSGn::evalMany( Order n, Span<const double> egrid,
+                             VectD& out, VectD& workbuf ) const
+{
+  m_impl->accessAtOrder(n).interpolateDensityMany(egrid,out,workbuf);
 }
 
 const NC::VectD& NC::VDOSGn::getRawSpectrum( NC::VDOSGn::Order n ) const
@@ -459,20 +575,35 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
       VectD truncated_spec(phonon_spe.begin()+ifront,phonon_spe.begin()+iback+1);
       truncated_spec.swap(phonon_spe);
     }
+#if 1//fixme: testing internal truncation by forced zero! Hopefully this removes some cross platform fluctuations!!
+    for ( auto&e : phonon_spe) {
+      if ( e < spec_cutoff )
+        e = 0.0;
+    }
+#endif
     start_energy += ifront*dt;
   }
 
-  if ( m_ttpars.minThinOrder >= 0
-       && m_ttpars.thinNBins > 0
-       && order.value() >= static_cast<unsigned>(m_ttpars.minThinOrder)
-       && phonon_spe.size() > static_cast<std::size_t>(m_ttpars.thinNBins) ) {
+  int minThinOrder = m_ttpars.minThinOrder;
+  unsigned thinNBins = m_ttpars.thinNBins;
+  nc_assert( order.value() < 65000u );
+  const int order_int = static_cast<int>(order.value());
+  if ( m_ttpars.minThinAgressiveOrder >= 0
+       && order_int >= m_ttpars.minThinAgressiveOrder ) {
+    minThinOrder = m_ttpars.minThinAgressiveOrder;
+    thinNBins = m_ttpars.thinAgressiveNBins;
+  }
+
+  if ( minThinOrder >= 0 && thinNBins > 0
+       && order_int >= minThinOrder
+       && phonon_spe.size() > static_cast<std::size_t>(thinNBins) ) {
     // => do thinning
-    while ( phonon_spe.size() > m_ttpars.thinNBins*extraThinFactor)
+    while ( phonon_spe.size() > thinNBins*extraThinFactor)
       extraThinFactor *= 2;//always orders of 2, allows for on-demand thinning
                            //later (above) without incompatible fractions of
                            //thinFactors.
     if ( extraThinFactor >= 8
-         && order.value() <= static_cast<unsigned>(m_ttpars.minThinOrder*2) ) {
+         && order.value() <= static_cast<unsigned>(minThinOrder*2) ) {
       //Make brutal thinning slightly less brutal for orders between
       //minThinOrder and (minThinOrder-1)*2:
       extraThinFactor /= 2;
@@ -496,3 +627,6 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
 
   return VDOSGnData{ phonon_spe, start_energy, dt, thinFactor1*extraThinFactor };
 }
+
+NC::VDOSGn::VDOSGn( VDOSGn&& ) = default;
+NC::VDOSGn& NC::VDOSGn::operator=( VDOSGn&& ) = default;

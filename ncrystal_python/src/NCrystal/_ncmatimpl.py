@@ -266,7 +266,7 @@ class NCMATComposerImpl:
         from .misc import AnyTextData
         td = AnyTextData(data)
         if '\n' not in td.content and not td.content.startswith('NCMAT'):
-            return NCMATComposerImpl.from_cfgstr( td.content )
+            return NCMATComposerImpl.from_cfgstr( td.content )#fixme: ignores keep_header??
         o = _nc_core.directLoad( td, doScatter = False, doAbsorption = False )
         c = NCMATComposerImpl.from_info( o.info )
         comments = None

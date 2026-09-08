@@ -613,6 +613,19 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
   constexpr auto sv_proc = StrView::make("proc");
   constexpr auto sv_refsample = StrView::make("refsample");
 
+  if  ( key == "fixme" ) {
+    if ( nargs != 1 && nargs != 2 )
+      invalid("correct usage: [\"sab\",\"fixme\","
+              "MATCFGSTR,ATOMDISPLAYLABEL]"
+              " (the ATOMDISPLAYLABEL can be left out for monoatomic materials)");
+    Optional<std::string> atomDisplayLabel;
+    if ( nargs>1 )
+      atomDisplayLabel = argstr(1);
+    auto sabdata = query_impl_extractSabData( argstr(0), atomDisplayLabel );
+    SABUtils::SABProcessor::testJSON(sabdata,os);
+    return;
+  }
+
   if ( key == sv_refeval ) {
     //query like: ncrystal_query sab refeval 0.025 'bla.ncmat' 1000 ['Al']
     if ( nargs != 4 && nargs != 3 )

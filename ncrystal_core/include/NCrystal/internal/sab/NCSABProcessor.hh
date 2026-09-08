@@ -117,6 +117,9 @@ namespace NCRYSTAL_NAMESPACE {
       SABProcessor( SABProcessor&& ) noexcept;
       SABProcessor& operator=( SABProcessor&& ) noexcept;
 
+      //fixme: temporary:
+      static void testJSON( shared_obj<const SABData>, std::ostream& );
+
     private:
       void * m_impl = nullptr;
     };

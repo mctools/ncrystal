@@ -49,10 +49,13 @@ def testcell(*,E_div_kT, alpha, beta, svals = None,
         assert nsamples_mpref>0
 
     _seed_vals[0] += 117
-    res = ncquery( [ 'sab','sglcell']
-                   +['@%s'%str(e) for e in vals]
-                   +[str(nsamples_cpp),str(_seed_vals[0])],
-                   huge_arrays=True)
+    query = ( [ 'sab','sglcell']
+              +['@%s'%str(e) for e in vals]
+              +[str(nsamples_cpp),str(_seed_vals[0])] )
+    if do_plot:
+        import shlex
+        print("Query:", shlex.join(query))
+    res = ncquery( query, huge_arrays=True)
 
     sm=res['sampling']
     mtd = sm['chosen_sample_method']
@@ -403,6 +406,9 @@ def main(do_plot,luxlvl,mplvl,test_select):
         print("=============> Launching test %i"%i)
         print("=============>")
         print()
+        if do_plot:
+            print(data)
+
         #print(data)
         npvals, worst_pval = testcell(**data,
                                       do_plot=do_plot,

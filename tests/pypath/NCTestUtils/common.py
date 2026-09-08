@@ -177,3 +177,69 @@ def require_flteq( x, y, tol = 1e-13 ):
                               f'x={x} and y={y}!')
     elif not okfct(x,y):
         raise RuntimeError(f'require_flteq( x={x}, y={y} ) failed!')
+
+def interp1d(x, y):
+    """Returns a function which interpolates linearly between {xi,yi}
+    points. Extrapolation outside the range of x-values simply yields zero.
+    """
+    import numpy as np
+    x, y = np.asarray(x, float), np.asarray(y, float)
+    assert x.ndim == y.ndim == 1
+    assert len(x) == len(y) > 0
+    assert np.all(np.diff(x) > 0)
+    def f(xq):
+        xq = np.asarray(xq)
+        return np.where( (xq < x[0]) | (xq > x[-1]), 0.0, np.interp(xq, x, y) )
+    return f
+
+def interp1d_loglin(x, y):
+    """interpolate linearly in log(y), falling back to linear in y when at least
+    one y-value is zero."""
+    import numpy as np
+    x, y = np.asarray(x, float), np.asarray(y, float)
+    assert x.ndim == y.ndim == 1
+    assert len(x) == len(y) > 1
+    assert np.all(np.diff(x) > 0) and np.all(y >= 0)
+
+    def f(q):
+        q = np.asarray(q, float)
+        inside = (q >= x[0]) & (q <= x[-1])
+        q = np.clip(q, x[0], x[-1])
+
+        i = np.clip(np.searchsorted(x, q, side="right") - 1, 0, len(x) - 2)
+        t = (q - x[i]) / (x[i + 1] - x[i])
+        a, b = y[i], y[i + 1]
+
+        lin = a + t * (b - a)
+        pos = (a > 0) & (b > 0)
+        loglin = np.exp((1 - t) * np.log(np.where(pos, a, 1)) +
+                        t * np.log(np.where(pos, b, 1)))
+
+        return np.where(inside, np.where(pos, loglin, lin), 0.0)
+
+    return f
+
+def powspace(start, stop, num, p):
+    import numpy as np
+    assert num>=2 and num==int(num)
+    if num == 2:
+        return np.array([start,stop], dtype=float)
+    res = start + (stop - start) * np.linspace(0.0, 1.0, num) ** p
+    res[0] = start
+    res[-1] = stop
+    return res
+
+def calc_reldiff( a,b ):
+    import numpy as np
+    if a.size != b.size:
+        return np.inf
+    return np.abs(a - b) / (0.5*(np.abs(b)+np.abs(a))+np.finfo(float).eps)
+
+def thicken_grid(x, n):
+    """Thickens grid of x values by inserting n extra points between each pair
+    of existing points. New points are spaced out linearly.
+    """
+    import numpy as np
+    x = np.asarray(x, float)
+    t = np.arange(n + 1) / (n + 1)
+    return np.r_[((x[1:] - x[:-1])[:, None] * t + x[:-1, None]).ravel(), x[-1]]

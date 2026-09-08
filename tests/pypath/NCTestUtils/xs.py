@@ -78,6 +78,7 @@ class XSMonitor:
     def run( self ):
         badtests = set()
         nused = 0
+        from .common import calc_reldiff
         for teststr in self.__testlist:
             testkey = testdirs.encode_safe(teststr)
             if self.__test_select and testkey not in self.__test_select:
@@ -101,13 +102,13 @@ class XSMonitor:
                 self.save_ref(teststr,evals,xsvals)
                 continue
             ref_evals, ref_xsvals = self.load_ref(teststr)
-            if _reldiff(evals,ref_evals).max() > self.__test_rdtol:
+            if calc_reldiff(evals,ref_evals).max() > self.__test_rdtol:
                 badtests.add((None,testkey))
                 print(f"ERROR: reference e-grid for {testkey} is inconsistent."
                       " Developers: If expected, --update after investigating"
                       f" with: --plot {testkey} ")
             else:
-                rda = _reldiff( xsvals, ref_xsvals )
+                rda = calc_reldiff( xsvals, ref_xsvals )
                 rd = rda.max()
                 if rd>self.__test_rdtol:
                     badtests.add((rd,testkey))
@@ -151,7 +152,7 @@ class XSMonitor:
                 ax.loglog()
                 ax.grid()
                 ax.set_ylabel('XS [barn/atom]')
-                axdiff.plot( evals, _reldiff( xsvals, ref_xsvals ),
+                axdiff.plot( evals, calc_reldiff( xsvals, ref_xsvals ),
                              label='observed difference')
                 axdiff.loglog()
                 axdiff.grid()
@@ -202,11 +203,6 @@ def _parse_sysargv(args=None):
         args.remove('--update')
         do_update = True
     return do_plot, do_update, set(args)
-
-def _reldiff( a,b ):
-    if a.size != b.size:
-        return np.inf
-    return np.abs(a - b) / (0.5*(np.abs(b)+np.abs(a))+np.finfo(float).eps)
 
 def _init_refdir(do_update,dirname,testlist):
     refdir = testdirs.get_named_test_data_dir(dirname,

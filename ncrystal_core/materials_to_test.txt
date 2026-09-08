@@ -1,0 +1,7 @@
+AgBr
+CH2
+LiH
+UO2
+Al
+T=1,300,1000K
+various vdoslux

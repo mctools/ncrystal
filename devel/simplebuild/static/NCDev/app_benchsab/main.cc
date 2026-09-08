@@ -42,8 +42,8 @@ void doBenchmark( int knllux, NC::shared_obj<const NC::SABData> sab )
 int main( int argc, char** argv )
 {
   //Parse args:
-  if ( argc!=4 ) {
-    std::cout << "Please provide args: [cfgstr] [displaylabel] [nload]"
+  if ( argc!=5 ) {
+    std::cout << "Please provide args: [cfgstr] [displaylabel] [nsabproc] [ncreatesab]"
               << std::endl;
     std::cout << "NB: displaylabel can be empty (\"\") for monoatomic materials"
               << std::endl;
@@ -54,26 +54,48 @@ int main( int argc, char** argv )
   const auto vdoslux = matcfg.get_vdoslux();
   const auto knllux = matcfg.get_knllux();
   const std::string displaylbl(argv[2]);
-  auto opt_nload = NC::StrView(argv[3]).toUInt64();
-  nc_assert_always(opt_nload.has_value());
-  const auto nload = opt_nload.value();
+  auto opt_nsabproc = NC::StrView(argv[3]).toUInt64();
+  nc_assert_always(opt_nsabproc.has_value());
+  const auto nsabproc = opt_nsabproc.value();
+  auto opt_ncreatesab = NC::StrView(argv[4]).toUInt64();
+  nc_assert_always(opt_ncreatesab.has_value());
+  const auto ncreatesab = opt_ncreatesab.value();
+  nc_assert_always(nsabproc==0||ncreatesab>=1);
 
-  //Find SABData:
-  auto sab =[&cfgstr,&displaylbl,vdoslux]()
+  //Find DynInfo:
+  auto di_knl = [&cfgstr,&displaylbl]()
   {
     NC::Optional<std::string> dlbl;
     if ( !displaylbl.empty() )
       dlbl = displaylbl;
     auto info = NC::FactImpl::createInfo(cfgstr);
     auto di = NC::InfoUtils::findDynInfo( info, dlbl );
-    auto di_knl = dynamic_cast<const NC::DI_ScatKnl*>(di);
-    if (!di_knl)
+    auto di_sknl = dynamic_cast<const NC::DI_ScatKnl*>(di);
+    if (!di_sknl)
       NCRYSTAL_THROW(BadInput,"Selected component does not provide a SAB knl");
-    return NC::extractSABDataFromDynInfo( di_knl, vdoslux );
+    return di_sknl;
   }();
 
+  //Find SABData:
+  auto sabload =[&di_knl,vdoslux]()
+  {
+    const bool useCache = false;
+    return NC::extractSABDataFromDynInfo( di_knl, vdoslux, useCache );
+  };
+  std::cout<<"argh ncreatesab="<<ncreatesab<<std::endl;
+
+  std::shared_ptr<const NC::SABData> sab;
+  for ( std::uint64_t i = 0; i < ncreatesab; ++i ) {
+    std::cout<<"argh"<<std::endl;
+    sab = sabload();
+  }
+
+  if (!nsabproc)
+    return 0;
+  nc_assert_always(sab != nullptr );
+
   //Initiate SABProcessor:
-  for ( std::uint64_t i = 0; i < nload; ++i )
+  for ( std::uint64_t i = 0; i < nsabproc; ++i )
     doBenchmark( knllux, sab );
 
   return 0;

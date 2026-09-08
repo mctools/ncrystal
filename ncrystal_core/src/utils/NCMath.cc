@@ -21,20 +21,25 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCRotMatrix.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"//fixme
 #include <sstream>
 #include <list>
+#include <queue>//fixme
 
 namespace NC = NCrystal;
 
-bool NC::nc_is_grid(NC::Span<const double> v)
+bool NC::nc_is_grid( Span<const double> v )
 {
-  if ( v.empty() )
+  // NCRYSTAL_MSG("TKTEST nc_is_grid v.size() = "<<v.size());
+  if ( v.size() < 2 )
     return false;
   double last = v.front();
-  if ( ncisnan(last) || ncisinf(last) )
+  // NCRYSTAL_MSG("TKTEST nc_is_grid entry = "<<fmt(last));
+  if ( !std::isfinite(last) )
     return false;
-  for ( auto e : Span<const double>(std::next(v.begin()),v.end()) ) {
-    if ( !(e>last) || ncisnan(e) || ncisinf(e) )
+  for ( auto e : v.subspan(1) ) {
+    // NCRYSTAL_MSG("TKTEST nc_is_grid entry = "<<fmt(e));
+    if ( !(e>last && std::isfinite(e) ) )
       return false;
     last = e;
   }
@@ -79,6 +84,60 @@ NC::VectD NC::linspace(double start, double stop, unsigned num)
   v.push_back( stop );
   return v;
 }
+
+NC::VectD NC::powspace(double a, double b, unsigned num, double p )
+{
+  nc_assert(num >= 2);
+  nc_assert(a > 0.0);
+  nc_assert(b > a);
+  nc_assert(p >= 0.0);
+  nc_assert(num < 1000000000ULL);
+
+  const double step = 1.0 / static_cast<double>(num - 1);
+  const double delta = b - a;
+  const double nm1 = static_cast<double>(num - 1);
+
+  VectD res;
+  if ( p==1.0 ) {
+    res = linspace(a, b, num);
+    return res;
+  }
+
+  res.reserve(num);
+  res.push_back(a);
+
+  if (p == 2.0) {
+    for (double i = 1.0; i < nm1; i += 1.0) {
+      const double s = i * step;
+      res.push_back(a + delta * ncsquare(s));
+    }
+  } else if (p == 3.0) {
+    for (double i = 1.0; i < nm1; i += 1.0) {
+      const double s = i * step;
+      res.push_back(a + delta * ncsquare(s)*s);
+    }
+  } else if (p == 4.0) {
+    for (double i = 1.0; i < nm1; i += 1.0) {
+      const double s = i * step;
+      res.push_back(a + delta * ncsquare(ncsquare(s)));
+    }
+  } else if (p == 1.5) {
+    for (double i = 1.0; i < nm1; i += 1.0) {
+      const double s = i * step;
+      res.push_back(a + delta * (s * std::sqrt(s)));
+    }
+  } else {
+    for (double i = 1.0; i < nm1; i += 1.0) {
+      const double s = i * step;
+      res.push_back(a + delta * std::pow(s, p));
+    }
+  }
+
+  res.push_back(b);
+  nc_assert( res.size() == num );
+  return res;
+}
+
 
 bool NC::isPrime(unsigned n) {
   if (n>3) {
@@ -416,18 +475,31 @@ double NC::erfc_rescaled(double x, double b)
   return kInvSqrtPi*std::exp(bxx)*(y+y2*(c3+y2*(c5+y2*(c7+y2*(c9+y2*c11)))));
 }
 
-std::pair<NC::VectD,NC::VectD> NC::reducePtsInDistribution( const NC::VectD& x,
-                                                            const NC::VectD& y,
-                                                            std::size_t targetN )
+#if 0
+std::pair<NC::VectD,NC::VectD>
+NC::reducePtsInDistribution( Span<const double> x,
+                             Span<const double> y,
+                             std::size_t targetN,
+                             const PtReduceCfg& cfg )
 {
   nc_assert_always(x.size()==y.size());
   nc_assert_always(x.size()>=targetN);
   nc_assert_always(targetN>=2);
   if ( targetN >= x.size()  )
-    return { x, y };
+    return { VectD{x.begin(), x.end()},
+             VectD{y.begin(), y.end()} };
   const double ymax = *std::max_element(y.begin(),y.end());
   nc_assert_always(ymax>0.0);
   const double inv_ymax = 1.0/ymax;
+#if 1
+  const double max_gap = ( cfg.equidistant_fraction * targetN - 1.0 > 0.0
+                           ? ( ( x.back()-x.front() )
+                               / ( cfg.equidistant_fraction*targetN-1.0 ) )
+                           : kInfinity );
+#else
+  const double max_gap = 4;
+#endif
+  // NCRYSTAL_MSG("TKTEST max_gap = "<<max_gap);//fixme
 
   //Put point-data (including caches of expensive std::log results) into
   //doubly linked list:
@@ -445,15 +517,44 @@ std::pair<NC::VectD,NC::VectD> NC::reducePtsInDistribution( const NC::VectD& x,
 
   for ( auto&& e: enumerate(x) ) {
     double xval(e.val), yval(y.at(e.idx));
-    pts.emplace_back(xval, yval, std::log(std::max<double>(1e-20,yval*inv_ymax)), importanceMap.end() );
+    pts.emplace_back( xval, yval,
+                      std::log(std::max<double>(cfg.tail_floor,yval*inv_ymax)),
+                      importanceMap.end() );
   }
 
   //Definition of importance score:
-  auto importanceCalc = [](const decltype(pts)::iterator it)
+  auto importanceCalc = [&cfg,max_gap,inv_ymax](const decltype(pts)::iterator it)
                         {
-                          const auto& pt1 = *it;
                           const auto& pt0 = *std::prev(it);//previous neighbour
+                          const auto& pt1 = *it;
                           const auto& pt2 = *std::next(it);//next neighbour
+                          nc_assert( pt1.x > pt0.x );
+                          nc_assert( pt2.x > pt1.x );
+#if 1
+                          if ( pt2.x - pt0.x > max_gap ) {
+                            //Instead of just returning infinity, we return
+                            //something that scales with the gap size. Just in
+                            //case weird settings results in a too small
+                            //max_gap. In that case we at least should prevent
+                            //bigger gaps before smaller gaps.
+                            return 1e250*(ncmax(1e-100,pt2.x-pt0.x));
+                          }
+#endif
+#if 0
+                          const double dx01 = pt1.x - pt0.x;
+                          const double dx12 = pt2.x - pt1.x;
+                          // Value at pt1 of the line joining pt0 and pt2,
+                          // i.e. the interpolated value if we remove pt1:
+                          const double y1new = (dx12 * pt0.y + dx01 * pt2.y) / (dx01 + dx12);
+                          // Deviation introduced on y/ymax:
+                          const double stderr = ncabs(pt1.y - y1new) * inv_ymax;
+                          // Deviation introduced on log(y/ymax):
+                          const double lny1new = std::log(ncmax(cfg.tail_floor, y1new));
+                          const double tail_err = ncabs(pt1.lny - lny1new);
+                          // The point's importance is the worse of the two normalized errors.
+                          //return stderr;
+                          return ncmax(stderr, cfg.tail_weight * tail_err*0.001);//fixme added 0.001
+#else
                           //Area of triangle with 3 points at the corners is
                           //the area the curve integral will change if we
                           //remove the point (x1,y1). Apart from a missing
@@ -466,8 +567,9 @@ std::pair<NC::VectD,NC::VectD> NC::reducePtsInDistribution( const NC::VectD& x,
                           //focus should be on the features in tails and how
                           //much focus should be on strong peaks):
                           double logarea_change = ncabs(pt0.x*(pt1.lny-pt2.lny)+pt1.x*(pt2.lny-pt0.lny)+pt2.x*(pt0.lny-pt1.lny));
-                          return area_change * logarea_change * logarea_change;
-                        };
+                          return area_change * ncsquare(logarea_change);
+#endif
+                 };
 
   //We keep multimap of importance -> PtData-iterator. Once initialised, the
   //first element corresponds to the least important remaining point on the
@@ -510,8 +612,445 @@ std::pair<NC::VectD,NC::VectD> NC::reducePtsInDistribution( const NC::VectD& x,
   }
   return { newx, newy };
 }
+#elif 0
 
-NC::VectD::const_iterator NC::findClosestValInSortedVector(const NC::VectD& v, double value)
+// Reduces a piecewise-linear curve defined by x and y to targetN points.
+// Interior points are removed in order of increasing importance.
+// Importance combines changes in the y and log(y) curve areas.
+// Point spacing is also constrained using cfg.equidistant_fraction.
+// The first and last points are always retained.
+// Returns the reduced x and y vectors.
+std::pair<NC::VectD, NC::VectD>
+NC::reducePtsInDistribution(Span<const double> x,
+                            Span<const double> y,
+                            std::size_t targetN,
+                            const PtReduceCfg& cfg)
+{
+#ifndef NDEBUG
+  const std::size_t n = x.size();
+
+  nc_assert(n == y.size());
+  nc_assert(n >= 2);
+  nc_assert(targetN >= 2);
+  // nc_assert(targetN <= n);
+  nc_assert(std::isfinite(cfg.equidistant_fraction));
+  nc_assert(cfg.equidistant_fraction >= 0.0);
+  nc_assert(std::isfinite(cfg.tail_floor));
+  nc_assert(cfg.tail_floor > 0.0);
+
+  for (std::size_t i = 0; i < n; ++i) {
+    nc_assert(std::isfinite(x[i]));
+    nc_assert(std::isfinite(y[i]));
+    if (i != 0)
+      nc_assert(x[i] > x[i - 1]);
+  }
+#endif
+
+  const std::size_t n = x.size();
+
+  if (targetN >= n)
+    return {VectD{x.begin(), x.end()},
+            VectD{y.begin(), y.end()}};
+
+  const double ymax = *std::max_element(y.begin(), y.end());
+
+  nc_assert(ymax > 0.0);
+
+  const double invYmax = 1.0 / ymax;
+  const double den = cfg.equidistant_fraction * targetN - 1.0;
+
+  const double maxGap =
+    den > 0.0 ? (x.back() - x.front()) / den : kInfinity;
+
+  const std::size_t bad =
+    std::numeric_limits<std::size_t>::max();
+
+  struct Entry {
+    double imp;
+    std::size_t i;
+    std::size_t gen;
+  };
+
+  struct EntryLess {
+    bool operator()(const Entry& a, const Entry& b) const
+    {
+      if (a.imp != b.imp)
+        return a.imp > b.imp;
+      return a.i > b.i;
+    }
+  };
+
+  using Queue = std::priority_queue<
+    Entry, std::vector<Entry>, EntryLess>;
+
+  VectD px(x.begin(), x.end());
+  VectD py(y.begin(), y.end());
+  VectD plny(n);
+
+  std::vector<std::size_t> prev(n);
+  std::vector<std::size_t> next(n);
+  std::vector<std::size_t> gen(n, 0);
+
+  for (std::size_t i = 0; i < n; ++i) {
+    vectAt(plny, i) =
+      std::log(ncmax(cfg.tail_floor,
+                     vectAt(py, i) * invYmax));
+    vectAt(prev, i) = i == 0 ? bad : i - 1;
+    vectAt(next, i) = i + 1 == n ? bad : i + 1;
+  }
+
+  // std::vector<Entry> storage;
+  // storage.reserve(n + 2 * (n - targetN));
+  // Queue q(EntryLess(), std::move(storage));
+  Queue q;
+
+  auto importance = [&](std::size_t i) {
+    const std::size_t i0 = vectAt(prev, i);
+    const std::size_t i2 = vectAt(next, i);
+
+    const double gap = vectAt(px, i2) - vectAt(px, i0);
+
+    if (gap > maxGap)
+      return 1e250 * ncmax(1e-100, gap);
+
+    const double dx1 = vectAt(px, i) - vectAt(px, i0);
+    const double dx2 = vectAt(px, i2) - vectAt(px, i0);
+
+    const double area =
+      ncabs(dx1 * (vectAt(py, i2) - vectAt(py, i0)) -
+            dx2 * (vectAt(py, i) - vectAt(py, i0)));
+
+    const double logArea =
+      ncabs(dx1 * (vectAt(plny, i2) - vectAt(plny, i0)) -
+            dx2 * (vectAt(plny, i) - vectAt(plny, i0)));
+
+    return area * logArea * logArea;
+  };
+
+  auto enqueue = [&](std::size_t i) {
+    if (i == bad)
+      return;
+
+    if (vectAt(prev, i) == bad || vectAt(next, i) == bad)
+      return;
+
+    ++vectAt(gen, i);
+    q.push({importance(i), i, vectAt(gen, i)});
+  };
+
+  for (std::size_t i = 1; i + 1 < n; ++i)
+    enqueue(i);
+
+  std::size_t left = n;
+
+  while (left > targetN) {
+    Entry e;
+
+    for (;;) {
+      nc_assert(!q.empty());
+
+      e = q.top();
+      q.pop();
+
+      const std::size_t i = e.i;
+
+      if (vectAt(prev, i) != bad &&
+          vectAt(next, i) != bad &&
+          vectAt(gen, i) == e.gen)
+        break;
+    }
+
+    const std::size_t i = e.i;
+    const std::size_t i0 = vectAt(prev, i);
+    const std::size_t i2 = vectAt(next, i);
+
+    vectAt(next, i0) = i2;
+    vectAt(prev, i2) = i0;
+
+    vectAt(prev, i) = bad;
+    vectAt(next, i) = bad;
+    ++vectAt(gen, i);
+
+    --left;
+
+    enqueue(i0);
+    enqueue(i2);
+  }
+
+  VectD nx;
+  VectD ny;
+
+  nx.reserve(targetN);
+  ny.reserve(targetN);
+
+  std::size_t i = 0;
+
+  while (i != bad) {
+    nx.push_back(vectAt(px, i));
+    ny.push_back(vectAt(py, i));
+    i = vectAt(next, i);
+  }
+
+  // for (std::size_t i = 0; i != bad; i = vectAt(next, i)) {
+  //   nx.push_back(vectAt(px, i));
+  //   ny.push_back(vectAt(py, i));
+  // }
+
+  return {std::move(nx), std::move(ny)};
+}
+#else
+// Reduces a piecewise-linear curve defined by x and y to targetN points.
+// Coarse pre-thinning removes approximately 25% of points per pass.
+// The final reduction uses a priority queue and local importance updates.
+// Importance combines changes in the y and log(y) curve areas.
+// Large gaps receive a strongly increased importance.
+// The first and last points are always retained.
+std::pair<NC::VectD, NC::VectD>
+NC::reducePtsInDistribution(Span<const double> x,
+                            Span<const double> y,
+                            std::size_t targetN,
+                            const PtReduceCfg& cfg)
+{
+#ifndef NDEBUG
+  {
+    const std::size_t nn = x.size();
+    nc_assert(nn == y.size());
+    nc_assert(nn >= 2);
+    nc_assert(targetN >= 2);
+    // nc_assert(targetN <= nn);
+    nc_assert(std::isfinite(cfg.equidistant_fraction));
+    nc_assert(cfg.equidistant_fraction >= 0.0);
+    nc_assert(std::isfinite(cfg.tail_floor));
+    nc_assert(cfg.tail_floor > 0.0);
+    nc_assert(nc_is_grid(x));
+    for (std::size_t i = 0; i < nn; ++i) {
+      nc_assert(std::isfinite(y[i]));
+      nc_assert(y[i]>=0.0);
+    }
+  }
+#endif
+
+  const std::size_t bad =
+    std::numeric_limits<std::size_t>::max();
+
+  if (targetN >= x.size())
+    return {VectD{x.begin(), x.end()},
+            VectD{y.begin(), y.end()}};
+
+  const double ymax = *std::max_element(y.begin(), y.end());
+  nc_assert(ymax > 0.0);
+
+  const double invYmax = 1.0 / ymax;
+  const double den = cfg.equidistant_fraction * targetN - 1.0;
+
+  const double maxGap =
+    den > 0.0 ? (x.back() - x.front()) / den : kInfinity;
+
+  struct Candidate {
+    double imp;
+    std::size_t i;
+  };
+
+  VectD px(x.begin(), x.end());
+  VectD py(y.begin(), y.end());
+  VectD plny;
+
+  auto rebuildLog = [&]() {
+    const std::size_t ncur = px.size();
+
+    plny.resize(ncur);
+
+    for (std::size_t i = 0; i < ncur; ++i) {
+      vectAt(plny, i) =
+        std::log(ncmax(cfg.tail_floor,
+                       vectAt(py, i) * invYmax));
+    }
+  };
+
+  auto calc = [&](std::size_t i0,
+                  std::size_t i1,
+                  std::size_t i2) {
+    const double gap = vectAt(px, i2) - vectAt(px, i0);
+
+    if (gap > maxGap)
+      return 1e250 * ncmax(1e-100, gap);
+
+    const double dx1 = vectAt(px, i1) - vectAt(px, i0);
+    const double dx2 = vectAt(px, i2) - vectAt(px, i0);
+
+    const double area =
+      ncabs(dx1 * (vectAt(py, i2) - vectAt(py, i0)) -
+            dx2 * (vectAt(py, i1) - vectAt(py, i0)));
+
+    const double logArea =
+      ncabs(dx1 * (vectAt(plny, i2) - vectAt(plny, i0)) -
+            dx2 * (vectAt(plny, i1) - vectAt(plny, i0)));
+
+    return area * logArea * logArea;
+  };
+
+  /*
+   * Coarse stage.  Only alternating points are candidates, so no two
+   * points removed in one pass are adjacent.  Sorting is used instead
+   * of nth_element for compatibility with the local build environment.
+   */
+  while (px.size() / targetN > 8) {
+    rebuildLog();
+
+    const std::size_t ncur = px.size();
+    std::vector<Candidate> cand;
+
+    cand.reserve((ncur - 2) / 2);
+
+    for (std::size_t i = 1; i + 1 < ncur; i += 2) {
+      cand.push_back({
+        calc(i - 1, i, i + 1),
+        i
+      });
+    }
+
+    std::sort(
+      cand.begin(),
+      cand.end(),
+      [](const Candidate& a, const Candidate& b) {
+        if (a.imp != b.imp)
+          return a.imp < b.imp;
+        return a.i < b.i;
+      });
+
+    const std::size_t ndel = cand.size() / 2;
+    std::vector<unsigned char> remove(ncur, 0);
+
+    for (std::size_t j = 0; j < ndel; ++j)
+      vectAt(remove, cand[j].i) = 1;
+
+    VectD nx;
+    VectD ny;
+
+    nx.reserve(ncur - ndel);
+    ny.reserve(ncur - ndel);
+
+    for (std::size_t i = 0; i < ncur; ++i) {
+      if (!vectAt(remove, i)) {
+        nx.push_back(vectAt(px, i));
+        ny.push_back(vectAt(py, i));
+      }
+    }
+
+    px.swap(nx);
+    py.swap(ny);
+  }
+
+  rebuildLog();
+
+  const std::size_t n = px.size();
+
+  struct Entry {
+    double imp;
+    std::size_t i;
+    std::size_t gen;
+  };
+
+  struct EntryLess {
+    bool operator()(const Entry& a, const Entry& b) const
+    {
+      if (a.imp != b.imp)
+        return a.imp > b.imp;
+      return a.i > b.i;
+    }
+  };
+
+  using Queue = std::priority_queue<
+    Entry, std::vector<Entry>, EntryLess>;
+
+  std::vector<std::size_t> prev(n);
+  std::vector<std::size_t> next(n);
+  std::vector<std::size_t> gen(n, 0);
+
+  for (std::size_t i = 0; i < n; ++i) {
+    vectAt(prev, i) = i == 0 ? bad : i - 1;
+    vectAt(next, i) = i + 1 == n ? bad : i + 1;
+  }
+
+  Queue q;
+
+  auto enqueue = [&](std::size_t i) {
+    if (i == bad)
+      return;
+
+    if (vectAt(prev, i) == bad ||
+        vectAt(next, i) == bad)
+      return;
+
+    ++vectAt(gen, i);
+
+    q.push({
+      calc(vectAt(prev, i), i, vectAt(next, i)),
+      i,
+      vectAt(gen, i)
+    });
+  };
+
+  for (std::size_t i = 1; i + 1 < n; ++i)
+    enqueue(i);
+
+  std::size_t left = n;
+
+  while (left > targetN) {
+    Entry e;
+
+    for (;;) {
+      nc_assert(!q.empty());
+
+      e = q.top();
+      q.pop();
+
+      const std::size_t i = e.i;
+
+      if (vectAt(prev, i) != bad &&
+          vectAt(next, i) != bad &&
+          vectAt(gen, i) == e.gen)
+        break;
+    }
+
+    const std::size_t i = e.i;
+    const std::size_t i0 = vectAt(prev, i);
+    const std::size_t i2 = vectAt(next, i);
+
+    vectAt(next, i0) = i2;
+    vectAt(prev, i2) = i0;
+
+    vectAt(prev, i) = bad;
+    vectAt(next, i) = bad;
+    ++vectAt(gen, i);
+
+    --left;
+
+    enqueue(i0);
+    enqueue(i2);
+  }
+
+  VectD nx;
+  VectD ny;
+
+  nx.reserve(targetN);
+  ny.reserve(targetN);
+
+  std::size_t i = 0;
+
+  while (i != bad) {
+    nx.push_back(vectAt(px, i));
+    ny.push_back(vectAt(py, i));
+    i = vectAt(next, i);
+  }
+
+  return {std::move(nx), std::move(ny)};
+}
+
+
+#endif
+
+NC::VectD::const_iterator NC::findClosestValInSortedVector(const VectD& v, double value)
 {
   nc_assert(!v.empty());
   nc_assert(!ncisnan(value));

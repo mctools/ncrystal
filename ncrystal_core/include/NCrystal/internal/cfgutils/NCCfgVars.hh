@@ -200,6 +200,11 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     struct vardef_vdoslux final : public ValInt<vardef_vdoslux> {
+      //NB: During migration to new vdos expansion algorithms, we support some
+      //extra values to enable the legacy algs for comparison. But this is
+      //considered a hidden developer-only feature and won't be reflected in the
+      //user-visible description or error messages.
+
       static constexpr auto name = "vdoslux";
       static constexpr auto group = VarGroupId::ScatterBase;
       static constexpr auto description =
@@ -214,14 +219,21 @@ namespace NCRYSTAL_NAMESPACE {
         " 3 (Good, 800x400 grid, Emax=5eV, 8MB, 0.2s init),"
         " 4 (Very good, 1600x800 grid, Emax=8eV, 30MB, 0.8s init),"
         " 5 (Overkill, 3200x1600 grid, Emax=12eV, 125MB, 5s init)."
+        " 6 (FIXME update this whole list and the rest of the description)."
         " Note that when no actual VDOS input curve is available and one is approximated from a Debye temperature,"
         " the vdoslux level actually used will be 3 less than the one specified in this parameter (but at least 0)."
         ;
       static constexpr value_type default_value() { return 3; }
       static value_type value_validate( value_type value )
       {
-        if ( value < 0 || value > 5 )
-          NCRYSTAL_THROW2(BadInput,name<<" must be an integral value from 0 to 5");
+        //legacy mode is selected by adding 1000 to the old vdoslux value which
+        //ran from 0 to 5.
+        const bool is_legacy_val = ( 1000 <= value && value <= 1005 );
+        const bool is_ng_val = ( 0 <= value && value <= 6 );
+        if ( !is_ng_val && !is_legacy_val ) {
+          NCRYSTAL_THROW2(BadInput,
+                          name<<" must be an integral value from 0 to 6");
+        }
         return value;
       }
     };

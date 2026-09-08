@@ -25,6 +25,9 @@
 #include "NCrystal/internal/sab/NCSABIdx.hh"
 #include "NCrystal/internal/utils/NCMixedDataVector.hh"
 #include "NCrystal/internal/utils/NCTinyVector.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
+#include <fstream>
 
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
@@ -478,31 +481,78 @@ namespace NCRYSTAL_NAMESPACE {
                                  const std::function<double(double)>& f_of_e )
       {
         //fixme: this function could use some luxury parameters
-        constexpr double logS_raise_target = 1e-3;//fixme: lux?
         const double root_acc = cfg.egrid_emin_accuracy;
 
         const double e1 = e_search_range.first;
         const double e2 = e_search_range.second;
         const double logf1 = std::log(f_of_e( e1 ));
         const double logf2 = std::log(f_of_e( e2 ));
+        const double logS_raise_target = 1e-3*(logf2-logf1);//fixme: lux?
+        nc_assert_always(logS_raise_target > 0.0);
         const double logf1pluseps = logf1 + logS_raise_target;
         if ( logf2 <= logf1pluseps )
           return e2;
         const double loge1 = std::log(e1);
         const double loge2 = std::log(e2);
         unsigned long ncalls = 2;
+        // NCRYSTAL_MSG("TKTEST "
+        //              <<" logS_raise_target="<<fmt(logS_raise_target)
+        //              <<" logf1pluseps="<<fmt(logf1pluseps)
+        //              <<" logf1="<<fmt(logf1)
+        //              <<" logf2="<<fmt(logf2)
+        //              <<" loge1="<<fmt(loge1)
+        //              <<" loge2="<<fmt(loge2));
         auto froot = [&f_of_e,logf1pluseps,&ncalls,
                       logf1,logf2,loge1,loge2]( double loge )
         {
           ++ncalls;
           nc_assert(std::isfinite(loge));
-          if ( !(loge>loge1) )
-            return logf1;
-          if ( !(loge<loge2) )
-            return logf2;
-          return std::log(f_of_e(std::exp(loge)))-logf1pluseps;
+          double val;
+          if ( !(loge>loge1) ) {
+            val = logf1;
+          } else if ( !(loge<loge2) ) {
+            val = logf2;
+          } else {
+            val = std::log(f_of_e(std::exp(loge)));
+          }
+          return val - logf1pluseps;
+          //          return std::log(f_of_e(std::exp(loge)))-logf1pluseps;
         };
-        const double logemin = findRoot2(froot,loge1,loge2, root_acc);
+        if ( false ) {//fixme
+          std::string fn = "ncrystal_logemin_info.txt";
+          NCRYSTAL_WARN("Writing to "<<fn
+                        <<" if it does not already exist");
+          if (!file_exists(fn)) {
+            std::ofstream ofs(fn.c_str(), std::ofstream::out);
+            ofs << "#ncrystal_xycurve\n";
+            ofs << "#colnames = loge;deltalogf\n";
+            for ( auto loge : linspace(loge1,loge2,100000) )
+              ofs<<fmt(loge)<<" "<<fmt(froot(loge))<<"\n";
+            ofs.close();
+          }
+        }
+
+        double logemin;
+        try {
+          logemin = findRoot2(froot,loge1,loge2, root_acc);
+        } catch ( NC::Error::CalcError& e ) {
+          logemin = -1.0;
+          //Write fct to file for debugging:
+          std::string fn = "ncrystal_logemin_fail_info.txt";
+          NCRYSTAL_WARN("Failed to find emin via root-finding. Will attempt"
+                        " to write debugging info to "<<fn
+                        <<" if it does not already exist");
+          if (!file_exists(fn)) {
+            std::ofstream ofs(fn.c_str(), std::ofstream::out);
+            ofs << "#ncrystal_xycurve\n";
+            ofs << "#colnames = loge;deltalogf\n";
+            for ( auto loge : linspace(loge1,loge2,100000) )
+              ofs<<fmt(loge)<<" "<<fmt(froot(loge))<<"\n";
+            ofs.close();
+          }
+          throw;
+        }
+
         return ncclamp(std::exp(logemin),e1,e2);
       }
 
@@ -889,6 +939,13 @@ namespace NCRYSTAL_NAMESPACE {
 
         m_eGrid = determineEGrid( cfg, m_cellmgr.sabData(), m_cellmgr,
                                   surv, requested_egrid );
+
+// #if 1 // fixme
+//         m_eGrid.push_back(0.09*(1.0-1e-9));
+//         m_eGrid.push_back(0.09);
+//         m_eGrid.push_back(0.09*(1.0+1e-9));
+//         std::sort(m_eGrid.begin(),m_eGrid.end());
+// #endif
 
         const auto scheme = cfg.integScheme;
 
@@ -1341,4 +1398,66 @@ void NCS::SABProcessor::toJSONProcessInfo( std::ostream& os,
     streamJSONDictEntry( os, "extension_method", extension_method.value() );
   streamJSONDictEntry( os, "sabprocessor_uid",
                        getUniqueID().value, JSONDictPos::LAST );
+}
+
+//fixme: remove:
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/phys_utils/NCFreeGasUtils.hh"
+void NCS::SABProcessor::testJSON( shared_obj<const SABData> sd,
+                                  std::ostream& os )
+{
+  //MAKE touchedinteg(E) curve first -> reeeelatively cheap I hope, and we
+  //anyway need (most) of the cell integrals.
+  SABSurveyor surv(sd);
+  CellMgr cellmgr(sd);
+  nc_assert_always( !surv.data().empty() );
+
+  auto cfg = SABCfg::createConfig( 3 );
+
+  //fixme: some backwards compat overrides:
+  cfg.integScheme = SABCfg::IntegrationScheme::Flex17;
+  cfg.integSchemeDetermineEGrid = SABCfg::IntegrationScheme::Flex5;
+  cfg.egrid_npts = 300;
+
+  VectD test_egrid = determineEGrid( cfg, sd, cellmgr, surv, {} );
+  VectD test_sint;
+  VectD test_sint_full;
+  std::vector<std::size_t> test_sint_ncrossed;
+  const auto scheme = cfg.integScheme;
+  sIntegralAtE_Result result;
+  result.crossedIntegrals.reserve(256);
+  for ( auto& E_div_kT : test_egrid ) {
+    sIntegralAtE( E_div_kT, cellmgr, surv, scheme, result, true );
+    test_sint.push_back( result.integralWithinKB );
+    test_sint_full.push_back( result.integralTouchedCells );
+    test_sint_ncrossed.push_back( result.crossedIntegrals.size() );
+  }
+
+  auto sIntByEtouch
+    = determineSIntegralByTouchedCells( cellmgr, surv,
+                                        sd->temperature().kT() );
+
+
+  os << "{\"E/kT\":";
+  streamJSON(os,sIntByEtouch.e);
+  os << ",\"sumcellint\":";
+  streamJSON(os,sIntByEtouch.sint);
+  os << ",\"kT\":";
+  streamJSON(os,sd->temperature().kT());
+  os << ",\"T\":";
+  streamJSON(os,sd->temperature().get());
+  os << ",\"E/kT_careful\":";
+  streamJSON(os,test_egrid);
+  os << ",\"Sintegral_careful\":";
+  streamJSON(os,test_sint);
+  os << ",\"Sintegral_careful_fullcells\":";
+  streamJSON(os,test_sint_full);
+  os << ",\"Sintegral_careful_ncrossed\":";
+  streamJSON(os,test_sint_ncrossed);
+  os << ",\"egrid_range\":";
+  std::pair<double,double> egrid_range{ test_egrid.front(),
+                                        test_egrid.back() };
+  streamJSON(os,egrid_range);
+  os << "}";
+
 }

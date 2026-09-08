@@ -330,6 +330,30 @@ def main(do_plot,luxlvl,test_select):
 
         dict( cfgstr='stdlib::Be_sg194.ncmat', ekin='10' ),
 
+        dict( cfgstr='stdlib::Ca_sg229_Calcium-gamma.ncmat;vdoslux=0;temp=800', ekin='0.04' ),
+
+        dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;knllux=6',
+              atomlbl='H',#fixme or C?
+              ekin='15' ),
+
+
+        #dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;temp=57.8755;knllux=5',
+        #      atomlbl='H',#fixme or C?
+        #      ekin='0.09' ),
+        #
+        #dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;temp=57.8760;knllux=5',
+        #      atomlbl='H',#fixme or C?
+        #      ekin='0.09' ),
+        #
+        #dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;temp=57.8755;knllux=5',
+        #      atomlbl='C',#fixme or C?
+        #      ekin='0.09' ),
+        #
+        #dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;temp=57.8760;knllux=5',
+        #      atomlbl='C',#fixme or C?
+        #      ekin='0.09' ),
+
+
     ]
     npvals_tot = 0
     pvals = []

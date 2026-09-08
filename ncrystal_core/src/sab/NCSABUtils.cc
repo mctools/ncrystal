@@ -91,6 +91,8 @@ namespace NCRYSTAL_NAMESPACE {
 
         const auto ntrimtot = nTrimBetaUpper + nTrimBetaLower + nTrimAlphaUpper;
 
+        //fixme        NCRYSTAL_MSG("nTrimAlphaUpper="<<nTrimAlphaUpper<<" nTrimBetaUpper="<<nTrimBetaUpper<<"nTrimBetaLower="<<nTrimBetaLower);
+
         if ( ntrimtot == 0 )
           return 0;//nothing to trim
 

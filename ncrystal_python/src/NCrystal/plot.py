@@ -140,10 +140,12 @@ def plot_xsect( material, *, mode='wl',
     if only_total or len(plotcalls) > 1:
         totlabel = 'Total' if ( do_absn and do_scat ) else ( 'Total scattering' if do_scat else 'Total absorption' )
         add_plot(x,xs_tot,label=labelfct(totlabel),
-                 color=color or _palette['red'])
+                 color=color or _palette['red'], alpha=0.5)
     pctx = PlotContext(**kw_plot).check_unused()
     for x,y,a,kw in plotcalls:
-        pctx.axis.plot(x,y,*a,**kw)
+        #pctx.axis.plot(x,y,*a,**kw)
+        pctx.axis.plot(x,y*x**0.5,*a,**kw)
+        #pctx.axis.plot(x,y*x**1,*a,**kw)
 
     pctx.axis.set_xlabel('Neutron wavelength (angstrom)' if mode=='wl' else 'Neutron energy (eV)')
     pctx.axis.set_ylabel('Macroscopic cross section (1/cm)' if xsmode=='macroscopic' else 'Cross section per atom (barn)')

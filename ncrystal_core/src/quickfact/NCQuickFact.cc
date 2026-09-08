@@ -277,12 +277,18 @@ namespace NCRYSTAL_NAMESPACE {
           b.push_back( {"Ar/2.5e-5perAa3", descr,p} );
         } else {
           b.reserve(6);
+
+#if 0
           b.push_back( {"CH2/1gcm3", descr,p} );
           b.push_back( {"Gd2O3/7.07gcm3", descr,p} );
           b.push_back( {"B4C/2.52gcm3/B_is_0.95_B10_0.05_B11", descr,p} );
           b.push_back( {"Al2O3/4gcm3", descr,p} );
           b.push_back( {"Al2O3/4gcm3/TDebye900K", descr,p} );
           b.push_back( {"Al2O3/4gcm3/TDebye750K_Al/TDebye1000K_O", descr,p} );
+#else
+          //FIXME: JUST TO TEST HEAVY
+          b.push_back( {"U/1gcm3", descr,p} );
+#endif
         }
         return b;
       }

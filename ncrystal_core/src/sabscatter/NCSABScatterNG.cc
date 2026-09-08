@@ -63,7 +63,7 @@ NC::SABScatterNG::createMerged( const Process& oraw,
     return nullptr;
   auto& o = *optr;
 
-  if ( m_sh != o.m_sh )
+  if ( m_sh != o.m_sh )//fixme: it is actually enough that SABProcessor+SABExtender are compatible
     return nullptr;
 
   const double newscale = scale_self*m_scale + scale_other*o.m_scale;

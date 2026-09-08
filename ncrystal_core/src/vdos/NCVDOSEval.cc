@@ -448,7 +448,7 @@ double NC::VDOSEval::evalG1Symmetric( double energy, double gamma0 ) const
 namespace NCRYSTAL_NAMESPACE {
   namespace {
     bool isLinearlySpacedGrid(const VectD& grid, double tolerance ) {
-      nc_assert(nc_is_grid(grid));
+      nc_assert(nc_is_grid(grid));//fixme always??
       nc_assert(grid.size()>=2);
       if (grid.size()==2)
         return true;

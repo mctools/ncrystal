@@ -179,7 +179,7 @@ SABExtended::createWithFGExtender( shared_obj<const SABProcessor> processor )
 {
   //fixme: inconsistent namespaces
   auto sab = processor->sabDataPtr();
-  auto ext = makeSO<SAB::SABFGExtender>( sab->temperature(),
+  auto ext = makeSO<SAB::SABFGExtender>( Temperature{sab->temperature().dbl()},
                                          sab->elementMassAMU(),
                                          SigmaBound{1.0} );
   return makeSO<SABUtils::SABExtended>( std::move(processor), std::move(ext) );

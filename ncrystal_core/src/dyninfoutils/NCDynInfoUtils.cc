@@ -32,7 +32,7 @@ namespace NCRYSTAL_NAMESPACE {
 
     namespace {
       //VDOSDebye cache key:
-      //         (reduced vdoslux 0..2 + rounded: elementMass,boundXS,T,TDebye)
+      //         (reduced vdoslux + rounded: elementMass,boundXS,T,TDebye)
       using VDOSDebyeKey
       = std::tuple<unsigned,uint64_t,uint64_t,uint64_t,uint64_t>;
 
@@ -59,8 +59,8 @@ namespace NCRYSTAL_NAMESPACE {
         nc_assert( mass.get() > 0.0 && mass.get() < 1.0e5 );
         nc_assert(nonreduced_vdoslux<=5);
         unsigned reduced_vdoslux = static_cast<unsigned>
-          (std::max<int>(0,static_cast<int>(nonreduced_vdoslux)-3));
-        nc_assert(reduced_vdoslux<=2);
+          (std::max<int>(0,static_cast<int>(nonreduced_vdoslux)-0));//FIXME was -3, document change
+        nc_assert(reduced_vdoslux<=5);//fixme was 2
         auto roundFct = [](double x)
         {
           nc_assert_always(x>0.0&&x<1.0e11);
@@ -275,6 +275,7 @@ namespace NCRYSTAL_NAMESPACE {
         cachekey.key_thin = key;
         cachekey.key_thick = input;
         static VDOS2SABFactory s_vdos2sabfactory;
+        NCRYSTAL_MSG("TKTEST actually call factory create");
         return s_vdos2sabfactory.create(cachekey);
       }
 
@@ -347,6 +348,8 @@ NC::extractSABDataFromDynInfo( const NC::DI_ScatKnl* di,
 {
   nc_assert( di );
   nc_assert( vdoslux <= 5 );
+
+  NCRYSTAL_MSG("TKTEST extractSABDataFromDynInfo");
 
   //==> VDOSDebye
   auto di_vdosdebye = dynamic_cast<const DI_VDOSDebye*>(di);

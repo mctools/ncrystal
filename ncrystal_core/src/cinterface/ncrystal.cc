@@ -897,6 +897,8 @@ void ncrystal_dyninfo_extract_scatknl( ncrystal_info_t ci,
       //global static array here:
       static std::vector<std::shared_ptr<const NC::SABData>> s_keepAlive;
       static std::mutex s_keepAlive_mutex;
+      //fixme: we should check how this is used in the python api, and when we
+      //are able to clear the cache in case it grows out of hand.
       NCRYSTAL_LOCK_GUARD(s_keepAlive_mutex);
       s_keepAlive.push_back(shptr_sabdata);
       static bool first = true;

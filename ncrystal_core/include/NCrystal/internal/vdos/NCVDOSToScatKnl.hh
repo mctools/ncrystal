@@ -48,10 +48,21 @@ namespace NCRYSTAL_NAMESPACE {
   //the argument n==1, and 1.0 for n>1.
 
   //Internal functions, exposed here for testing:
-  VectD setupAlphaGrid( double kT, double msd, double alphaMax, unsigned npts );
-  VectD setupBetaGrid( const VDOSGn& Gn, double betaMax, unsigned luxlvl, unsigned override_nbins );
+  GnExpansion expandVDOSToGnFcts( const VDOSData&,
+                                  unsigned vdosluxlvl = 3,//0 to 5, affects binning, Emax, etc.
+                                  double targetEmax = 0.0,//if 0, will depend on luxlvl. Error if set to unachievable value.
+                                  const VDOSGn::TruncAndThinningParams ttpars = VDOSGn::TruncAndThinningChoices::Default,
+                                  //ScaleGnContributionFct = nullptr,
+                                  Optional<unsigned> override_max_order = NullOpt );//fixme: change type to VDOSGn::Order
+
+
+  VectD setupAlphaGrid( double kT, double msd, const VectD& ptsE0, double alphaMax, unsigned npts );
+  VectD setupBetaGrid( const VDOSGn& Gn, double betaMax, unsigned vdoslux, unsigned override_nbins );
+  std::pair<VectD,VectD> setupBetaGridNEWNEW( const VDOSGn& Gn, double betaMax, unsigned vdoslux, std::size_t override_nbins );
+  VectD setupBetaGridNEW( const VDOSGn& Gn, double msd, double betaMax,
+                          unsigned vdoslux, unsigned override_nbins );//fixme: not here?
   PairDD rangeXNexpMX(unsigned n, double eps, double accuracy = 1e-13 );
-  PairDD findExtremeSABPointWithinAlphaPlusCurve(double E_div_kT, PairDD alphaRange, PairDD betaRange);
+  Optional<PairDD> findExtremeSABPointWithinAlphaPlusCurve(double E_div_kT, PairDD alphaRange, PairDD betaRange);
   bool sabPointWithinAlphaPlusCurve(double E_div_kT, double alpha, double beta );
 
 }

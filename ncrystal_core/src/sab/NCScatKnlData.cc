@@ -60,7 +60,7 @@ void NC::validateScatKnlData( const ScatKnlDataView& data )
     }
   }
 
-  if (! ( data.alphaGrid.front() > 0.0 ) )
+  if (! ( data.alphaGrid.front() >= 0.0 ) )//fixme: used to be >0.0!!
     NCRYSTAL_THROW2(BadInput,"Scatter kernel data has non-positive entries in "<<xlabel<<" grid");
 
   if ( data.knltype == ScatKnlData::KnlType::SCALED_SYM_SAB ) {
