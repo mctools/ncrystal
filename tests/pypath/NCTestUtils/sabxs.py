@@ -48,75 +48,75 @@ def test_list_gen( testgroup ):
     if testgroup=='B':
         for t in [293.15,10,1000]:
             yield from [
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=0;knllux=0;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=0;knllux=1;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=0;knllux=2;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=0;knllux=3;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=0;knllux=4;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2000;knllux=0;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2000;knllux=1;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2000;knllux=2;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2000;knllux=3;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2000;knllux=4;temp={t:g}',
 
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=1;knllux=0;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=1;knllux=1;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=1;knllux=2;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=1;knllux=3;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=1;knllux=4;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2001;knllux=0;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2001;knllux=1;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2001;knllux=2;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2001;knllux=3;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2001;knllux=4;temp={t:g}',
 
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2;knllux=0;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2;knllux=1;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2;knllux=2;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2;knllux=3;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2;knllux=4;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2002;knllux=0;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2002;knllux=1;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2002;knllux=2;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2002;knllux=3;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2002;knllux=4;temp={t:g}',
 
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=3;knllux=0;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=3;knllux=1;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=3;knllux=2;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=3;knllux=3;temp={t:g}',
-                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=3;knllux=4;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2003;knllux=0;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2003;knllux=1;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2003;knllux=2;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2003;knllux=3;temp={t:g}',
+                f'stdlib::Li2O_sg225_LithiumOxide.ncmat;vdoslux=2003;knllux=4;temp={t:g}',
             ]
 
     if testgroup=='A':
         import NCTestUtils.enable_testdatapath # noqa F401
         for t in [293.15,10,1000]:
             yield from [
-                f'Li_from_Li2O.ncmat;vdoslux=0;knllux=0;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=0;knllux=1;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=0;knllux=2;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=0;knllux=3;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=0;knllux=4;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2000;knllux=0;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2000;knllux=1;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2000;knllux=2;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2000;knllux=3;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2000;knllux=4;temp={t:g}',
 
-            f'O_from_Li2O.ncmat;vdoslux=0;knllux=0;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=0;knllux=1;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=0;knllux=2;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=0;knllux=3;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=0;knllux=4;temp={t:g}',
+            f'O_from_Li2O.ncmat;vdoslux=2000;knllux=0;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2000;knllux=1;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2000;knllux=2;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2000;knllux=3;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2000;knllux=4;temp={t:g}',
 
-            f'Li_from_Li2O.ncmat;vdoslux=1;knllux=0;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=1;knllux=1;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=1;knllux=2;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=1;knllux=3;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=1;knllux=4;temp={t:g}',
+            f'Li_from_Li2O.ncmat;vdoslux=2001;knllux=0;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2001;knllux=1;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2001;knllux=2;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2001;knllux=3;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2001;knllux=4;temp={t:g}',
 
-            f'O_from_Li2O.ncmat;vdoslux=1;knllux=0;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=1;knllux=1;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=1;knllux=2;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=1;knllux=3;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=1;knllux=4;temp={t:g}',
+            f'O_from_Li2O.ncmat;vdoslux=2001;knllux=0;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2001;knllux=1;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2001;knllux=2;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2001;knllux=3;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2001;knllux=4;temp={t:g}',
 
-            f'Li_from_Li2O.ncmat;vdoslux=2;knllux=0;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=2;knllux=1;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=2;knllux=2;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=2;knllux=3;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=2;knllux=4;temp={t:g}',
+            f'Li_from_Li2O.ncmat;vdoslux=2002;knllux=0;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2002;knllux=1;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2002;knllux=2;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2002;knllux=3;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2002;knllux=4;temp={t:g}',
 
-            f'O_from_Li2O.ncmat;vdoslux=2;knllux=0;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=2;knllux=1;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=2;knllux=2;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=2;knllux=3;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=2;knllux=4;temp={t:g}',
+            f'O_from_Li2O.ncmat;vdoslux=2002;knllux=0;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2002;knllux=1;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2002;knllux=2;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2002;knllux=3;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2002;knllux=4;temp={t:g}',
 
-            f'Li_from_Li2O.ncmat;vdoslux=3;knllux=4;temp={t:g}',
-                f'Li_from_Li2O.ncmat;vdoslux=4;knllux=4;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=3;knllux=4;temp={t:g}',
-                f'O_from_Li2O.ncmat;vdoslux=4;knllux=4;temp={t:g}',
+            f'Li_from_Li2O.ncmat;vdoslux=2003;knllux=4;temp={t:g}',
+                f'Li_from_Li2O.ncmat;vdoslux=2004;knllux=4;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2003;knllux=4;temp={t:g}',
+                f'O_from_Li2O.ncmat;vdoslux=2004;knllux=4;temp={t:g}',
             ]
 
 
@@ -181,7 +181,7 @@ def test_list_gen( testgroup ):
             temp_vals = (10,None,)
 
         if f.factName=='stdlib':
-            testinfo = nccore.createInfo(f.fullKey+';vdoslux=0;knllux=0')
+            testinfo = nccore.createInfo(f.fullKey+';vdoslux=2000;knllux=0')
             if not any( hasattr(di,'loadKernel') for di in testinfo.dyninfos):
                 continue
 
@@ -223,8 +223,3 @@ def _egrid_fct( mat ):
     e |= set(_np_geomspace(1e-10, 1e3, n ) )
     e |= {wl2ekin(wl) for wl in _np_linspace(0.1,15.0,n)}
     return e
-
-# stdlib::Pt_sg225.ncmat;vdoslux=0;knllux=4 are inconsistent at the reldiff=0.000964565
-# stdlib::Al_sg225.ncmat;temp=1000;vdoslux=1;knllux=4 are inconsistent at the reldiff=0.000106591
-# stdlib::Pt_sg225.ncmat;vdoslux=0;knllux=4 are inconsistent at the reldiff=0.000964565 level
-# stdlib::Al_sg225.ncmat;temp=1000;vdoslux=1;knllux=4 are inconsistent at the reldiff=0.000106591
