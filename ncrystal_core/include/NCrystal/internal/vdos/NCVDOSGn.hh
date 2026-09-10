@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/core/NCDefs.hh"
+#include "NCrystal/internal/utils/NCSpan.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -120,6 +121,13 @@ namespace NCRYSTAL_NAMESPACE {
 
     //Evaluate Gn, for n in 1..maxOrder, at given energy point:
     double eval( Order n, double energy ) const;
+
+    //Evaluate at grid of energy points. Requires a work-buffer for intermediate
+    //results (provide the same workbuf in repeated calls to avoid excess
+    //allocations):
+    void evalMany( Order n, Span<const double> energy_grid,
+                   VectD& out, VectD& workbuf) const;
+
     //get energy range where spectrum is above relthreshold of the maximal value:
     PairDD eRange( Order n, double relthreshold ) const;
     //Full energy range, bin width and spectrum:

@@ -42,6 +42,8 @@ namespace NCRYSTAL_NAMESPACE {
                   double egrid_binwidth,
                   unsigned long thinFactor );
       double interpolateDensity(double energy) const;
+      void interpolateDensityMany(Span<const double>, VectD&, VectD&) const;
+
       const VectD& getSpectrum() const { return m_spec; }
       double getEGridLower() const {return m_egrid_lower;}
       double getEGridUpper() const {return m_egrid_upper;}
@@ -103,6 +105,109 @@ double NC::VDOSGnData::interpolateDensity(double energy) const
   const double * valptr = &m_spec[index];
   return (*valptr) * (1.0-f) +  f * (*(valptr+1));
 }
+
+void NC::VDOSGnData::interpolateDensityMany( Span<const double> energy,
+                                             VectD& out,
+                                             VectD& workbuf) const
+{
+#ifndef NDEBUG
+  nc_assert(energy.size() <
+            static_cast<std::size_t>(1000000000));
+
+  const std::size_t npts = m_spec.size();
+
+  nc_assert(npts >= 2);
+  nc_assert(m_spec_size_minus_2 == npts - 2);
+  nc_assert(std::isfinite(m_egrid_lower));
+  nc_assert(std::isfinite(m_egrid_upper));
+  nc_assert(std::isfinite(m_egrid_binwidth));
+  nc_assert(m_egrid_binwidth > 0.0);
+  nc_assert(std::isfinite(m_egrid_invbinwidth));
+  nc_assert(m_egrid_upper >= m_egrid_lower);
+
+  nc_assert( nc_is_grid( energy ) );
+  for (std::size_t i = 0; i < energy.size(); ++i) {
+    nc_assert(std::isfinite(energy[i]));
+    if (i != 0)
+      nc_assert(energy[i - 1] < energy[i]);
+  }
+
+  for (std::size_t i = 0; i < npts; ++i)
+    nc_assert(std::isfinite(vectAt(m_spec, i)));
+
+  const auto no_overlap = [](const double* a, std::size_t an,
+                             const double* b, std::size_t bn) {
+    const std::uintptr_t ab =
+        reinterpret_cast<std::uintptr_t>(a);
+    const std::uintptr_t ae = ab + an * sizeof(double);
+    const std::uintptr_t bb =
+        reinterpret_cast<std::uintptr_t>(b);
+    const std::uintptr_t be = bb + bn * sizeof(double);
+
+    return ae <= bb || be <= ab;
+  };
+
+  nc_assert(no_overlap(
+      energy.data(), energy.size(), out.data(), out.size()));
+  nc_assert(no_overlap(
+      energy.data(), energy.size(), workbuf.data(), workbuf.size()));
+  nc_assert(no_overlap(
+      out.data(), out.size(), workbuf.data(), workbuf.size()));
+#endif
+
+  const std::size_t n = energy.size();
+
+  out.assign(n, 0.0);
+  workbuf.resize(2 * n);
+
+  const double* ncrestrict ep = energy.data();
+  double* ncrestrict op = out.data();
+  double* ncrestrict buf_f = workbuf.data();
+  double* ncrestrict buf_ix = buf_f + n;
+
+  const auto first = std::lower_bound(
+      energy.begin(), energy.end(), m_egrid_lower);
+  const auto last = std::upper_bound(
+      first, energy.end(), m_egrid_upper);
+
+  const std::size_t beg =
+      static_cast<std::size_t>(first - energy.begin());
+  const std::size_t end =
+      static_cast<std::size_t>(last - energy.begin());
+
+  for (std::size_t i = beg; i < end; ++i) {
+    const double a =
+        (ep[i] - m_egrid_lower) * m_egrid_invbinwidth;
+    const double fa = std::floor(a);
+    const std::size_t ix = ncmin(
+        m_spec_size_minus_2, static_cast<std::size_t>(fa));
+
+    buf_f[i] = a - fa;
+    buf_ix[i] = static_cast<double>(ix);
+  }
+
+  for (std::size_t i = beg; i < end; ++i) {
+    const double f = buf_f[i];
+    const std::size_t ix =
+        static_cast<std::size_t>(buf_ix[i]);
+
+    op[i] = vectAt(m_spec, ix) * (1.0 - f);
+  }
+
+  for (std::size_t i = beg; i < end; ++i) {
+    const double f = buf_f[i];
+    const std::size_t ix =
+        static_cast<std::size_t>(buf_ix[i]);
+
+    op[i] += f * vectAt(m_spec, ix + 1);
+  }
+
+#ifndef NDEBUG
+  for (std::size_t i = 0; i < energy.size(); ++i)
+    nc_assert(op[i] == interpolateDensity(energy[i]));
+#endif
+}
+
 
 struct NC::VDOSGn::Impl {
   Impl(const VDOSEval& vde, TruncAndThinningParams);
@@ -256,6 +361,12 @@ void NC::VDOSGn::growMaxOrder( Order target_n )
 double NC::VDOSGn::eval( Order n, double energy ) const
 {
   return m_impl->accessAtOrder(n).interpolateDensity(energy);
+}
+
+void NC::VDOSGn::evalMany( Order n, Span<const double> egrid,
+                             VectD& out, VectD& workbuf ) const
+{
+  m_impl->accessAtOrder(n).interpolateDensityMany(egrid,out,workbuf);
 }
 
 const NC::VectD& NC::VDOSGn::getRawSpectrum( NC::VDOSGn::Order n ) const
