@@ -200,6 +200,15 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     struct vardef_vdoslux final : public ValInt<vardef_vdoslux> {
+
+      //NB: Keep this carefully synchronised with implementation in NCVDOSLux.cc
+
+      //NB: During migration to new vdos expansion algorithms, we support some
+      //extra values in 1000..1005 and 2000..2006 to explicitly enable the
+      //next-gen or legacy algs for comparison. But this is considered a hidden
+      //developer-only feature and won't be reflected in the user-visible
+      //description or error messages.
+
       static constexpr auto name = "vdoslux";
       static constexpr auto group = VarGroupId::ScatterBase;
       static constexpr auto description =
@@ -220,8 +229,21 @@ namespace NCRYSTAL_NAMESPACE {
       static constexpr value_type default_value() { return 3; }
       static value_type value_validate( value_type value )
       {
-        if ( value < 0 || value > 5 )
-          NCRYSTAL_THROW2(BadInput,name<<" must be an integral value from 0 to 5");
+        //legacy mode is explicitly selected by adding 1000 to the old vdoslux
+        //value which ran from 0 to 5, and nextgen mode is selecting by adding
+        //2000 to the future vdoslux value which runs from 0 to 6. For now,
+        //values in 0..5 selects the legacy.
+
+        const bool is_ng_val = ( 2000 <= value && value <= 2006 );
+        const bool is_legacy_val = ( ( 0 <= value && value <= 5 )
+                                     || ( 1000 <= value && value <= 1005 ) );
+        if ( is_legacy_val && value >=1000 )
+          value -= 1000;
+        if ( !is_ng_val && !is_legacy_val ) {
+          //Don't mention special migration values:
+          NCRYSTAL_THROW2(BadInput,
+                          name<<" must be an integral value from 0 to 5");
+        }
         return value;
       }
     };
@@ -240,9 +262,11 @@ namespace NCRYSTAL_NAMESPACE {
       static constexpr value_type default_value() { return -1; }
       static value_type value_validate( value_type value )
       {
-        if ( value < -6 || value > 6 )
-          NCRYSTAL_THROW2(BadInput,name
-                          <<" must be an integral value from -7 to 6");
+        if ( ! ( ( value>=-6 && value <= 6 )
+                 || ( value >= 100 && value <= 106 ) ) )
+          NCRYSTAL_THROW2(BadInput,name<<" is an expert-only parameter"
+                          " which must be an integral value (-6..6"
+                          " or 100..106)");
         return value;
       }
     };
