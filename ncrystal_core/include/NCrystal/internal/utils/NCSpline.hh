@@ -25,7 +25,7 @@
 
 namespace NCRYSTAL_NAMESPACE {
 
-  class CubicSpline {
+  class CubicSpline final : MoveOnly {
   public:
     CubicSpline();//default constructed instance is invalid until ::set() is called.
     CubicSpline( const VectD& y,
@@ -44,7 +44,7 @@ namespace NCRYSTAL_NAMESPACE {
     std::vector<PairDD > m_data;
   };
 
-  class SplinedLookupTable {
+  class SplinedLookupTable final : MoveOnly {
   public:
     SplinedLookupTable();//default constructed instance is invalid until ::set() is called.
 
@@ -79,8 +79,8 @@ namespace NCRYSTAL_NAMESPACE {
 
   };
 
-  class PiecewiseLinearFct1D {
-    //A simple piecewise linear function, with controllabe behaviour for
+  class PiecewiseLinearFct1D final : MoveOnly {
+    //A simple piecewise linear function, with controllable behaviour for
     //over/underflow requests (an exception or a fixed value).
   public:
     struct OutOfBoundsYValues { Optional<double> underflowYValue, overflowYValue; };
@@ -104,9 +104,55 @@ namespace NCRYSTAL_NAMESPACE {
     OutOfBoundsYValues m_ofVals;
   };
 
+  class PCHIPInterp final : private MoveOnly {
+    // Interpolates arbitrary finite y(x) values with PCHIP.
+    //
+    // PCHIP stands for Piecewise Cubic Hermite Interpolating Polynomial. It is
+    // an interpolation method that fits a separate cubic polynomial between
+    // each pair of data points while preserving the data’s shape.
+    //
+    // Advantages:
+    //   * Avoids unwanted overshoot and oscillations.
+    //   * Generally preserves monotonicity of input data.
+    //   * Continuous first derivatives at the data points.
+    //   * Changing one data point mainly affects nearby intervals.
+    //
+    // Compared with a standard cubic spline, PCHIP is often better when the
+    // data represent quantities that should not oscillate or exceed their known
+    // range (e.g. useful for cumulative quantities).
+    //
+    // References: F. N. Fritsch and J. Butland 1984 (DOI: 10.1137/0905021)
+    //             F. N. Fritsch and R. E. Carlson (1980) (DOI: 10.1137/0717021)
+    //
+    // If an endpoint slope (left or right) is not supplied, it is estimated. If
+    // supplied, it is used as a preferred value, but may be limited to avoid
+    // local sign reversals or excessive overshoot. In any case,
+    // endPointSlopes() returns the actual endpoint derivatives used by eval(),
+    // which might thus differ from supplied endpoint slopes. It might in many
+    // cases be better to not supply slopes, but merely check that the
+    // automatically determined slopes are sensible.
+    //
+    // Extrapolation is not allowed by this class and will result in asserts in
+    // debug builds.
+    //
+  public:
+    PCHIPInterp( Span<const double> x,
+                 Span<const double> y,
+                 Optional<double> leftSlopeRequest = NullOpt,
+                 Optional<double> rightSlopeRequest = NullOpt );
 
+    // Evaluate the interpolation for x in [x.front(),x.back()]:
+    double eval(double x) const;
+
+    // Inspect actual derivatives used at x.front() and x.back().  These include
+    // any limiting applied to supplied endpoint slope requests.
+    std::pair<double, double> endPointSlopes() const;
+
+  private:
+    VectD m_data;
+    std::size_t m_n = 0;
+  };
 }
-
 
 ////////////////////////////
 // Inline implementations //
