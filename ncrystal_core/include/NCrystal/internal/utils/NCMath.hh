@@ -72,8 +72,8 @@ namespace NCRYSTAL_NAMESPACE {
   constexpr TInt ncconstexpr_roundupnextpow2( TInt );
   constexpr unsigned ncconstexpr_log10ceil(unsigned);
 
-  //Check that span contains values that could be a grid. I.e. is non-empty,
-  //sorted, no duplicated values, no NaN/inf's.
+  //Check that span contains values that could be a grid. I.e. has at least two
+  //entries and consists of sorted unique finite values.
   bool nc_is_grid(Span<const double>);
 
   //sinus/cosine options (indicated approximate timings from 2014 thinkpad with gcc 6.3.1):
@@ -129,6 +129,12 @@ namespace NCRYSTAL_NAMESPACE {
   VectD linspace(double start, double stop, unsigned num);
   VectD logspace(double start, double stop, unsigned num);
   VectD geomspace(double start, double stop, unsigned num);
+
+
+  //Pts spaced as xi== start + (stop-start)*(i/(num-1))^p. For p>1 this is like
+  //linspace, and as p increases pts will cluster more towards the lower end of
+  //the interval.
+  VectD powspace(double start, double stop, unsigned num, double p );
 
   //misc:
   constexpr double constexpr_sqrt(double);//compile time sqrt
@@ -482,7 +488,7 @@ inline bool NCrystal::valueInInterval(double a, double b, double x)
   return (a<=x) & (x<=b);
 }
 
-inline bool NCrystal::valueInInterval( const NCrystal::PairDD& ab, double x)
+inline bool NCrystal::valueInInterval( const PairDD& ab, double x)
 {
   return valueInInterval(ab.first,ab.second,x);
 }
@@ -751,7 +757,7 @@ inline double NCrystal::findRoot2(Func&& f,double a, double b, double acc)
   return findRoot(&fwrap,a,b,acc);
 }
 
-inline void NCrystal::vectorAppend( NCrystal::VectD& v1, const NCrystal::VectD& v2 )
+inline void NCrystal::vectorAppend( VectD& v1, const VectD& v2 )
 {
   v1.reserve(v1.size()+v2.size());
   v1.insert( v1.end(), v2.begin(), v2.end() );

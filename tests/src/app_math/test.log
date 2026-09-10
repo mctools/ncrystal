@@ -354,3 +354,5 @@ fmt tests:
   test fmt(1.03338e-307)
   test fmt(1.51636e-307)
   test fmt(2.22507e-307)
+powspace testing start...
+powspace testing done.

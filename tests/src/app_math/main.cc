@@ -21,8 +21,11 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include <iostream>
+
 namespace NC=NCrystal;
 
+#define REQUIRE(x) nc_assert_always(x)
+#define REQUIREFLTEQ(x, y) nc_assert_always(::NC::floateq((x), (y)))
 
 namespace {
   template <class Func>
@@ -70,6 +73,91 @@ namespace {
     val = NC::integrateRomberg33(f,a,b);
     std::cout<<"  Romberg(n=33)        : "<<val<<" (relative deviation: "<<rd(val)<<")"<<std::endl;
   }
+
+
+// Tests powspace for endpoint, size, monotonicity, and shape.
+// Covers ascending, descending, constant, linear, and nonlinear ranges.
+// Checks p values below, equal to, and above one.
+// Also checks small and large point counts and representative values.
+// Invalid inputs are not called because their behavior is not specified.
+// Requires the project VectD, powspace, floateq, and assertion utilities.
+
+static void checkPowspace(double a, double b, unsigned n, double p)
+{
+#ifndef NDEBUG
+  nc_assert(std::isfinite(a));
+  nc_assert(std::isfinite(b));
+  nc_assert(std::isfinite(p));
+  nc_assert(n >= 2);
+  nc_assert(p > 0.0);
+#endif
+
+  using namespace NCrystal;
+  const VectD x = powspace(a, b, n, p);
+
+  REQUIRE(x.size() == n);
+  REQUIREFLTEQ(x.front(), a);
+  REQUIREFLTEQ(x.back(), b);
+
+  for (unsigned i = 0; i < n; ++i) {
+    const double t = static_cast<double>(i) /
+                     static_cast<double>(n - 1);
+    const double want = a + (b - a) * std::pow(t, p);
+    REQUIREFLTEQ(vectAt(x, i), want);
+    REQUIRE(std::isfinite(vectAt(x, i)));
+  }
+
+  if (b >= a) {
+    for (unsigned i = 1; i < n; ++i)
+      REQUIRE(vectAt(x, i) >= vectAt(x, i - 1));
+  } else {
+    for (unsigned i = 1; i < n; ++i)
+      REQUIRE(vectAt(x, i) <= vectAt(x, i - 1));
+  }
+}
+
+void testPowspace()
+{
+  using NC::VectD;
+  using NC::vectAt;
+  using NC::powspace;
+
+  checkPowspace(0.0, 1.0, 2, 0.25);
+  checkPowspace(0.0, 1.0, 2, 1.0);
+  checkPowspace(0.0, 1.0, 2, 100.0);
+
+  checkPowspace(0.0, 1.0, 3, 0.5);
+  checkPowspace(0.0, 1.0, 3, 1.0);
+  checkPowspace(0.0, 1.0, 3, 2.0);
+
+  checkPowspace(2.0, 10.0, 5, 2.0);
+  checkPowspace(10.0, 2.0, 5, 2.0);
+  checkPowspace(-7.0, 13.0, 17, 0.25);
+  checkPowspace(-7.0, 13.0, 17, 1.0);
+  checkPowspace(-7.0, 13.0, 17, 4.0);
+  checkPowspace(3.25, 3.25, 101, 0.1);
+  checkPowspace(3.25, 3.25, 101, 10.0);
+  checkPowspace(-1.0e6, 1.0e6, 1001, 3.0);
+
+  {
+    const VectD x = powspace(2.0, 10.0, 5, 2.0);
+    REQUIREFLTEQ(vectAt(x, 0), 2.0);
+    REQUIREFLTEQ(vectAt(x, 1), 2.5);
+    REQUIREFLTEQ(vectAt(x, 2), 4.0);
+    REQUIREFLTEQ(vectAt(x, 3), 6.5);
+    REQUIREFLTEQ(vectAt(x, 4), 10.0);
+  }
+
+  {
+    const VectD x = powspace(-2.0, 6.0, 5, 1.0);
+    REQUIREFLTEQ(vectAt(x, 0), -2.0);
+    REQUIREFLTEQ(vectAt(x, 1), 0.0);
+    REQUIREFLTEQ(vectAt(x, 2), 2.0);
+    REQUIREFLTEQ(vectAt(x, 3), 4.0);
+    REQUIREFLTEQ(vectAt(x, 4), 6.0);
+  }
+}
+
 }
 
 int main() {
@@ -145,4 +233,7 @@ int main() {
     nc_assert_always( (NC::ncisnan(val)&&NC::ncisnan(backconv))
                       || val==backconv);
   }
+  std::cout<<"powspace testing start..."<<std::endl;
+  testPowspace();
+  std::cout<<"powspace testing done."<<std::endl;
 }

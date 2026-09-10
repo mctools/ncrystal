@@ -26,15 +26,15 @@
 
 namespace NC = NCrystal;
 
-bool NC::nc_is_grid(NC::Span<const double> v)
+bool NC::nc_is_grid( Span<const double> v )
 {
-  if ( v.empty() )
+  if ( v.size() < 2 )
     return false;
   double last = v.front();
-  if ( ncisnan(last) || ncisinf(last) )
+  if ( !std::isfinite(last) )
     return false;
-  for ( auto e : Span<const double>(std::next(v.begin()),v.end()) ) {
-    if ( !(e>last) || ncisnan(e) || ncisinf(e) )
+  for ( auto e : v.subspan(1) ) {
+    if ( !(std::isfinite(e) && e>last ) )
       return false;
     last = e;
   }
@@ -78,6 +78,60 @@ NC::VectD NC::linspace(double start, double stop, unsigned num)
     v.push_back(start+i*interval);
   v.push_back( stop );
   return v;
+}
+
+NC::VectD NC::powspace(double a, double b, unsigned num, double p )
+{
+  nc_assert(num >= 2);
+  nc_assert(a > 0.0);
+  nc_assert(b > a);
+  nc_assert(p > 0.0);
+  nc_assert(num < 1000000000ULL);
+
+  const double step = 1.0 / static_cast<double>(num - 1);
+  const double delta = b - a;
+  const double nm1 = static_cast<double>(num - 1);
+
+  VectD res;
+  if ( p==1.0 ) {
+    res = linspace(a, b, num);
+    return res;
+  }
+
+  res.reserve(num);
+  res.push_back(a);
+
+  //NB: 2.0, 1.5, 4.0 are used in our code. We can add others as needed.
+  if (p == 2.0) {
+    for (double i = 1.0; i < nm1; i += 1.0) {
+      const double s = i * step;
+      res.push_back(a + delta * ncsquare(s));
+    }
+  } else if (p == 3.0) {
+    for (double i = 1.0; i < nm1; i += 1.0) {
+      const double s = i * step;
+      res.push_back(a + delta * ncsquare(s)*s);
+    }
+  } else if (p == 4.0) {
+    for (double i = 1.0; i < nm1; i += 1.0) {
+      const double s = i * step;
+      res.push_back(a + delta * ncsquare(ncsquare(s)));
+    }
+  } else if (p == 1.5) {
+    for (double i = 1.0; i < nm1; i += 1.0) {
+      const double s = i * step;
+      res.push_back(a + delta * (s * std::sqrt(s)));
+    }
+  } else {
+    for (double i = 1.0; i < nm1; i += 1.0) {
+      const double s = i * step;
+      res.push_back(a + delta * std::pow(s, p));
+    }
+  }
+
+  res.push_back(b);
+  nc_assert( res.size() == num );
+  return res;
 }
 
 bool NC::isPrime(unsigned n) {
@@ -511,7 +565,7 @@ std::pair<NC::VectD,NC::VectD> NC::reducePtsInDistribution( const NC::VectD& x,
   return { newx, newy };
 }
 
-NC::VectD::const_iterator NC::findClosestValInSortedVector(const NC::VectD& v, double value)
+NC::VectD::const_iterator NC::findClosestValInSortedVector(const VectD& v, double value)
 {
   nc_assert(!v.empty());
   nc_assert(!ncisnan(value));
