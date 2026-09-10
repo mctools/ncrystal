@@ -77,12 +77,14 @@ namespace NCRYSTAL_NAMESPACE {
 
     //Initialise based on VDOS (in form of VDOSEval instance) and optionally
     //choices for truncation/thinning.
-    enum class TruncAndThinningChoices { Default, Disabled };
+    enum class TruncAndThinningChoices { Default, Disabled, Legacy };
     struct TruncAndThinningParams {
-      int minThinOrder = 5;//Below this order, thinning takes place
-                           //(0=always, -1=never)
+      int minThinOrder = 4;//Below this order, no thinning takes place
+                           //(0=always thin, -1=never thin)
       unsigned thinNBins = 1000;//double binwidth whenever number of bins
                                 //exceeds this value (0 disables)
+      int minThinAgressiveOrder = 20;//same but for more agressive thinning
+      unsigned thinAgressiveNBins = 300;//same but for more agressive thinning
       int minTruncOrder = 0;//Below this order, no truncation takes place
                            //(0=always, -1=never)
       double truncationThreshold = 1e-14;//trim ranges to remove negligible
@@ -94,10 +96,12 @@ namespace NCRYSTAL_NAMESPACE {
     VDOSGn( const VDOSEval&,
             const TruncAndThinningParams ttpars = TruncAndThinningChoices::Default );
 
-    /////////////////
-    // Destructor: //
-    /////////////////
+    ///////////////
+    // Plumbing: //
+    ///////////////
     ~VDOSGn();
+    VDOSGn( VDOSGn&& );
+    VDOSGn& operator=( VDOSGn&& );
 
     ///////////////////////////
     // Material temperature: //

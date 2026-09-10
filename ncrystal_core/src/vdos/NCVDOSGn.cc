@@ -128,8 +128,14 @@ struct NC::VDOSGn::Impl {
 NC::VDOSGn::TruncAndThinningParams::TruncAndThinningParams(TruncAndThinningChoices choice)
   : TruncAndThinningParams()
 {
-  if (choice == TruncAndThinningChoices::Disabled)
-    minThinOrder = minTruncOrder = -1;
+  if (choice == TruncAndThinningChoices::Disabled) {
+    minThinOrder = minThinAgressiveOrder = minTruncOrder = -1;
+  } else if (choice == TruncAndThinningChoices::Legacy) {
+    //NCrystal 2.x-4.x behaviour:
+    minThinOrder = minTruncOrder = 5;
+    thinNBins = thinAgressiveNBins = 1000;
+    minThinAgressiveOrder = 50000;
+  }
 }
 
 NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
@@ -177,6 +183,7 @@ NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
 
   nc_assert_always( valueInInterval(0.0,0.1,m_ttpars.truncationThreshold) );
   nc_assert_always( m_ttpars.minThinOrder >= -1 );
+  nc_assert_always( m_ttpars.minThinAgressiveOrder >= -1 );
   nc_assert_always( m_ttpars.minTruncOrder >= -1 );
 
   //Discard excess zeroes at edges for G1, keeping at most a single entry with 0
@@ -206,6 +213,9 @@ NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
     NCRYSTAL_MSG("VDOSGn constructed (input spectrum size: "<<G1spectrum.size()
                  <<", thinning with minOrder="<<ttpars.minThinOrder
                  <<" and thinNBins="<<ttpars.thinNBins
+                 <<" and more agressive thinning with minOrder="
+                 <<ttpars.minThinAgressiveOrder
+                 <<" and thinNBins="<<ttpars.thinAgressiveNBins
                  <<", truncation with minOrder="<<ttpars.minTruncOrder
                  <<" and truncationThreshold="<<ttpars.truncationThreshold
                  <<")");
@@ -459,20 +469,35 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
       VectD truncated_spec(phonon_spe.begin()+ifront,phonon_spe.begin()+iback+1);
       truncated_spec.swap(phonon_spe);
     }
+    //Remove non-cross-platform-reproducible noise from the FFT alg by snapping
+    //tiny noise to 0.0 (also internally, not just at the edges):
+    for ( auto&e : phonon_spe) {
+      if ( e < spec_cutoff )
+        e = 0.0;
+    }
     start_energy += ifront*dt;
   }
 
-  if ( m_ttpars.minThinOrder >= 0
-       && m_ttpars.thinNBins > 0
-       && order.value() >= static_cast<unsigned>(m_ttpars.minThinOrder)
-       && phonon_spe.size() > static_cast<std::size_t>(m_ttpars.thinNBins) ) {
+  int minThinOrder = m_ttpars.minThinOrder;
+  unsigned thinNBins = m_ttpars.thinNBins;
+  nc_assert( order.value() < 65000u );
+  const int order_int = static_cast<int>(order.value());
+  if ( m_ttpars.minThinAgressiveOrder >= 0
+       && order_int >= m_ttpars.minThinAgressiveOrder ) {
+    minThinOrder = m_ttpars.minThinAgressiveOrder;
+    thinNBins = m_ttpars.thinAgressiveNBins;
+  }
+
+  if ( minThinOrder >= 0 && thinNBins > 0
+       && order_int >= minThinOrder
+       && phonon_spe.size() > static_cast<std::size_t>(thinNBins) ) {
     // => do thinning
-    while ( phonon_spe.size() > m_ttpars.thinNBins*extraThinFactor)
+    while ( phonon_spe.size() > thinNBins*extraThinFactor)
       extraThinFactor *= 2;//always orders of 2, allows for on-demand thinning
                            //later (above) without incompatible fractions of
                            //thinFactors.
     if ( extraThinFactor >= 8
-         && order.value() <= static_cast<unsigned>(m_ttpars.minThinOrder*2) ) {
+         && order.value() <= static_cast<unsigned>(minThinOrder*2) ) {
       //Make brutal thinning slightly less brutal for orders between
       //minThinOrder and (minThinOrder-1)*2:
       extraThinFactor /= 2;
@@ -496,3 +521,6 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
 
   return VDOSGnData{ phonon_spe, start_energy, dt, thinFactor1*extraThinFactor };
 }
+
+NC::VDOSGn::VDOSGn( VDOSGn&& ) = default;
+NC::VDOSGn& NC::VDOSGn::operator=( VDOSGn&& ) = default;
