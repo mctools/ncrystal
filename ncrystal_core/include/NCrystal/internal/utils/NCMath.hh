@@ -286,8 +286,25 @@ namespace NCRYSTAL_NAMESPACE {
                               double prec=1e-12, unsigned minlvl = 3, unsigned maxlvl = 10 );
 
 
-  //Reduce pts on curve by removing points that are least important for overall shape:
-  std::pair<VectD,VectD> reducePtsInDistribution( const VectD& x, const VectD& y, std::size_t targetN );
+  //Reduce pts on y(x) curve by removing internal points that are least
+  //important for overall shape. It uses a strategy considering both the change
+  //in area of y-curve, area of ln(y) curve, and that there should not be too
+  //large gaps.
+  //
+  //The tail_floor parameter should reflect the smallest meaningful or
+  //numerically reliable function value relative to its maximum. The
+  //equidistant_fraction parameter sets aside a fraction of the final points in
+  //order to prevent too large gaps along x between points - even where the
+  //y-values might be constant. This prevents gaps when there are a few peaks
+  //over a constant background.
+  struct PtReduceCfg {
+    double equidistant_fraction = 0.15;
+    double tail_floor = 1e-50;
+  };
+  std::pair<VectD,VectD> reducePtsInDistribution( Span<const double> x,
+                                                  Span<const double> y,
+                                                  std::size_t targetN,
+                                                  const PtReduceCfg& cfg = {} );
 
   //Vector utilities:
   inline void vectorAppend(VectD& v1, const VectD& v2);//appends contents of v2 to v1

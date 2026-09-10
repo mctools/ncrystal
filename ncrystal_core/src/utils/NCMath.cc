@@ -23,6 +23,7 @@
 #include "NCrystal/internal/utils/NCIter.hh"
 #include <sstream>
 #include <list>
+#include <queue>
 
 namespace NC = NCrystal;
 
@@ -470,99 +471,222 @@ double NC::erfc_rescaled(double x, double b)
   return kInvSqrtPi*std::exp(bxx)*(y+y2*(c3+y2*(c5+y2*(c7+y2*(c9+y2*c11)))));
 }
 
-std::pair<NC::VectD,NC::VectD> NC::reducePtsInDistribution( const NC::VectD& x,
-                                                            const NC::VectD& y,
-                                                            std::size_t targetN )
+std::pair<NC::VectD, NC::VectD>
+NC::reducePtsInDistribution(Span<const double> x,
+                            Span<const double> y,
+                            std::size_t targetN,
+                            const PtReduceCfg& cfg)
 {
-  nc_assert_always(x.size()==y.size());
-  nc_assert_always(x.size()>=targetN);
-  nc_assert_always(targetN>=2);
-  if ( targetN >= x.size()  )
-    return { x, y };
-  const double ymax = *std::max_element(y.begin(),y.end());
-  nc_assert_always(ymax>0.0);
-  const double inv_ymax = 1.0/ymax;
+  // Strategi to ensure good performance: Perform a coarse pre-thinning, removing
+  // approximately 25% of points per pass.  The final reduction uses a priority
+  // queue and local importance updates.
 
-  //Put point-data (including caches of expensive std::log results) into
-  //doubly linked list:
-  struct PtData;
-  typedef std::multimap<double,std::list<PtData>::iterator> ImpMap_t;
-  struct PtData {
-    double x,y,lny;
-    ImpMap_t::iterator impMapIter;
-    PtData(double x_, double y_, double lny_, ImpMap_t::iterator it_)
-      :x(x_), y(y_), lny(lny_), impMapIter(it_) {}
+#ifndef NDEBUG
+  {
+    const std::size_t nn = x.size();
+    nc_assert(nn == y.size());
+    nc_assert(nn >= 2);
+    nc_assert(targetN >= 2);
+    nc_assert(std::isfinite(cfg.equidistant_fraction));
+    nc_assert(cfg.equidistant_fraction >= 0.0);
+    nc_assert(std::isfinite(cfg.tail_floor));
+    nc_assert(cfg.tail_floor > 0.0);
+    nc_assert(nc_is_grid(x));
+    for (std::size_t i = 0; i < nn; ++i) {
+      nc_assert(std::isfinite(y[i]));
+      nc_assert(y[i]>=0.0);
+    }
+  }
+#endif
+
+  const std::size_t NONE = std::numeric_limits<std::size_t>::max();
+
+  if (targetN >= x.size())
+    return { VectD{x.begin(), x.end()}, VectD{y.begin(), y.end()} };
+
+  const double ymax = *std::max_element(y.begin(), y.end());
+  nc_assert(ymax > 0.0);
+
+  const double invYmax = 1.0 / ymax;
+  const double gappts = cfg.equidistant_fraction * targetN - 1.0;
+
+  const double maxGap =
+    gappts > 0.0 ? (x.back() - x.front()) / gappts : kInfinity;
+
+  struct Candidate {
+    double importance;
+    std::size_t i;
   };
 
-  std::list<PtData> pts;
-  ImpMap_t importanceMap;
+  VectD px(x.begin(), x.end());
+  VectD py(y.begin(), y.end());
+  VectD plny;
 
-  for ( auto&& e: enumerate(x) ) {
-    double xval(e.val), yval(y.at(e.idx));
-    pts.emplace_back(xval, yval, std::log(std::max<double>(1e-20,yval*inv_ymax)), importanceMap.end() );
+  auto rebuildLog = [&]() {
+    const std::size_t ncur = px.size();
+
+    plny.resize(ncur);
+
+    for (std::size_t i = 0; i < ncur; ++i) {
+      vectAt(plny, i) =
+        std::log(ncmax(cfg.tail_floor,
+                       vectAt(py, i) * invYmax));
+    }
+  };
+
+  auto calcImportance = [&](std::size_t i0,
+                            std::size_t i1,
+                            std::size_t i2) -> double {
+    const double gap = vectAt(px, i2) - vectAt(px, i0);
+
+    if (gap > maxGap) {
+      //Instead of just returning infinity, we return something that scales with
+      //the gap size. Just in case weird settings results in a too small
+      //max_gap. In that case we at least should prevent bigger gaps before
+      //smaller gaps.
+      return 1e250 * ncclamp(gap, 1e-305, 1e55);
+    }
+
+    //Area of triangle with 3 points at the corners is the area the curve
+    //integral will change if we remove the point (x1,y1). Apart from a missing
+    //factor of 0.5, the change in area is thus:
+    const double dx1 = vectAt(px, i1) - vectAt(px, i0);
+    const double dx2 = vectAt(px, i2) - vectAt(px, i0);
+    const double area =
+      ncabs(dx1 * (vectAt(py, i2) - vectAt(py, i0)) -
+            dx2 * (vectAt(py, i1) - vectAt(py, i0)));
+
+    //To preserve also small features in the tails, we find the equivalent
+    //change in the logy-curve, and combine the two for the final importance. We
+    //did consider other options of combining the two factors, but the one below
+    //seemed to work best for our use-cases related to VDOS expansion.
+
+    const double logArea =
+      ncabs(dx1 * (vectAt(plny, i2) - vectAt(plny, i0)) -
+            dx2 * (vectAt(plny, i1) - vectAt(plny, i0)));
+    return area * logArea * logArea;
+  };
+
+  //Coarse prefilter: Crucially, we are only considering alternating points,
+  //which means importance scores of all considered points are stable even if
+  //some are removed.
+
+  std::vector<Candidate> cand;
+  while (px.size()/targetN > 8 ) {//fixme: revisit!
+    rebuildLog();//FIXME: Can we avoid this?
+    const std::size_t ncur = px.size();
+    cand.clear();
+    cand.reserve((ncur - 2) / 2);
+    for (std::size_t i = 1; i + 1 < ncur; i += 2)
+      cand.push_back( { calcImportance(i - 1, i, i + 1), i });
+
+    std::sort( cand.begin(), cand.end(),
+               [](const Candidate& a, const Candidate& b) {
+                 if (a.importance != b.importance)
+                   return a.importance < b.importance;
+                 return a.i < b.i;
+               });
+
+    const std::size_t ndel = cand.size() / 2;
+    std::vector<unsigned char> remove(ncur, 0);
+
+    for (std::size_t j = 0; j < ndel; ++j)
+      vectAt(remove, cand[j].i) = 1;
+
+    VectD nx, ny;
+    nx.reserve(ncur - ndel);
+    ny.reserve(ncur - ndel);
+    for (std::size_t i = 0; i < ncur; ++i) {
+      if (!vectAt(remove, i)) {
+        nx.push_back(vectAt(px, i));
+        ny.push_back(vectAt(py, i));
+      }
+    }
+
+    nc_assert( nx.size() == ncur-ndel );
+    nc_assert( ny.size() == ncur-ndel );
+    px.swap(nx);
+    py.swap(ny);
+  }
+  rebuildLog();
+
+  const std::size_t n = px.size();
+
+  struct Entry {
+    double importance;
+    std::size_t i, gen;
+  };
+
+  struct EntryLess {
+    bool operator()(const Entry& a, const Entry& b) const
+    {
+      if (a.importance != b.importance)
+        return a.importance > b.importance;
+      return a.i > b.i;
+    }
+  };
+
+  using Queue = std::priority_queue<Entry, std::vector<Entry>, EntryLess>;
+  std::vector<std::size_t> prev(n), next(n), gen(n, 0);
+
+  for (std::size_t i = 0; i < n; ++i) {
+    vectAt(prev, i) = i == 0 ? NONE : i - 1;
+    vectAt(next, i) = i + 1 == n ? NONE : i + 1;
   }
 
-  //Definition of importance score:
-  auto importanceCalc = [](const decltype(pts)::iterator it)
-                        {
-                          const auto& pt1 = *it;
-                          const auto& pt0 = *std::prev(it);//previous neighbour
-                          const auto& pt2 = *std::next(it);//next neighbour
-                          //Area of triangle with 3 points at the corners is
-                          //the area the curve integral will change if we
-                          //remove the point (x1,y1). Apart from a missing
-                          //factor of 0.5, the change in area is thus:
-                          double area_change = ncabs(pt0.x*(pt1.y-pt2.y)+pt1.x*(pt2.y-pt0.y)+pt2.x*(pt0.y-pt1.y));
-                          //To preserve also small features in the tails, we
-                          //find the equivalent change in the logy-curve, and
-                          //combine the two for the final importance (one can
-                          //change the power of each factor to change how much
-                          //focus should be on the features in tails and how
-                          //much focus should be on strong peaks):
-                          double logarea_change = ncabs(pt0.x*(pt1.lny-pt2.lny)+pt1.x*(pt2.lny-pt0.lny)+pt2.x*(pt0.lny-pt1.lny));
-                          return area_change * logarea_change * logarea_change;
-                        };
+  Queue q;
 
-  //We keep multimap of importance -> PtData-iterator. Once initialised, the
-  //first element corresponds to the least important remaining point on the
-  //curve. It can be removed while also updating the importance scores of its
-  //neighbours - repeat until done.
-  auto itLast = std::prev(pts.end());
-  for (auto it = std::next(pts.begin()); it!=itLast; ++it)
-    it->impMapIter = importanceMap.emplace(importanceCalc(it),it);
+  auto enqueue = [&](std::size_t i) {
+    if (i == NONE)
+      return;
+    if (vectAt(prev, i) == NONE ||
+        vectAt(next, i) == NONE)
+      return;
+    ++vectAt(gen, i);
+    double importance = calcImportance(vectAt(prev,i), i, vectAt(next,i));
+    q.push( { importance, i, vectAt(gen,i) });
+  };
 
-  auto updateImportance = [&importanceMap,&importanceCalc](decltype(pts)::iterator it)
-                          {
-                            if (it->impMapIter == importanceMap.end())
-                              return;//first or last point, nothing to update
-                            importanceMap.erase(it->impMapIter);
-                            it->impMapIter = importanceMap.emplace(importanceCalc(it),it);
-                          };
-  while( pts.size() > targetN ) {
-    //Remove least important point and update importance scores of neighbours:
-    nc_assert(!importanceMap.empty());
-    auto impMapIter = importanceMap.begin();
-    auto itPt = impMapIter->second;
-    nc_assert(impMapIter==itPt->impMapIter);
-    //Remove point:
-    auto itPtN1 = std::prev(itPt);
-    auto itPtN2 = std::next(itPt);
-    pts.erase(itPt);
-    importanceMap.erase(impMapIter);
-    //Update neighbours:
-    nc_assert(itPtN2!=pts.end());
-    updateImportance(itPtN1);
-    updateImportance(itPtN2);
+  for (std::size_t i = 1; i + 1 < n; ++i)
+    enqueue(i);
+
+  std::size_t left = n;
+  while (left > targetN) {
+    Entry e;
+    for (;;) {
+      nc_assert(!q.empty());
+      e = q.top();
+      q.pop();
+      const std::size_t i = e.i;
+      if (vectAt(prev, i) != NONE &&
+          vectAt(next, i) != NONE &&
+          vectAt(gen, i) == e.gen)
+        break;
+    }
+    const std::size_t i = e.i;
+    const std::size_t i0 = vectAt(prev, i);
+    const std::size_t i2 = vectAt(next, i);
+    vectAt(next, i0) = i2;
+    vectAt(prev, i2) = i0;
+    vectAt(prev, i) = NONE;
+    vectAt(next, i) = NONE;
+    ++vectAt(gen, i);
+    --left;
+    enqueue(i0);
+    enqueue(i2);
   }
-  //Done, put in vectors and return:
-  VectD newx, newy;
-  newx.reserve(pts.size());
-  newy.reserve(pts.size());
-  for (auto& pt: pts) {
-    newx.emplace_back(pt.x);
-    newy.emplace_back(pt.y);
+
+  VectD nx, ny;
+  nx.reserve(targetN);
+  ny.reserve(targetN);
+  std::size_t i = 0;
+  while (i != NONE) {
+    nx.push_back(vectAt(px, i));
+    ny.push_back(vectAt(py, i));
+    i = vectAt(next, i);
   }
-  return { newx, newy };
+
+  return {std::move(nx), std::move(ny)};
 }
 
 NC::VectD::const_iterator NC::findClosestValInSortedVector(const VectD& v, double value)
