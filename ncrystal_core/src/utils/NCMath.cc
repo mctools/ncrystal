@@ -87,6 +87,9 @@ NC::VectD NC::powspace(double a, double b, unsigned num, double p )
   nc_assert(a > 0.0);
   nc_assert(b > a);
   nc_assert(p > 0.0);
+  nc_assert(std::isfinite(a));
+  nc_assert(std::isfinite(b));
+  nc_assert(std::isfinite(p));
   nc_assert(num < 1000000000ULL);
 
   const double step = 1.0 / static_cast<double>(num - 1);
@@ -122,6 +125,11 @@ NC::VectD NC::powspace(double a, double b, unsigned num, double p )
     for (double i = 1.0; i < nm1; i += 1.0) {
       const double s = i * step;
       res.push_back(a + delta * (s * std::sqrt(s)));
+    }
+  } else if (p == 0.5) {
+    for (double i = 1.0; i < nm1; i += 1.0) {
+      const double s = i * step;
+      res.push_back(a + delta * (std::sqrt(s)));
     }
   } else {
     for (double i = 1.0; i < nm1; i += 1.0) {
