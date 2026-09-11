@@ -285,6 +285,107 @@ namespace {
     }
   }
 
+  void testFindRoot2()
+  {
+
+    using NC::findRoot2;
+    using NC::floateq;
+
+    // Linear root.
+    REQUIREFLTEQ(findRoot2([](double x) {
+      return x - 2.5;
+    }, 0.0, 5.0), 2.5);
+
+    // Linear root with a negative result.
+    REQUIREFLTEQ(findRoot2([](double x) {
+      return x + 3.0;
+    }, -5.0, 0.0), -3.0);
+
+    // Positive quadratic root.
+    REQUIREFLTEQ(findRoot2([](double x) {
+      return x * x - 4.0;
+    }, 0.0, 3.0), 2.0);
+
+    // Negative quadratic root.
+    REQUIREFLTEQ(findRoot2([](double x) {
+      return x * x - 4.0;
+    }, -3.0, 0.0), -2.0);
+
+    // Exponential root.
+    REQUIREFLTEQ(findRoot2([](double x) {
+      return std::exp(x) - 3.0;
+    }, 0.0, 2.0), std::log(3.0));
+
+    // Trigonometric root.
+    REQUIREFLTEQ(findRoot2([](double x) {
+      return std::sin(x);
+    }, 2.0, 4.0), std::acos(-1.0));
+
+    // Root near the lower end of the interval.
+    REQUIRE(floateq(findRoot2([](double x) {
+      return x - 1.0e-8;
+    }, -1.0, 1.0), 1.0e-8, 1.0e-10, 1.0e-12));
+
+    // Root near the upper end of the interval.
+    REQUIRE(floateq(findRoot2([](double x) {
+      return x - (1.0 - 1.0e-8);
+    }, 0.0, 1.0), 1.0 - 1.0e-8,
+        1.0e-10, 1.0e-12));
+
+    // Tighter requested tolerance and a nonlinear root.
+    REQUIRE(floateq(findRoot2([](double x) {
+      return x * x * x - 2.0;
+    }, 0.0, 2.0, 1.0e-14),
+        std::pow(2.0, 1.0 / 3.0), 1.0e-12, 1.0e-14));
+
+    // A valid bracket for a non-monotonic function.
+    REQUIREFLTEQ(findRoot2([](double x) {
+      return (x - 0.25) * (x - 1.75);
+    }, 0.0, 1.0), 0.25);
+
+    // Invalid: the interval bounds are reversed.
+    {
+      bool threw = false;
+      try {
+        findRoot2([](double x) {
+          return x - 1.0;
+        }, 2.0, 0.0);
+      } catch (const NC::Error::CalcError&) {
+        threw = true;
+      }
+      REQUIRE(threw);
+    }
+
+    // Invalid: there is no sign change.
+    {
+      bool threw = false;
+      try {
+        findRoot2([](double x) {
+          return x + 1.0;
+        }, 0.0, 1.0);
+      } catch (const NC::Error::CalcError&) {
+        threw = true;
+      }
+      REQUIRE(threw);
+    }
+
+    // Both endpoints are positive, so this bracket must be rejected.
+    // The buggy endpoint check instead accepts it and finds an interior
+    // root (this test would have failed with code in NCrystal <= 4.4.6):
+    {
+      bool threw = false;
+      try {
+        findRoot2([](double x) {
+          return (x - 0.1) * (x - 0.2);
+        }, 0.0, 1.0);
+      } catch (const NC::Error::CalcError&) {
+        threw = true;
+      }
+      REQUIRE(threw);
+    }
+
+  }
+
 }
 
 int main() {
@@ -363,4 +464,8 @@ int main() {
   std::cout<<"powspace testing start..."<<std::endl;
   testPowspace();
   std::cout<<"powspace testing done."<<std::endl;
+  std::cout<<"root finding testing start..."<<std::endl;
+  testFindRoot2();
+  std::cout<<"root finding testing done."<<std::endl;
+  return 0;
 }

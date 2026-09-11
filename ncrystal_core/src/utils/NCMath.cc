@@ -359,8 +359,14 @@ double NC::findRoot(const Fct1D*f,double a, double b, double acc)
   nc_assert(f);
   double fa = f->eval(a);
   double fb = f->eval(b);
-  if (!(b>a)||!fa*fb<0.0)
-    NCRYSTAL_THROW(CalcError,"root finding requires b>a and f(a)*f(b)<0.");
+  if (!(b > a))
+    NCRYSTAL_THROW(CalcError,"root finding requires b>a.");
+  if (fa == 0.0)
+    return a;
+  if (fb == 0.0)
+    return b;
+  if ( (fa < 0.0) == (fb < 0.0) )
+    NCRYSTAL_THROW(CalcError,"root finding requires f(a) * f(b) <= 0");
   acc *= 0.5;//safety
   unsigned i(60);
   while(--i) {
