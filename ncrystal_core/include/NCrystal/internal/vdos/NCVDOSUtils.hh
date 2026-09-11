@@ -34,6 +34,48 @@ namespace NCRYSTAL_NAMESPACE {
     //Interval where f(x) = x^n*exp(-x) is above eps*fpeak.
     PairDD rangeXNexpMX(unsigned n, double eps, double accuracy = 1e-13 );
 
+    //Find the extreme (as in highest alpha, lowest beta) kinematically
+    //accessible point in the provided rectangular region in (alpha,beta) space
+    //for a neutron with a given energy/kT. Returns NullOpt in case no point is
+    //accessible (or the area only touches the phasespace). Note that we on
+    //purpose consider only the kinematic edge given by the alpha+(beta) and
+    //beta=-E/kT curves, ignoring the alpha-(beta) curve.
+    //
+    //NB: with e=E/kT with have:
+    //  alpha+-(beta) = 2*e+beta +- 2*sqrt(e*(e+beta))
+    Optional<PairDD>
+    findExtremeSABPointWithinAlphaPlusCurve( double E_div_kT,
+                                             PairDD alphaRange,
+                                             PairDD betaRange );
+
+    //Same as findExtremeSABPointWithinAlphaPlusCurve, but only testing whether
+    //or not a given single point is accessible, in the sense that it has
+    //beta>=-E/kT and alpha<alpha+(beta). Note that this deliberately ignores
+    //the alpha-(beta) curve.:
+    bool sabPointWithinAlphaPlusCurve( double E_div_kT,
+                                       double alpha,
+                                       double beta );
   }
 }
+
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+inline bool NCrystal::VDOS::sabPointWithinAlphaPlusCurve( double E_div_kT,
+                                                          double alpha,
+                                                          double beta )
+{
+  nc_assert( alpha >= 0.0 );
+  nc_assert( E_div_kT > 0.0 );
+  const double e = E_div_kT;
+  const double epb = e + beta;
+  if ( epb < 0.0 )
+    return false;
+  //With e=E/kT, "within" means:
+  //  alpha+(beta)>=alpha <=> sqrt(e*(e+beta))>=(alpha-beta)/2-e
+  const double t = 0.5 * ( alpha - beta ) - e;
+  return t <= 0.0 || e*epb >= t*t;
+}
+
 #endif

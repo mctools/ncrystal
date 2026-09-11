@@ -383,17 +383,188 @@ namespace {
      10534.09079324907179848868,10376.31158276078514020126,
      10534.90258081643657972352,10657.6788038584094054979,
      10793.82214200670176996485};
+
+  void testRangeXNexpMX()
+  {
+    const double ref_acc[] = { 1e-6, 1e-7,1e-8,1e-9,1e-10,1e-11,1e-12,1e-13 };
+    for ( auto i : NC::ncrange(ref_count) ) {
+      const NC::PairDD refval = { ref_res_lower[i], ref_res_upper[i] };
+      for ( auto acc : ref_acc ) {
+        const auto res = NC::VDOS::rangeXNexpMX(ref_n[i], ref_eps[i], acc);
+        nc_assert_always( NC::floateq( refval.first, res.first, acc, 1e-15 ) );
+        nc_assert_always( NC::floateq( refval.second, res.second, acc, 1e-15 ) );
+      }
+    }
+  }
+
+  void testSABPtsVersusAlphaplus()
+  {
+    using NC::PairDD;
+    using NC::VectD;
+    using NC::VDOS::findExtremeSABPointWithinAlphaPlusCurve;
+    using NC::VDOS::sabPointWithinAlphaPlusCurve;
+    using NC::fmt;
+
+    struct Point {
+      double e, a, b;
+      bool ok;
+    };
+
+    const std::vector<Point> points = {
+      { 1.0, 0.0, -1.0, true },
+      { 1.0, 1.0, -1.0, true },
+      { 1.0, 1.000001, -1.0, false },
+      { 1.0, 2.0, -1.0, false },
+      { 1.0, 0.0, -1.000001, false },
+      { 1.0, 1.0, -0.5, true },
+      { 1.0, 4.0, -0.5, false },
+      { 1.0, 7.464101615, 2.0, true },
+      { 1.0, 7.464102615, 2.0, false },
+      { 0.01, 0.0, -0.01, true },
+      { 0.01, 0.010001, -0.01, false },
+      { 10.0, 10.0, -10.0, true },
+      { 10.0, 10.000001, -10.0, false },
+      { 10.0, 0.0, -10.000001, false }
+    };
+
+    for ( auto& p : points ) {
+      std::cout<<"Testing ptWithinAP for E/kT="<<fmt(p.e)
+               <<" alpha="<<fmt(p.a)
+               <<" beta="<<fmt(p.b)
+               <<" (expected within: "<<(p.ok?"yes":"no")<<")"<<std::endl;
+      REQUIRE(sabPointWithinAlphaPlusCurve(p.e,p.a,p.b) == p.ok);
+    }
+
+    struct Rect {
+      double e;
+      PairDD ar, br;
+      bool ok;
+      double a, b;
+    };
+
+    const std::vector<Rect> rects = {
+      { 1.0, { 0.0, 1.0 }, { -2.0, -1.0 }, true, 1.0, -1.0 },
+      { 1.0, { 0.0, 1.0 }, { -2.0, -1.000001 }, false, 0.0, 0.0 },
+      { 1.0, { 1.0, 2.0 }, { -2.0, -1.0 }, true, 1.0, -1.0 },
+      { 1.0, { 6.0, 7.0 }, { -2.0, 1.0 }, false, 0.0, 0.0 },
+      { 1.0, { 0.5, 0.9 }, { -2.0, 0.0 }, true, 0.9, -1.0 },
+      { 1.0, { 1.0, 4.0 }, { -0.5, 2.0 }, true, 4.0, 0.0 },
+      { 1.0, { 4.0, 8.0 }, { -0.5, 2.0 }, true, 7.464101615137754, 2.0 },
+      { 0.01, { 0.0, 0.005 }, { -1.0, 0.0 }, true, 0.005, -0.01 },
+      { 0.01, { 0.02, 0.03 }, { -1.0, 0.0 }, true, 0.03,  0.03-2.0*std::sqrt(0.01 * 0.03) },
+      { 10.0, { 0.0, 5.0 }, { -20.0, -10.0 }, true, 5.0, -10.0 },
+      { 10.0, { 25.0, 30.0 }, { -20.0, 0.0 }, true, 30.0, -4.6410161513775 },
+      { 10.0, { 45.0, 50.0 }, { -20.0, 0.0 }, false, 0.0, 0.0 }
+    };
+
+    const auto pointOnOrInside = [](double e, double a, double b)
+    {
+      //More relaxed version, accepting pts also floateq to the edge.
+      const double ap = 2.0 * e + b
+        + 2.0 * std::sqrt(e * (e + b));
+      return a <= ap || NC::floateq(a,ap);
+    };
+
+    for ( auto& r : rects ) {
+      std::cout<<"Testing findExtreme for E/kT="<<fmt(r.e)
+               <<" alow="<<fmt(r.ar.first)
+               <<" aup="<<fmt(r.ar.second)
+               <<" blow="<<fmt(r.br.first)
+               <<" bup="<<fmt(r.br.second)
+               <<" (expected has-val: "<<(r.ok?"yes":"no")<<")"<<std::endl;
+      const auto result =
+        findExtremeSABPointWithinAlphaPlusCurve(r.e,r.ar,r.br);
+      REQUIRE(result.has_value() == r.ok);
+      if ( !r.ok )
+        continue;
+      REQUIREFLTEQ(result.value().first,r.a);
+      REQUIREFLTEQ(result.value().second,r.b);
+      REQUIRE(result.value().first >= r.ar.first);
+      REQUIRE(result.value().first <= r.ar.second);
+      REQUIRE(result.value().second >= r.br.first);
+      REQUIRE(result.value().second <= r.br.second);
+      //NB: We had:
+      //REQUIRE(sabPointWithinAlphaPlusCurve
+      //        (r.e,result.value().first,result.value().second));
+      //However, this can fail due to numerical fluctuation. So we use this
+      //instead which uses floateq for pts on the edge:
+      REQUIRE(pointOnOrInside(r.e,result.value().first,result.value().second));
+      //And a more relaxed:
+      REQUIRE(sabPointWithinAlphaPlusCurve(r.e,
+                                           result.value().first,
+                                           result.value().second+1e-6));
+
+    }
+
+
+    //Next, we check the result against accessible points on a small grid. The
+    //returned point must have alpha at least as high as every sampled
+    //accessible point and must remain inside the requested rectangle.  Boundary
+    //points are checked with a tolerance, because of FP inaccuracies in the
+    //evaluation of the curve and its inverse.
+    const VectD es = { 0.01, 0.1, 1.0, 10.0 };
+    const VectD as = { 0.0, 0.1, 1.0, 3.0, 10.0 };
+    const VectD bs = { -10.0, -1.0, -0.1, 0.0, 1.0, 10.0 };
+
+    for ( auto& e : es ) {
+      for ( auto& amin : as ) {
+        for ( auto& amax : as ) {
+          if ( amax <= amin )
+            continue;
+          for ( auto& bmin : bs ) {
+            for ( auto& bmax : bs ) {
+              if ( bmax <= bmin )
+                continue;
+              std::cout<<"Testing e="<<fmt(e)
+                       <<" amin="<<fmt(amin)<<" amax="<<fmt(amax)
+                       <<" bmin="<<fmt(bmin)<<" bmax="<<fmt(bmax)<<std::endl;
+              const PairDD ar(amin,amax);
+              const PairDD br(bmin,bmax);
+              const auto result =
+                findExtremeSABPointWithinAlphaPlusCurve(e,ar,br);
+              bool found = false;
+              double maxa = -NC::kInfinity;
+              for ( auto& a : as ) {
+                if ( a < amin || a > amax )
+                  continue;
+                for ( auto& b : bs ) {
+                  if ( b < bmin || b > bmax )
+                    continue;
+                  if ( !sabPointWithinAlphaPlusCurve(e,a,b) )
+                    continue;
+                  found = true;
+                  maxa = NC::ncmax(maxa,a);
+                }
+              }
+              if ( !found )
+                continue;
+              REQUIRE(result.has_value());
+              REQUIRE(result.value().first >= maxa);
+              REQUIRE(result.value().first >= amin);
+              REQUIRE(result.value().first <= amax);
+              REQUIRE(result.value().second >= bmin);
+              REQUIRE(result.value().second <= bmax);
+              REQUIRE(pointOnOrInside
+                      (e,result.value().first,result.value().second));
+              //This next test might suffer from FP inaccuracies due to
+              //round-tripping. So adding small tolerance:
+              REQUIRE(sabPointWithinAlphaPlusCurve(e,result.value().first,
+                                                   result.value().second+1e-6));
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 int main() {
-  const double ref_acc[] = { 1e-6, 1e-7,1e-8,1e-9,1e-10,1e-11,1e-12,1e-13 };
-  for ( auto i : NC::ncrange(ref_count) ) {
-    const NC::PairDD refval = { ref_res_lower[i], ref_res_upper[i] };
-    for ( auto acc : ref_acc ) {
-      const auto res = NC::VDOS::rangeXNexpMX(ref_n[i], ref_eps[i], acc);
-      nc_assert_always( NC::floateq( refval.first, res.first, acc, 1e-15 ) );
-      nc_assert_always( NC::floateq( refval.second, res.second, acc, 1e-15 ) );
-    }
-  }
-  return 0;
+  std::cout<<"Testing rangeXNexpMX"<<std::endl;
+  testRangeXNexpMX();
+  (void)testRangeXNexpMX;
+  std::cout<<"Testing rangeXNexpMX... done"<<std::endl;
+  std::cout<<"Testing SAB pts versus alphaplus fcts"<<std::endl;
+  testSABPtsVersusAlphaplus();
+  std::cout<<"Testing SAB pts versus alphaplus fcts... done"<<std::endl;
+  return 0.0;
 }
