@@ -20,8 +20,11 @@
 
 #include "NCrystal/internal/utils/NCSpline.hh"
 #include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #include <fstream>
 #include <iomanip>
+#include <sstream>
 
 namespace NC = NCrystal;
 
@@ -122,14 +125,6 @@ void NC::SplinedLookupTable::set( const Fct1D* thefct,
   if (ncgetenv_bool("DEBUG_SPLINES"))
     producefile( thefct,fprime_a, fprime_b,name,description );
 }
-
-
-#include "NCrystal/internal/utils/NCString.hh"
-#include "NCrystal/internal/utils/NCFileUtils.hh"
-#include "NCrystal/internal/utils/NCMsg.hh"
-#include <fstream>
-#include <sstream>
-#include <iomanip>
 
 void NC::SplinedLookupTable::producefile( const Fct1D* thefct,
                                           double fprime_a, double fprime_b,
