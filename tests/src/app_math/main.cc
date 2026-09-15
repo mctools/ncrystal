@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCRect.hh"
 #include "NCrystal/internal/utils/NCStableDbl.hh"
 #include <iostream>
 
@@ -387,6 +388,169 @@ namespace {
 
   }
 
+  template<class F>
+  void requireLogicError(F f)
+  {
+    bool caught = false;
+    try {
+      f();
+    } catch (const NC::Error::LogicError&) {
+      caught = true;
+    }
+    if (!caught)
+      std::cout<<"Did not throw LogicError as expected"<<std::endl;
+    REQUIRE(caught);
+  }
+
+  void testRectangle()
+  {
+    using NC::PairDD;
+    using NC::Rectangle;
+    Rectangle empty;
+    const PairDD xRange(1.0, 3.0);
+    const PairDD yRange(-2.0, 4.0);
+    Rectangle r(xRange, yRange);
+
+    REQUIRE(!r.isEmpty());
+    REQUIREFLTEQ(r.x0(), 1.0);
+    REQUIREFLTEQ(r.x1(), 3.0);
+    REQUIREFLTEQ(r.y0(), -2.0);
+    REQUIREFLTEQ(r.y1(), 4.0);
+    REQUIRE(r.xRange() == xRange);
+    REQUIRE(r.yRange() == yRange);
+
+    REQUIRE(r.ptIsInside(1.0, -2.0));
+    REQUIRE(r.ptIsInside(3.0, 4.0));
+    REQUIRE(r.ptIsInside(2.0, 1.0));
+    REQUIRE(!r.ptIsInside(0.0, 1.0));
+    REQUIRE(!r.ptIsInside(2.0, 5.0));
+
+    Rectangle r2(2.0, 5.0, 0.0, 6.0);
+
+    const Rectangle u = r.getUnion(r2);
+    REQUIRE(!u.isEmpty());
+    REQUIRE(u.xRange() == PairDD(1.0, 5.0));
+    REQUIRE(u.yRange() == PairDD(-2.0, 6.0));
+
+    const Rectangle i = r.getIntersection(r2);
+    REQUIRE(!i.isEmpty());
+    REQUIRE(i.xRange() == PairDD(2.0, 3.0));
+    REQUIRE(i.yRange() == PairDD(0.0, 4.0));
+
+    Rectangle r3(5.0, 7.0, 8.0, 9.0);
+
+    const Rectangle di = r.getIntersection(r3);
+    REQUIRE(di.isEmpty());
+
+    const Rectangle du = r.getUnion(r3);
+    REQUIRE(!du.isEmpty());
+    REQUIRE(du.xRange() == PairDD(1.0, 7.0));
+    REQUIRE(du.yRange() == PairDD(-2.0, 9.0));
+
+    Rectangle r4(3.0, 5.0, 4.0, 6.0);
+    const Rectangle edgeIntersection = r.getIntersection(r4);
+    REQUIRE(edgeIntersection.isEmpty());
+
+    REQUIRE(empty.isEmpty());
+    REQUIRE(!empty.ptIsInside(0.0, 0.0));
+
+    const Rectangle unionLeft = empty.getUnion(r);
+    REQUIRE(unionLeft.xRange() == r.xRange());
+    REQUIRE(unionLeft.yRange() == r.yRange());
+
+    const Rectangle unionRight = r.getUnion(empty);
+    REQUIRE(unionRight.xRange() == r.xRange());
+    REQUIRE(unionRight.yRange() == r.yRange());
+
+    REQUIRE(empty.getIntersection(r).isEmpty());
+    REQUIRE(r.getIntersection(empty).isEmpty());
+
+    const Rectangle assigned(10.0, 11.0, 12.0, 13.0);
+    empty = assigned;
+    REQUIRE(!empty.isEmpty());
+    REQUIRE(empty.xRange() == assigned.xRange());
+    REQUIRE(empty.yRange() == assigned.yRange());
+    empty = empty;
+    REQUIRE(empty.xRange() == assigned.xRange());
+    REQUIRE(empty.yRange() == assigned.yRange());
+    empty = Rectangle();
+    REQUIRE(empty.isEmpty());
+
+    const Rectangle same(1.0, 3.0, -2.0, 4.0);
+    REQUIRE(r == same);
+    REQUIRE(!(r < same));
+    REQUIRE(!(same < r));
+
+    const Rectangle lowerX(0.0, 3.0, -2.0, 4.0);
+    REQUIRE(lowerX < r);
+    REQUIRE(!(r < lowerX));
+    REQUIRE(!(lowerX == r));
+
+    const Rectangle higherX(2.0, 4.0, -2.0, 4.0);
+    REQUIRE(r < higherX);
+    REQUIRE(!(higherX < r));
+
+    const Rectangle lowerY(1.0, 3.0, -3.0, 4.0);
+    REQUIRE(lowerY < r);
+    REQUIRE(!(r < lowerY));
+
+    const Rectangle higherY(1.0, 3.0, -1.0, 4.0);
+    REQUIRE(r < higherY);
+    REQUIRE(!(higherY < r));
+
+    const Rectangle differentUpperY(1.0, 3.0, -2.0, 5.0);
+    REQUIRE(r < differentUpperY);
+    REQUIRE(!(differentUpperY < r));
+
+    Rectangle empty1;
+    Rectangle empty2;
+    REQUIRE(empty1 == empty2);
+    REQUIRE(!(empty1 < empty2));
+    REQUIRE(!(empty2 < empty1));
+
+    const Rectangle negativeX(-2.0, -1.0, 0.0, 1.0);
+    REQUIRE(negativeX < empty1);
+    REQUIRE(!(empty1 < negativeX));
+    REQUIRE(!(negativeX == empty1));
+
+    {
+      std::ostringstream os;
+      os << Rectangle(1.2, 3.4, 5.6, 7.9);
+      REQUIRE(os.str() =="Rectangle([1.2,3.4]x[5.6,7.9])");
+    }
+    {
+      std::ostringstream os;
+      os << Rectangle();
+      REQUIRE(os.str() == "Rectangle(<empty>)");
+    }
+
+#ifndef NDEBUG
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double inf = std::numeric_limits<double>::infinity();
+    requireLogicError([] { Rectangle x(1.0, 1.0, 2.0, 3.0); });
+    requireLogicError([] { Rectangle x(2.0, 1.0, 2.0, 3.0); });
+    requireLogicError([] { Rectangle x(1.0, 2.0, 3.0, 3.0); });
+    requireLogicError([nan] { Rectangle x(nan, 1.0, 2.0, 3.0); });
+    requireLogicError([inf] { Rectangle x(1.0, inf, 2.0, 3.0); });
+    requireLogicError([] { Rectangle x(PairDD(1.0, 2.0), PairDD(3.0, 3.0)); });
+    REQUIRE(empty.isEmpty());
+    requireLogicError([&empty] { empty.x0(); });
+    requireLogicError([&empty] { empty.x1(); });
+    requireLogicError([&empty] { empty.y0(); });
+    requireLogicError([&empty] { empty.y1(); });
+    requireLogicError([&empty] { empty.xRange(); });
+    requireLogicError([&empty] { empty.yRange(); });
+    requireLogicError([nan] {
+      Rectangle x(1.0, 2.0, 3.0, 4.0);
+      x.ptIsInside(nan, 0.0);
+    });
+    requireLogicError([inf] {
+      Rectangle x(1.0, 2.0, 3.0, 4.0);
+      x.ptIsInside(0.0, inf);
+    });
+#endif
+  }
+
   void testStableDbl() {
     using NC::StableDbl;
     const double u = std::numeric_limits<double>::epsilon();
@@ -582,6 +746,9 @@ int main() {
   std::cout<<"root finding testing start..."<<std::endl;
   testFindRoot();
   std::cout<<"root finding testing done."<<std::endl;
+  std::cout<<"rectangle testing start..."<<std::endl;
+  testRectangle();
+  std::cout<<"rectangle testing done."<<std::endl;
   std::cout<<"StableDbl testing start..."<<std::endl;
   testStableDbl();
   std::cout<<"StableDbl testing done."<<std::endl;
