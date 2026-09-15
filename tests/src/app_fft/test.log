@@ -1,0 +1,47 @@
+testFastConvolve start...
+[-2]
+[-2]
+[3, -2, -8]
+[3, -2, -8]
+[4, 13, 22, 15]
+[4, 13, 22, 15]
+[0.75, 2.5, 2]
+[0.75, 2.5, 2]
+[2, 3, 4.5, 6, -2.5, 2]
+[2, 3, 4.5, 6, -2.5, 2]
+[0, 0, 0, 0]
+[0, 0, 0, 0]
+testFastConvolve done.
+testCalcPhase start...
+Number of k values tested for n=0: 1 [ALL] (worst reldiff < 0: yes)
+Number of k values tested for n=1: 2 [ALL] (worst reldiff < 0: yes)
+Number of k values tested for n=2: 4 [ALL] (worst reldiff < 0: yes)
+Number of k values tested for n=3: 8 [ALL] (worst reldiff < 0: yes)
+Number of k values tested for n=4: 16 [ALL] (worst reldiff < 9e-16: yes)
+Number of k values tested for n=5: 32 [ALL] (worst reldiff < 9e-16: yes)
+Number of k values tested for n=6: 64 [ALL] (worst reldiff < 9e-16: yes)
+Number of k values tested for n=7: 128 [ALL] (worst reldiff < 9e-16: yes)
+Number of k values tested for n=8: 256 [ALL] (worst reldiff < 9e-16: yes)
+Number of k values tested for n=9: 512 [ALL] (worst reldiff < 9e-15: yes)
+Number of k values tested for n=10: 114 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=11: 114 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=12: 117 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=13: 118 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=14: 43 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=15: 43 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=16: 43 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=17: 43 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=18: 43 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=19: 43 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=20: 17 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=21: 17 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=22: 17 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=23: 17 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=24: 17 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=25: 17 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=26: 17 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=27: 17 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=28: 17 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=29: 17 (worst reldiff < 9e-15: yes)
+Number of k values tested for n=30: 17 (worst reldiff < 9e-15: yes)
+testCalcPhase done.
