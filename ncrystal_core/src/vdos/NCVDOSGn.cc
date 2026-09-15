@@ -55,8 +55,10 @@ namespace NCRYSTAL_NAMESPACE {
     private:
       VectD m_spec;
       std::size_t m_spec_size_minus_2;
-      double m_egrid_lower, m_egrid_upper, m_egrid_binwidth, m_egrid_invbinwidth, m_specMaxVal;
-      unsigned long m_thinFactor;//binwidth is G1's binwidth multiplied by m_thinFactor
+      double m_egrid_lower, m_egrid_upper;
+      double m_egrid_binwidth, m_egrid_invbinwidth, m_specMaxVal;
+      unsigned long m_thinFactor;//NB: binwidth is G1's binwidth multiplied by
+                                 //m_thinFactor
     };
   }
 }
@@ -208,9 +210,9 @@ void NC::VDOSGnData::interpolateDensityMany( Span<const double> energy,
 #endif
 }
 
-
 struct NC::VDOSGn::Impl {
-  Impl(const VDOSEval& vde, TruncAndThinningParams);
+  using Cfg = VDOSGn::Cfg;
+  Impl(const VDOSEval& vde, const Cfg& );
   std::deque<VDOSGnData> m_gndata;//deque, to not change address of VDOSGnData
                                   //objects when growMaxOrder() is called.
   std::vector<VDOSGnData> m_mt_pending_gndata;//if in MT mode, we might
@@ -219,32 +221,43 @@ struct NC::VDOSGn::Impl {
   Optional<FactoryJobs> m_mt_jobs;
   static_assert( std::is_nothrow_default_constructible<Optional<VDOSGnData>>::value, "");
   SmallVector<Optional<VDOSGnData>,10> m_mt_buffer;
-  TruncAndThinningParams m_ttpars;
+  VDOSGn::Cfg m_cfg;
   SmallVector<FastConvolve,4> m_fastConvolve;
   int m_nmaxconcurrent = 0;
 
   void produceNewOrderByConvolution(Order);
   VDOSGnData produceNewOrderByConvolutionImpl( Order, FastConvolve& ) const;
-  VDOSGnData& accessAtOrder(Order n) { nc_assert(n.value()<=m_gndata.size()); return m_gndata[n.value()-1]; }
-  const VDOSGnData& accessAtOrder(Order n) const { nc_assert(n.value()<=m_gndata.size()); return m_gndata[n.value()-1]; }
+  VDOSGnData& accessAtOrder(Order n)
+  {
+    nc_assert(n.value()<=m_gndata.size());
+    return m_gndata[n.value()-1];
+  }
+  const VDOSGnData& accessAtOrder(Order n) const
+  {
+    nc_assert(n.value()<=m_gndata.size());
+    return m_gndata[n.value()-1];
+  }
 
 };
 
-NC::VDOSGn::TruncAndThinningParams::TruncAndThinningParams(TruncAndThinningChoices choice)
-  : TruncAndThinningParams()
+NC::VDOSGn::Cfg::Cfg(CfgChoices choice)
+  : Cfg()
 {
-  if (choice == TruncAndThinningChoices::Disabled) {
-    minThinOrder = minThinAgressiveOrder = minTruncOrder = -1;
-  } else if (choice == TruncAndThinningChoices::Legacy) {
+  if (choice == CfgChoices::Legacy) {
     //NCrystal 2.x-4.x behaviour:
     minThinOrder = minTruncOrder = 5;
     thinNBins = thinAgressiveNBins = 1000;
     minThinAgressiveOrder = 50000;
+    truncationThreshold = 1e-14;
+    legacyConvolve = true;
+  } else {
+    nc_assert( choice == CfgChoices::Default );
   }
 }
 
-NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
-  : m_ttpars(ttpars),
+NC::VDOSGn::Impl::Impl(const VDOSEval& vde,
+                       const Cfg& cfg )
+  : m_cfg(cfg),
     m_nmaxconcurrent(ncgetenv_int("VDOSGN_CONCURRENT",4))
 {
   auto gridinfo = vde.getGridInfo();
@@ -286,10 +299,10 @@ NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
     vectAt(G1spectrum,nbins-e.idx) = g1_vals.first;
   }
 
-  nc_assert_always( valueInInterval(0.0,0.1,m_ttpars.truncationThreshold) );
-  nc_assert_always( m_ttpars.minThinOrder >= -1 );
-  nc_assert_always( m_ttpars.minThinAgressiveOrder >= -1 );
-  nc_assert_always( m_ttpars.minTruncOrder >= -1 );
+  nc_assert_always( valueInInterval(0.0,0.1,m_cfg.truncationThreshold) );
+  nc_assert_always( m_cfg.minThinOrder >= -1 );
+  nc_assert_always( m_cfg.minThinAgressiveOrder >= -1 );
+  nc_assert_always( m_cfg.minTruncOrder >= -1 );
 
   //Discard excess zeroes at edges for G1, keeping at most a single entry with 0
   //at each edge. This might in particular happen at very low energies where the
@@ -316,13 +329,14 @@ NC::VDOSGn::Impl::Impl(const VDOSEval& vde, const TruncAndThinningParams ttpars)
 
   if (s_verbose_vdosgn)
     NCRYSTAL_MSG("VDOSGn constructed (input spectrum size: "<<G1spectrum.size()
-                 <<", thinning with minOrder="<<ttpars.minThinOrder
-                 <<" and thinNBins="<<ttpars.thinNBins
+                 <<", thinning with minOrder="<<m_cfg.minThinOrder
+                 <<" and thinNBins="<<m_cfg.thinNBins
                  <<" and more agressive thinning with minOrder="
-                 <<ttpars.minThinAgressiveOrder
-                 <<" and thinNBins="<<ttpars.thinAgressiveNBins
-                 <<", truncation with minOrder="<<ttpars.minTruncOrder
-                 <<" and truncationThreshold="<<ttpars.truncationThreshold
+                 <<m_cfg.minThinAgressiveOrder
+                 <<" and thinNBins="<<m_cfg.thinAgressiveNBins
+                 <<", truncation with minOrder="<<m_cfg.minTruncOrder
+                 <<" and truncationThreshold="<<m_cfg.truncationThreshold
+                 <<(m_cfg.legacyConvolve?", mode=legacy":"")
                  <<")");
 }
 
@@ -337,8 +351,8 @@ NC::VDOSGn::~VDOSGn() {
 
 }
 
-NC::VDOSGn::VDOSGn( const NC::VDOSEval& vde, NC::VDOSGn::TruncAndThinningParams ttpars )
-  : m_impl(vde,ttpars),
+NC::VDOSGn::VDOSGn( const NC::VDOSEval& vde, const NC::VDOSGn::Cfg& cfg)
+  : m_impl(vde,cfg),
     m_kT(vde.kT())
 {
 }
@@ -397,7 +411,8 @@ NC::PairDD NC::VDOSGn::eRange( NC::VDOSGn::Order n, double relthreshold ) const
 
   for (std::size_t i = spec.size(); i>0; --i) {
     if ( vectAt(spec,i-1) >= threshold ) {
-      erange.second = ncmin(erange.second,p.getEGridLower() + (i-1) * p.getEGridBinwidth());
+      erange.second = ncmin(erange.second,
+                            p.getEGridLower() + (i-1) * p.getEGridBinwidth());
       break;
     }
   }
@@ -430,7 +445,8 @@ void NC::VDOSGn::Impl::produceNewOrderByConvolution( Order order )
     m_mt_jobs.value().waitAll();
     //Transfer concurrently generated results:
     for ( auto i : ncrange( m_mt_buffer.size() ) )
-      m_mt_pending_gndata.emplace_back( std::move( m_mt_buffer.at( m_mt_buffer.size()-1-i ).value() ) );
+      m_mt_pending_gndata
+        .emplace_back( std::move( m_mt_buffer.at( m_mt_buffer.size()-1-i ).value() ) );
     m_mt_buffer.clear();
     m_mt_jobs.reset();
   }
@@ -497,8 +513,6 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
   Order order2 = order.value()/2;
   Order order1 = order.value()-order2.value();
 
-  //NCRYSTAL_MSG("Convolve G"<<order.value()<<" = conv( G"<<order2.value()<<", G"<<order.value()<<" )");
-
   const auto& p1 = accessAtOrder(order1);
   const auto& p2 = accessAtOrder(order2);
 
@@ -557,16 +571,19 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
 
   VectD phonon_spe;
   double start_energy = p1.getEGridLower() + p2.getEGridLower();
-  fastConvolve.convolve( *input1_spec, *input2_spec, phonon_spe, dt );
+  if ( m_cfg.legacyConvolve )
+    fastConvolve.convolveLegacy( *input1_spec, *input2_spec, phonon_spe, dt );
+  else
+    fastConvolve.convolve( *input1_spec, *input2_spec, phonon_spe, dt );
   auto orig_npts_result = phonon_spe.size();
 
   unsigned long extraThinFactor = 1;
-  if ( m_ttpars.minTruncOrder >= 0
-       && m_ttpars.truncationThreshold > 0.0
-       && order.value() >= static_cast<unsigned>(m_ttpars.minTruncOrder) ) {
+  if ( m_cfg.minTruncOrder >= 0
+       && m_cfg.truncationThreshold > 0.0
+       && order.value() >= static_cast<unsigned>(m_cfg.minTruncOrder) ) {
     // => do truncation
     const double spec_max = *std::max_element(phonon_spe.begin(),phonon_spe.end());
-    const double spec_cutoff = m_ttpars.truncationThreshold * spec_max;
+    const double spec_cutoff = m_cfg.truncationThreshold * spec_max;
     std::size_t ifront(0), iback(phonon_spe.size()-1);
     for (;ifront<iback;++ifront) {
       if (phonon_spe.at(ifront)>spec_cutoff)
@@ -582,21 +599,25 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
     }
     //Remove non-cross-platform-reproducible noise from the FFT alg by snapping
     //tiny noise to 0.0 (also internally, not just at the edges):
-    for ( auto&e : phonon_spe) {
-      if ( e < spec_cutoff )
-        e = 0.0;
+    if ( !m_cfg.legacyConvolve ) {
+      for ( auto&e : phonon_spe) {
+        if ( e < spec_cutoff ) {
+          nc_assert( e > -1e-12*spec_max );
+          e = 0.0;
+        }
+      }
     }
     start_energy += ifront*dt;
   }
 
-  int minThinOrder = m_ttpars.minThinOrder;
-  unsigned thinNBins = m_ttpars.thinNBins;
+  int minThinOrder = m_cfg.minThinOrder;
+  unsigned thinNBins = m_cfg.thinNBins;
   nc_assert( order.value() < 65000u );
   const int order_int = static_cast<int>(order.value());
-  if ( m_ttpars.minThinAgressiveOrder >= 0
-       && order_int >= m_ttpars.minThinAgressiveOrder ) {
-    minThinOrder = m_ttpars.minThinAgressiveOrder;
-    thinNBins = m_ttpars.thinAgressiveNBins;
+  if ( m_cfg.minThinAgressiveOrder >= 0
+       && order_int >= m_cfg.minThinAgressiveOrder ) {
+    minThinOrder = m_cfg.minThinAgressiveOrder;
+    thinNBins = m_cfg.thinAgressiveNBins;
   }
 
   if ( minThinOrder >= 0 && thinNBins > 0

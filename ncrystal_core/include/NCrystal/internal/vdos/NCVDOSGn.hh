@@ -43,8 +43,8 @@ namespace NCRYSTAL_NAMESPACE {
     //
     //The actual technical implementation has been tuned to be more efficient
     //and accurate than the direct application of Sjolander's model would
-    //be. For reasons numerical stability, the G{2n} and G{2n+1} functions are
-    //respectively obtained by convolutions G{n}*G{n} and G{n}*G{n+1}, so a
+    //be. For reasons of numerical stability, the G{2n} and G{2n+1} functions
+    //are respectively obtained by convolutions G{n}*G{n} and G{n}*G{n+1}, so a
     //given Gn function is obtained by just ~log2(n) convolutions. This
     //significantly reduces accumulation of numerical errors. The convolutions
     //themselves are carried out by a Fast-Fourier-Transform method with fixed
@@ -72,14 +72,13 @@ namespace NCRYSTAL_NAMESPACE {
 
     class Order;
 
-    ///////////////////
-    // Constructor: //
-    ///////////////////
+    //////////////////////////////////
+    // Cfg options and Constructor: //
+    //////////////////////////////////
 
-    //Initialise based on VDOS (in form of VDOSEval instance) and optionally
-    //choices for truncation/thinning.
-    enum class TruncAndThinningChoices { Default, Disabled, Legacy };
-    struct TruncAndThinningParams {
+    enum class CfgChoices { Default, Legacy };
+
+    struct Cfg {
       int minThinOrder = 4;//Below this order, no thinning takes place
                            //(0=always thin, -1=never thin)
       unsigned thinNBins = 1000;//double binwidth whenever number of bins
@@ -88,14 +87,15 @@ namespace NCRYSTAL_NAMESPACE {
       unsigned thinAgressiveNBins = 300;//same but for more agressive thinning
       int minTruncOrder = 0;//Below this order, no truncation takes place
                            //(0=always, -1=never)
-      double truncationThreshold = 1e-14;//trim ranges to remove negligible
+      double truncationThreshold = 1e-13;//trim ranges to remove negligible
                                          //noise at edges (0 disables)
-      TruncAndThinningParams(TruncAndThinningChoices);
-      TruncAndThinningParams() = default;
+      bool legacyConvolve = false;
+      Cfg(CfgChoices);
+      Cfg() = default;
     };
 
-    VDOSGn( const VDOSEval&,
-            const TruncAndThinningParams ttpars = TruncAndThinningChoices::Default );
+    //Initialise based on VDOS and cfg:
+    VDOSGn( const VDOSEval&, const Cfg& = CfgChoices::Default );
 
     ///////////////
     // Plumbing: //
@@ -149,7 +149,7 @@ namespace NCRYSTAL_NAMESPACE {
     double m_kT;
   };
 
-  class VDOSGn::Order {
+  class VDOSGn::Order final {
     //Essentially an unsigned integer which (in debug builds) guards against
     //assignment from negative numbers, 0, or numbers too high to be an actual
     //order number.
