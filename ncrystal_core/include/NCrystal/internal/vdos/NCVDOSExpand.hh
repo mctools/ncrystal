@@ -23,6 +23,7 @@
 
 #include "NCrystal/internal/vdos/NCVDOSGn.hh"
 #include "NCrystal/internal/vdos/NCVDOSLux.hh"
+#include "NCrystal/internal/utils/NCRect.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -35,19 +36,33 @@ namespace NCRYSTAL_NAMESPACE {
       //functions. Not just the Gn functions themselves, but also other
       //information which is needed in order to encode them in actual
       //S(alpha,beta) kernels.
+
+      // The Gn functions of the expanded phonon orders:
       VDOSGn Gn;
-      double alphaUpper, betaUpper;
-      double alpha2x;//Sjolander's 2W factor divided by alpha
-      Optional<double> suggestedEmax = NullOpt;
+
+      // Sjolander's 2W factor divided by alpha. This determines the scale of
+      // phonon weights along alpha, and is proportional to both kT and
+      // mean-squared-displacements:
+      double alpha2x;
+
+      //The Emax value is what guided how many phonon orders were needed in the
+      //expansion. In some cases it might actually be lower than the value aimed
+      //for. The value here is what is actually covered by the Gn functions in
+      //this expansion:
+      NeutronEnergy suggestedEmax;
+
+      //If encoding the phonon expansions into an S(alpha,beta) table, this is
+      //the minimum rectangular range of (alpha,beta) values that table must
+      //cover (Rectangle x is alpha, Rectangle y is beta):
+      Rectangle sabRange;
     };
 
-    //Perform Sjolander expansion, considering settings like vdoslux and
-    //requested Emax.
+    //Perform Sjolander expansion. The targetEmax default value is given by
+    //vdoslux, but can be overridden:
     GnExpansion
     expandVDOSToGnFcts( const VDOSData&,
                         VDOSLux vdoslux = VDOSLux(),
-                        Optional<double> targetEmax = NullOpt,
-                        Optional<VDOSGn::Order> override_max_order = NullOpt );
+                        Optional<NeutronEnergy> targetEmax = NullOpt);
 
   }
 

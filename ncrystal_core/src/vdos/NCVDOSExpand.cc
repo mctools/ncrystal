@@ -25,31 +25,85 @@
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
+#include <fstream>
+#include <sstream>
 
 namespace NC=NCrystal;
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace VDOS {
+    namespace {
+      struct ABRangeInfo {
+        Rectangle full;
+        Rectangle overlap;
+      };
+
+      //FIXME: Turn into query instead, and adopt plots into generic utility
+      //script?
+      void writeFileWithABRanges( const std::vector<ABRangeInfo>& r,
+                                  double targetEmax_div_kT )
+      {
+        std::string fn = "ncrystal_alphabetaranges.txt";
+        NCRYSTAL_WARN("Writing Alpha/Beta ranges to "<<fn
+                      <<" if it does not already exist");
+        if (file_exists(fn))
+          return;
+        std::ofstream ofs(fn.c_str(), std::ofstream::out);
+        ofs << "#ncrystal_alphabetaranges\n";
+        ofs << "#targetEmax_div_kT: "<<fmt(targetEmax_div_kT)<<"\n";
+        ofs << "#note: all overlap_xxx=-1"
+          " if not within phasespace.\n";
+        ofs << "#colnames = n,alow,aup,blow,bup,"
+          "overlap_alow,overlap_aup,overlap_blow,overlap_bup\n";
+        for ( std::size_t i = 0; i < r.size(); ++i ) {
+          auto& a = r.at(i).full.xRange();
+          auto& b = r.at(i).full.yRange();
+          ofs<<i+1
+             <<" "<<fmt(a.first)<<" "<<fmt(a.second)
+             <<" "<<fmt(b.first)<<" "<<fmt(b.second);
+          if ( !r.at(i).overlap.isEmpty() ) {
+            auto ao = r.at(i).overlap.xRange();
+            auto bo = r.at(i).overlap.yRange();
+            ofs <<" "<<fmt(ao.first)<<" "<<fmt(ao.second)
+                <<" "<<fmt(bo.first)<<" "<<fmt(bo.second)
+                <<"\n";
+          } else {
+            ofs << " -1 -1 -1 -1\n";
+          }
+        }
+        ofs.close();
+      }
+    }
+  }
+}
 
 NC::VDOS::GnExpansion
 NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
                               VDOSLux vdoslux,
-                              Optional<double> targetEmax_requested,
-                              Optional<VDOSGn::Order> request_override_maxord )
+                              Optional<NeutronEnergy> targetEmax_requested )
 {
   static bool s_verbose = ncgetenv_bool("DEBUG_PHONON");
 
-
   //Hidden unofficial env-vars used for special debugging purposes:
-  const double override_alphamax = ncgetenv_dbl("HACK_ALPHAMAX");
-  const double override_betamax = ncgetenv_dbl("HACK_BETAMAX");
-  const unsigned override_max_order
-    = ( request_override_maxord.has_value()
-        ? request_override_maxord.value().value()
-        : static_cast<unsigned>(ncgetenv_int("HACK_MAXORDER")) );
+  static const bool dump_vdosabranges = ncgetenv_bool("HACK_DUMP_VDOSABRANGES");
 
   //Which Emax should we target (i.e. aim to cover the kinematic reachable area
   //for neutrons of that energy):
-  nc_assert_always(targetEmax_requested.value_or(1.0)>0.0);
+  constexpr NeutronEnergy lowestEmaxPossible{ 1e-15 };
+  auto targetEMaxValid = [lowestEmaxPossible](NeutronEnergy v)
+  {
+    return ( v.dbl()>0.0
+             && std::isfinite(v.dbl())
+             && valueInInterval(lowestEmaxPossible.dbl(),1e4,v.dbl()) );
+  };
+  if ( targetEmax_requested.has_value()
+       && !targetEMaxValid(targetEmax_requested.value()) ) {
+    NCRYSTAL_THROW2(BadInput,"Invalid or out-of-range targetEmax value"
+                    " requested: "<<targetEmax_requested.value());
+  }
 
-  double targetEmax;//emax in eV
+  NeutronEnergy targetEmax;
   if ( targetEmax_requested.has_value() ) {
     targetEmax = targetEmax_requested.value();
   } else {
@@ -57,19 +111,20 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
       //used to depend on vdoslux.
       nc_assert_always( vdoslux.lvl() <= 5u );
       double legacy_lux2emax[6] = { 0.5, 1.0, 3.0, 5.0, 8.0, 12.0 };
-      targetEmax = legacy_lux2emax[vdoslux.lvl()];
+      targetEmax = NeutronEnergy{ legacy_lux2emax[vdoslux.lvl()] };
     } else {
       //always exactly 5.0 eV now.
-      targetEmax = 5.0;
+      targetEmax = NeutronEnergy{ 5.0 };
     }
   }
 
   if ( s_verbose )
     NCRYSTAL_MSG("VDOS expansion initialising with T="<<vdosdata.temperature()
                  <<", vdoslux="<<vdoslux.raw()
-                 <<", aiming for Emax="<<targetEmax<<"eV"
-                 <<(targetEmax_requested.has_value()
-                    ?" (as requested)":"")<<", ...");
+                 <<", aiming for Emax="<<targetEmax
+                 <<(targetEmax_requested.has_value()?" (as requested)":""));
+
+  nc_assert_always( targetEMaxValid(targetEmax) );
 
   //Initialise evaluators:
   VDOSEval vdoseval(vdosdata);
@@ -77,18 +132,19 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
   const double invkT = 1.0/kT;
   const double gamma0 = vdoseval.calcGamma0();
   const double msd = vdoseval.getMSD( gamma0 );
-  double targetEmax_div_kT = targetEmax*invkT;
-  unsigned max_phonon_order = std::max<unsigned>(override_max_order,1);
-  auto ttpars = ( vdoslux.isLegacy()
-                  ? VDOSGn::TruncAndThinningChoices::Legacy
-                  : VDOSGn::TruncAndThinningChoices::Default );
+  double targetEmax_div_kT = targetEmax.dbl()*invkT;
+  unsigned max_phonon_order = 1;
+  auto vdosgn_cfg = ( vdoslux.isLegacy()
+                      ? VDOSGn::CfgChoices::Legacy
+                      : VDOSGn::CfgChoices::Default );
 
   constexpr double alpha2x_factor = ( 2.0*const_neutron_mass_evc2
                                       /(constant_hbar*constant_hbar) );
   const double alpha2x = alpha2x_factor*kT*msd;
   nc_assert_always( floateq( msd, alpha2x/(alpha2x_factor*kT) ) );
 
-  GnExpansion res{ VDOSGn(vdoseval,ttpars), 0.0, 0.0, alpha2x };//, msd };
+  GnExpansion res{ VDOSGn(vdoseval,vdosgn_cfg), alpha2x,
+                   NeutronEnergy{0.0}, Rectangle() };
   auto& Gn_asym = res.Gn;
 
   Gn_asym.growMaxOrder(max_phonon_order);
@@ -111,7 +167,8 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
       order_limit = 1000;
   }
 
-  const double emax_lowest_allowed = ( targetEmax_requested.value_or(1e-15) );
+  const NeutronEnergy emax_lowest_allowed
+    = targetEmax_requested.value_or(lowestEmaxPossible);
 
   //Now increase order dynamically until the last order only has contributions
   //to S(alpha,beta) outside the kinematic reach of Emax:
@@ -141,20 +198,14 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
       PairDD betaRange( eRange.first * invkT, eRange.second * invkT  );
       auto xRange = rangeXNexpMX( n, relcontriblvl );
       PairDD alphaRange( xRange.first * x2alpha, xRange.second * x2alpha  );
-      return std::make_pair(alphaRange,betaRange);
+      return Rectangle(alphaRange,betaRange);
     };
 
   while (true) {
-    if (override_max_order>0)
-      break;
     Gn_asym.growMaxOrder(max_phonon_order);
-    PairDD alphaRange, betaRange;
-    std::tie(alphaRange, betaRange)
-      = findAlphaBetaRangeOfOrder(Gn_asym.maxOrder().value());
-    if (sabPointWithinAlphaPlusCurve(targetEmax_div_kT,
-                                     alphaRange.first,
-                                     betaRange.second)) {
-      //could consider larger stepsize, but need to carefully check usage in the
+    auto abRange = findAlphaBetaRangeOfOrder(Gn_asym.maxOrder().value());
+    if (!findABExtentWithinKB(abRange,targetEmax_div_kT).isEmpty()) {
+      //Could consider larger stepsize, but need to carefully check usage in the
       //following.
       ++max_phonon_order;
     } else {
@@ -166,74 +217,52 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
       //targetEmax, to at least get a consistent table (and hope the free-gas
       //extrapolation mechanisms will be adequate already at this lower
       //threshold).
-      double targetEmax_reduced  = targetEmax;
+      NeutronEnergy targetEmax_reduced  = targetEmax;
       do {
-        targetEmax_reduced *= 0.99;
+        targetEmax_reduced.dbl() *= 0.99;
         if ( targetEmax_reduced < emax_lowest_allowed )
           NCRYSTAL_THROW2(CalcError,"VDOS expansion too slow - can not reach E="
-                          <<emax_lowest_allowed<<"eV after "<<order_limit
+                          <<emax_lowest_allowed<<" after "<<order_limit
                           <<" phonon convolutions (likely causes: either"
                           " the target energy value is too high, vdoslux too"
                           " low, the temperature too high, or the VDOS is"
                           " very unusual).");
-      } while (sabPointWithinAlphaPlusCurve(targetEmax_reduced*invkT,
-                                            alphaRange.first,
-                                            betaRange.second));
+      } while (!findABExtentWithinKB(abRange,
+                                     targetEmax_reduced.dbl()*invkT).isEmpty());
+
       if (s_verbose)
         NCRYSTAL_WARN("VDOS expansion could only reach Emax="
                       <<targetEmax_reduced
-                      <<"eV and not the requested Emax="<<targetEmax<<"K");
-      targetEmax_div_kT = targetEmax_reduced * invkT;
+                      <<" and not the requested Emax="<<targetEmax<<"K");
       targetEmax = targetEmax_reduced;
+      targetEmax_div_kT = targetEmax.dbl() * invkT;
       break;
     }
   }
-  nc_assert_always( targetEmax_requested.value_or(targetEmax) == targetEmax );
   Gn_asym.growMaxOrder(max_phonon_order);
+
+  //Record the actual Emax:
+  res.suggestedEmax = targetEmax;
 
   //Ok, we now know how many orders we need to reach targetEmax. Next step is to
   //look at the contribution of each order insided the kinematic reach of
   //targetEmax, and use it to determine alpha/beta limits:
 
-  if ( !(override_max_order>0) ) {
-    //If maxorder was overridden, we can't know how far the kernel actually
-    //reaches. Otherwise, provide the information:
-    res.suggestedEmax = targetEmax;
+  Optional<std::vector<ABRangeInfo>> abRangesForWrite;
+  if( dump_vdosabranges ) {
+    abRangesForWrite.emplace();
+    abRangesForWrite.value().reserve(max_phonon_order);
   }
 
-  double betaMin = 0.0;
-  double alphaMax = 0.0;
   for ( unsigned n = 1; n<=max_phonon_order; ++n ) {
-    PairDD alphaRange, betaRange;
-    std::tie(alphaRange, betaRange) = findAlphaBetaRangeOfOrder(n);
-    auto ep = findExtremeSABPointWithinAlphaPlusCurve(targetEmax_div_kT,
-                                                      alphaRange, betaRange);
-    if ( ep.has_value() ) {
-      alphaMax = ncmax(alphaMax,ep.value().first);
-      betaMin = ncmin(betaMin,ep.value().second);
-    }
+    auto abRange = findAlphaBetaRangeOfOrder(n);
+    auto abOverlap = findABExtentWithinKB( abRange, targetEmax_div_kT );
+    res.sabRange = res.sabRange.getUnion( abOverlap );
+    if ( abRangesForWrite.has_value() )
+      abRangesForWrite.value().push_back( { abRange, abOverlap } );
   }
-  const auto reachmsg = ( "This can happen if temperature is too high. It"
-                          " help to increase vdoslux if possible." );
-  if ( !( betaMin < 0.0 ) )
-    NCRYSTAL_THROW2(CalcError,"Beta range after "<<max_phonon_order
-                    <<" phonon orders does not extend to negative beta. "
-                    <<reachmsg);
-  if ( !( alphaMax > 0.0 ) )
-    NCRYSTAL_THROW2(CalcError,"Alpha range after "<<max_phonon_order
-                    <<" phonon orders does not extend to positive alpha. "
-                    <<reachmsg);
-  if ( vdoslux.isLegacy() ) {
-    res.betaUpper = -betaMin*1.01;
-    res.alphaUpper = alphaMax*1.01;
-  } else {
-    res.betaUpper = -betaMin;
-    res.alphaUpper = alphaMax;
-  }
-  if (override_alphamax)
-    res.alphaUpper = override_alphamax;
-  if (override_betamax)
-    res.betaUpper = override_betamax;
-  nc_assert_always( res.betaUpper>0.0 && res.alphaUpper>0.0 );
+  if ( abRangesForWrite.has_value() )
+    writeFileWithABRanges(abRangesForWrite.value(),targetEmax_div_kT);
+
   return res;
 }
