@@ -815,7 +815,10 @@ namespace NCRYSTAL_NAMESPACE {
   inline void SmallVector<TValue,NSMALL,MODE>::resize( size_type n,
                                                        detail::SV_Dummy * )
   {
-    n == m_count+1 ? this->emplace_back() : this->resize( n, TValue() );
+    if ( n == m_count+1 )
+      this->emplace_back();
+    else
+      this->resize( n, TValue() );
   }
 
   template<class TValue, std::size_t NSMALL, SVMode MODE>
