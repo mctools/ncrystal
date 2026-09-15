@@ -39,6 +39,7 @@ namespace {
     using NC::VectD;
     using NC::vectAt;
     using NC::floateq;
+    using NC::nc_is_grid;
 
 #ifndef NDEBUG
     {
