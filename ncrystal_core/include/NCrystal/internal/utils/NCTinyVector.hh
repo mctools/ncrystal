@@ -105,6 +105,9 @@ namespace NCRYSTAL_NAMESPACE {
     void pop_back() ncnoexceptndebug;
     void clear() noexcept;
 
+    //Limited resize capabilities for now:
+    void resize_down( size_type );
+
     ///////////////////////////////////////////////////////////////////////////
     //Comparison (first on size, then element-wise - this is different than
     //std::vector):
@@ -263,6 +266,20 @@ namespace NCRYSTAL_NAMESPACE {
     --m_size;
     if ( !std::is_trivially_destructible<TValue>::value )
       it->~TValue();
+  }
+
+  template<class TValue, std::size_t NMAX>
+  inline void TinyVector<TValue,NMAX>::resize_down(size_type n)
+  {
+    nc_assert( n <= m_size );
+    static_assert(std::is_nothrow_destructible<TValue>::value,
+                  "TinyVector can only keep objects with noexcept destructors");
+    if ( std::is_trivially_destructible<TValue>::value ) {
+      m_size = n;
+    } else {
+      while ( m_size > n )
+        pop_back();
+    }
   }
 
   template<class TValue, std::size_t NMAX>

@@ -427,6 +427,17 @@ void do_tests() {
     decltype(v_copyable) v_copyable3;
     v_copyable3 = v_copyable;
   }
+
+  {
+    NC::TinyVector<double,5> v = { 1.1, 2.2, 3.3, 4.4 };
+    print(v,"v");
+    v.resize_down(4);
+    print(v,"v");
+    v.resize_down(2);
+    print(v,"v");
+    v.resize_down(0);
+    print(v,"v");
+  }
 }
 
 int main() {
