@@ -20,11 +20,15 @@
 
 #include "NCrystal/internal/vdos/NCVDOSUtils.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/phys_utils/NCKinUtils.hh"
 
 namespace NC=NCrystal;
 
 NC::PairDD NC::VDOS::rangeXNexpMX(unsigned n, double eps, double accuracy ) {
-  //Interval where f(x) = x^n*exp(-x) is above eps*fpeak.
+  //FIXME: cache high-res results for lowest n=200 orders for a limited set of
+  //eps values? That would remove another source of irreproducibilities. Or, we
+  //could always use a high accuracy, and build up a cache of already returned
+  //values.
 
   nc_assert(eps>0.0&&eps<1.0&&eps>1e-200&&n>0&&accuracy>0&&accuracy<=1e-2);
 
@@ -41,75 +45,73 @@ NC::PairDD NC::VDOS::rangeXNexpMX(unsigned n, double eps, double accuracy ) {
   //
   //Which can be solved numerically for x/n:
 
-  const double fn = static_cast<double>(n);
-  const double k = kInvE * std::pow(eps,1.0/fn);
+  const double n_dbl = static_cast<double>(n);
+  const double k = kInvE * std::pow(eps,1.0/n_dbl);
   auto f = [k](double y) { return y*std::exp(-y)-k; };
-  return { fn*findRoot2( f, 0.0,   1.0, accuracy ),
-           fn*findRoot2( f, 1.0, 700.0, accuracy ) };
+  return { n_dbl*findRoot2( f, 0.0,   1.0, accuracy ),
+           n_dbl*findRoot2( f, 1.0, 700.0, accuracy ) };
 }
 
-NC::Optional<NC::PairDD>
-NC::VDOS::findExtremeSABPointWithinAlphaPlusCurve( double E_div_kT,
-                                                   PairDD alphaRange,
-                                                   PairDD betaRange )
+NC::Rectangle NC::VDOS::findABExtentWithinKB( const Rectangle& r,
+                                              double E_div_kT )
 {
-  //Find the extreme (as in highest alpha, lowest beta) kinematically
-  //accessible point in the provided rectangular region in (alpha,beta) space
-  //for a neutron with energy/kT= Emax_div_kT. Returns NullOpt in case no point
-  //is accessible. Note that we on purpose consider only the kinematic edge
-  //given by the alpha+(beta) and beta=-E/kT curves, ignoring the alpha-(beta)
-  //curve.
-  nc_assert( alphaRange.second > alphaRange.first );
-  nc_assert( alphaRange.first >= 0.0 );
-  nc_assert( betaRange.second > betaRange.first );
-  nc_assert( E_div_kT > 0.0 );
+  nc_assert(std::isfinite(r.x0()));
+  nc_assert(std::isfinite(r.x1()));
+  nc_assert(std::isfinite(r.y0()));
+  nc_assert(std::isfinite(r.y1()));
+  nc_assert(std::isfinite(E_div_kT));
+  const auto& alphaRange = r.xRange();
+  const auto& betaRange = r.yRange();
+  nc_assert(alphaRange.first >= 0.0);
+  nc_assert(alphaRange.second > alphaRange.first);
+  nc_assert(betaRange.second > betaRange.first);
+  nc_assert(E_div_kT > 0.0);
 
-#ifndef NDEBUG
-  const bool should_be_accessible
-    = sabPointWithinAlphaPlusCurve(E_div_kT,alphaRange.first,betaRange.second);
-#endif
+  const double a0 = alphaRange.first;
+  const double a1 = alphaRange.second;
+  const double b0 = betaRange.first;
+  const double b1 = betaRange.second;
+  const double e = E_div_kT;
 
-  if ( betaRange.second < -E_div_kT ) {
-    nc_assert(!should_be_accessible);
-    return NullOpt;//no accessible points in region
+  double al = a0;
+  double ah = a1;
+
+  // beta^-(alpha) < b1.
+  const auto lim1 = getAlphaLimits(e, b1);
+  if (!(lim1.first < lim1.second))
+    return {};
+
+  // For a fixed alpha, the phase-space beta interval must overlap
+  // the rectangle's beta interval.  The condition involving the
+  // rectangle's upper edge b1 is:
+  //
+  //     beta^-(alpha) < b1
+  //
+  // getAlphaLimits(e, b1) gives the two alpha values where the
+  // horizontal line beta=b1 crosses the phase-space boundary.
+  //
+  // If b1 < 0, beta^-(0)=0 is above b1, so alpha must be at
+  // least lim1.first.  If b1 >= 0, beta^-(0)<=b1, so there
+  // is no lower alpha restriction from b1.  In both cases,
+  // alpha must not exceed lim1.second.
+  if (b1 < 0.0)
+    al = ncmax(al, lim1.first);
+  ah = ncmin(ah, lim1.second);
+
+  // b0 < beta^+(alpha).
+  if (b0 >= 0.0) {
+    const auto lim0 = getAlphaLimits(e, b0);
+    al = ncmax(al, lim0.first);
   }
 
-  auto alphaPlus = [E_div_kT](double beta)
-  {
-    nc_assert( beta >= -E_div_kT );
-    return 2*E_div_kT + beta + 2 * std::sqrt( E_div_kT * ( E_div_kT + beta ) );
-  };
-  const double apb1 = alphaPlus(betaRange.second);
-  if ( apb1 < alphaRange.first ) {
-    nc_assert(!should_be_accessible);
-    return NullOpt;//no accessible points in region
-  }
+  if (!(al < ah))
+    return {};
 
-  nc_assert(should_be_accessible);
-
-  double aup = alphaRange.second;
-  double blow = betaRange.first;
-  const double bup = betaRange.second;
-
-  //Clip lower beta range at -E/kT:
-  blow = ncmax( blow, -E_div_kT );
-
-  const double apb0 = alphaPlus(blow);
-  if ( apb0 >= aup )
-    return PairDD( aup, blow );//entire rectangle is accessible
-
-  //Cut away excess reach of rectangular region along alpha:
-  aup = ncmin(aup,apb1);
-
-  //Cut away excess reach of rectangular region along beta:
-  if ( apb0 < aup ) {
-    //The next formula follows from inverting the formula
-    //alphaPlus(blow) = aup (clamped for numerical imprecisions):
-    blow = ncmin( bup, aup - 2.0 * std::sqrt(E_div_kT * aup));
-    nc_assert(floateq(alphaPlus(blow), aup));
-  }
-
-  //Rectangular region has no excess now, result is given by its extreme
-  //corner:
-  return PairDD( aup, blow );
+  // beta^-(alpha) has its minimum at alpha = e.
+  const double amin = ncmin(ncmax(e, al), ah);
+  const double betaLo = ncmax(b0, getBetaMinus(e, amin));
+  const double betaHi = ncmin(b1, getBetaPlus(e, ah));
+  if ( !(betaLo<betaHi) )
+    return {};//unlikely, except due to numerical imprecision.
+  return { al, ah, betaLo, betaHi };
 }

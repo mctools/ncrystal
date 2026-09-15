@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/vdos/NCVDOSUtils.hh"
+#include "NCrystal/internal/phys_utils/NCKinUtils.hh"
 #include <iostream>
 
 namespace NC=NCrystal;
@@ -397,174 +398,368 @@ namespace {
     }
   }
 
-  void testSABPtsVersusAlphaplus()
+  void testfindABExtentWithinKB()
   {
+    using NC::Optional;
     using NC::PairDD;
+    using NC::Rectangle;
+    using NC::VDOS::findABExtentWithinKB;
+    using NC::floateq;
     using NC::VectD;
-    using NC::VDOS::findExtremeSABPointWithinAlphaPlusCurve;
-    using NC::VDOS::sabPointWithinAlphaPlusCurve;
-    using NC::fmt;
+    using NC::ncmax;
 
-    struct Point {
-      double e, a, b;
-      bool ok;
+    std::size_t nchecks = 0;
+
+    const auto check = [&nchecks](PairDD ar, PairDD br, double e,
+                                  PairDD expectedA, PairDD expectedB) {
+      ++nchecks;
+      const auto r = findABExtentWithinKB( Rectangle(ar,br),e );
+
+      REQUIRE(!r.isEmpty());
+
+      REQUIREFLTEQ(r.x0(), expectedA.first);
+      REQUIREFLTEQ(r.x1(), expectedA.second);
+      REQUIREFLTEQ(r.y0(), expectedB.first);
+      REQUIREFLTEQ(r.y1(), expectedB.second);
     };
 
-    const std::vector<Point> points = {
-      { 1.0, 0.0, -1.0, true },
-      { 1.0, 1.0, -1.0, true },
-      { 1.0, 1.000001, -1.0, false },
-      { 1.0, 2.0, -1.0, false },
-      { 1.0, 0.0, -1.000001, false },
-      { 1.0, 1.0, -0.5, true },
-      { 1.0, 4.0, -0.5, false },
-      { 1.0, 7.464101615, 2.0, true },
-      { 1.0, 7.464102615, 2.0, false },
-      { 0.01, 0.0, -0.01, true },
-      { 0.01, 0.010001, -0.01, false },
-      { 10.0, 10.0, -10.0, true },
-      { 10.0, 10.000001, -10.0, false },
-      { 10.0, 0.0, -10.000001, false }
+    const auto checkEmpty = [&nchecks](PairDD ar, PairDD br, double e) {
+      ++nchecks;
+      const auto r = findABExtentWithinKB( Rectangle(ar,br),e );
+      REQUIRE(r.isEmpty());
     };
+    // Basic unrestricted intersection.
+    check( {0.0, 10.0}, {-10.0, 10.0}, 1.0,{0.0, 10.0},{-1.0, 10.0});
+    // Rectangle completely inside the phase-space region.
+    check({2.0, 3.0},{0.0, 1.0},1.0,{2.0, 3.0},{0.0, 1.0});
+    // Minimum beta is controlled by the phase-space vertex.
+    check({0.0, 10.0},{-10.0, 10.0},2.0,{0.0, 10.0},{-2.0, 10.0});
 
-    for ( auto& p : points ) {
-      std::cout<<"Testing ptWithinAP for E/kT="<<fmt(p.e)
-               <<" alpha="<<fmt(p.a)
-               <<" beta="<<fmt(p.b)
-               <<" (expected within: "<<(p.ok?"yes":"no")<<")"<<std::endl;
-      REQUIRE(sabPointWithinAlphaPlusCurve(p.e,p.a,p.b) == p.ok);
-    }
-
-    struct Rect {
-      double e;
-      PairDD ar, br;
-      bool ok;
-      double a, b;
-    };
-
-    const std::vector<Rect> rects = {
-      { 1.0, { 0.0, 1.0 }, { -2.0, -1.0 }, true, 1.0, -1.0 },
-      { 1.0, { 0.0, 1.0 }, { -2.0, -1.000001 }, false, 0.0, 0.0 },
-      { 1.0, { 1.0, 2.0 }, { -2.0, -1.0 }, true, 1.0, -1.0 },
-      { 1.0, { 6.0, 7.0 }, { -2.0, 1.0 }, false, 0.0, 0.0 },
-      { 1.0, { 0.5, 0.9 }, { -2.0, 0.0 }, true, 0.9, -1.0 },
-      { 1.0, { 1.0, 4.0 }, { -0.5, 2.0 }, true, 4.0, 0.0 },
-      { 1.0, { 4.0, 8.0 }, { -0.5, 2.0 }, true, 7.464101615137754, 2.0 },
-      { 0.01, { 0.0, 0.005 }, { -1.0, 0.0 }, true, 0.005, -0.01 },
-      { 0.01, { 0.02, 0.03 }, { -1.0, 0.0 }, true, 0.03,  0.03-2.0*std::sqrt(0.01 * 0.03) },
-      { 10.0, { 0.0, 5.0 }, { -20.0, -10.0 }, true, 5.0, -10.0 },
-      { 10.0, { 25.0, 30.0 }, { -20.0, 0.0 }, true, 30.0, -4.6410161513775 },
-      { 10.0, { 45.0, 50.0 }, { -20.0, 0.0 }, false, 0.0, 0.0 }
-    };
-
-    const auto pointOnOrInside = [](double e, double a, double b)
+    // Both alpha limits are defined by beta boundaries.
     {
-      //More relaxed version, accepting pts also floateq to the edge.
-      const double ap = 2.0 * e + b
-        + 2.0 * std::sqrt(e * (e + b));
-      return a <= ap || NC::floateq(a,ap);
-    };
-
-    for ( auto& r : rects ) {
-      std::cout<<"Testing findExtreme for E/kT="<<fmt(r.e)
-               <<" alow="<<fmt(r.ar.first)
-               <<" aup="<<fmt(r.ar.second)
-               <<" blow="<<fmt(r.br.first)
-               <<" bup="<<fmt(r.br.second)
-               <<" (expected has-val: "<<(r.ok?"yes":"no")<<")"<<std::endl;
-      const auto result =
-        findExtremeSABPointWithinAlphaPlusCurve(r.e,r.ar,r.br);
-      REQUIRE(result.has_value() == r.ok);
-      if ( !r.ok )
-        continue;
-      REQUIREFLTEQ(result.value().first,r.a);
-      REQUIREFLTEQ(result.value().second,r.b);
-      REQUIRE(result.value().first >= r.ar.first);
-      REQUIRE(result.value().first <= r.ar.second);
-      REQUIRE(result.value().second >= r.br.first);
-      REQUIRE(result.value().second <= r.br.second);
-      //NB: We had:
-      //REQUIRE(sabPointWithinAlphaPlusCurve
-      //        (r.e,result.value().first,result.value().second));
-      //However, this can fail due to numerical fluctuation. So we use this
-      //instead which uses floateq for pts on the edge:
-      REQUIRE(pointOnOrInside(r.e,result.value().first,result.value().second));
-      //And a more relaxed:
-      REQUIRE(sabPointWithinAlphaPlusCurve(r.e,
-                                           result.value().first,
-                                           result.value().second+1e-6));
-
+      check({0.0, 10.0},{-10.0, -1.0},2.0,
+            {3.0 - 2.0 * std::sqrt(2.0), 3.0 + 2.0 * std::sqrt(2.0)},
+            {-2.0, -1.0});
     }
 
+    // Positive lower beta boundary defines the lower alpha limit.
+    {
+      check({0.0, 100.0},{3.0, 4.0},2.0,
+            {7.0 - 2.0 * std::sqrt(10.0),8.0 + 4.0 * std::sqrt(3.0)},
+            {3.0, 4.0});
+    }
 
-    //Next, we check the result against accessible points on a small grid. The
-    //returned point must have alpha at least as high as every sampled
-    //accessible point and must remain inside the requested rectangle.  Boundary
-    //points are checked with a tolerance, because of FP inaccuracies in the
-    //evaluation of the curve and its inverse.
-    const VectD es = { 0.01, 0.1, 1.0, 10.0 };
-    const VectD as = { 0.0, 0.1, 1.0, 3.0, 10.0 };
-    const VectD bs = { -10.0, -1.0, -0.1, 0.0, 1.0, 10.0 };
+    // No intersection: beta is entirely above the upper phase boundary.
+    checkEmpty({0.0, 1.0e-4},{10.0, 11.0},1.0);
 
-    for ( auto& e : es ) {
-      for ( auto& amin : as ) {
-        for ( auto& amax : as ) {
-          if ( amax <= amin )
-            continue;
-          for ( auto& bmin : bs ) {
-            for ( auto& bmax : bs ) {
-              if ( bmax <= bmin )
-                continue;
-              std::cout<<"Testing e="<<fmt(e)
-                       <<" amin="<<fmt(amin)<<" amax="<<fmt(amax)
-                       <<" bmin="<<fmt(bmin)<<" bmax="<<fmt(bmax)<<std::endl;
-              const PairDD ar(amin,amax);
-              const PairDD br(bmin,bmax);
-              const auto result =
-                findExtremeSABPointWithinAlphaPlusCurve(e,ar,br);
-              bool found = false;
-              double maxa = -NC::kInfinity;
-              for ( auto& a : as ) {
-                if ( a < amin || a > amax )
-                  continue;
-                for ( auto& b : bs ) {
-                  if ( b < bmin || b > bmax )
-                    continue;
-                  if ( !sabPointWithinAlphaPlusCurve(e,a,b) )
-                    continue;
-                  found = true;
-                  maxa = NC::ncmax(maxa,a);
-                }
-              }
-              if ( !found )
-                continue;
-              REQUIRE(result.has_value());
-              REQUIRE(result.value().first >= maxa);
-              REQUIRE(result.value().first >= amin);
-              REQUIRE(result.value().first <= amax);
-              REQUIRE(result.value().second >= bmin);
-              REQUIRE(result.value().second <= bmax);
-              REQUIRE(pointOnOrInside
-                      (e,result.value().first,result.value().second));
-              //This next test might suffer from FP inaccuracies due to
-              //round-tripping. So adding small tolerance:
-              REQUIRE(sabPointWithinAlphaPlusCurve(e,result.value().first,
-                                                   result.value().second+1e-6));
-            }
-          }
-        }
+    // No positive-area intersection: only the endpoint
+    // (alpha,beta) = (e,-e) is touched.
+    checkEmpty({0.0, 2.0},{-2.0, -1.0},1.0);
+
+    // No positive-area intersection when beta1 <= -e.
+    checkEmpty({0.0, 10.0},{-3.0, -2.0},2.0);
+
+    // Alpha range cuts off the feasible region.
+    checkEmpty({0.0, 0.1},{1.0, 2.0},1.0);
+
+    // Lower-alpha-root cancellation test.  The expected root is
+    // approximately b0^2/(4*e), while the direct expression
+    // sqrt(e+b0)-sqrt(e) would lose substantial precision.
+    {
+      ++nchecks;
+      const double e = 1.0;
+      const double b0 = 1.0e-10;
+      const double b1 = 2.0e-10;
+      const double expectedLo = b0 * b0 / 4.0;
+
+      const auto r = findABExtentWithinKB( {0.0, 1.0, b0, b1}, e );
+
+      REQUIRE(!r.isEmpty());
+      REQUIRE(floateq(r.x0(), expectedLo,1.0e-6, 1.0e-30));
+      REQUIRE(floateq(r.x1(), 1.0, 1.0e-6, 1.0e-14));
+      REQUIRE(floateq(r.y0(), b0, 1.0e-6, 1.0e-20));
+      REQUIRE(floateq(r.y1(), b1, 1.0e-6, 1.0e-20));
+    }
+
+    // Lower-beta cancellation test near alpha = 4*e.
+    {
+      ++nchecks;
+      const double e = 1.0;
+      const double a0 = 4.0 - 1.0e-8;
+      const double a1 = 4.0 + 1.0e-8;
+      const double expected =
+        a0 - 2.0 * std::sqrt(a0);
+
+      const auto r = findABExtentWithinKB( {a0, a1, -1.0, 1.0}, e );
+      REQUIRE(!r.isEmpty());
+      REQUIRE(floateq(r.y0(), expected,1.0e-6, 1.0e-14));
+      REQUIRE(r.y0() < 0.0);
+    }
+
+    // The exact vertex should remain numerically well behaved.
+    check({1.0, 1.0 + 1.0e-6},{-1.0, 1.0},1.0,
+          {1.0, 1.0 + 1.0e-6},{-1.0, 1.0});
+
+    // Narrow intersection close to the lower phase-space boundary.
+    {
+      ++nchecks;
+      const double e = 1.0;
+      const double b = -0.999999;
+
+      const auto r = findABExtentWithinKB( {0.0, 10.0,b, b + 1.0e-8}, e );
+      REQUIRE(!r.isEmpty());
+      REQUIRE(r.x0() >= 0.0);
+      REQUIRE(r.x1() > r.x0() );
+      REQUIRE(r.y1() > r.y0() );
+    }
+    // Check that clipping by the rectangle does not alter the
+    // phase-space-derived result incorrectly.
+    {
+      ++nchecks;
+      const auto r = findABExtentWithinKB( {0.5, 2.0,-10.0, 10.0}, 1.0 );
+      REQUIRE(!r.isEmpty());
+      REQUIREFLTEQ(r.x0(), 0.5);
+      REQUIREFLTEQ(r.x1(), 2.0);
+      REQUIREFLTEQ(r.y0(), -1.0);
+      REQUIREFLTEQ(r.y1(),2.0 + 2.0 * std::sqrt(2.0));
+    }
+
+    // Verify the returned bounds are contained in the rectangle
+    // and satisfy the closed phase-space inequalities.
+
+    {
+      const VectD es{1e-30, 0.01, 0.1, 1.0, 10.0, 17.0, 100.0, 1e50 };
+
+      for (const double e : es) {
+        ++nchecks;
+        const auto r = findABExtentWithinKB( {0.0, 20.0 * e,-3.0 * e, 8.0 * e}, e );
+        REQUIRE(!r.isEmpty());
+
+        const PairDD ar = r.xRange();
+        const PairDD br = r.yRange();
+        const double tol = 1.0e-10 * ncmax(1.0, e);
+
+        // The returned alpha extent is inside the rectangle.
+        REQUIRE(ar.first >= -tol);
+        REQUIRE(ar.second <= 20.0 * e + tol);
+
+        // The returned beta extent is inside the rectangle.
+        REQUIRE(br.first >= -3.0 * e - tol);
+        REQUIRE(br.second <= 8.0 * e + tol);
+
+        // Each alpha endpoint must have some beta in the rectangle
+        // that is inside the closed phase-space region.
+        const auto checkAlpha = [&](double alpha) {
+          const double betaLo = NC::getBetaMinus(e, alpha);
+          const double betaHi = NC::getBetaPlus(e, alpha);
+
+          REQUIRE(betaLo <= 8.0 * e + tol);
+          REQUIRE(betaHi >= -3.0 * e - tol);
+        };
+
+        checkAlpha(ar.first);
+        checkAlpha(ar.second);
+
+        // Each beta endpoint must have some alpha in the returned
+        // alpha interval that is inside the closed phase-space region.
+        const auto checkBeta = [&](double beta) {
+          const auto lim = NC::getAlphaLimits(e, beta);
+          REQUIRE(lim.first <= ar.second + tol);
+          REQUIRE(lim.second >= ar.first - tol);
+        };
+
+        checkBeta(br.first);
+        checkBeta(br.second);
       }
     }
+
+    //More exact value tests:
+    {
+      // The rectangle covers the relevant phase-space region.
+      check({0.0, 10.0},{-10.0, 10.0},1.0,{0.0, 10.0},{-1.0, 10.0});
+
+      // The rectangle's alpha upper bound clips beta^+.
+      check({0.5, 2.0},{-10.0, 10.0},1.0,
+            {0.5, 2.0},{-1.0, 2.0 + 2.0 * std::sqrt(2.0)});
+
+      // The rectangle lies entirely inside the phase-space region.
+      check({2.0, 3.0},{0.0, 1.0},1.0,
+            {2.0, 3.0},{0.0, 1.0});
+
+      // Alpha = e gives the minimum beta^- value.
+      check({0.0, 10.0},{-10.0, 10.0},2.0,
+            {0.0, 10.0},{-2.0, 10.0});
+
+      // Both alpha limits are determined by a negative beta interval.
+      check({0.0, 10.0},{-10.0, -1.0},2.0,
+            {3.0 - 2.0 * std::sqrt(2.0),3.0 + 2.0 * std::sqrt(2.0)},
+            {-2.0, -1.0});
+
+      // A positive beta lower bound determines alpha^-.
+      check({0.0, 100.0},{3.0, 4.0},2.0,
+            {7.0 - 2.0 * std::sqrt(10.0),8.0 + 4.0 * std::sqrt(3.0)},
+            {3.0, 4.0});
+
+      // The alpha interval starts above the phase-space vertex.
+      check({5.0, 6.0},{-10.0, 10.0},1.0,
+            {5.0, 6.0},{5.0 - 2.0 * std::sqrt(5.0), 10.0});
+
+      // The alpha interval ends below alpha = e.
+      check({0.0, 1.0},{-10.0, 10.0},1.0,
+            {0.0, 1.0},{-1.0, 3.0});
+
+      // A negative beta lower bound imposes no lower alpha restriction.
+      check({0.0, 10.0},{-0.5, 0.5},1.0,
+            {0.0,2.5 + 2.0 * std::sqrt(1.5)},{-0.5, 0.5});
+
+      // The rectangle clips both alpha endpoints.
+      check({1.0, 3.0},{-0.5, 0.5},1.0,{1.0, 3.0},{-0.5, 0.5});
+      check({1.0, 10.0},{-0.5, 0.5},1.0,
+            {1.0,2.5 + 2.0 * std::sqrt(1.5)},{-0.5, 0.5});
+    }
+    //more empty checks:
+    {
+      // Only a zero-area tangency at (e,-e).
+      checkEmpty({0.0, 2.0},{-2.0, -1.0},1.0);
+
+      // The beta interval is entirely above the phase-space region.
+      checkEmpty({0.0, 1.0e-4},{10.0, 11.0},1.0);
+
+      // beta1 is below the minimum possible beta value.
+      checkEmpty({0.0, 10.0},{-3.0, -2.0},2.0);
+
+      // The rectangle alpha range misses the feasible alpha range.
+      checkEmpty({0.0, 0.1},{1.0, 2.0},1.0);
+    }
+    std::cout<<"  Finished "<<nchecks<<" test cases"<<std::endl;
   }
 }
+
+void testFindABExtentVaryingTopology()
+{
+  using NC::Optional;
+  using NC::PairDD;
+  using NC::VDOS::findABExtentWithinKB;
+
+  std::size_t nchecks = 0;
+  const auto check = [&nchecks](PairDD ar, PairDD br, double e,
+                                PairDD expectedA, PairDD expectedB) {
+    ++nchecks;
+    const auto r = findABExtentWithinKB( {ar, br }, e );
+
+    REQUIRE(!r.isEmpty());
+    REQUIREFLTEQ(r.x0(), expectedA.first);
+    REQUIREFLTEQ(r.x1(), expectedA.second);
+    REQUIREFLTEQ(r.y0(), expectedB.first);
+    REQUIREFLTEQ(r.y1(), expectedB.second);
+  };
+
+  const auto checkEmpty = [&nchecks](PairDD ar, PairDD br, double e) {
+    ++nchecks;
+    const auto r = findABExtentWithinKB( {ar, br}, e );
+    REQUIRE(r.isEmpty());
+  };
+
+  // The same fixed rectangle has different phase-space topology
+  // as the vertex alpha=e moves through it.
+  check({0.0, 1.0},{-10.0, 10.0},0.01,{0.0, 1.0},{-0.01, 1.2});
+  check({0.0, 1.0},{-10.0, 10.0},1.0,{0.0, 1.0},{-1.0, 3.0});
+  check({0.0, 1.0},{-10.0, 10.0},10.0,{0.0, 1.0},
+        {1.0 - 2.0 * std::sqrt(10.0),
+         1.0 + 2.0 * std::sqrt(10.0)});
+  check({0.0, 1.0},{-10.0, 10.0},100.0,
+        {0.0, 1.0},{-10.0, 10.0});
+
+  // Fixed positive-beta range.  The phase-space alpha limits
+  // eventually move beyond the rectangle's alpha limits.
+  const auto aminus = [](double e, double b) {
+    const double x = std::sqrt(e + b) - std::sqrt(e);
+    return x * x;
+  };
+  const auto aplus = [](double e, double b) {
+    const double x = std::sqrt(e + b) + std::sqrt(e);
+    return x * x;
+  };
+
+  check({0.0, 1000.0},{3.0, 4.0},0.01,
+        {aminus(0.01, 3.0), aplus(0.01, 4.0)},
+        {3.0, 4.0});
+  check({0.0, 1000.0},{3.0, 4.0},1.0,
+        {aminus(1.0, 3.0), aplus(1.0, 4.0)},
+        {3.0, 4.0});
+  check({0.0, 1000.0},{3.0, 4.0},100.0,
+        {aminus(100.0, 3.0), aplus(100.0, 4.0)},
+        {3.0, 4.0});
+
+  // The fixed alpha range clips the upper alpha boundary for
+  // sufficiently large e.
+  check({0.0, 100.0},{3.0, 4.0},100.0,
+        {aminus(100.0, 3.0), 100.0},{3.0, 4.0});
+
+  // A fixed rectangle changes from empty to nonempty as e grows.
+  checkEmpty({0.0, 1.0},{10.0, 11.0},1.0);
+  checkEmpty({0.0, 1.0},{10.0, 11.0},10.0);
+  check({0.0, 1.0},{10.0, 11.0},100.0,
+        {aminus(100.0, 10.0), 1.0},
+        {10.0, 11.0});
+
+
+  // As e increases, the upper alpha boundary moves from being
+  // phase-space controlled to being rectangle controlled.
+
+  // The phase-space upper boundary clips alpha.
+  check({0.0, 10.0},{-10.0, 0.5},0.01,
+        {0.0,(std::sqrt(0.51) + 0.1) *(std::sqrt(0.51) + 0.1)},
+        {-0.01, 0.5});
+
+  // The phase-space upper boundary still clips alpha.
+  check({0.0, 10.0},{-10.0, 0.5},1.0,
+        {0.0,(std::sqrt(1.5) + 1.0) *(std::sqrt(1.5) + 1.0)},
+        {-1.0, 0.5});
+
+  // The phase-space upper boundary has moved beyond the rectangle,
+  // so the rectangle clips alpha instead.
+  check({0.0, 10.0},{-10.0, 0.5},10.0,{0.0, 10.0},{-10.0, 0.5});
+
+  // A fixed alpha interval can lie above, across, or below alpha=e.
+
+  // The interval lies above alpha=e, so beta^- is smallest at alpha=0.1.
+  check({0.1, 0.2},{-10.0, 10.0},0.01,
+        {0.1, 0.2},
+        { 0.1 - 2.0 * std::sqrt(0.001), 0.2 + 2.0 * std::sqrt(0.002)});
+
+  // The interval contains alpha=e, so beta^- reaches its minimum -e.
+  check({0.1, 0.2},{-10.0, 10.0},0.15,
+        {0.1, 0.2},{-0.15,0.2 + 2.0 * std::sqrt(0.03)});
+
+  // The interval lies below alpha=e, so beta^- is smallest at alpha=0.2.
+  check({0.1, 0.2},{-10.0, 10.0},1.0,
+        {0.1, 0.2},
+        { 0.2 - 2.0 * std::sqrt(0.2), 0.2 + 2.0 * std::sqrt(0.2)});
+
+  check({0.1, 0.2},{-10.0, 10.0},10.0,
+        {0.1, 0.2},
+        { 0.2 - 2.0 * std::sqrt(2.0), 0.2 + 2.0 * std::sqrt(2.0)});
+
+  //Extra:
+  check( {0.0,1.0}, {-1.0, 1.0 }, 1.0, {0.0,1.0}, {-1.0, 1.0 } );
+  check( {9.8438128337251046e-10, 66.734366117519073},
+         {-14.885516960320452, 14.208609519508997},
+         193.40870184199235,
+         {9.8438128337251046e-10, 66.734366117519073},
+         {-14.885516960320452, 14.208609519508997} );
+  std::cout<<"  Finished "<<nchecks<<" test cases"<<std::endl;
+}
+
+
 
 int main() {
   std::cout<<"Testing rangeXNexpMX"<<std::endl;
   testRangeXNexpMX();
-  (void)testRangeXNexpMX;
   std::cout<<"Testing rangeXNexpMX... done"<<std::endl;
-  std::cout<<"Testing SAB pts versus alphaplus fcts"<<std::endl;
-  testSABPtsVersusAlphaplus();
-  std::cout<<"Testing SAB pts versus alphaplus fcts... done"<<std::endl;
+  std::cout<<"Testing findABExtentWithinKB"<<std::endl;
+  testfindABExtentWithinKB();
+  testFindABExtentVaryingTopology();
+  std::cout<<"Testing findABExtentWithinKB... done"<<std::endl;
   return 0.0;
 }
