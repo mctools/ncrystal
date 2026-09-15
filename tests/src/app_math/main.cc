@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCStableDbl.hh"
 #include <iostream>
 
 namespace NC=NCrystal;
@@ -285,7 +286,7 @@ namespace {
     }
   }
 
-  void testFindRoot2()
+  void testFindRoot()
   {
 
     using NC::findRoot2;
@@ -386,7 +387,121 @@ namespace {
 
   }
 
+  void testStableDbl() {
+    using NC::StableDbl;
+    const double u = std::numeric_limits<double>::epsilon();
+
+    {
+      StableDbl x;
+      REQUIRE(x.value() == 0.0);
+      x = 1.5;
+      REQUIRE(x.value() == 1.5);
+      StableDbl y(x);
+      REQUIRE(y.value() == 1.5);
+      y = 2.0;
+      REQUIRE(y.value() == 2.0);
+      y = x;
+      REQUIRE(y.value() == 1.5);
+      y += 1e-100;
+      REQUIRE(y.value() == 1.5);
+      y -= 1.5;
+      REQUIRE(y.value() == 1e-100);
+    }
+
+    {
+      StableDbl x(3.0);
+      REQUIRE(x.value() == 3.0);
+    }
+
+    {
+      auto x = StableDbl::fromState({3.0, u});
+      REQUIRE(x.value() == 3.0);
+    }
+
+    {
+      auto x = StableDbl::fromState({1.0, u});
+      StableDbl y(-1.0);
+      StableDbl z = x + y;
+      REQUIRE(z.value() == u);
+    }
+
+    {
+      auto x = StableDbl::fromState({1.0,u});
+      StableDbl y(-1.0);
+      StableDbl z = x - y;
+      REQUIRE(z.value() == 2.0 + u);
+    }
+
+    {
+      auto x = StableDbl::fromState({1.0,u});
+      StableDbl z = -x;
+      REQUIRE(z.value() == -1.0-u);
+      REQUIRE((-z).value() == x.value());
+    }
+
+    {
+      StableDbl x(1.5);
+      StableDbl y(2.0);
+      REQUIRE((x * y).value() == 3.0);
+    }
+
+    {
+      StableDbl x(1.5);
+      StableDbl y(2.0);
+      REQUIRE((x * 2.0).value() == 3.0);
+      REQUIRE((2.0 * x).value() == 3.0);
+    }
+
+    {
+      auto x = StableDbl::fromState({1.0,u});
+      auto y = StableDbl::fromState({1.0,u});
+      StableDbl z = x * y;
+      REQUIRE(z.value() == 1.0 + 2.0 * u);
+    }
+
+    // The exact result is u^2. Ordinary double arithmetic
+    // rounds (1+u)^2 to 1+2u before the subtraction.
+    {
+      StableDbl a(1.0 + u);
+      StableDbl b(1.0 + 2.0 * u);
+      StableDbl z = a * a - b;
+      REQUIRE(z.value() == u * u);
+      REQUIRE(z.value() != 0.0);
+    }
+
+    {
+      StableDbl x(1.25);
+      StableDbl y(2.5);
+      x += y;
+      REQUIRE(x.value() == 3.75);
+      x -= y;
+      REQUIRE(x.value() == 1.25);
+      x *= y;
+      REQUIRE(x.value() == 3.125);
+      x *= 2.0;
+      REQUIRE(x.value() == 6.25);
+    }
+
+    {
+      auto x = StableDbl::fromState({1.0,u});
+      REQUIRE( x.state().first == 1.0 );
+      REQUIRE( x.state().second == u );
+      auto y = StableDbl::fromState({1.0,2.0*u});
+      StableDbl z = (x + y) - y;
+      REQUIRE(z.value() == x.value());
+    }
+
+    {
+      StableDbl x(0.0);
+      StableDbl y(-0.0);
+      StableDbl z = x * y;
+      REQUIRE(z.value() == 0.0);
+    }
+  }
+
 }
+
+
 
 int main() {
 
@@ -465,7 +580,10 @@ int main() {
   testPowspace();
   std::cout<<"powspace testing done."<<std::endl;
   std::cout<<"root finding testing start..."<<std::endl;
-  testFindRoot2();
+  testFindRoot();
   std::cout<<"root finding testing done."<<std::endl;
+  std::cout<<"StableDbl testing start..."<<std::endl;
+  testStableDbl();
+  std::cout<<"StableDbl testing done."<<std::endl;
   return 0;
 }
