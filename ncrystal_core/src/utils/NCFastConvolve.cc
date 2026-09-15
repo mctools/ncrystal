@@ -20,6 +20,8 @@
 
 #include "NCrystal/internal/utils/NCFastConvolve.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCStableDbl.hh"
+#include "NCrystal/internal/utils/NCTinyVector.hh"
 #include <complex>
 namespace NC = NCrystal;
 
@@ -34,18 +36,38 @@ namespace NCRYSTAL_NAMESPACE {
     //patterns. We make sure we can reuse calculations for these if needed, by
     //keeping a common global cache of these in a dedicated manager class:
 
-    class FastConvolveCacheMgr : NoCopyMove {
+    //For maximal precision, we use StableDbl's for our phase calculations and a
+    //lookup table for values of exp(i*2pi/2^n):
+
+    using ComplexSD = std::pair<StableDbl, StableDbl>;
+
+    inline ComplexSD complexMult( const ComplexSD& a, const ComplexSD& b)
+    {
+      return { a.first * b.first - a.second * b.second,
+               a.first * b.second + a.second * b.first };
+    }
+
+    class FastConvolveCacheMgr final : private NoCopyMove {
     public:
-      struct SwapPatternCache {
-        std::vector<std::pair<unsigned,unsigned>> pattern;
+      struct SwapPatternCache final {
+        std::vector<std::pair<unsigned long,unsigned long>> pattern;
         int output_log_size = 0;
       };
       using WTable = std::vector< std::complex<double> >;
 
-      static shared_obj<WTable> defaultWTable() { static auto wt = makeSO<WTable>(); return wt; }
-      static shared_obj<SwapPatternCache> defaultSwapPattern() { static auto spc = makeSO<SwapPatternCache>(); return spc; }
+      static shared_obj<WTable> defaultWTable()
+      {
+        static auto wt = makeSO<WTable>();
+        return wt;
+      }
 
-      shared_obj<WTable> getWTable( unsigned k ) const
+      static shared_obj<SwapPatternCache> defaultSwapPattern()
+      {
+        static auto spc = makeSO<SwapPatternCache>();
+        return spc;
+      }
+
+      shared_obj<WTable> getWTable( unsigned long k ) const
       {
         {
           NCRYSTAL_LOCK_GUARD(m_w_cache_mutex);
@@ -96,10 +118,9 @@ namespace NCRYSTAL_NAMESPACE {
         m_w_cache.clear();
         m_swap_cache.clear();
       }
-
-      static PairDD calcPhase(unsigned k, unsigned n);
+      static ComplexSD calcPhaseSD(unsigned long k, unsigned long n);
     private:
-      void initWTable( unsigned, WTable& ) const;
+      void initWTable( unsigned long, WTable& ) const;
       void initSwapPattern( int, SwapPatternCache& ) const;
 
       mutable std::map<int,shared_obj<WTable>> m_w_cache;
@@ -113,13 +134,15 @@ namespace NCRYSTAL_NAMESPACE {
       static FastConvolveCacheMgr mgr;
       static const bool dummy = []()
       {
-        registerCacheCleanupFunction([](){ getFastConvolveCacheMgr().clearCaches(); });
+        registerCacheCleanupFunction([]()
+        {
+          getFastConvolveCacheMgr().clearCaches();
+        });
         return false;
       }();
       (void) dummy;
       return mgr;
     }
-
   }
 
   struct FastConvolve::Impl {
@@ -137,35 +160,16 @@ namespace NCRYSTAL_NAMESPACE {
 
     //The actual fast-fourier transform algorithm:
     template<bool is_forward>
-    void fft( std::vector<std::complex<double> > &inout,unsigned minimum_output_size );
-    void applySwaps( const SwapPatternCache&, std::vector<std::complex<double>>& ) const;
-    void convolve( const NC::VectD& a1, const NC::VectD& a2, NC::VectD& y, double dt );
+    void fft( std::vector<std::complex<double> > &inout,
+              unsigned long minimum_output_size );
+    void applySwaps( const SwapPatternCache&,
+                     std::vector<std::complex<double>>& ) const;
+    void convolve( const VectD& a1, const VectD& a2,
+                   VectD& y, double dt,
+                   bool useLegacyBehaviour );
 
   };
-
-  namespace {
-
-    inline PairDD detail_mult_imag( PairDD a, PairDD b ) noexcept
-    {
-      // (a+ib)*(c+id) = (a*c-b*d) + i* (a*d+b*c)
-      return { (a.first*b.first-a.second*b.second),
-               (a.first*b.second+a.second*b.first) };
-    }
-
-    // //According to cppreference.com, the layout of std::complex<double> MUST be
-    // //the same as a double[2] array. Hence, faster access is provided with:
-    // inline double* complexAsArray( std::complex<double>& v ) noexcept { return reinterpret_cast<double*>(&v); }
-    // inline const double* complexAsArray( const std::complex<double>& v ) noexcept { return reinterpret_cast<const double*>(&v); }
-    // inline double& accessReal( std::complex<double>& v ) noexcept { return reinterpret_cast<double(&)[2]>(v)[0]; }
-    // inline const double& accessReal( const std::complex<double>& v ) noexcept { return reinterpret_cast<const double(&)[2]>(v)[0]; }
-    // inline double& accessImag( std::complex<double>& v ) noexcept { return reinterpret_cast<double(&)[2]>(v)[1]; }
-    // inline const double& accessImag( const std::complex<double>& v ) noexcept { return reinterpret_cast<const double(&)[2]>(v)[1]; }
-
-  }
 }
-
-NC::FastConvolve::FastConvolve() = default;
-NC::FastConvolve::~FastConvolve() = default;
 
 NC::FastConvolve::FastConvolve( FastConvolve&& o ) noexcept
   : m_impl( std::move(o.m_impl) )
@@ -180,11 +184,14 @@ NC::FastConvolve& NC::FastConvolve::operator=( FastConvolve&& o ) noexcept
   return *this;
 }
 
-void NC::FastConvolveCacheMgr::initWTable( unsigned n_size_raw, std::vector< std::complex<double> >& wtable ) const
+void NC::FastConvolveCacheMgr::initWTable( unsigned long n_size_raw,
+                                           std::vector< std::complex<double> >& wtable ) const
 {
+  static_assert( sizeof(unsigned long) >= sizeof(std::uint32_t), "");
+  nc_assert_always(n_size_raw<=1000000000u);
   //round n_size up to next power of 2, and also:
-  unsigned nsize = 1;
-  unsigned log2_nsize = 0;
+  unsigned long nsize = 1;
+  unsigned long log2_nsize = 0;
   while ( nsize < n_size_raw ) {
     nsize <<= 1;
     ++log2_nsize;
@@ -193,41 +200,42 @@ void NC::FastConvolveCacheMgr::initWTable( unsigned n_size_raw, std::vector< std
   wtable.clear();
   wtable.reserve(nsize);
 
-#if 1
-  PairDD phaseval{1.0,0.0};
-  const PairDD phase1n = ::NC::FastConvolve::calcPhase(1, log2_nsize);
-  for( unsigned i = 0; i < nsize; ++i ) {
+  ComplexSD phaseval{1.0,0.0};
+  const ComplexSD phase1n = calcPhaseSD(1, log2_nsize);
+  for( unsigned long i = 0; i < nsize; ++i ) {
     if ( i%2==1 ) {
       //for odd i, we anyway would end up calculating it like this inside
       //calcPhase - but this way we can reuse the previous phaseval:
-      phaseval = detail_mult_imag(phase1n,phaseval);
+      phaseval = complexMult( phase1n, phaseval);
     } else {
-      phaseval = calcPhase(i, log2_nsize);
+      phaseval = calcPhaseSD(i, log2_nsize);
     }
-    wtable.emplace_back(std::complex<double>(phaseval.first,phaseval.second));
+    wtable.emplace_back(std::complex<double>(phaseval.first.value(),
+                                             phaseval.second.value()));
   }
-#else
-  for( unsigned i = 0; i < nsize; ++i ) {
-    PairDD phaseval = calcPhase(i, log2_nsize);
-    wtable.emplace_back(std::complex<double>(phaseval.first,phaseval.second));
-  }
-#endif
 }
 
-void NC::FastConvolve::convolve( const NC::VectD& a1, const NC::VectD& a2,
-                                 NC::VectD& y, double dt )
+void NC::FastConvolve::convolve( const VectD& a1, const VectD& a2,
+                                 VectD& y, double dt )
 {
-  m_impl->convolve(a1,a2,y,dt);
+  m_impl->convolve(a1,a2,y,dt,false);
+}
+
+void NC::FastConvolve::convolveLegacy( const VectD& a1, const VectD& a2,
+                                       VectD& y, double dt )
+{
+  m_impl->convolve(a1,a2,y,dt,true);
 }
 
 
-void NC::FastConvolve::Impl::convolve( const NC::VectD& a1, const NC::VectD& a2,
-                                       NC::VectD& y, double dt )
+void NC::FastConvolve::Impl::convolve( const VectD& a1, const VectD& a2,
+                                       VectD& y, double dt,
+                                       bool useLegacyBehaviour )
 {
   const int minimum_out_size = a1.size() + a2.size() - 1;
 
   //Note: We could calculate the next two fft calls concurrently, but it was
-  //attempted and did not work as well, as instead employing concurrency in
+  //attempted and did not work as well as instead employing concurrency in
   //NCVDOSGn.cc, so we keep that for now.
 
   std::vector<std::complex<double> > b1(a1.begin(),a1.end());
@@ -236,7 +244,8 @@ void NC::FastConvolve::Impl::convolve( const NC::VectD& a1, const NC::VectD& a2,
   fft<true>(b2,minimum_out_size);
 
   nc_assert(b1.size()==b2.size());
-  std::vector<std::complex<double> >::iterator itb1(b1.begin()), itb1E(b1.end()), itb2(b2.begin());
+  std::vector<std::complex<double> >::iterator
+    itb1(b1.begin()), itb1E(b1.end()), itb2(b2.begin());
   while (itb1!=itb1E)
     *itb1++ *= *itb2++;
 
@@ -248,23 +257,41 @@ void NC::FastConvolve::Impl::convolve( const NC::VectD& a1, const NC::VectD& a2,
   nc_assert(y.size()<=b1.size());
   VectD::iterator ity(y.begin()), ityE(y.end());
   itb1 = b1.begin();
-#ifdef NCRYSTAL_FASTCONVOLVE_EXTRASAFEMATH
-  for(;ity!=ityE;++ity,++itb1) {
-    //use std::abs which calls std::hypot behind the scenes (expensive but can avoid overflows)
-    *ity = k * std::abs(*itb1);
+
+  //LegacyBehaviour: Wrongly used std::abs. However, result is supposed to be
+  //real already, with only tiny numerical fluctuations in the imaginary
+  //component. Correct behaviour is instead take the real part of result.
+  //
+  //For a use case like VDOS convolutions where we expect output to be purely
+  //positive, the calling code should itself clamp output to positive values if
+  //needed.
+
+  if ( useLegacyBehaviour ) {
+    //Wrongly used std::abs. However, result is supposed to be real already,
+    //with only tiny numerical fluctuations in the imaginary component.
+#   ifdef NCRYSTAL_FASTCONVOLVE_EXTRASAFEMATH
+    for(;ity!=ityE;++ity,++itb1) {
+      //NB: Use std::abs which calls std::hypot behind the
+      //    scenes (expensive but can avoid overflows)
+      *ity = k * std::abs(*itb1);
+    }
+#   else
+    //Naive and simple, avoids std::hypot, more easily vectorisable:
+    for(;ity!=ityE;++ity,++itb1) {
+      double a(itb1->real());
+      double b(itb1->imag());
+      *ity = a*a+b*b;
+    }
+    for(ity = y.begin();ity!=ityE;++ity)
+      *ity = std::sqrt(*ity);
+    for(ity = y.begin();ity!=ityE;++ity)
+      *ity *= k;
+#   endif
+  } else {
+    //Result is the real part of the calculations:
+    for(;ity!=ityE;++ity,++itb1)
+      *ity = k * itb1->real();
   }
-#else
-  //naive and simple, avoids std::hypot, more easily vectorisable:
-  for(;ity!=ityE;++ity,++itb1) {
-    double a(itb1->real());
-    double b(itb1->imag());
-    *ity = a*a+b*b;
-  }
-  for(ity = y.begin();ity!=ityE;++ity)
-    *ity = std::sqrt(*ity);
-  for(ity = y.begin();ity!=ityE;++ity)
-    *ity *= k;
-#endif
 }
 
 void NC::FastConvolveCacheMgr::initSwapPattern( int output_log_size, SwapPatternCache& swap_cache ) const
@@ -309,7 +336,8 @@ void NC::FastConvolveCacheMgr::initSwapPattern( int output_log_size, SwapPattern
   pattern.swap(swap_cache.pattern);
 }
 
-void NC::FastConvolve::Impl::applySwaps( const SwapPatternCache& swapcache, std::vector<std::complex<double>> &data ) const
+void NC::FastConvolve::Impl::applySwaps( const SwapPatternCache& swapcache,
+                                         std::vector<std::complex<double>> &data ) const
 {
   //Avoid direct std::complex usage. This next cast is actually OK by the c++11
   //standard (https://stackoverflow.com/questions/69591371):
@@ -324,7 +352,7 @@ void NC::FastConvolve::Impl::applySwaps( const SwapPatternCache& swapcache, std:
 
 template<bool is_forward>
 void NC::FastConvolve::Impl::fft( std::vector<std::complex<double>> &data,
-                                  unsigned minimum_output_size )
+                                  unsigned long minimum_output_size )
 {
   const double output_log_size_fp = std::ceil(std::log2(minimum_output_size));
   static_assert( sizeof(int) == sizeof(std::int32_t), "" );//otherwise we need
@@ -369,9 +397,6 @@ void NC::FastConvolve::Impl::fft( std::vector<std::complex<double>> &data,
 
   nc_assert_always(wtable.size()%output_size==0);
   const int jump = wtable.size()/output_size;
-#ifndef NCRYSTAL_FASTCONVOLVE_EXTRASAFEMATH
-  //const double convfact = (is_forward?1.0:-1.0);
-#endif
 
 #ifndef NCRYSTAL_FASTCONVOLVE_EXTRASAFEMATH
   double * rawdata = reinterpret_cast<double*>( data.data() );
@@ -458,18 +483,17 @@ void NC::FastConvolve::Impl::fft( std::vector<std::complex<double>> &data,
   }
 }
 
-NC::PairDD NC::FastConvolve::calcPhase(unsigned k, unsigned n)
+NC::PairDD NC::FastConvolve::calcPhase(unsigned long k, unsigned long n)
 {
-  return FastConvolveCacheMgr::calcPhase(k,n);
+  auto p = FastConvolveCacheMgr::calcPhaseSD(k, n);
+  return { p.first.value(), p.second.value() };
 }
 
-NC::PairDD NC::FastConvolveCacheMgr::calcPhase(unsigned k, unsigned n)
+NC::ComplexSD NC::FastConvolveCacheMgr::calcPhaseSD(unsigned long k,
+                                                    unsigned long n)
 {
-  //Calculate exp(i*2*pi*k/2^n) where n must a nonzero number n=1,2,3,4,...
-  //and k must be a number in 0...n-1.
-  //
-  //NB: Using PairDD for (real,imag) parts, rather than std::complex<double> => for
-  //efficiency (we don't need the safety checks for obscure cases...).
+  //Calculate exp(i*2*pi*k/2^n). Aim is to do so fast, but more importantly as
+  //precise as possible with results reproducible on all platforms.
   //
   //Idea, use exp(a*b)=exp(a)*exp(b) and a small cache of
   //exp(i2pi/2^N), N=0,1,2,. when k!=1, one can combine as in these examples:
@@ -479,10 +503,25 @@ NC::PairDD NC::FastConvolveCacheMgr::calcPhase(unsigned k, unsigned n)
   // 17/32 = 1/32 + 1/2
   //
   // 11/32 = 1/32 + 5/16 = 1/32 + 1/16 + 1/4
+  //
+  // Additional idea: when k/2^n > 1/2 we can initially lower the effective
+  // value by evaluating with q=2^n-k instead of k, which gives us the
+  // conjugated value of the result we are after, since:
+  //
+  // exp(i*2*pi*k/2^n) = exp(-i*2*pi*(q/2^n) = conjugate(exp(i*2*pi*(q/2^n)))
+  //
+  // That gives us the advantage of less numbers to multiply, with less
+  // accumulated error.
+
+  constexpr unsigned long ncache = 33;
+  static_assert( sizeof(unsigned long) >= sizeof(std::uint32_t), "" );
+  nc_assert( n <= 30u );//We could go up to ncache-1, but at ~1e9 2^30 already
+                        //consumes too much memory.
 
   //Trivial case:
-  if ( k == 0 )
+  if ( n == 0 || k == 0 ) {
     return { 1.0, 0.0 };
+  }
 
   //Eliminate common factors of 2 in fraction k/2^n:
   while ( k%2==0 ) {
@@ -490,75 +529,126 @@ NC::PairDD NC::FastConvolveCacheMgr::calcPhase(unsigned k, unsigned n)
     n -= 1;
     k /= 2;
   }
+  const unsigned long two_to_n = 1u<<n;
+  nc_assert(two_to_n<=1073741824);
+  nc_assert( k < two_to_n );
+  if ( n == 1 && k == 1 )
+    return { -1.0, 0.0 };
+
+  nc_assert(n>=2);//since (n,k) = (0,0),(1,0), (1,1) already dealt with
+  const unsigned long two_to_nminus1 = 1u<<(n-1u);
+
+  if ( k >= two_to_nminus1 ) {
+    if ( k==two_to_nminus1 )
+      return { -1.0, 0.0 };
+    //i2pi*k/2^n is in 3rd of 4th quadrant => map to 1st or 2nd quadrant.
+    auto p = calcPhaseSD(two_to_n-k, n);
+    return { p.first, -p.second };
+  }
+  const unsigned long two_to_nminus2 = 1u<<(n-2u);
+  if ( k >= two_to_nminus2 ) {
+    if ( k == two_to_nminus2 )
+      return { 0.0, 1.0 };
+    //i2pi*k/2^n is in 2nd quadrant => map to 1st quadrant.
+    auto p = calcPhaseSD( two_to_nminus1-k, n );
+    return { -p.first, p.second };
+  }
+
+  //Ok, we now have k < 2^(n-2), i.e. we are in the 1st quadrant.
 
   if ( k == 1 ) {
-    //Fundamental form.
+    //Fundamental form, trigonometric argument is 2pi/2^n. Since there are only
+    //~32 possible n values, we use high-res lookup table for these to ensure
+    //maximal precision and cross-platform consistency.
     nc_assert(n>=1);//k>0, so it follows from k<=n-1 that n>1
+    //Cache high-precision numbers (from Python's mpmath module) for efficiency,
+    //accuracy and reproducability. The lookup tables contains 37 significant
+    //digits, so would even be OK for float128):
+    static std::array<double, ncache> cosvals = {
+      1.0,  // cos(2pi/2^0)
+      -1.0, // cos(2pi/2^1)
+      0.0,  // cos(2pi/2^2)
+      7.071067811865475244008443621048490393e-1, // cos(2pi/2^3)
+      9.238795325112867561281831893967882868e-1, // cos(2pi/2^4)
+      9.80785280403230449126182236134239037e-1, // cos(2pi/2^5)
+      9.951847266721968862448369531094799216e-1, // cos(2pi/2^6)
+      9.987954562051723927147716047591006944e-1, // cos(2pi/2^7)
+      9.996988186962042201157656496661721969e-1, // cos(2pi/2^8)
+      9.999247018391445409216464911963832244e-1, // cos(2pi/2^9)
+      9.999811752826011426569904377285677162e-1, // cos(2pi/2^10)
+      9.999952938095761715115801257001198996e-1, // cos(2pi/2^11)
+      9.99998823451701909929025710171526019e-1, // cos(2pi/2^12)
+      9.999997058628822191602282177387656771e-1, // cos(2pi/2^13)
+      9.999999264657178511447314807073878569e-1, // cos(2pi/2^14)
+      9.999999816164292938083469154029097145e-1, // cos(2pi/2^15)
+      9.99999995404107312890971933139606149e-1, // cos(2pi/2^16)
+      9.999999988510268275626733077945541084e-1, // cos(2pi/2^17)
+      9.999999997127567068494139722186417761e-1, // cos(2pi/2^18)
+      9.999999999281891767097750958838504903e-1, // cos(2pi/2^19)
+      9.999999999820472941772826241477841074e-1, // cos(2pi/2^20)
+      9.999999999955118235443105841729973244e-1, // cos(2pi/2^21)
+      9.999999999988779558860770165517525365e-1, // cos(2pi/2^22)
+      9.999999999997194889715192147947195845e-1, // cos(2pi/2^23)
+      9.999999999999298722428798012397287368e-1, // cos(2pi/2^24)
+      9.999999999999824680607199501562477367e-1, // cos(2pi/2^25)
+      9.999999999999956170151799875294566562e-1, // cos(2pi/2^26)
+      9.999999999999989042537949968817638342e-1, // cos(2pi/2^27)
+      9.999999999999997260634487492204034379e-1, // cos(2pi/2^28)
+      9.999999999999999315158621873050985144e-1, // cos(2pi/2^29)
+      9.99999999999999982878965546826274482e-1, // cos(2pi/2^30)
+      9.999999999999999957197413867065686114e-1, // cos(2pi/2^31)
+      9.999999999999999989299353466766421523e-1 // cos(2pi/2^32)
+    };
+    static std::array<double, ncache> sinvals = {
+      0.0, // sin(2pi/2^0)
+      0.0, // sin(2pi/2^1)
+      1.0, // sin(2pi/2^2)
+      7.071067811865475244008443621048490393e-1, // sin(2pi/2^3)
+      3.826834323650897717284599840303988668e-1, // sin(2pi/2^4)
+      1.950903220161282678482848684770222409e-1, // sin(2pi/2^5)
+      9.801714032956060199419556388864184586e-2, // sin(2pi/2^6)
+      4.906767432741801425495497694268265831e-2, // sin(2pi/2^7)
+      2.454122852291228803173452945928292507e-2, // sin(2pi/2^8)
+      1.227153828571992607940826195100321214e-2, // sin(2pi/2^9)
+      6.135884649154475359640234590372580917e-3, // sin(2pi/2^10)
+      3.067956762965976270145365490919842519e-3, // sin(2pi/2^11)
+      1.53398018628476561230369715026407908e-3, // sin(2pi/2^12)
+      7.669903187427045269385683579485766431e-4, // sin(2pi/2^13)
+      3.834951875713955890724616811813812634e-4, // sin(2pi/2^14)
+      1.917475973107033074399095619890009335e-4, // sin(2pi/2^15)
+      9.587379909597734587051721097647635119e-5, // sin(2pi/2^16)
+      4.793689960306688454900399049465887275e-5, // sin(2pi/2^17)
+      2.396844980841821872918657716502182009e-5, // sin(2pi/2^18)
+      1.19842249050697064215215615969889848e-5, // sin(2pi/2^19)
+      5.99211245264242784287971180889086173e-6, // sin(2pi/2^20)
+      2.996056226334660750454812808357059812e-6, // sin(2pi/2^21)
+      1.498028113169011228854278846155361121e-6, // sin(2pi/2^22)
+      7.490140565847157211304985667306556372e-7, // sin(2pi/2^23)
+      3.745070282923841239031691790846331774e-7, // sin(2pi/2^24)
+      1.872535141461953448688245765935636171e-7, // sin(2pi/2^25)
+      9.362675707309808279906728668088562019e-8, // sin(2pi/2^26)
+      4.681337853654909269511551813854009696e-8, // sin(2pi/2^27)
+      2.340668926827455275950549341903484404e-8, // sin(2pi/2^28)
+      1.17033446341372771812462135032381038e-8, // sin(2pi/2^29)
+      5.851672317068638690809790100834139694e-9, // sin(2pi/2^30)
+      2.925836158534319357928230469068955902e-9, // sin(2pi/2^31)
+      1.46291807926715968052953216186596371e-9 // sin(2pi/2^32)
+    };
 
-    //Cache high-precision numbers (from Python's mpmath module) (for
-    //efficiency, accuracy and reproducability):
-    constexpr unsigned ncache = 21;
-    static std::array<double, ncache> cosvals = { 1.0, // cos(2pi/2^0)
-                                                  -1.0, // cos(2pi/2^1)
-                                                  0.0, // cos(2pi/2^2)
-                                                  0.707106781186547524401, // cos(2pi/2^3)
-                                                  0.923879532511286756128, // cos(2pi/2^4)
-                                                  0.980785280403230449126, // cos(2pi/2^5)
-                                                  0.995184726672196886245, // cos(2pi/2^6)
-                                                  0.998795456205172392715, // cos(2pi/2^7)
-                                                  0.999698818696204220116, // cos(2pi/2^8)
-                                                  0.999924701839144540922, // cos(2pi/2^9)
-                                                  0.999981175282601142657, // cos(2pi/2^10)
-                                                  0.999995293809576171512, // cos(2pi/2^11)
-                                                  0.999998823451701909929, // cos(2pi/2^12)
-                                                  0.99999970586288221916, // cos(2pi/2^13)
-                                                  0.999999926465717851145, // cos(2pi/2^14)
-                                                  0.999999981616429293808, // cos(2pi/2^15)
-                                                  0.999999995404107312891, // cos(2pi/2^16)
-                                                  0.999999998851026827563, // cos(2pi/2^17)
-                                                  0.999999999712756706849, // cos(2pi/2^18)
-                                                  0.99999999992818917671, // cos(2pi/2^19)
-                                                  0.999999999982047294177 }; // cos(2pi/2^20)
-
-    static std::array<double, ncache> sinvals = { 0.0, // sin(2pi/2^0)
-                                                  0.0, // sin(2pi/2^1)
-                                                  1.0, // sin(2pi/2^2)
-                                                  0.707106781186547524401, // sin(2pi/2^3)
-                                                  0.382683432365089771728, // sin(2pi/2^4)
-                                                  0.195090322016128267848, // sin(2pi/2^5)
-                                                  0.0980171403295606019942, // sin(2pi/2^6)
-                                                  0.049067674327418014255, // sin(2pi/2^7)
-                                                  0.0245412285229122880317, // sin(2pi/2^8)
-                                                  0.0122715382857199260794, // sin(2pi/2^9)
-                                                  0.00613588464915447535964, // sin(2pi/2^10)
-                                                  0.00306795676296597627015, // sin(2pi/2^11)
-                                                  0.0015339801862847656123, // sin(2pi/2^12)
-                                                  0.000766990318742704526939, // sin(2pi/2^13)
-                                                  0.000383495187571395589072, // sin(2pi/2^14)
-                                                  0.00019174759731070330744, // sin(2pi/2^15)
-                                                  0.0000958737990959773458705, // sin(2pi/2^16)
-                                                  0.000047936899603066884549, // sin(2pi/2^17)
-                                                  0.0000239684498084182187292, // sin(2pi/2^18)
-                                                  0.0000119842249050697064215, // sin(2pi/2^19)
-                                                  0.00000599211245264242784288 }; // sin(2pi/2^20)
-
-    if ( n < ncache ) {
-      nc_assert( n < cosvals.size() );
-      nc_assert( n < sinvals.size() );
-      return { cosvals[n], sinvals[n] };
-    }
-
-    //Since n>20 (ncache=21), 2pi/2^n must be less than 3e-6, so we can safely
-    //use the fast sincos_mpi256pi256 which requires arguments to be less than
-    //pi/256~=1e-2. However, note that we usually do not get here at all, since
-    //n=20 covers W tables of a size up to ~1e6.
-    double cosval, sinval;
-    sincos_mpi256pi256( k2Pi/std::exp2(n) ,cosval,sinval);
-    return { cosval, sinval };
+    nc_assert( n < ncache );
+    return { cosvals[n], sinvals[n] };
   }
 
   //Non-fundamental form, must combine results from several fundamental forms
   //using multiplication of complex numbers.
   nc_assert(k%2==1);//must be odd at this point
-  return detail_mult_imag( calcPhase(1, n), calcPhase(k-1, n) );
+
+  //NB: This turns k-1 into an even value, meaning the second factor will
+  //actually be evaluated at ((k-1)/2,n-1):
+  return complexMult( calcPhaseSD( 1, n ),
+                      calcPhaseSD( k-1, n ) );
 }
+
+//Here due to pimpl:
+NC::FastConvolve::FastConvolve() = default;
+NC::FastConvolve::~FastConvolve() = default;
