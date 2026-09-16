@@ -21,8 +21,8 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "NCrystal/core/NCDefs.hh"
 #include "NCrystal/internal/utils/NCRect.hh"
+#include "NCrystal/internal/utils/NCSpan.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -42,6 +42,20 @@ namespace NCRYSTAL_NAMESPACE {
     // has no area. Boundary-only intersections are therefore excluded, but of
     // course the usual caveats of floating point arithmetic applies.
     Rectangle findABExtentWithinKB( const Rectangle&, double E_div_kT );
+
+    // In-place spacing out of the positive and negative parts of a finite,
+    // strictly increasing grid. For adjacent nonzero points a < b with the same
+    // sign, the points are considered too close when (0.0<=rtol<1.0):
+    //
+    //   b - a < rtol * min(abs(a), abs(b)).
+    //
+    // The first and last point of both positive and negative subgrids remain
+    // fixed, while interior points are moved in place as needed. If there is
+    // not enough room between fixed points to space out intermediate points, an
+    // error is raised. In case of any errors, the grid might be left in an
+    // invalid state.
+    void spaceOutGrid(Span<double>, double rtol);
+
   }
 }
 

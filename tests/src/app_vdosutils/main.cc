@@ -21,6 +21,7 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/vdos/NCVDOSUtils.hh"
 #include "NCrystal/internal/phys_utils/NCKinUtils.hh"
+#include "NCrystal/internal/utils/NCStrView.hh"
 #include <iostream>
 
 namespace NC=NCrystal;
@@ -751,6 +752,336 @@ void testFindABExtentVaryingTopology()
   std::cout<<"  Finished "<<nchecks<<" test cases"<<std::endl;
 }
 
+void test_spaceOutGrid()
+{
+  using NC::VectD;
+  using NC::Span;
+  using NC::vectAt;
+
+  auto too_close = [](double a, double b, double rtol) {
+    nc_assert(std::isfinite(a));
+    nc_assert(std::isfinite(b));
+    nc_assert(std::isfinite(rtol));
+    nc_assert(rtol >= 0.0 && rtol < 1.0);
+    nc_assert(b > a);
+    if (a == 0.0 || b == 0.0)
+      return false;
+    if ((a < 0.0) != (b < 0.0))
+      return false;
+    //Try to mimic FP arithmetic as it is in the spaceOutGrid implementation, to
+    //avoid tiny FP issues.
+    const double r = 1.0 + rtol;
+    if (a > 0.0)
+      return b < r * a;
+    // For negative a < b, b is closer to zero.
+    return a > r * b;
+  };
+
+  auto prtgrid = [](Span<const double> g){
+    std::cout<<"[";
+    bool first = true;
+    for (auto e : g) {
+      if (first)
+        first = false;
+      else
+        std::cout<<", ";
+      std::cout<<NC::fmt(e);
+    }
+    std::cout<<"]";
+  };
+
+  auto check = [&too_close](const Span<const double>& g, double rtol) {
+    nc_assert(nc_is_grid(g));
+    nc_assert(rtol >= 0.0 && rtol < 1.0);
+    for (std::size_t i = 1; i < g.size(); ++i)
+      REQUIRE(!too_close(vectAt(g, i - 1), vectAt(g, i), rtol));
+  };
+  auto callSpaceOutGrid = [&check,&prtgrid](Span<double> g,double rtol)
+  {
+    NC::Optional<NC::PairDD> fb;
+    if ( g.size() >= 2 ) {
+      fb.emplace( g.front(), g.back() );
+    }
+    std::cout<<"Calling spaceOutGrid(";
+    prtgrid(g);
+    std::cout<<", rtol="<<NC::fmtg(rtol)<<")"<<std::endl;
+    NC::VDOS::spaceOutGrid( g, rtol );
+    std::cout<<"   -> result: ";
+    prtgrid(g);
+    std::cout<<std::endl;
+    if ( fb.has_value() ) {
+      REQUIRE( g.front() == fb.value().first );
+      REQUIRE( g.back() == fb.value().second );
+    }
+    check(g,rtol);
+  };
+  auto callSpaceOutGridNoChange = [&callSpaceOutGrid](VectD g,
+                                                      double rtol)
+  {
+    const VectD old = g;
+    callSpaceOutGrid(g,rtol);
+    REQUIRE(g == old);
+  };
+
+  callSpaceOutGridNoChange({1.0, 2.0, 4.0}, 0.0);
+  callSpaceOutGridNoChange({1.0, 1.1, 1.21, 1.331},//exact rtol=0.1 spaced
+                           0.1*(1.0-1e-14));
+  callSpaceOutGridNoChange({-1.0, -0.8, 0.0, 0.8, 1.0}, 0.1);
+  callSpaceOutGridNoChange({-1.0e-12, 0.0, 1.0e-12}, 0.99);
+  callSpaceOutGridNoChange({-4.0, -2.0, -1.0}, 0.1);
+  callSpaceOutGridNoChange({1.0, 2.0, 4.0}, 0.1);
+  callSpaceOutGridNoChange({-1.0, 0.0, 1.0}, 0.1);
+  callSpaceOutGridNoChange({-4.0, -2.0, -1.0, 0.0, 1.0, 2.0, 4.0}, 0.1);
+  callSpaceOutGridNoChange({-4.0, -2.0, -1.0, 0.0, 1.0, 2.0, 4.0}, 0.1);
+
+  // Equality at the threshold is considered sufficiently spaced.
+  callSpaceOutGridNoChange({1.0, 1.1}, 0.1);
+  callSpaceOutGridNoChange({-1.0, -0.9}, 0.1);
+  // rtol == 0 is a no-op for a mixed-sign grid as well.
+  callSpaceOutGridNoChange({-2.0, -1.0, 0.0, 1.0, 2.0}, 0.0);
+  // A very small positive rtol can round 1.0 + rtol back to 1.0.
+  callSpaceOutGridNoChange({-2.0, -1.0, 0.0, 1.0, 2.0},
+                           std::numeric_limits<double>::denorm_min());
+
+  {
+    VectD g{1.0, 1.01, 1.0201, 1.1};
+    callSpaceOutGrid(g, 0.02);
+    REQUIRE(g[1] > 1.01);
+    REQUIRE(g[2] > 1.0201);
+  }
+
+  {
+    VectD g{-1.0, -0.99, -0.98, -0.8};
+    callSpaceOutGrid(g, 0.02);
+    REQUIRE(g[1] > -0.99);
+    REQUIRE(g[2] > -0.98);
+  }
+
+  {
+    VectD g{-1.0, -0.99, -0.9, -0.89999};
+    callSpaceOutGrid(g, 0.005);
+    REQUIRE(g[1] == -0.99);
+    REQUIREFLTEQ(g[2],-0.90448994999999988);
+  }
+
+  {
+    VectD g{1.0, 1.0001, 2.0};
+    const double last = g.back();
+    callSpaceOutGrid(g, 1.0e-3);
+    REQUIRE(g.front() == 1.0);
+    REQUIRE(g.back() == last);
+    REQUIRE(g[1] > 1.0001);
+  }
+
+
+  // Zero at the beginning: only the positive suffix is processed.
+  {
+    VectD g{0.0, 1.0, 1.01, 2.0};
+    callSpaceOutGrid(g, 0.1);
+    REQUIRE(g.front() == 0.0);
+    REQUIRE(g[1] == 1.0);
+    REQUIRE(g[2] > 1.01);
+    REQUIRE(g.back() == 2.0);
+  }
+
+  // Zero at the end: only the negative prefix is processed.
+  {
+    VectD g{-2.0, -1.01, -1.0, 0.0};
+    callSpaceOutGrid(g, 0.1);
+    REQUIRE(g.front() == -2.0);
+    REQUIRE(g[1] < -1.01);
+    REQUIRE(g[2] == -1.0);
+    REQUIRE(g.back() == 0.0);
+  }
+
+  // Positive grid: successful backward pass after the forward pass
+  // reaches the fixed last endpoint.
+  {
+    VectD g{1.0, 1.5, 1.51, 1.6};
+    const double first = g.front();
+    const double last = g.back();
+    callSpaceOutGrid(g, 0.1);
+    REQUIRE(g.front() == first);
+    REQUIRE(g.back() == last);
+    REQUIRE(g[1] < 1.5);
+    REQUIRE(g[2] < 1.51);
+  }
+
+  // Negative grid: successful forward pass after the backward pass
+  // reaches the fixed first endpoint.
+  {
+    VectD g{-1.0, -0.99, -0.8, -0.5};
+    const double first = g.front();
+    const double last = g.back();
+    callSpaceOutGrid(g, 0.1);
+    REQUIRE(g.front() == first);
+    REQUIRE(g.back() == last);
+    REQUIRE(g[1] > -0.99);
+  }
+
+
+  // Positive forward pass: move points to the right.
+  {
+    VectD g{1.0, 1.01, 1.0201, 1.1};
+    callSpaceOutGrid(g, 0.02);
+    REQUIRE(g[1] > 1.01);
+    REQUIRE(g[2] > 1.0201);
+  }
+
+  // Positive backward pass: move points to the left.
+  {
+    VectD g{1.0, 1.5, 1.51, 1.6};
+    callSpaceOutGrid(g, 0.1);
+    REQUIRE(g.front() == 1.0);
+    REQUIRE(g.back() == 1.6);
+    REQUIRE(g[1] < 1.5);
+    REQUIRE(g[2] < 1.51);
+  }
+
+  // Negative forward pass: move points toward zero.
+  {
+    VectD g{-1.0, -0.99, -0.8, -0.5};
+    callSpaceOutGrid(g, 0.1);
+    REQUIRE(g.front() == -1.0);
+    REQUIRE(g.back() == -0.5);
+    REQUIRE(g[1] > -0.99);
+  }
+
+  // Negative backward pass: move an interior point away from zero,
+  {
+    VectD g{-10.0, -2.0, -1.0, -0.99};
+    callSpaceOutGrid(g, 0.1);
+    REQUIREFLTEQ(g.at(1),-2.0);
+    REQUIREFLTEQ(g.at(2),-1.089);
+  }
+
+  // Floating-point regression test for the negative forward pass.
+  {
+    VectD g{-1.6, -1.51, -1.5, -1.0};
+    callSpaceOutGrid(g, 0.1);
+    REQUIRE(g.front() == -1.6);
+    REQUIRE(g.back() == -1.0);
+  }
+
+  // Zero at the beginning.
+  {
+    VectD g{0.0, 1.0, 1.01, 2.0};
+    callSpaceOutGrid(g, 0.1);
+    REQUIRE(g.front() == 0.0);
+    REQUIRE(g[1] == 1.0);
+    REQUIRE(g[2] > 1.01);
+    REQUIRE(g.back() == 2.0);
+  }
+
+  // Zero at the end.
+  {
+    VectD g{-2.0, -1.01, -1.0, 0.0};
+    callSpaceOutGrid(g, 0.1);
+    REQUIRE(g.front() == -2.0);
+    REQUIRE(g[1] < -1.01);
+    REQUIRE(g[2] == -1.0);
+    REQUIRE(g.back() == 0.0);
+  }
+
+  {
+    VectD g{-4.0, -4.0+1e-12, -1.000000001e-12, -1e-12, 0.0,
+            1e-10, 1.0000005e-10, 17.0, 17.00000001};
+    callSpaceOutGrid(g, 0.0001);
+  }
+
+  //Test exceptions, both always on and those from dbg-build only asserts:
+  auto requireThrow = [](VectD g, double rtol)
+  {
+    bool thrown = false;
+    bool thrown_invalidmsg = false;
+    try {
+      NC::VDOS::spaceOutGrid(g, rtol);
+    } catch (const NC::Error::BadInput& e) {
+      thrown = true;
+      if (NC::StrView(e.what()?e.what():"")!="Unable to space out grid")
+        thrown_invalidmsg = true;
+    }
+    if (!thrown) {
+      std::cout<<"ERROR: Did not throw expected BadInput"<<std::endl;
+    } else if (thrown_invalidmsg) {
+      std::cout<<"ERROR: Threw BadInput as expected but with wrong message."
+               <<std::endl;
+    } else {
+      std::cout<<"  -> Emitted expected BadInput"<<std::endl;
+    }
+    REQUIRE(thrown&&!thrown_invalidmsg);
+  };
+
+  auto requireAssert = [](VectD g, double rtol)
+  {
+#ifdef NDEBUG
+    (void)g;
+    (void)rtol;
+#else
+    //nc_assert raise NC::Error::LogicError in dbg builds.
+    bool thrown = false;
+    try {
+      NC::VDOS::spaceOutGrid(g, rtol);
+    } catch (const NC::Error::LogicError&) {
+      thrown = true;
+    }
+    if (!thrown)
+      std::cout<<"ERROR: Did not trigger assert as expected"<<std::endl;
+    REQUIRE(thrown);
+#endif
+  };
+
+  requireThrow({1.0, 1.01, 1.1, 1.3},0.1);
+  requireThrow({-1.0, -0.99, -0.9, -0.8},0.1);
+  requireThrow({1.0, 1.01, 1.02},0.02);
+  requireThrow({-1.0, -0.99, -0.98},0.02);
+  requireThrow({-1.0, -0.99, -0.9, -0.8},0.1);
+
+  const double dmax = std::numeric_limits<double>::max();
+  // Positive forward pass: r * a overflows.
+  requireThrow({dmax / 1.0001, dmax}, 1.0e-3);
+  // Negative backward pass: r * b overflows in magnitude.
+  requireThrow({-dmax, -dmax / 1.0001}, 1.0e-3);
+
+  requireAssert({},0.1);
+  requireAssert({1.0},0.1);
+  requireAssert({1.0,2.0},-0.1);
+  requireAssert({1.0,2.0},1.0);
+  requireAssert({1.0,2.0},NC::kInfinity);
+  requireAssert({1.0, 1.0, 2.0},0.1);
+  requireAssert({1.0, 2.0, 1.5},0.1);
+
+  requireAssert({std::numeric_limits<double>::quiet_NaN(), 1.0}, 0.1);
+  requireAssert({1.0, std::numeric_limits<double>::quiet_NaN()}, 0.1);
+
+  requireAssert({-std::numeric_limits<double>::infinity(), 1.0}, 0.1);
+  requireAssert({1.0, std::numeric_limits<double>::infinity()}, 0.1);
+  requireAssert({1.0, -std::numeric_limits<double>::infinity()}, 0.1);
+
+  requireAssert({1.0, 2.0}, std::numeric_limits<double>::quiet_NaN());
+  // Invalid input is still diagnosed when rtol is zero.
+  requireAssert({1.0, 1.0}, 0.0);
+  requireAssert({2.0, 1.0}, 0.0);
+  requireAssert({std::numeric_limits<double>::quiet_NaN(), 1.0}, 0.0);
+
+
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  const double inf = std::numeric_limits<double>::infinity();
+
+  requireAssert({nan, 1.0}, 0.1);
+  requireAssert({1.0, nan}, 0.1);
+
+  requireAssert({inf, 2.0}, 0.1);
+  requireAssert({1.0, inf}, 0.1);
+
+  requireAssert({-inf, 1.0}, 0.1);
+  requireAssert({1.0, -inf}, 0.1);
+
+  requireAssert({1.0, 2.0}, nan);
+
+  requireAssert({1.0, 2.0}, -std::numeric_limits<double>::denorm_min());
+  requireAssert({1.0, 2.0}, 1.0);
+}
 
 
 int main() {
@@ -761,5 +1092,8 @@ int main() {
   testfindABExtentWithinKB();
   testFindABExtentVaryingTopology();
   std::cout<<"Testing findABExtentWithinKB... done"<<std::endl;
+  std::cout<<"Testing spaceOutGrid"<<std::endl;
+  test_spaceOutGrid();
+  std::cout<<"Testing spaceOutGrid... done"<<std::endl;
   return 0.0;
 }

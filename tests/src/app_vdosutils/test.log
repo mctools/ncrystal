@@ -4,3 +4,70 @@ Testing findABExtentWithinKB
   Finished 37 test cases
   Finished 20 test cases
 Testing findABExtentWithinKB... done
+Testing spaceOutGrid
+Calling spaceOutGrid([1, 2, 4], rtol=0)
+   -> result: [1, 2, 4]
+Calling spaceOutGrid([1, 1.1, 1.21, 1.331], rtol=0.1)
+   -> result: [1, 1.1, 1.21, 1.331]
+Calling spaceOutGrid([-1, -0.8, 0, 0.8, 1], rtol=0.1)
+   -> result: [-1, -0.8, 0, 0.8, 1]
+Calling spaceOutGrid([-1e-12, 0, 1e-12], rtol=0.99)
+   -> result: [-1e-12, 0, 1e-12]
+Calling spaceOutGrid([-4, -2, -1], rtol=0.1)
+   -> result: [-4, -2, -1]
+Calling spaceOutGrid([1, 2, 4], rtol=0.1)
+   -> result: [1, 2, 4]
+Calling spaceOutGrid([-1, 0, 1], rtol=0.1)
+   -> result: [-1, 0, 1]
+Calling spaceOutGrid([-4, -2, -1, 0, 1, 2, 4], rtol=0.1)
+   -> result: [-4, -2, -1, 0, 1, 2, 4]
+Calling spaceOutGrid([-4, -2, -1, 0, 1, 2, 4], rtol=0.1)
+   -> result: [-4, -2, -1, 0, 1, 2, 4]
+Calling spaceOutGrid([1, 1.1], rtol=0.1)
+   -> result: [1, 1.1]
+Calling spaceOutGrid([-1, -0.9], rtol=0.1)
+   -> result: [-1, -0.9]
+Calling spaceOutGrid([-2, -1, 0, 1, 2], rtol=0)
+   -> result: [-2, -1, 0, 1, 2]
+Calling spaceOutGrid([-2, -1, 0, 1, 2], rtol=4.94066e-324)
+   -> result: [-2, -1, 0, 1, 2]
+Calling spaceOutGrid([1, 1.01, 1.0201, 1.1], rtol=0.02)
+   -> result: [1, 1.02, 1.0404, 1.1]
+Calling spaceOutGrid([-1, -0.99, -0.98, -0.8], rtol=0.02)
+   -> result: [-1, -0.98039215686274506, -0.96116878123798533, -0.8]
+Calling spaceOutGrid([-1, -0.99, -0.9, -0.89999], rtol=0.005)
+   -> result: [-1, -0.99, -0.90448994999999988, -0.89999]
+Calling spaceOutGrid([1, 1.0001, 2], rtol=0.001)
+   -> result: [1, 1.001, 2]
+Calling spaceOutGrid([0, 1, 1.01, 2], rtol=0.1)
+   -> result: [0, 1, 1.1, 2]
+Calling spaceOutGrid([-2, -1.01, -1, 0], rtol=0.1)
+   -> result: [-2, -1.1, -1, 0]
+Calling spaceOutGrid([1, 1.5, 1.51, 1.6], rtol=0.1)
+   -> result: [1, 1.3223140495867767, 1.4545454545454546, 1.6]
+Calling spaceOutGrid([-1, -0.99, -0.8, -0.5], rtol=0.1)
+   -> result: [-1, -0.90909090909090906, -0.8, -0.5]
+Calling spaceOutGrid([1, 1.01, 1.0201, 1.1], rtol=0.02)
+   -> result: [1, 1.02, 1.0404, 1.1]
+Calling spaceOutGrid([1, 1.5, 1.51, 1.6], rtol=0.1)
+   -> result: [1, 1.3223140495867767, 1.4545454545454546, 1.6]
+Calling spaceOutGrid([-1, -0.99, -0.8, -0.5], rtol=0.1)
+   -> result: [-1, -0.90909090909090906, -0.8, -0.5]
+Calling spaceOutGrid([-10, -2, -1, -0.99], rtol=0.1)
+   -> result: [-10, -2, -1.089, -0.99]
+Calling spaceOutGrid([-1.6, -1.51, -1.5, -1], rtol=0.1)
+   -> result: [-1.6, -1.4545454545454546, -1.3223140495867767, -1]
+Calling spaceOutGrid([0, 1, 1.01, 2], rtol=0.1)
+   -> result: [0, 1, 1.1, 2]
+Calling spaceOutGrid([-2, -1.01, -1, 0], rtol=0.1)
+   -> result: [-2, -1.1, -1, 0]
+Calling spaceOutGrid([-4, -3.999999999999, -1.000000001e-12, -1e-12, 0, 1e-10, 1.0000005e-10, 17, 17.00000001], rtol=0.0001)
+   -> result: [-4, -3.9996000399960003, -1.0001e-12, -1e-12, 0, 1e-10, 1.0001e-10, 16.998300179982003, 17.00000001]
+  -> Emitted expected BadInput
+  -> Emitted expected BadInput
+  -> Emitted expected BadInput
+  -> Emitted expected BadInput
+  -> Emitted expected BadInput
+  -> Emitted expected BadInput
+  -> Emitted expected BadInput
+Testing spaceOutGrid... done

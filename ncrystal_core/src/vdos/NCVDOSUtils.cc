@@ -115,3 +115,144 @@ NC::Rectangle NC::VDOS::findABExtentWithinKB( const Rectangle& r,
     return {};//unlikely, except due to numerical imprecision.
   return { al, ah, betaLo, betaHi };
 }
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace VDOS {
+    namespace {
+
+      static constexpr auto sogFailMsg = "Unable to space out grid";
+
+      double positiveLowerBound(double b, double r)
+      {
+        double x = b / r;
+        while (r * x > b) {
+          const double next = std::nextafter(x, 0.0);
+          if (next == x)
+            NCRYSTAL_THROW(BadInput,sogFailMsg);
+          x = next;
+        }
+        if (!std::isfinite(x) || x <= 0.0)
+          NCRYSTAL_THROW(BadInput,sogFailMsg);
+        return x;
+      }
+
+      double positiveUpperBound(double a, double r)
+      {
+        const double x = r * a;
+        if (!std::isfinite(x) || x <= 0.0)
+          NCRYSTAL_THROW(BadInput,sogFailMsg);
+        return x;
+      }
+
+      template<bool IsPos>
+      void spaceOutPass(Span<double> g, bool toRight, double rtol)
+      {
+#ifndef NDEBUG
+        nc_assert(std::isfinite(rtol));
+        nc_assert(rtol >= 0.0 && rtol < 1.0);
+        nc_assert(IsPos ? g.front()>0.0 : g.back() < 0.0 );
+        for (std::size_t i = 0; i < g.size(); ++i)
+          nc_assert(std::isfinite(g[i]) &&
+                    (IsPos ? g[i] > 0.0 : g[i] < 0.0));
+#endif
+
+        if (g.size() < 2)
+          return;
+
+        const double r = 1.0 + rtol;
+
+        if (r == 1.0)
+          return;
+
+        if (toRight) {
+          for (std::size_t i = 1; i < g.size(); ++i) {
+            const double a = g[i - 1];
+            const double b = g[i];
+
+            if (IsPos) {
+              if (b < r * a)
+                g[i] = positiveUpperBound(a, r);
+            } else {
+              if (a > r * b) {
+                // Reflect the negative problem around zero:
+                //
+                //   a <= r*b
+                //   -a >= r*(-b)
+                //
+                // The new negative b is therefore the reflection of the
+                // largest positive x satisfying r*x <= -a.
+                g[i] = -positiveLowerBound(-a, r);
+              }
+            }
+          }
+        } else {
+          for (std::size_t i = g.size() - 1; i != 0; --i) {
+            const double a = g[i - 1];
+            const double b = g[i];
+
+            if (IsPos) {
+              if (b < r * a) {
+                // Choose x conservatively so that r*x <= b even after
+                // the multiplication is rounded.
+                g[i - 1] = positiveLowerBound(b, r);
+              }
+            } else {
+              if (a > r * b) {
+                // Reflect the positive upper-bound operation around zero.
+                const double x = positiveUpperBound(-b, r);
+                g[i - 1] = -x;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+void NC::VDOS::spaceOutGrid(Span<double> g, double rtol)
+{
+  nc_assert(nc_is_grid(g));//checks: sorted, unique, finite, size>=2
+  nc_assert(std::isfinite(rtol));
+  nc_assert(rtol >= 0.0 && rtol < 1.0);
+
+  if (rtol == 0.0)
+    return;
+
+  double* const itB = g.data();
+  double* const itE = itB + g.size();
+  double* const itZero = std::lower_bound(itB, itE, 0.0);
+
+  double* const itNegE = itZero;
+  double* itPosB = itZero;
+
+  if (itZero != itE && *itZero == 0.0) {
+    *itZero = 0.0;// -0.0 -> 0.0
+    ++itPosB;
+  }
+
+  Span<double> neg(itB, itNegE), pos(itPosB, itE);
+
+  if (neg.size() >= 2) {
+    const double origFirst = neg.front();
+    spaceOutPass<false>(neg, false, rtol);
+    if (neg.front() != origFirst) {
+      neg.front() = origFirst;
+      const double origLast = neg.back();
+      spaceOutPass<false>(neg, true, rtol);
+      if (neg.back() != origLast)
+        NCRYSTAL_THROW(BadInput,sogFailMsg);
+    }
+  }
+  if (pos.size() >= 2) {
+    const double origLast = pos.back();
+    spaceOutPass<true>(pos, true, rtol);
+    if (pos.back() != origLast) {
+      pos.back() = origLast;
+      const double origFirst = pos.front();
+      spaceOutPass<true>(pos, false, rtol);
+      if (pos.front() != origFirst)
+        NCRYSTAL_THROW(BadInput,sogFailMsg);
+    }
+  }
+}
