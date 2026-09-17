@@ -56,6 +56,18 @@ namespace NCRYSTAL_NAMESPACE {
     // invalid state.
     void spaceOutGrid(Span<double>, double rtol);
 
+    // Attempt to add points to a grid of size < npts until it contains npts
+    // values. At most one point is inserted into each interval of grid
+    // points. Intervals not crossing 0 are considered in increasing order of
+    // the magnitude of their nearest endpoint to zero, with positive-side
+    // intervals preferred on ties. Intervals having an endpoint equal to zero
+    // qualify regardless of rtol; other non-crossing intervals qualify when
+    // their endpoint magnitudes differ by more than a factor of 1 + rtol. On
+    // returning, the grid might still contain fewer than npts values if not
+    // enough suitable original intervals are available (the function can of
+    // course be called again if needed, possibly with a lower rtol).
+    void topOffGrid( VectD& g, std::size_t npts, double rtol = 0.1 );
+
   }
 }
 

@@ -256,3 +256,84 @@ void NC::VDOS::spaceOutGrid(Span<double> g, double rtol)
     }
   }
 }
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace VDOS {
+    namespace {
+      class OrderIntervalsByNearnessToZero final : private NoCopyMove {
+        const double *m_x;
+        std::size_t m_p, m_q, m_n;
+        static double nearestEndpointAbs(const double *x, std::size_t i)
+        {
+          return ncmin(ncabs(x[i]), ncabs(x[i + 1]));
+        }
+      public:
+        // Iterates over intervals [a,b] in a grid, ordered by the magnitude of
+        // their nearest endpoint to zero, with the positive-side interval first
+        // in case of ties.
+        explicit OrderIntervalsByNearnessToZero(Span<const double> x)
+          : m_x(x.data()), m_p(0), m_q(0)
+        {
+          nc_assert( nc_is_grid(x) );
+          m_n = x.size() - 1;
+          const std::size_t z =
+            std::lower_bound(x.begin(), x.end(), 0.0) - x.begin();
+          m_p = z < m_n ? z : m_n;
+          m_q = z ? z - 1 : m_n;
+          if (z > m_n) {
+            //negative only grid
+            m_q = m_n - 1;
+          }
+        }
+        bool hasMore() const { return m_p < m_n || m_q < m_n; }
+        PairDD next()
+        {
+          nc_assert(hasMore());
+          const bool takeP = ( m_p < m_n
+                               && ( m_q >= m_n
+                                    || nearestEndpointAbs(m_x, m_p)
+                                    <= nearestEndpointAbs(m_x, m_q) ) );
+          const std::size_t i = takeP ? m_p : m_q;
+          nc_assert( i < m_n );
+          PairDD res( m_x[i], m_x[i + 1] );
+          if (takeP)
+            ++m_p;
+          else
+            m_q = m_q ? m_q - 1 : m_n;
+          return res;
+        }
+      };
+    }
+  }
+}
+
+void NC::VDOS::topOffGrid( VectD& g, std::size_t npts, double rtol )
+{
+  nc_assert( nc_is_grid(g) );
+  if ( g.size() >= npts )
+    return;
+  g.reserve( npts );//Important to do this before initialising intervals
+  {
+    OrderIntervalsByNearnessToZero intervals(g);
+    const double oneplusrtol = 1.0 + rtol;
+    nc_assert( oneplusrtol > 1.0 );
+    while ( g.size() < npts && intervals.hasMore() ) {
+      double a,b;
+      std::tie(a,b) = intervals.next();
+      if ( a < 0.0 && b > 0.0 ) {
+        //different signs => just ignore
+        continue;
+      }
+      if ( a == 0.0 || b == 0.0
+           || ( ncmax(ncabs(a),ncabs(b))
+                > oneplusrtol*ncmin(ncabs(a),ncabs(b)) ) ) {
+        const double mid = a + 0.5*(b-a);//stable since sign(a)==sign(b)
+        if (a < mid && mid < b)
+          g.push_back( mid );
+      }
+    }
+  }
+  std::sort(g.begin(),g.end());
+  nc_assert(g.size() <= npts);
+  nc_assert(nc_is_grid(g));
+}

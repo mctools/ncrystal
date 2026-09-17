@@ -71,3 +71,101 @@ Calling spaceOutGrid([-4, -3.999999999999, -1.000000001e-12, -1e-12, 0, 1e-10, 1
   -> Emitted expected BadInput
   -> Emitted expected BadInput
 Testing spaceOutGrid... done
+Testing topOffGrid
+Test topOffGrid([-4, -2, 0, 2, 4], npts=9, rtol=<default>)
+   ->   result: [-4, -3, -2, -1, 0, 1, 2, 3, 4]
+Test topOffGrid([-4, -2, 0, 2, 4], npts=7, rtol=<default>)
+   ->   result: [-4, -2, -1, 0, 1, 2, 4]
+Test topOffGrid([-2, -1, 1, 2], npts=6, rtol=0.1)
+   ->   result: [-2, -1.5, -1, 1, 1.5, 2]
+Test topOffGrid([-2, -1, 0, 1, 2], npts=7, rtol=1)
+   ->   result: [-2, -1, -0.5, 0, 0.5, 1, 2]
+Test topOffGrid([0, 1, 2, 4], npts=5, rtol=1)
+   ->   result: [0, 0.5, 1, 2, 4]
+Test topOffGrid([0, 1, 2, 4], npts=7, rtol=0.999)
+   ->   result: [0, 0.5, 1, 1.5, 2, 3, 4]
+Test topOffGrid([0, 1, 2, 4], npts=9, rtol=0.999)
+   ->   result: [0, 0.5, 1, 1.5, 2, 3, 4]
+Test topOffGrid([0, 1, 2, 4], npts=6, rtol=0.999)
+   ->   result: [0, 0.5, 1, 1.5, 2, 4]
+Test topOffGrid([0, 1, 1.5, 1.75], npts=6, rtol=1)
+   ->   result: [0, 0.5, 1, 1.5, 1.75]
+Test topOffGrid([0, 1, 2, 4], npts=7, rtol=0.1)
+   ->   result: [0, 0.5, 1, 1.5, 2, 3, 4]
+Test topOffGrid([-4, -2, -1], npts=5, rtol=0.1)
+   ->   result: [-4, -3, -2, -1.5, -1]
+Test topOffGrid([-4, -2, 0, 2, 4], npts=7, rtol=<default>)
+   ->   result: [-4, -2, -1, 0, 1, 2, 4]
+Test topOffGrid([-4, -2, -1, 0, 1, 2, 4], npts=8, rtol=<default>)
+   ->   result: [-4, -2, -1, 0, 0.5, 1, 2, 4]
+Test topOffGrid([-4, -2, -1, 0, 1, 2, 4], npts=9, rtol=<default>)
+   ->   result: [-4, -2, -1, -0.5, 0, 0.5, 1, 2, 4]
+Test topOffGrid([-8, -4, 0, 4, 8], npts=6, rtol=<default>)
+   ->   result: [-8, -4, 0, 2, 4, 8]
+Test topOffGrid([-8, -4, -1], npts=5, rtol=0.1)
+   ->   result: [-8, -6, -4, -2.5, -1]
+Test topOffGrid([-8, -7, -1], npts=4, rtol=0.1)
+   ->   result: [-8, -7, -4, -1]
+Test topOffGrid([-8, -4, 0], npts=5, rtol=0.1)
+   ->   result: [-8, -6, -4, -2, 0]
+Test topOffGrid([-8, -4, 0], npts=5, rtol=100)
+   ->   result: [-8, -4, -2, 0]
+Test topOffGrid([0, 4, 8], npts=5, rtol=100)
+   ->   result: [0, 2, 4, 8]
+Test topOffGrid([-4, -2, 0, 2, 4], npts=5, rtol=0.1)
+   ->   result: [-4, -2, 0, 2, 4]
+Test topOffGrid([-4, -2, 0, 2, 4], npts=6, rtol=0.1)
+   ->   result: [-4, -2, 0, 1, 2, 4]
+Test topOffGrid([-4, -2, 0, 2, 4], npts=7, rtol=0.1)
+   ->   result: [-4, -2, -1, 0, 1, 2, 4]
+Test topOffGrid([-4, -2, 0, 2, 4], npts=8, rtol=0.1)
+   ->   result: [-4, -2, -1, 0, 1, 2, 3, 4]
+Test topOffGrid([-4, -2, 0, 2, 4], npts=9, rtol=0.1)
+   ->   result: [-4, -3, -2, -1, 0, 1, 2, 3, 4]
+Test topOffGrid([-4, -2, 0, 2, 4], npts=200, rtol=0.1)
+   ->   result: [-4, -3, -2, -1, 0, 1, 2, 3, 4]
+Test topOffGrid([0, 1, 2], npts=4, rtol=0.1)
+   ->   result: [0, 0.5, 1, 2]
+Test topOffGrid([0, 0.5, 1, 2], npts=5, rtol=0.1)
+   ->   result: [0, 0.25, 0.5, 1, 2]
+Test topOffGrid([0, 4, 8], npts=5, rtol=0.1)
+   ->   result: [0, 2, 4, 6, 8]
+Test topOffGrid([1, 4, 8], npts=5, rtol=0.1)
+   ->   result: [1, 2.5, 4, 6, 8]
+Test topOffGrid([1, 1.05, 4], npts=4, rtol=0.1)
+   ->   result: [1, 1.05, 2.5250000000000004, 4]
+Test topOffGrid([-10, 10], npts=3, rtol=0.1)
+   ->   result: [-10, 10]
+Test topOffGrid([-10, -1, 1, 10], npts=6, rtol=0.1)
+   ->   result: [-10, -5.5, -1, 1, 5.5, 10]
+Test topOffGrid([1, 2, 4], npts=4, rtol=1)
+   ->   result: [1, 2, 4]
+Test topOffGrid([1, 2, 4.001], npts=5, rtol=1)
+   ->   result: [1, 2, 3.0005, 4.001]
+Test topOffGrid([1, 2, 3.999], npts=4, rtol=1)
+   ->   result: [1, 2, 3.999]
+Test topOffGrid([0, 1, 2], npts=4, rtol=0.1)
+   ->   result: [0, 0.5, 1, 2]
+Test topOffGrid([1e-300, 1e-150, 1e+150, 1e+300], npts=7, rtol=0.1)
+   ->   result: [1e-300, 5e-151, 1e-150, 5e+149, 1e+150, 5e+299, 1e+300]
+Test topOffGrid([-1e+300, -1e+150, -1e-150, -1e-300], npts=7, rtol=0.1)
+   ->   result: [-1e+300, -5e+299, -1e+150, -5e+149, -1e-150, -5e-151, -1e-300]
+Test topOffGrid([-1e+300, -1e+150, 0, 1e+150, 1e+300], npts=9, rtol=0.1)
+   ->   result: [-1e+300, -5e+299, -1e+150, -5e+149, 0, 5e+149, 1e+150, 5e+299, 1e+300]
+Test topOffGrid([1, 2, 4], npts=4, rtol=1e+308)
+   ->   result: [1, 2, 4]
+Test topOffGrid([1e-300, 2e-300, 4e-300], npts=5, rtol=0.1)
+   ->   result: [1e-300, 1.5e-300, 2e-300, 3e-300, 4e-300]
+Test topOffGrid([1e-320, 2e-320, 4e-320], npts=5, rtol=0.1)
+   ->   result: [1e-320, 1.5e-320, 2e-320, 3e-320, 4e-320]
+Test topOffGrid([-4, -2, 0, 2, 4], npts=5, rtol=<default>)
+   ->   result: [-4, -2, 0, 2, 4]
+Test topOffGrid([-4, -2, 0, 2, 4], npts=3, rtol=0.1)
+   ->   result: [-4, -2, 0, 2, 4]
+Test topOffGrid([-8, -4, -1], npts=3, rtol=0.1)
+   ->   result: [-8, -4, -1]
+Test topOffGrid([0, 1, 2, 4], npts=4, rtol=100)
+   ->   result: [0, 1, 2, 4]
+Test topOffGrid([0, 1, 2, 4], npts=3, rtol=0.1)
+   ->   result: [0, 1, 2, 4]
+Testing topOffGrid... done
