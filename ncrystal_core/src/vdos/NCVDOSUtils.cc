@@ -337,3 +337,166 @@ void NC::VDOS::topOffGrid( VectD& g, std::size_t npts, double rtol )
   nc_assert(g.size() <= npts);
   nc_assert(nc_is_grid(g));
 }
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace VDOS {
+    namespace {
+    }
+  }
+}
+
+NC::VectD NC::VDOS::makeCommonGrid(Span<const EquidistantGrid> grids )
+{
+  struct Entry {
+    double x;
+    std::size_t grid;
+    std::size_t point;
+  };
+
+  struct EntryGreater {
+    bool operator()(const Entry& a, const Entry& b) const
+    {
+      return a.x > b.x;
+    }
+  };
+
+#ifndef NDEBUG
+  for ( auto& g : grids ) {
+    nc_assert( std::isfinite(g.x0) );
+    nc_assert( std::isfinite(g.binWidth) );
+    nc_assert( g.binWidth > 0.0 );
+    nc_assert( g.npts >= 2 );
+    nc_assert( std::isfinite(g.x1()) );
+    nc_assert( g.x0 + g.binWidth > g.x0 );
+  }
+#endif
+
+  if ( grids.empty() )
+    return {};
+
+  if ( grids.size() == 1 ) {
+    auto& g = grids.front();
+    return linspace(g.x0, g.x1(), g.npts);
+  }
+
+  //NB: We might be able to deal with grids.size()==2 even more efficiently, if
+  //it ever became very useful.
+
+  double xmin(kInfinity), xmax(-kInfinity), minbw(kInfinity);
+  for ( auto& g : grids ) {
+    xmin = ncmin(xmin, g.x0);
+    xmax = ncmax(xmax, g.x1());
+    minbw = ncmin(minbw, g.binWidth);
+  }
+  const double atol = 0.1 * minbw;
+  nc_assert( atol > 0.0 );
+  std::vector<Entry> heap;
+  heap.reserve(grids.size());
+  for ( std::size_t j = 0; j < grids.size(); ++j ) {
+    nc_assert( grids[j].npts >= 2);
+    heap.push_back({grids[j].x0, j, 0});
+  }
+  EntryGreater greater;
+  std::make_heap(heap.begin(), heap.end(), greater);
+  auto siftDown = [&heap, &greater]()
+  {
+    const std::size_t n = heap.size();
+    const Entry item = heap.front();
+    std::size_t p = 0;
+    while ( true ) {
+      const std::size_t l = 2 * p + 1;
+      if ( l >= n )
+        break;
+      std::size_t c = l;
+      const std::size_t r = l + 1;
+      if ( r < n && greater(vectAt(heap, l), vectAt(heap, r)) )
+        c = r;
+      if ( !greater(item, vectAt(heap, c)) )
+        break;
+      vectAt(heap, p) = vectAt(heap, c);
+      p = c;
+    }
+    vectAt(heap, p) = item;
+  };
+
+  VectD pts;
+  pts.reserve(12000);
+  pts.emplace_back(xmin);
+
+  while ( !heap.empty() ) {
+    Entry item = heap.front();
+#ifndef NDEBUG
+    const auto oldPoint = item.point;
+#endif
+    const double prev = pts.back();
+    nc_assert( item.x >= prev );
+    nc_assert( xmax >= item.x );
+    const auto& g = grids[item.grid];
+    if ( item.x - prev > atol && xmax - item.x > atol )
+      pts.emplace_back(item.x);
+    if ( item.point == g.npts - 1 ) {
+      std::pop_heap(heap.begin(), heap.end(), greater);
+      heap.pop_back();
+      continue;
+    }
+    ++item.point;
+    nc_assert(item.point > oldPoint);
+    nc_assert(item.point < g.npts);
+    item.x = ( item.point == g.npts - 1
+               ? g.x1()
+               : g.x0 + g.binWidth * static_cast<double>(item.point) );
+    heap.front() = item;
+    siftDown();
+    nc_assert( heap.empty()
+               || heap.front().point < grids[heap.front().grid].npts );
+  }
+  if ( xmax > xmin )
+    pts.emplace_back(xmax);
+  nc_assert( nc_is_grid(pts) );
+  return pts;
+}
+
+NC::VDOS::EquidistantGrid
+NC::VDOS::coverEquidistantGrids( const EquidistantGrid& g1,
+                                 const EquidistantGrid& g2 )
+{
+#ifndef NDEBUG
+  auto valid = [](const EquidistantGrid& g) {
+    nc_assert(g.npts > 0);
+    nc_assert(g.binWidth > 0.0);
+    nc_assert(std::isfinite(g.x0));
+    nc_assert(std::isfinite(g.binWidth));
+    nc_assert(std::isfinite(g.x1()));
+  };
+  valid(g1);
+  valid(g2);
+  nc_assert(g1.binWidth == g2.binWidth);
+  nc_assert(intervalsOverlap(g1.x0, g1.x1(), g2.x0, g2.x1()));
+#endif
+
+  const double x0 = ncmin(g1.x0, g2.x0);
+
+  auto lastIndex = [x0](const EquidistantGrid& g) {
+    const double q = (g.x0 - x0) / g.binWidth;
+    nc_assert(std::isfinite(q));
+    nc_assert(q >= 0.0);
+    const double first = std::ceil(q);
+    nc_assert(first
+              < static_cast<double>(std::numeric_limits<std::size_t>::max()));
+    const std::size_t i0 = static_cast<std::size_t>(first);
+    nc_assert(g.npts - 1 <= std::numeric_limits<std::size_t>::max() - i0);
+    return i0 + g.npts - 1;
+  };
+
+  const std::size_t last = std::max<std::size_t>(lastIndex(g1), lastIndex(g2));
+
+  //Given a double with...:
+  static_assert(std::numeric_limits<double>::radix == 2, "");
+  static_assert(std::numeric_limits<double>::digits == 53, "");
+  static_assert(std::numeric_limits<std::size_t>::digits >= 54, "");
+  //...we can represent all integers up to 2^53 exactly:
+  constexpr std::size_t szdblmax = 9007199254740992ULL;
+  (void)szdblmax;
+  nc_assert( last+1 <= szdblmax );
+  return EquidistantGrid{x0, g1.binWidth, last + 1};
+}

@@ -169,3 +169,7 @@ Test topOffGrid([0, 1, 2, 4], npts=4, rtol=100)
 Test topOffGrid([0, 1, 2, 4], npts=3, rtol=0.1)
    ->   result: [0, 1, 2, 4]
 Testing topOffGrid... done
+Testing makeCommonGrid
+Testing makeCommonGrid... done
+Testing coverEquidistantGrids
+Testing coverEquidistantGrids... done

@@ -68,6 +68,33 @@ namespace NCRYSTAL_NAMESPACE {
     // course be called again if needed, possibly with a lower rtol).
     void topOffGrid( VectD& g, std::size_t npts, double rtol = 0.1 );
 
+    // The makeCommonGrid function merges several evenly spaced input grids into
+    // a single grid.
+    //
+    // * Input grids may have different offsets (x0), point spacing (binWidth),
+    //   and number of points (npts).
+    // * Points closer than 10% of the smallest input bin width are merged.
+    // * The output is not necessarily evenly spaced and thus requires
+    //   description in a full vector of points.
+    // * Its first and last points are always the min and max of input domains.
+    struct EquidistantGrid final {
+      double x0, binWidth;
+      std::size_t npts;
+      double x1() const
+      {
+        //x0 + binWidth*(npts-1)
+        return std::fma( binWidth,static_cast<double>(npts - 1),x0);
+      }
+    };
+    VectD makeCommonGrid( Span<const EquidistantGrid> );
+
+    // Combines two overlapping grids with common binWidth into a single grid.
+    // The returned grid starts at the lower origin of the grids
+    // (i.e. x0=min(g1.x0,g2.x0)), and has just enough points for both original
+    // domains to be covered by the new interval [x0,x1].
+    EquidistantGrid coverEquidistantGrids( const EquidistantGrid&,
+                                           const EquidistantGrid& );
+
   }
 }
 

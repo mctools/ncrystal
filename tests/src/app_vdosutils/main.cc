@@ -1316,6 +1316,154 @@ namespace {
     tog({0.0, 1.0, 2.0, 4.0}, 3, 0.1,
         {0.0, 1.0, 2.0, 4.0});
   }
+
+  void testMakeCommonGrid()
+  {
+    using NC::VDOS::makeCommonGrid;
+    using NC::VectD;
+    using NC::vectAt;
+    using NC::Span;
+    using G = NC::VDOS::EquidistantGrid;
+
+    REQUIRE( makeCommonGrid( Span<const G>() ).empty() );
+
+    const std::vector<G> one{{2.0, 0.5, 3}};
+    const VectD a = makeCommonGrid(one);
+
+    REQUIRE( a.size() == 3 );
+    REQUIREFLTEQ(vectAt(a, 0), 2.0);
+    REQUIREFLTEQ(vectAt(a, 1), 2.5);
+    REQUIREFLTEQ(vectAt(a, 2), 3.0);
+
+    const std::vector<G> merged{
+      {0.0, 1.0, 4},
+      {0.05, 1.0, 3}
+    };
+    const VectD b = makeCommonGrid(merged);
+
+    REQUIRE( b.size() == 4 );
+    REQUIREFLTEQ(vectAt(b, 0), 0.0);
+    REQUIREFLTEQ(vectAt(b, 1), 1.0);
+    REQUIREFLTEQ(vectAt(b, 2), 2.0);
+    REQUIREFLTEQ(vectAt(b, 3), 3.0);
+
+    const std::vector<G> distinct{
+      {0.0, 1.0, 3},
+      {0.3, 1.0, 2}
+    };
+    const VectD c = makeCommonGrid(distinct);
+
+    REQUIRE( c.size() == 5 );
+    REQUIREFLTEQ(vectAt(c, 0), 0.0);
+    REQUIREFLTEQ(vectAt(c, 1), 0.3);
+    REQUIREFLTEQ(vectAt(c, 2), 1.0);
+    REQUIREFLTEQ(vectAt(c, 3), 1.3);
+    REQUIREFLTEQ(vectAt(c, 4), 2.0);
+
+    {
+      const std::vector<G> grids{
+        {0.0, 1.0, 3},
+        {0.3, 1.0, 3},
+        {0.6, 1.0, 3}
+      };
+      const VectD pts = makeCommonGrid(grids);
+      const VectD expected{
+        0.0, 0.3, 0.6,
+        1.0, 1.3, 1.6,
+        2.0, 2.3, 2.6
+      };
+
+      REQUIRE( pts.size() == expected.size() );
+      for ( std::size_t i = 0; i < expected.size(); ++i )
+        REQUIREFLTEQ(vectAt(pts, i), vectAt(expected, i));
+    }
+  }
+
+  void testCoverEquidistantGrids()
+  {
+    using EG = NC::VDOS::EquidistantGrid;
+    using NC::VDOS::coverEquidistantGrids;
+    using NC::ncmax;
+
+    {
+      const EG a{0.0, 1.0, 3};
+      const EG b{1.5, 1.0, 2};
+      const auto g = coverEquidistantGrids(a, b);
+      REQUIRE(g.x0 == 0.0);
+      REQUIRE(g.binWidth == 1.0);
+      REQUIRE(g.npts == 4);
+      REQUIRE(g.x1() == 3.0);
+    }
+
+    {
+      const EG a{2.0, 0.5, 3};
+      const EG b{0.0, 0.5, 5};
+      const auto g = coverEquidistantGrids(a, b);
+
+      REQUIRE(g.x0 == 0.0);
+      REQUIRE(g.binWidth == 0.5);
+      REQUIRE(g.npts == 7);
+      REQUIRE(g.x1() == 3.0);
+    }
+
+
+    {
+      const EG a{0.0, 0.2, 3};
+      const EG b{0.31, 0.2, 2};
+      const auto g = coverEquidistantGrids(a, b);
+
+      REQUIRE(g.x0 == 0.0);
+      REQUIRE(g.binWidth == 0.2);
+      REQUIRE(g.npts == 4);
+      REQUIRE(g.x1() >= ncmax(a.x1(), b.x1()));
+
+      REQUIREFLTEQ(
+                   g.x1() - ncmax(a.x1(), b.x1()),
+                   0.09);
+    }
+
+    {
+      const EG a{10.0, 0.25, 5};
+      const EG b{10.0, 0.25, 3};
+      const auto g = coverEquidistantGrids(a, b);
+
+      REQUIRE(g.x0 == 10.0);
+      REQUIRE(g.binWidth == 0.25);
+      REQUIRE(g.npts == 5);
+      REQUIRE(g.x1() == a.x1());
+    }
+
+    {
+      const EG a{1.0e9, 0.25, 5};
+      const EG b{1.0e9 + 0.5, 0.25, 5};
+      const auto g = coverEquidistantGrids(a, b);
+
+      REQUIRE(g.x0 == a.x0);
+      REQUIRE(g.binWidth == 0.25);
+      REQUIRE(g.npts == 7);
+      REQUIRE(g.x1() >= ncmax(a.x1(), b.x1()));
+
+      REQUIREFLTEQ(
+                   g.x1() - ncmax(a.x1(), b.x1()),
+                   0.0);
+    }
+
+
+    {
+      const EG a{-1.0e9, 0.5, 5};
+      const EG b{-1.0e9 + 1.5, 0.5, 5};
+      const auto g = coverEquidistantGrids(a, b);
+
+      REQUIRE(g.x0 == a.x0);
+      REQUIRE(g.binWidth == 0.5);
+      REQUIRE(g.npts == 8);
+      REQUIRE(g.x1() >= ncmax(a.x1(), b.x1()));
+
+      REQUIREFLTEQ(
+                   g.x1() - ncmax(a.x1(), b.x1()),
+                   0.0);
+    }
+  }
 }
 
 int main() {
@@ -1332,5 +1480,11 @@ int main() {
   std::cout<<"Testing topOffGrid"<<std::endl;
   testTopOffGrid();
   std::cout<<"Testing topOffGrid... done"<<std::endl;
+  std::cout<<"Testing makeCommonGrid"<<std::endl;
+  testMakeCommonGrid();
+  std::cout<<"Testing makeCommonGrid... done"<<std::endl;
+  std::cout<<"Testing coverEquidistantGrids"<<std::endl;
+  testCoverEquidistantGrids();
+  std::cout<<"Testing coverEquidistantGrids... done"<<std::endl;
   return 0.0;
 }
