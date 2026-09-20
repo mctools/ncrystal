@@ -31,6 +31,13 @@ functions can be used with numpy arrays in addition to scalar numbers.
 
 from ._numpy import _ensure_numpy, _np
 
+kInv2Pi    = 0.159154943091895335768883763372514362034459646
+kPi        = 3.1415926535897932384626433832795028841971694
+k2Pi       = 6.2831853071795864769252867665590057683943388
+k4Pidiv100 = 0.125663706143591729538505735331180115367886776
+k4PiSq     = 39.4784176043574344753379639995046045412547976
+kInf       = float('inf')
+
 constant_c  = 299792458e10#  speed of light in Aa/s
 constant_dalton2kg =  1.660539040e-27#  amu to kg
 constant_dalton2eVc2 =  931494095.17#  amu to eV/c^2
@@ -38,12 +45,10 @@ constant_avogadro = 6.022140857e23#  mol^-1
 constant_boltzmann = 8.6173303e-5#  eV/K
 const_neutron_mass_amu = 1.00866491588#  [amu]
 constant_planck = 4.135667662e-15 # [eV*s]
+constant_hbar = constant_planck*kInv2Pi # [eV*s]
+const_neutron_mass_evc2 = ( ( const_neutron_mass_amu * constant_dalton2eVc2 )
+                            / (constant_c*constant_c) ) # [ eV/(Aa/s)^2 ]
 
-kPi        = 3.1415926535897932384626433832795028841971694
-k2Pi       = 6.2831853071795864769252867665590057683943388
-k4Pidiv100 = 0.125663706143591729538505735331180115367886776
-k4PiSq     = 39.4784176043574344753379639995046045412547976
-kInf       = float('inf')
 
 _as_np_array = ( lambda x : _np.asarray(x,dtype=float) ) if _np else ( lambda *a,**kwargs : _ensure_numpy() )
 def wlsq2ekin( wlsq ):
