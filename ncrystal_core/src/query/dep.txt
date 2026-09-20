@@ -6,3 +6,4 @@ factories
 minimc
 sab
 utils
+vdos
