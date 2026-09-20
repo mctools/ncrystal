@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/interfaces/NCProcImpl.hh"
+#include "NCrystal/internal/vdos/NCVDOSLux.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -51,7 +52,7 @@ namespace NCRYSTAL_NAMESPACE {
     //for the special vdos2sabExcludeFlag parameter (the meaning of which is
     //documented in NCDynInfoUtils.hh).
     SABScatter( const DI_ScatKnl&,
-                unsigned vdoslux = 3,
+                VDOS::VDOSLux vdoslux = {},
                 bool useCache = true,
                 uint32_t vdos2sabExcludeFlag = 0 );
     SABScatter( SABData &&,
