@@ -1256,6 +1256,8 @@ namespace NCRYSTAL_NAMESPACE {
         streamJSONHugeDblVect(os, VectD( m_eGrid ));
         os <<",\"sintegral\":";
         streamJSONHugeDblVect(os, VectD( m_sIntegral ));
+        os <<",\"egrid_interpolation\":";
+        streamJSON(os,(m_sIntegralSmooth.has_value()?"smooth":"linear"));
         os <<",\"kT\":";
         streamJSON(os,m_kT);
 
@@ -1428,11 +1430,15 @@ void NCS::SABProcessor::toJSONProcessInfo( std::ostream& os,
     if ( sigma_scale.has_value() )
       tmp << ";sigma_free="
           <<sigma_scale.value().free(sab.elementMassAMU());
+    if ( !sp->m_sIntegralSmooth.has_value() )
+      tmp << ";Einterp=linear";
 
     streamJSONDictEntry( os, "summarystr", tmp.str(), JSONDictPos::FIRST );
   }
   streamJSONDictEntry( os, "Emax", emax.dbl()  );
   streamJSONDictEntry( os, "Emin", emin.dbl()  );
+  streamJSONDictEntry( os, "Einterp", (sp->m_sIntegralSmooth.has_value()
+                                       ?"smooth":"linear")  );
   streamJSONDictEntry( os, "negrid", negrid  );
   streamJSONDictEntry( os, "T", sab.temperature().dbl()  );
   streamJSONDictEntry( os, "M", sab.elementMassAMU().dbl()  );
