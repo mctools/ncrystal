@@ -135,8 +135,8 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
   double targetEmax_div_kT = targetEmax.dbl()*invkT;
   unsigned max_phonon_order = 1;
   auto vdosgn_cfg = ( vdoslux.isLegacy()
-                      ? VDOSGn::CfgChoices::Legacy
-                      : VDOSGn::CfgChoices::Default );
+                      ? VDOSGn::Cfg::Legacy
+                      : VDOSGn::Cfg::Default );
 
   constexpr double alpha2x_factor = ( 2.0*const_neutron_mass_evc2
                                       /(constant_hbar*constant_hbar) );
@@ -257,6 +257,9 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
   for ( unsigned n = 1; n<=max_phonon_order; ++n ) {
     auto abRange = findAlphaBetaRangeOfOrder(n);
     auto abOverlap = findABExtentWithinKB( abRange, targetEmax_div_kT );
+    //FIXME: Also store abOverlap for each order n, so the combinedGnFunction
+    //knows which parts of each Gn (and alpha) function to consider. Also
+    //fillSABFromVDOS could perhaps take advantage.
     res.sabRange = res.sabRange.getUnion( abOverlap );
     if ( abRangesForWrite.has_value() )
       abRangesForWrite.value().push_back( { abRange, abOverlap } );
