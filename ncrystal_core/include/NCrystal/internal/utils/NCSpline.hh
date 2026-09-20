@@ -109,7 +109,7 @@ namespace NCRYSTAL_NAMESPACE {
     //
     // PCHIP stands for Piecewise Cubic Hermite Interpolating Polynomial. It is
     // an interpolation method that fits a separate cubic polynomial between
-    // each pair of data points while preserving the data’s shape.
+    // each pair of data points while preserving the data's shape.
     //
     // Advantages:
     //   * Avoids unwanted overshoot and oscillations.
