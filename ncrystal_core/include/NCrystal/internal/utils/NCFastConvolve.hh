@@ -39,7 +39,7 @@ namespace NCRYSTAL_NAMESPACE {
     // The output vector y includes a constant for normalisation.
     //
     // For reference, the alg used is a radix-2, iterative, in-place
-    // Cooley–Tukey FFT algorithm, which is used to compute a zero-padded linear
+    // Cooley-Tukey FFT algorithm, which is used to compute a zero-padded linear
     // convolution. Special attention is given to avoid using trigonometric
     // functions platform irreproducibilities
 
