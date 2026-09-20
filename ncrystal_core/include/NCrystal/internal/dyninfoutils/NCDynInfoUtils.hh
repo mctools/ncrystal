@@ -23,17 +23,19 @@
 
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/interfaces/NCSABData.hh"
+#include "NCrystal/internal/vdos/NCVDOSLux.hh"
 
 namespace NCRYSTAL_NAMESPACE {
+
+  //fixme: add a namespace?
 
   //Access SABData from DynInfo object (or just expand from VDOSDebye
   //model). This might result in some calculations carried out in order to
   //either convert scattering kernels to the correct format or create it by
   //expansion from a VDOS. The vdoslux parameter is used as described in
   //NCMatCfg.hh, and only affects VDOS-based scattering kernels. For the special
-  //case of VDOSDebye based kernels, the vdoslux parameter will be reduced by 3
-  //(but not less than 0), to prevent wasting resources on what is anyway rather
-  //crude input.
+  //case of VDOSDebye based kernels, the vdoslux parameter might be reduced, to
+  //prevent wasting resources on what is anyway rather crude input (fixme: update).
   //
   //The vdos2sabExcludeFlag is for special use-cases (testing) only, and only
   //affects DI_VDOS, and can be used to selectively exclude parts or all of
@@ -49,16 +51,19 @@ namespace NCRYSTAL_NAMESPACE {
   //calls. The cache can obviously be cleared with the
   //clearSABDataFromDynInfoCaches function (automatically invoked by the global
   //clearCaches function):
-  shared_obj<const SABData> extractSABDataFromDynInfo( const DI_ScatKnl*,
-                                                       unsigned vdoslux = 3,
-                                                       bool useCache = true,
-                                                       std::uint32_t vdos2sabExcludeFlag = 0 );
+  shared_obj<const SABData>
+  extractSABDataFromDynInfo( const DI_ScatKnl*, VDOS::VDOSLux = {},
+                             bool useCache = true,
+                             std::uint32_t vdos2sabExcludeFlag = 0 );
 
-  shared_obj<const SABData> extractSABDataFromVDOSDebyeModel( DebyeTemperature, Temperature, SigmaBound, AtomMass,
-                                                              unsigned vdoslux = 3, bool useCache = true );
+  shared_obj<const SABData>
+  extractSABDataFromVDOSDebyeModel( DebyeTemperature, Temperature,
+                                    SigmaBound, AtomMass,
+                                    VDOS::VDOSLux = {}, bool useCache = true );
 
   //Idealised VDOS based only on Debye temperature:
-  VDOSData createVDOSDebye( DebyeTemperature, Temperature, SigmaBound, AtomMass);
+  VDOSData createVDOSDebye( DebyeTemperature, Temperature,
+                            SigmaBound, AtomMass);
 }
 
 

@@ -63,14 +63,19 @@ namespace NCRYSTAL_NAMESPACE {
       //with target prec=1e-6
       Flex33 = 0x100021,//Adaptive Romberg33+, target prec=1e-9
       Flex65 = 0x100041,//Adaptive Romberg65+, target prec=1e-12
-      MaxPrec = Flex65,
-      Default = Flex17//fixme revisit (or remove?)
+      MaxPrec = Flex65
     };
 
     //Utilities for encoding to/from strings
     const char * integSchemeToStr( IntegrationScheme );
     IntegrationScheme str2IntegScheme( StrView );
     const char * allIntegSchemesAsStr();//';' separated list
+
+    ///////////////////////////////////////
+    // How S_integral(E) is interpolated //
+    ///////////////////////////////////////
+
+    enum class SIntegralInterpolation { Linear, Smooth, Default = Smooth };
 
     ////////////////
     // Cfg object //
@@ -82,8 +87,10 @@ namespace NCRYSTAL_NAMESPACE {
       IntegrationScheme integScheme = IntegrationScheme::Flex9;
       IntegrationScheme integSchemeDetermineEGrid = IntegrationScheme::Flex5;
       IntegrationScheme integSchemeBCSample = IntegrationScheme::Flex9;
+      SIntegralInterpolation sIntegralInterp = SIntegralInterpolation::Default;
+
       unsigned egrid_npts = 300;
-      double egrid_emin_accuracy = 0.01;
+      double egrid_emin_accuracy = 1e-8;//fixme: just use 1e-11 for all levels? To improve reproducibility! Also, increase trunc level in vdosgn to 1e-12-ish ?
       double fullCellSamplingARThreshold = 0.15;
       double bcSamplingLargeSRatioThreshold = 1e-5;//fixme: not used yet
     };
@@ -92,8 +99,7 @@ namespace NCRYSTAL_NAMESPACE {
     // Factory function based on luxury level //
     ////////////////////////////////////////////
 
-    constexpr double sablux_max_luxury = 6;
-    constexpr double sablux_default_luxury = 3;
+    constexpr int sablux_default_luxury = 3;
     Cfg createConfig( int sablux );
 
   }

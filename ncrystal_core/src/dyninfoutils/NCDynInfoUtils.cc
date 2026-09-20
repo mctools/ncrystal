@@ -31,25 +31,36 @@ namespace NCRYSTAL_NAMESPACE {
   namespace DICache {
 
     namespace {
-      //VDOSDebye cache key:
-      //         (reduced vdoslux 0..2 + rounded: elementMass,boundXS,T,TDebye)
+
+      using VDOSLux = VDOS::VDOSLux;
+
+      inline VDOSLux vdoslux_reduced_for_debye( const VDOSLux& v )
+      {
+        //Legacy reduces 3 levels, but this was too confusing and erratic and
+        //was abandoned for nextgen.
+        return v.reduceLvl( v.isLegacy() ? 3u : 0u );
+      }
+
       using VDOSDebyeKey
-      = std::tuple<unsigned,uint64_t,uint64_t,uint64_t,uint64_t>;
+      = std::tuple<VDOSLux,uint64_t,uint64_t,uint64_t,uint64_t>;
 
       //For VDOS Debye we can easily share work between different Info objects
       //or phases, since the number of dependent parameters is very low. Thus,
       //we base the key on the rounded values of those parameters, and make sure
       //we only base calculations on values derived from those rounded values:
       struct VDOSDebyePars {
-        unsigned reduced_vdoslux;
+        VDOSLux vdoslux;
         AtomMass elementMass;
         Temperature temperature;
         DebyeTemperature debyeTemperature;
         SigmaBound boundXS;
       };
 
-      VDOSDebyeKey getKey(unsigned nonreduced_vdoslux, Temperature t,
-                          DebyeTemperature dt, SigmaBound sb, AtomMass mass ) {
+      VDOSDebyeKey getDebyeKey( VDOSLux vdoslux_orig,
+                                Temperature t,
+                                DebyeTemperature dt,
+                                SigmaBound sb,
+                                AtomMass mass ) {
         dt.validate();
         t.validate();
         sb.validate();
@@ -57,16 +68,13 @@ namespace NCRYSTAL_NAMESPACE {
         nc_assert( sb.get() > 0.0 && sb.get() < 1.0e6 );
         nc_assert( dt.get() > 0.0 && dt.get() < 1.0e5 );
         nc_assert( mass.get() > 0.0 && mass.get() < 1.0e5 );
-        nc_assert(nonreduced_vdoslux<=5);
-        unsigned reduced_vdoslux = static_cast<unsigned>
-          (std::max<int>(0,static_cast<int>(nonreduced_vdoslux)-3));
-        nc_assert(reduced_vdoslux<=2);
         auto roundFct = [](double x)
         {
           nc_assert_always(x>0.0&&x<1.0e11);
           return static_cast<uint64_t>(1e7*x+0.5);
         };
-        return VDOSDebyeKey( reduced_vdoslux,
+        const auto vdoslux = vdoslux_reduced_for_debye(vdoslux_orig);
+        return VDOSDebyeKey( vdoslux,
                              roundFct(mass.get()),
                              //sb might be zero in rare corner cases:
                              (sb.get()?roundFct(sb.get()):uint64_t(0)),
@@ -74,12 +82,12 @@ namespace NCRYSTAL_NAMESPACE {
                              roundFct(dt.get()) );
       }
 
-      VDOSDebyeKey getKey(unsigned nonreduced_vdoslux, const DI_VDOSDebye& di) {
-        return getKey(nonreduced_vdoslux,
-                      di.temperature(),
-                      di.debyeTemperature(),
-                      di.atomData().scatteringXS(),
-                      di.atomData().averageMassAMU());
+      VDOSDebyeKey getDebyeKey(VDOSLux vdoslux, const DI_VDOSDebye& di) {
+        return getDebyeKey(vdoslux,
+                           di.temperature(),
+                           di.debyeTemperature(),
+                           di.atomData().scatteringXS(),
+                           di.atomData().averageMassAMU());
       }
 
       VDOSDebyePars debyekey2params( const VDOSDebyeKey& key ) {
@@ -95,18 +103,18 @@ namespace NCRYSTAL_NAMESPACE {
       //For regular VDOS expansion, we need a bit more care.
       struct VDOSExpandInput {
         const VDOSData* vdosdata = nullptr;
-        double requestedEMax = 0.0;
+        Optional<NeutronEnergy> requestedEMax;
         double vdos2sabExcludeScaleFactor = 0.0;
-        std::uint32_t vdoslux;//0..5
+        VDOSLux vdoslux;
         std::uint32_t vdos2sabExcludeFlag = 0;
       };
 
       struct VDOSExpandCacheKey {
         UniqueIDValue uid_vdosdata = {0};
-        double requestedEMax = 0.0;
+        Optional<NeutronEnergy> requestedEMax;
         double vdos2sabExcludeScaleFactor = 0.0;
         std::uint32_t vdos2sabExcludeFlag = 0;
-        std::uint32_t vdoslux = 3;//0..5
+        VDOSLux vdoslux;
         bool operator<(const VDOSExpandCacheKey& o ) const
         {
           if ( uid_vdosdata != o.uid_vdosdata )
@@ -129,14 +137,15 @@ namespace NCRYSTAL_NAMESPACE {
         }
       };
 
-      double requestedEMaxFromEgrid( const std::shared_ptr<const VectD>& egrid )
+      Optional<NeutronEnergy>
+      requestedEMaxFromEgrid( const std::shared_ptr<const VectD>& egrid )
       {
         //egrid is either the grid pts directly (when size>3), of the form
         //[emin, emax, npts], where 0 entries (or null ptr) indicates no value.
         if ( !egrid || egrid->empty() )
-          return 0.0;
+          return NullOpt;
         nc_assert_always(egrid->size()>=3);
-        return egrid->size()==3 ? egrid->at(1) : egrid->back();
+        return NeutronEnergy{ egrid->size()==3 ? egrid->at(1) : egrid->back() };
       }
 
       shared_obj<const SABData>
@@ -147,7 +156,7 @@ namespace NCRYSTAL_NAMESPACE {
         nc_assert(input.vdosdata);
         const VDOSData& vd = *input.vdosdata;
 
-        ScaleGnContributionFct scaleGnFct = nullptr;
+        VDOS::ScaleGnContributionFct scaleGnFct = nullptr;
         if ( input.vdos2sabExcludeFlag > 0 ) {
           //vdos2sabExcludeFlag = MODE + 4*LOW + 40000*HIGH
           unsigned high = input.vdos2sabExcludeFlag / 40000;
@@ -172,9 +181,8 @@ namespace NCRYSTAL_NAMESPACE {
         SABData sabdata
           = SABUtils::transformKernelToStdFormat
           ( createScatteringKernel( vd,
-                                    static_cast<unsigned>(input.vdoslux),
+                                    input.vdoslux,
                                     input.requestedEMax,
-                                    VDOSGn::TruncAndThinningChoices::Default,
                                     scaleGnFct ) );
         return std::make_shared<const SABData>(std::move(sabdata));
       }
@@ -209,9 +217,9 @@ namespace NCRYSTAL_NAMESPACE {
           const auto& k = key_thick.key_thin;
           std::ostringstream ss;
           ss<<"(VDOSData id="<<k.uid_vdosdata.value
-            <<";vdoslux="<<k.vdoslux;
-          if ( k.requestedEMax != 0.0 )
-            ss<<";requestedEMax="<<k.requestedEMax;
+            <<";vdoslux="<<k.vdoslux.raw();
+          if ( k.requestedEMax.has_value() )
+            ss<<";requestedEMax="<<k.requestedEMax.value();
           if ( k.vdos2sabExcludeFlag ) {
             ss<<";vdos2sabExcludeFlag="<<k.vdos2sabExcludeFlag;
             ss<<";vdos2sabScaleFactor="<<k.vdos2sabExcludeScaleFactor;
@@ -230,15 +238,13 @@ namespace NCRYSTAL_NAMESPACE {
 
       shared_obj<const SABData>
       extractFrom_DI_VDOS( const DI_VDOS& di_vdos, bool try_use_cache,
-                           unsigned vdoslux, uint32_t vdos2sabExcludeFlag )
+                           VDOSLux vdoslux, uint32_t vdos2sabExcludeFlag )
       {
-        nc_assert_always( vdoslux <= 5 );
-
         VDOSExpandInput input;
         const auto& vd = di_vdos.vdosData();
         input.vdosdata = &vd;
         input.requestedEMax = requestedEMaxFromEgrid( di_vdos.energyGrid() );
-        input.vdoslux = static_cast<std::uint32_t>(vdoslux);
+        input.vdoslux = vdoslux;
         if ( vdos2sabExcludeFlag%4 ) {
           const auto& ad = di_vdos.atomData();
           if ( ad.scatteringXS() != vd.boundXS() )
@@ -290,7 +296,7 @@ namespace NCRYSTAL_NAMESPACE {
                                          param.temperature,
                                          param.boundXS, param.elementMass );
         SABData sabdata = SABUtils::transformKernelToStdFormat
-          ( createScatteringKernel( vdosdata, param.reduced_vdoslux ) );
+          ( createScatteringKernel( vdosdata, param.vdoslux ) );
         return std::make_shared<const SABData>(std::move(sabdata));
       }
 
@@ -302,7 +308,7 @@ namespace NCRYSTAL_NAMESPACE {
         {
           auto p = debyekey2params( key );
           std::ostringstream ss;
-          ss<<"(reduced_vdoslux="<<p.reduced_vdoslux
+          ss<<"(vdoslux="<<p.vdoslux.raw()
             <<";M="<<p.elementMass
             <<";T="<<p.temperature
             <<";TDebye="<<p.debyeTemperature
@@ -331,9 +337,11 @@ NC::extractSABDataFromVDOSDebyeModel( DebyeTemperature debT,
                                       Temperature temperature,
                                       SigmaBound boundXS,
                                       AtomMass elementMassAMU,
-                                      unsigned vdoslux, bool useCache )
+                                      VDOS::VDOSLux vdoslux,
+                                      bool useCache )
 {
-  auto key = DICache::getKey(vdoslux,temperature,debT,boundXS,elementMassAMU);
+  auto key = DICache::getDebyeKey(vdoslux,temperature,
+                                  debT,boundXS,elementMassAMU);
   if (!useCache)
     return DICache::extractFromDIVDOSDebyeNoCache(key);
   return DICache::extractFromDIVDOSDebye(key);
@@ -341,17 +349,16 @@ NC::extractSABDataFromVDOSDebyeModel( DebyeTemperature debT,
 
 NC::shared_obj<const NC::SABData>
 NC::extractSABDataFromDynInfo( const NC::DI_ScatKnl* di,
-                               unsigned vdoslux,
+                               VDOS::VDOSLux vdoslux,
                                bool useCache,
                                std::uint32_t vdos2sabExcludeFlag )
 {
   nc_assert( di );
-  nc_assert( vdoslux <= 5 );
 
   //==> VDOSDebye
   auto di_vdosdebye = dynamic_cast<const DI_VDOSDebye*>(di);
   if (di_vdosdebye) {
-    auto key = DICache::getKey(vdoslux,*di_vdosdebye);
+    auto key = DICache::getDebyeKey(vdoslux,*di_vdosdebye);
     if (!useCache)
       return DICache::extractFromDIVDOSDebyeNoCache(key);
     return DICache::extractFromDIVDOSDebye(key);

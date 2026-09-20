@@ -73,7 +73,7 @@ NC::SABCfg::IntegrationScheme NC::SABCfg::str2IntegScheme( StrView v )
   NCRYSTAL_THROW2(BadInput,"Invalid integration scheme: \""<<v
                   <<"\" (should be one of \""
                   << allIntegSchemesAsStr() <<"\")");
-  return IS::Default;
+  return IS::Flex17;
 }
 
 const char * NC::SABCfg::allIntegSchemesAsStr()
@@ -88,7 +88,6 @@ const char * NC::SABCfg::integSchemeToStr( IntegrationScheme v )
 {
   using IS = IntegrationScheme;
   switch ( v ) {
-    //fixme: something shorter, so might be used in cfg strings? r33?
   case IS::Flex5:  return "Flex5";
   case IS::Flex9:  return "Flex9";
   case IS::Flex17: return "Flex17";
@@ -117,16 +116,19 @@ const char * NC::SABCfg::integSchemeToStr( IntegrationScheme v )
 NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
 {
   Cfg c;
+  if ( sablux >= 100 && sablux <= 106 ) {
+    c.sIntegralInterp = SIntegralInterpolation::Linear;
+    sablux -= 100;
+  }
+
   //fixme: revisit all of these
   switch ( sablux ) {
   case 0:
-    //Note, this will be the default scheme for VDOSDebye kernels, so it should
-    //be "crude but workable":
     c.integScheme = IntegrationScheme::Simpson3;
     c.integSchemeDetermineEGrid = IntegrationScheme::Simpson3;
     c.integSchemeBCSample = IntegrationScheme::Flex5;
     c.egrid_npts = 100;//fixme: too low for sampling speed?
-    c.egrid_emin_accuracy = 0.05;
+    c.egrid_emin_accuracy = 1e-5;
     c.fullCellSamplingARThreshold = 0.15;
     c.bcSamplingLargeSRatioThreshold = 1e-2;
     break;
@@ -135,7 +137,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     c.integSchemeDetermineEGrid = IntegrationScheme::Romberg5;
     c.integSchemeBCSample = IntegrationScheme::Flex5;
     c.egrid_npts = 140;
-    c.egrid_emin_accuracy = 0.02;
+    c.egrid_emin_accuracy = 1e-6;
     c.fullCellSamplingARThreshold = 0.15;
     c.bcSamplingLargeSRatioThreshold = 1e-3;
     break;
@@ -144,7 +146,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     c.integSchemeDetermineEGrid = IntegrationScheme::Flex5;
     c.integSchemeBCSample = IntegrationScheme::Flex5;
     c.egrid_npts = 200;
-    c.egrid_emin_accuracy = 0.01;
+    c.egrid_emin_accuracy = 1e-7;
     c.fullCellSamplingARThreshold = 0.15;
     c.bcSamplingLargeSRatioThreshold = 1e-4;
     break;
@@ -158,7 +160,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     nc_assert( c.integSchemeDetermineEGrid == IntegrationScheme::Flex5);
     nc_assert( c.integSchemeBCSample == IntegrationScheme::Flex9 );
     nc_assert( c.egrid_npts == 300 );
-    nc_assert( c.egrid_emin_accuracy == 0.01 );
+    nc_assert( c.egrid_emin_accuracy == 1e-8 );
     nc_assert( c.fullCellSamplingARThreshold == 0.15 );
     nc_assert( c.bcSamplingLargeSRatioThreshold == 1e-5);
     break;
@@ -167,7 +169,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     c.integSchemeDetermineEGrid = IntegrationScheme::Flex9;
     c.integSchemeBCSample = IntegrationScheme::Flex17;
     c.egrid_npts = 450;
-    c.egrid_emin_accuracy = 1e-3;
+    c.egrid_emin_accuracy = 1e-9;
     c.fullCellSamplingARThreshold = 0.15;
     c.bcSamplingLargeSRatioThreshold = 1e-6;
     break;
@@ -176,7 +178,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     c.integSchemeDetermineEGrid = IntegrationScheme::Flex9;
     c.integSchemeBCSample = IntegrationScheme::Flex33;
     c.egrid_npts = 600;
-    c.egrid_emin_accuracy = 1e-4;
+    c.egrid_emin_accuracy = 1e-9;
     c.fullCellSamplingARThreshold = 0.15;
     c.bcSamplingLargeSRatioThreshold = 1e-7;
     break;
@@ -186,8 +188,10 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     c.integScheme = IntegrationScheme::MaxPrec;
     c.integSchemeDetermineEGrid = IntegrationScheme::MaxPrec;
     c.integSchemeBCSample = IntegrationScheme::MaxPrec;
-    c.egrid_npts = 1000;//fixme: higher
-    c.egrid_emin_accuracy = 1e-7;
+    //It would be great to have e.g. npts=100000, but it simply takes
+    //forever. So we use 4 times as many pts as for knllux=5.
+    c.egrid_npts = 2400;
+    c.egrid_emin_accuracy = 1e-10;
     c.fullCellSamplingARThreshold = 0.15;
     c.bcSamplingLargeSRatioThreshold = 1e-8;
     break;
@@ -195,6 +199,5 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     NCRYSTAL_THROW2(BadInput,"SABCfg::createConfig sablux="<<sablux
                     <<" outside the valid range (0 to 6)");
   }
-
   return c;
 }
