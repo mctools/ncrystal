@@ -23,37 +23,38 @@
 
 #include "NCrystal/internal/sab/NCScatKnlData.hh"
 #include "NCrystal/internal/vdos/NCVDOSGn.hh"
+#include "NCrystal/internal/vdos/NCVDOSLux.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Expand a vibrational density of state (VDOS) spectrum into a full-blown //
-  // scattering kernel.                                                      //
-  /////////////////////////////////////////////////////////////////////////////
+  namespace VDOS {
 
-  using ScaleGnContributionFct = std::function<double(unsigned)>;
-  ScatKnlData createScatteringKernel( const VDOSData&,
-                                      unsigned vdosluxlvl = 3,//0 to 5, affects binning, Emax, etc.
-                                      double targetEmax = 0.0,//if 0, will depend on luxlvl. Error if set to unachievable value.
-                                      const VDOSGn::TruncAndThinningParams ttpars = VDOSGn::TruncAndThinningChoices::Default,
-                                      ScaleGnContributionFct = nullptr,
-                                      Optional<unsigned> override_max_order = NullOpt );
+    //////////////////////////////////////////////////////////////////
+    // Expand a vibrational density of state (VDOS) spectrum into a //
+    // full-blown scattering kernel.                                //
+    //////////////////////////////////////////////////////////////////
 
-  //The ScaleGnContributionFct argument can be used to apply a scale factor to
-  //the Gn contribution, at the point where it is used to add a contribution
-  //into S(alpha,beta). This can for instance be used in the scenario where the
-  //coherent single-phonon contribution is modelled elsewhere, and therefore the
-  //G1 contribution should be reduced to take out sigma_coherent. In this case,
-  //the scaling function should return sigma_incoh/(sigma_coh+sigma_incoh) for
-  //the argument n==1, and 1.0 for n>1.
+    using ScaleGnContributionFct = std::function<double(unsigned)>;
+    ScatKnlData
+    createScatteringKernel( const VDOSData&,
+                            VDOSLux vdoslux = VDOSLux(),
+                            Optional<NeutronEnergy> targetEmax = NullOpt,
+                            ScaleGnContributionFct = nullptr);
 
-  //Internal functions, exposed here for testing:
-  VectD setupAlphaGrid( double kT, double msd, double alphaMax, unsigned npts );
-  VectD setupBetaGrid( const VDOSGn& Gn, double betaMax, unsigned luxlvl, unsigned override_nbins );
-  PairDD rangeXNexpMX(unsigned n, double eps, double accuracy = 1e-13 );
-  PairDD findExtremeSABPointWithinAlphaPlusCurve(double E_div_kT, PairDD alphaRange, PairDD betaRange);
-  bool sabPointWithinAlphaPlusCurve(double E_div_kT, double alpha, double beta );
+    // If targetEmax is unset, a suitable value depending on the vdoslux level
+    // will be chosen. An error occurs in case an explicit requested could not
+    // be satisfied.
 
+    // The ScaleGnContributionFct argument can be used to apply a scale factor
+    // to the Gn contribution, at the point where it is used to add a
+    // contribution into S(alpha,beta). This can for instance be used in the
+    // scenario where the coherent single-phonon contribution is modelled
+    // elsewhere, and therefore the G1 contribution should be reduced to take
+    // out sigma_coherent. In this case, the scaling function should return
+    // sigma_incoh/(sigma_coh+sigma_incoh) for the argument n==1, and 1.0 for
+    // n>1.
+
+  }
 }
 
 #endif
