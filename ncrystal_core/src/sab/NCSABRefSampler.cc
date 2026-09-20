@@ -273,9 +273,10 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace SABRef {
     namespace {
-      Optional<RefSampleExtension> prepareExtension( shared_obj<const SABData> sab,
-                                                     double E_div_kT,
-                                                     Optional<RefSampleExtension> opt_ext )
+      Optional<RefSampleExtension>
+      prepareExtension( shared_obj<const SABData> sab,
+                        double E_div_kT,
+                        Optional<RefSampleExtension> opt_ext )
       {
         if ( !opt_ext.has_value() )
           return NullOpt;//has to be explicitly requested
@@ -287,7 +288,8 @@ namespace NCRYSTAL_NAMESPACE {
           } else {
             //The expensive way:
             using SP = SABUtils::SABProcessor;
-            auto cfg =  SABCfg::createConfig( SABCfg::sablux_max_luxury - 1 );//fixme: -1?
+            auto cfg =  SABCfg::createConfig( 5 );//6 is too slow, and the focus
+                                                  //here is sampling, not xs.
             SP sp( cfg, sab, nullptr, SP::SampleSupport::NO );
             res.emax = sp.getEMaxInfo().ekin;
           }
