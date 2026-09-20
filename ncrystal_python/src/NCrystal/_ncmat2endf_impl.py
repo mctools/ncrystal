@@ -311,10 +311,12 @@ class NuclearData:
             return cacheobj
 
         from .vdos import extractKnl
-        #Note: using the extractKnl function rather than di.loadKernel means
-        #that there will be no reduction of vdoslux for VDOSDebye objects. This
-        #is why we use this function here, since ENDF files need the higher
-        #energy range of the resulting sab.
+        #Note: Using the extractKnl function rather than di.loadKernel means
+        #that there will be no reduction of vdoslux for VDOSDebye objects, even
+        #in legacy vdos expansion mode. This is why we use this function here,
+        #since ENDF files need the higher energy range of the resulting
+        #sab. Once we do no longer need to support the legacy mode, we can
+        #revisit this.
 
         kwargs = dict( vdos = di,
                        mass_amu = di.atomData.averageMassAMU(),

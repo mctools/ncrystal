@@ -953,8 +953,11 @@ class Info(RCBase):
 
         def _loadKernel( self, vdoslux = 3 ):
             import numbers
-            assert isinstance(vdoslux,numbers.Integral) and 0<=vdoslux<=5
+            assert isinstance(vdoslux,numbers.Integral)
+            assert 0<=vdoslux<=5 or 1000<=vdoslux<=1005 or 2000<=vdoslux<=2006
             vdoslux=int(vdoslux)
+            if 1000<=vdoslux<=1005:
+                vdoslux -= 1000
             if self.__lastvdoslux != vdoslux:
                 _keepalive, key = self._key
                 sugEmax,ne,na,nb,eptr,aptr,bptr,sabptr = _rawfct['ncrystal_dyninfo_extract_scatknl'](key,vdoslux)
@@ -996,11 +999,12 @@ class Info(RCBase):
             plot_knl( self.loadKernel(), **kwargs )
 
     class DI_VDOS(DI_ScatKnl):
-        """Solid state material with a phonon spectrum in the form of a Vibrational
-        Density Of State (VDOS) parameterisation. This can be expanded into a
-        full scattering kernel. How luxurious this expansion will be is
-        controlled by an optional vdoslux parameter in the loadKernel call (must
-        be integer from 0 to 5)
+        """Solid state material with a phonon spectrum in the form of a
+        Vibrational Density Of State (VDOS) parameterisation. This can be
+        expanded into a full scattering kernel. How luxurious this expansion
+        will be is controlled by an optional vdoslux parameter in the loadKernel
+        call. Here vdoslux is the same integer that appears in material
+        cfg-strings.
         """
         def __init__(self,theinfoobj_wr,fr,atomidx,tt):
             """internal usage only"""
