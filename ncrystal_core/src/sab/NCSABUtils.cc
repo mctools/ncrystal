@@ -21,7 +21,6 @@
 #include "NCrystal/internal/sab/NCSABUtils.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
 #include "NCrystal/internal/utils/NCString.hh"
-#include "NCrystal/internal/utils/NCMsg.hh"
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
@@ -37,18 +36,24 @@ namespace NCRYSTAL_NAMESPACE {
         {
           auto idx0 = ibeta * nalpha;
           auto idxE = idx0 + nalpha;
-          for ( auto idx = idx0; idx != idxE; ++idx )
+          for ( auto idx = idx0; idx != idxE; ++idx ) {
+            nc_assert( std::isfinite(vectAt( input.sab, idx ))
+                       && vectAt( input.sab, idx )>=0.0 );
             if ( vectAt( input.sab, idx ) )
               return false;
+          }
           return true;
         };
         auto alphaColIsZero = [&input,nalpha] ( std::size_t ialpha )
         {
           auto idx0 = ialpha;
           auto idxE = input.sab.size();
-          for ( auto idx = idx0; idx < idxE; idx += nalpha )
+          for ( auto idx = idx0; idx < idxE; idx += nalpha ) {
+            nc_assert( std::isfinite(vectAt( input.sab, idx ))
+                       && vectAt( input.sab, idx )>=0.0 );
             if ( vectAt( input.sab, idx ) )
               return false;
+          }
           return true;
         };
 
@@ -258,6 +263,8 @@ NC::SABData NC::SABUtils::transformKernelToStdFormat( ScatKnlData&& input_orig )
   // This is obviously just a workaround and not the correct way to solve this //
   // (TODO: Remove once processing handles sparse grids better)!               //
   ///////////////////////////////////////////////////////////////////////////////
+
+  //FIXME: This should probably be removed in the near future!
 
   int nminbeta_int = ncgetenv_int("SAB_BETATHICKENING_MINNBETA",500);
   nc_assert_always( nminbeta_int >=0 && nminbeta_int < 20000 );
