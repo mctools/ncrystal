@@ -402,7 +402,7 @@ NC::VectD NCV::detail::setupLegacyAlphaGrid( double alpha2x, double alphaMax,
   return finalise_grid(grid);
 }
 
-NC::VectD NCV::detail::setupLegacyBetaGrid( const NC::VDOSGn& Gn,
+NC::VectD NCV::detail::setupLegacyBetaGrid( const VDOSGn& Gn,
                                             double betaMax,
                                             VDOSLux vdoslux,
                                             unsigned ntotal )
