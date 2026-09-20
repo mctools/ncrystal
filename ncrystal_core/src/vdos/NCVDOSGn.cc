@@ -29,44 +29,76 @@
 #include <deque>
 
 namespace NC=NCrystal;
+namespace NCV=NCrystal::VDOS;
 
 namespace NCRYSTAL_NAMESPACE {
 
-  namespace {
-    static std::atomic<bool> s_verbose_vdosgn( ncgetenv_bool("DEBUG_PHONON") );
+  namespace VDOS {
 
-    class VDOSGnData : private MoveOnly {
-    public:
-      VDOSGnData( const VectD &spec,
-                  double egrid_lower,
-                  double egrid_binwidth,
-                  unsigned long thinFactor );
-      double interpolateDensity(double energy) const;
-      void interpolateDensityMany(Span<const double>, VectD&, VectD&) const;
+    namespace {
+      static std::atomic<bool> s_verbose_vdosgn( ncgetenv_bool("DEBUG_PHONON") );
 
-      const VectD& getSpectrum() const { return m_spec; }
-      double getEGridLower() const {return m_egrid_lower;}
-      double getEGridUpper() const {return m_egrid_upper;}
-      double getEGridBinwidth() const {return m_egrid_binwidth;}
-      double maxDensity() const { return m_specMaxVal; }
-      unsigned long getThinFactor() const { return m_thinFactor; }
-      VDOSGnData( VDOSGnData&& ) = default;
-      VDOSGnData& operator=( VDOSGnData&& ) = default;
-    private:
-      VectD m_spec;
-      std::size_t m_spec_size_minus_2;
-      double m_egrid_lower, m_egrid_upper;
-      double m_egrid_binwidth, m_egrid_invbinwidth, m_specMaxVal;
-      unsigned long m_thinFactor;//NB: binwidth is G1's binwidth multiplied by
-                                 //m_thinFactor
-    };
+      struct CfgDecoded {
+        int minThinOrder = 4;//Below this order, no thinning takes place
+        //(0=always thin, -1=never thin)
+        unsigned thinNBins = 1000;//double binwidth whenever number of bins
+        //exceeds this value (0 disables)
+        int minThinAgressiveOrder = 20;//same but for more agressive thinning
+        unsigned thinAgressiveNBins = 300;//same but for more agressive thinning
+        int minTruncOrder = 0;//Below this order, no truncation takes place
+        //(0=always, -1=never)
+        double truncationThreshold = 1e-13;//trim ranges to remove negligible
+        //noise at edges (0 disables)
+        bool legacyConvolve = false;
+      };
+      CfgDecoded decodeCfg( VDOSGn::Cfg choice ) {
+        CfgDecoded res;
+        if (choice == VDOSGn::Cfg::Legacy) {
+          //NCrystal 2.x-4.x behaviour:
+          res.minThinOrder = res.minTruncOrder = 5;
+          res.thinNBins = res.thinAgressiveNBins = 1000;
+          res.minThinAgressiveOrder = 50000;
+          res.truncationThreshold = 1e-14;
+          res.legacyConvolve = true;
+        } else {
+          nc_assert( choice == VDOSGn::Cfg::Default );
+        }
+        return res;
+      }
+
+      class VDOSGnData : private MoveOnly {
+      public:
+        VDOSGnData( const VectD &spec,
+                    double egrid_lower,
+                    double egrid_binwidth,
+                    unsigned long thinFactor );
+        double interpolateDensity(double energy) const;
+        void interpolateDensityMany(Span<const double>, VectD&, VectD&) const;
+
+        const VectD& getSpectrum() const { return m_spec; }
+        double getEGridLower() const {return m_egrid_lower;}
+        double getEGridUpper() const {return m_egrid_upper;}
+        double getEGridBinwidth() const {return m_egrid_binwidth;}
+        double maxDensity() const { return m_specMaxVal; }
+        unsigned long getThinFactor() const { return m_thinFactor; }
+        VDOSGnData( VDOSGnData&& ) = default;
+        VDOSGnData& operator=( VDOSGnData&& ) = default;
+      private:
+        VectD m_spec;
+        std::size_t m_spec_size_minus_2;
+        double m_egrid_lower, m_egrid_upper;
+        double m_egrid_binwidth, m_egrid_invbinwidth, m_specMaxVal;
+        unsigned long m_thinFactor;//NB: binwidth is G1's binwidth multiplied
+                                   //    by m_thinFactor
+      };
+    }
   }
 }
 
-NC::VDOSGnData::VDOSGnData( const NC::VectD &spec,
-                            double egrid_lower,
-                            double egrid_binwidth,
-                            unsigned long thinFactor )
+NCV::VDOSGnData::VDOSGnData( const VectD &spec,
+                             double egrid_lower,
+                             double egrid_binwidth,
+                             unsigned long thinFactor )
   : m_spec(spec.begin(),spec.end()),
     m_thinFactor(thinFactor)
 {
@@ -93,7 +125,7 @@ NC::VDOSGnData::VDOSGnData( const NC::VectD &spec,
   m_specMaxVal = *std::max_element(m_spec.begin(),m_spec.end());
 }
 
-double NC::VDOSGnData::interpolateDensity(double energy) const
+double NCV::VDOSGnData::interpolateDensity(double energy) const
 {
   if (!valueInInterval(m_egrid_lower,m_egrid_upper,energy))
     return 0.0;
@@ -108,9 +140,9 @@ double NC::VDOSGnData::interpolateDensity(double energy) const
   return (*valptr) * (1.0-f) +  f * (*(valptr+1));
 }
 
-void NC::VDOSGnData::interpolateDensityMany( Span<const double> energy,
-                                             VectD& out,
-                                             VectD& workbuf) const
+void NCV::VDOSGnData::interpolateDensityMany( Span<const double> energy,
+                                              VectD& out,
+                                              VectD& workbuf) const
 {
 #ifndef NDEBUG
   nc_assert(energy.size() <
@@ -210,9 +242,8 @@ void NC::VDOSGnData::interpolateDensityMany( Span<const double> energy,
 #endif
 }
 
-struct NC::VDOSGn::Impl {
-  using Cfg = VDOSGn::Cfg;
-  Impl(const VDOSEval& vde, const Cfg& );
+struct NCV::VDOSGn::Impl {
+  Impl(const VDOSEval& vde, const VDOSGn::Cfg& );
   std::deque<VDOSGnData> m_gndata;//deque, to not change address of VDOSGnData
                                   //objects when growMaxOrder() is called.
   std::vector<VDOSGnData> m_mt_pending_gndata;//if in MT mode, we might
@@ -221,7 +252,7 @@ struct NC::VDOSGn::Impl {
   Optional<FactoryJobs> m_mt_jobs;
   static_assert( std::is_nothrow_default_constructible<Optional<VDOSGnData>>::value, "");
   SmallVector<Optional<VDOSGnData>,10> m_mt_buffer;
-  VDOSGn::Cfg m_cfg;
+  CfgDecoded m_cfg;
   SmallVector<FastConvolve,4> m_fastConvolve;
   int m_nmaxconcurrent = 0;
 
@@ -240,24 +271,9 @@ struct NC::VDOSGn::Impl {
 
 };
 
-NC::VDOSGn::Cfg::Cfg(CfgChoices choice)
-  : Cfg()
-{
-  if (choice == CfgChoices::Legacy) {
-    //NCrystal 2.x-4.x behaviour:
-    minThinOrder = minTruncOrder = 5;
-    thinNBins = thinAgressiveNBins = 1000;
-    minThinAgressiveOrder = 50000;
-    truncationThreshold = 1e-14;
-    legacyConvolve = true;
-  } else {
-    nc_assert( choice == CfgChoices::Default );
-  }
-}
-
-NC::VDOSGn::Impl::Impl(const VDOSEval& vde,
-                       const Cfg& cfg )
-  : m_cfg(cfg),
+NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
+                        const VDOSGn::Cfg& cfg )
+  : m_cfg(decodeCfg(cfg)),
     m_nmaxconcurrent(ncgetenv_int("VDOSGN_CONCURRENT",4))
 {
   auto gridinfo = vde.getGridInfo();
@@ -340,7 +356,7 @@ NC::VDOSGn::Impl::Impl(const VDOSEval& vde,
                  <<")");
 }
 
-NC::VDOSGn::~VDOSGn() {
+NCV::VDOSGn::~VDOSGn() {
   if ( m_impl->m_mt_jobs.has_value() ) {
     //End running jobs, so they don't write to suddenly non-existent buffers:
     m_impl->m_mt_jobs.value().waitAll();
@@ -351,18 +367,18 @@ NC::VDOSGn::~VDOSGn() {
 
 }
 
-NC::VDOSGn::VDOSGn( const NC::VDOSEval& vde, const NC::VDOSGn::Cfg& cfg)
+NCV::VDOSGn::VDOSGn( const VDOSEval& vde, Cfg cfg )
   : m_impl(vde,cfg),
     m_kT(vde.kT())
 {
 }
 
-NC::VDOSGn::Order NC::VDOSGn::maxOrder() const
+NCV::VDOSGn::Order NCV::VDOSGn::maxOrder() const
 {
   return static_cast<unsigned>( m_impl->m_gndata.size() );
 }
 
-void NC::VDOSGn::growMaxOrder( Order target_n )
+void NCV::VDOSGn::growMaxOrder( Order target_n )
 {
   Order n = maxOrder();
   ++n;
@@ -372,28 +388,28 @@ void NC::VDOSGn::growMaxOrder( Order target_n )
   nc_assert( maxOrder().value() == target_n.value() );
 }
 
-double NC::VDOSGn::eval( Order n, double energy ) const
+double NCV::VDOSGn::eval( Order n, double energy ) const
 {
   return m_impl->accessAtOrder(n).interpolateDensity(energy);
 }
 
-void NC::VDOSGn::evalMany( Order n, Span<const double> egrid,
+void NCV::VDOSGn::evalMany( Order n, Span<const double> egrid,
                              VectD& out, VectD& workbuf ) const
 {
   m_impl->accessAtOrder(n).interpolateDensityMany(egrid,out,workbuf);
 }
 
-const NC::VectD& NC::VDOSGn::getRawSpectrum( NC::VDOSGn::Order n ) const
+const NC::VectD& NCV::VDOSGn::getRawSpectrum( Order n ) const
 {
   return m_impl->accessAtOrder(n).getSpectrum();
 }
 
-double NC::VDOSGn::binWidth( NC::VDOSGn::Order n) const
+double NCV::VDOSGn::binWidth( Order n) const
 {
   return m_impl->accessAtOrder(n).getEGridBinwidth();
 }
 
-NC::PairDD NC::VDOSGn::eRange( NC::VDOSGn::Order n, double relthreshold ) const
+NC::PairDD NCV::VDOSGn::eRange( Order n, double relthreshold ) const
 {
   nc_assert(relthreshold>0.0&&relthreshold<1.0);
   const auto& p = m_impl->accessAtOrder(n);
@@ -420,23 +436,23 @@ NC::PairDD NC::VDOSGn::eRange( NC::VDOSGn::Order n, double relthreshold ) const
   return erange;
 }
 
-NC::PairDD NC::VDOSGn::eRange( NC::VDOSGn::Order n ) const
+NC::PairDD NCV::VDOSGn::eRange( Order n ) const
 {
   const auto& p = m_impl->accessAtOrder(n);
   return { p.getEGridLower(), p.getEGridUpper() };
 }
 
-void NC::VDOSGn::enableVerboseOutput(bool status)
+void NCV::VDOSGn::enableVerboseOutput(bool status)
 {
   s_verbose_vdosgn = status;
 }
 
-bool NC::VDOSGn::verboseOutputEnabled()
+bool NCV::VDOSGn::verboseOutputEnabled()
 {
   return s_verbose_vdosgn;
 }
 
-void NC::VDOSGn::Impl::produceNewOrderByConvolution( Order order )
+void NCV::VDOSGn::Impl::produceNewOrderByConvolution( Order order )
 {
   const unsigned current_maxorder = static_cast<unsigned>( m_gndata.size() );
   nc_assert_always( order.value() == current_maxorder + 1 );
@@ -508,7 +524,9 @@ void NC::VDOSGn::Impl::produceNewOrderByConvolution( Order order )
   m_gndata.emplace_back( this->produceNewOrderByConvolutionImpl( Order{current_maxorder+1}, *itFC ) );
 }
 
-NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, FastConvolve& fastConvolve ) const
+NCV::VDOSGnData
+NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
+                                                     FastConvolve& fastConvolve ) const
 {
   Order order2 = order.value()/2;
   Order order1 = order.value()-order2.value();
@@ -518,7 +536,7 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
 
   //Function which can thin a vector (i.e. increase binwidth by merging bins),
   //used two places below:
-  auto thinVector = [](unsigned thinFactor, const NC::VectD& v)
+  auto thinVector = [](unsigned thinFactor, const VectD& v)
                     {
                       nc_assert(thinFactor>1);
                       VectD vt;
@@ -577,7 +595,6 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
     fastConvolve.convolve( *input1_spec, *input2_spec, phonon_spe, dt );
   auto orig_npts_result = phonon_spe.size();
 
-  unsigned long extraThinFactor = 1;
   if ( m_cfg.minTruncOrder >= 0
        && m_cfg.truncationThreshold > 0.0
        && order.value() >= static_cast<unsigned>(m_cfg.minTruncOrder) ) {
@@ -599,6 +616,7 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
     }
     //Remove non-cross-platform-reproducible noise from the FFT alg by snapping
     //tiny noise to 0.0 (also internally, not just at the edges):
+    //fixme: with non-legacy convolve we MUST do this, or we can get negative values in the spectra
     if ( !m_cfg.legacyConvolve ) {
       for ( auto&e : phonon_spe) {
         if ( e < spec_cutoff ) {
@@ -620,6 +638,7 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
     thinNBins = m_cfg.thinAgressiveNBins;
   }
 
+  unsigned long extraThinFactor = 1;
   if ( minThinOrder >= 0 && thinNBins > 0
        && order_int >= minThinOrder
        && phonon_spe.size() > static_cast<std::size_t>(thinNBins) ) {
@@ -654,5 +673,5 @@ NC::VDOSGnData NC::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order, 
   return VDOSGnData{ phonon_spe, start_energy, dt, thinFactor1*extraThinFactor };
 }
 
-NC::VDOSGn::VDOSGn( VDOSGn&& ) = default;
-NC::VDOSGn& NC::VDOSGn::operator=( VDOSGn&& ) = default;
+NCV::VDOSGn::VDOSGn( VDOSGn&& ) = default;
+NCV::VDOSGn& NCV::VDOSGn::operator=( VDOSGn&& ) = default;

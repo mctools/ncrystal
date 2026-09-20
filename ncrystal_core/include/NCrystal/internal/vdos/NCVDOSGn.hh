@@ -28,147 +28,135 @@ namespace NCRYSTAL_NAMESPACE {
 
   class VDOSEval;
 
-  class VDOSGn final : private MoveOnly {
+  namespace VDOS {
 
-  public:
-    //Construct Sjolanders *asymmetric* Gn functions for a given VDOS
-    //(Vibrational Density Of States) phonon spectrum as defined in Sjolander,
-    //Arkiv for Fysik., Bd 14, nr 21, 1958 (chapter 2.). This facilitates the
-    //attainment of higher order phonon contributions to incoherent inelastic
-    //neutron scatterings, and relies on an iterative procedure (see Sjolander's
-    //eq. II.27) in which the first (single-phonon) tabulated G1 function -
-    //provided by an VDOSEval instance - can essentially be self-convolved n
-    //times in order to obtain the Gn function with information about n'th order
-    //phonon contributions.
-    //
-    //The actual technical implementation has been tuned to be more efficient
-    //and accurate than the direct application of Sjolander's model would
-    //be. For reasons of numerical stability, the G{2n} and G{2n+1} functions
-    //are respectively obtained by convolutions G{n}*G{n} and G{n}*G{n+1}, so a
-    //given Gn function is obtained by just ~log2(n) convolutions. This
-    //significantly reduces accumulation of numerical errors. The convolutions
-    //themselves are carried out by a Fast-Fourier-Transform method with fixed
-    //binning, and to enable efficient calculations of *very* high orders (up to
-    //at least 10000 orders have been tested), the binning and range of high
-    //order spectra are continuously reduced through a customized truncation &
-    //thinning procedure which has tremendous impact on the computational
-    //efficiency in terms of CPU and memory usage, but essentially no impact on
-    //the validity of the results (at least when using the default
-    //truncation/thinning options below).
-    //
-    //Upon construction, the VDOSGn class only contains G1, but calling code can
-    //call the growMaxOrder function to dynamically expand this to higher
-    //orders. It is an error to query results of Gn functions unless
-    //growMaxOrder has first been called with at least n.
-    //
-    //Note that for consistency between the present interface and Sjolander's
-    //notation, we index the orders, n=1,2,3,4,... Although this is contrary to
-    //the 0-based indexing normally used in C++, it would be highly confusing to
-    //use n=0 to indicate single-phonon scattering, not the least because it is
-    //customary in neutron scattering to occasionally identify elastic
-    //scattering with "0-order phonon scattering". For added safety, the Order
-    //type used in the VDOSGn interface below is a special class which provides
-    //extra sanity checks in debug builds of provided numbers.
+    class VDOSGn final : private MoveOnly {
 
-    class Order;
+    public:
+      //Construct Sjolanders *asymmetric* Gn functions for a given VDOS
+      //(Vibrational Density Of States) phonon spectrum as defined in Sjolander,
+      //Arkiv for Fysik., Bd 14, nr 21, 1958 (chapter 2.). This facilitates the
+      //attainment of higher order phonon contributions to incoherent inelastic
+      //neutron scatterings, and relies on an iterative procedure (see
+      //Sjolander's eq. II.27) in which the first (single-phonon) tabulated G1
+      //function - provided by an VDOSEval instance - can essentially be
+      //self-convolved n times in order to obtain the Gn function with
+      //information about n'th order phonon contributions.
+      //
+      //The actual technical implementation has been tuned to be more efficient
+      //and accurate than the direct application of Sjolander's model would
+      //be. For reasons of numerical stability, the G{2n} and G{2n+1} functions
+      //are respectively obtained by convolutions G{n}*G{n} and G{n}*G{n+1}, so
+      //a given Gn function is obtained by just ~log2(n) convolutions. This
+      //significantly reduces accumulation of numerical errors. The convolutions
+      //themselves are carried out by a Fast-Fourier-Transform method with fixed
+      //binning, and to enable efficient calculations of *very* high orders (up
+      //to at least 10000 orders have been tested), the binning and range of
+      //high order spectra are continuously reduced through a customized
+      //truncation & thinning procedure which has tremendous impact on the
+      //computational efficiency in terms of CPU and memory usage, but
+      //essentially no impact on the validity of the results (at least when
+      //using the default truncation/thinning options below).
+      //
+      //Upon construction, the VDOSGn class only contains G1, but calling code
+      //can call the growMaxOrder function to dynamically expand this to higher
+      //orders. It is an error to query results of Gn functions unless
+      //growMaxOrder has first been called with at least n.
+      //
+      //Note that for consistency between the present interface and Sjolander's
+      //notation, we index the orders, n=1,2,3,4,... Although this is contrary
+      //to the 0-based indexing normally used in C++, it would be highly
+      //confusing to use n=0 to indicate single-phonon scattering, not the least
+      //because it is customary in neutron scattering to occasionally identify
+      //elastic scattering with "0-order phonon scattering". For added safety,
+      //the Order type used in the VDOSGn interface below is a special class
+      //which provides extra sanity checks in debug builds of provided numbers.
 
-    //////////////////////////////////
-    // Cfg options and Constructor: //
-    //////////////////////////////////
+      class Order;
 
-    enum class CfgChoices { Default, Legacy };
+      //////////////////////////////////
+      // Cfg options and Constructor: //
+      //////////////////////////////////
 
-    struct Cfg {
-      int minThinOrder = 4;//Below this order, no thinning takes place
-                           //(0=always thin, -1=never thin)
-      unsigned thinNBins = 1000;//double binwidth whenever number of bins
-                                //exceeds this value (0 disables)
-      int minThinAgressiveOrder = 20;//same but for more agressive thinning
-      unsigned thinAgressiveNBins = 300;//same but for more agressive thinning
-      int minTruncOrder = 0;//Below this order, no truncation takes place
-                           //(0=always, -1=never)
-      double truncationThreshold = 1e-13;//trim ranges to remove negligible
-                                         //noise at edges (0 disables)
-      bool legacyConvolve = false;
-      Cfg(CfgChoices);
-      Cfg() = default;
+      enum class Cfg { Default, Legacy };
+
+      //Initialise based on VDOS and cfg:
+      VDOSGn( const VDOSEval&, Cfg = Cfg::Default );
+
+      ///////////////
+      // Plumbing: //
+      ///////////////
+      ~VDOSGn();
+      VDOSGn( VDOSGn&& );
+      VDOSGn& operator=( VDOSGn&& );
+
+      ///////////////////////////
+      // Material temperature: //
+      ///////////////////////////
+      double kT() const { return m_kT; }
+
+      ////////////////////////////////////////////
+      //Check or increase maximum available Gn: //
+      ////////////////////////////////////////////
+      void growMaxOrder( Order );//Not MT-safe
+      Order maxOrder() const;
+
+      //////////////////////////////
+      // Access properties of Gn: //
+      //////////////////////////////
+
+      //Evaluate Gn, for n in 1..maxOrder, at given energy point:
+      double eval( Order n, double energy ) const;
+
+      //Evaluate at grid of energy points. Requires a work-buffer for
+      //intermediate results (provide the same workbuf in repeated calls to
+      //avoid excess allocations):
+      void evalMany( Order n, Span<const double> energy_grid,
+                     VectD& out, VectD& workbuf) const;
+
+      //get energy range where spectrum is above relthreshold of the maximal
+      //value:
+      PairDD eRange( Order n, double relthreshold ) const;
+      //Full energy range, bin width and spectrum:
+      PairDD eRange( Order n) const;
+      double binWidth( Order) const;
+      const VectD& getRawSpectrum( Order ) const;
+
+      ///////////////////////////////////////////////////////////
+      // Enable verbose output (default is disabled unless the //
+      // NCRYSTAL_DEBUG_PHONON environment variable is set.    //
+      ///////////////////////////////////////////////////////////
+
+      static void enableVerboseOutput(bool status = true);
+      static bool verboseOutputEnabled();
+
+    private:
+      struct Impl;
+      Pimpl<Impl> m_impl;
+      double m_kT;
     };
 
-    //Initialise based on VDOS and cfg:
-    VDOSGn( const VDOSEval&, const Cfg& = CfgChoices::Default );
+    class VDOSGn::Order final {
+      //Essentially an unsigned integer which (in debug builds) guards against
+      //assignment from negative numbers, 0, or numbers too high to be an actual
+      //order number.
+    public:
+      Order(unsigned o) : m_order(o) { checkValid(); }
+      Order(int o) : m_order(o) { nc_assert(o>0); checkValid(); }
+      Order(const Order& o) = default;
+      Order& operator=(const Order& o) { m_order = o.m_order; return *this; }
+      Order& operator=(const int& o) { nc_assert(o>0); m_order = o; checkValid(); return *this; }
+      Order& operator=(const unsigned& o) { m_order = o; checkValid(); return *this; }
+      bool operator<(const Order& o) { return m_order < o.m_order; }
+      bool operator<=(const Order& o) { return m_order <= o.m_order; }
+      Order& operator++() { ++m_order; checkValid(); return *this; }
+      unsigned value() const { return m_order; }
+    private:
+      unsigned m_order;
+      void checkValid() { nc_assert( m_order>0 && m_order<100000 ); }
+    };
 
-    ///////////////
-    // Plumbing: //
-    ///////////////
-    ~VDOSGn();
-    VDOSGn( VDOSGn&& );
-    VDOSGn& operator=( VDOSGn&& );
-
-    ///////////////////////////
-    // Material temperature: //
-    ///////////////////////////
-    double kT() const { return m_kT; }
-
-    ////////////////////////////////////////////
-    //Check or increase maximum available Gn: //
-    ////////////////////////////////////////////
-    void growMaxOrder( Order );//Not MT-safe
-    Order maxOrder() const;
-
-    //////////////////////////////
-    // Access properties of Gn: //
-    //////////////////////////////
-
-    //Evaluate Gn, for n in 1..maxOrder, at given energy point:
-    double eval( Order n, double energy ) const;
-
-    //Evaluate at grid of energy points. Requires a work-buffer for intermediate
-    //results (provide the same workbuf in repeated calls to avoid excess
-    //allocations):
-    void evalMany( Order n, Span<const double> energy_grid,
-                   VectD& out, VectD& workbuf) const;
-
-    //get energy range where spectrum is above relthreshold of the maximal value:
-    PairDD eRange( Order n, double relthreshold ) const;
-    //Full energy range, bin width and spectrum:
-    PairDD eRange( Order n) const;
-    double binWidth( Order) const;
-    const VectD& getRawSpectrum( Order ) const;
-
-    ///////////////////////////////////////////////////////////
-    // Enable verbose output (default is disabled unless the //
-    // NCRYSTAL_DEBUG_PHONON environment variable is set.    //
-    ///////////////////////////////////////////////////////////
-
-    static void enableVerboseOutput(bool status = true);
-    static bool verboseOutputEnabled();
-
-  private:
-    struct Impl;
-    Pimpl<Impl> m_impl;
-    double m_kT;
-  };
-
-  class VDOSGn::Order final {
-    //Essentially an unsigned integer which (in debug builds) guards against
-    //assignment from negative numbers, 0, or numbers too high to be an actual
-    //order number.
-  public:
-    Order(unsigned o) : m_order(o) { checkValid(); }
-    Order(int o) : m_order(o) { nc_assert(o>0); checkValid(); }
-    Order(const Order& o) = default;
-    Order& operator=(const Order& o) { m_order = o.m_order; return *this; }
-    Order& operator=(const int& o) { nc_assert(o>0); m_order = o; checkValid(); return *this; }
-    Order& operator=(const unsigned& o) { m_order = o; checkValid(); return *this; }
-    bool operator<(const Order& o) { return m_order < o.m_order; }
-    bool operator<=(const Order& o) { return m_order <= o.m_order; }
-    Order& operator++() { ++m_order; checkValid(); return *this; }
-    unsigned value() const { return m_order; }
-  private:
-    unsigned m_order;
-    void checkValid() { nc_assert( m_order>0 && m_order<100000 ); }
-  };
-
+  }
 }
 
 #endif
