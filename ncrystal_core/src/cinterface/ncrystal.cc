@@ -760,8 +760,8 @@ void ncrystal_raw_vdos2gn( const double* vdos_egrid,
                                                 vdos_egrid_npts, vdos_density_npts,
                                                 scattering_xs, mass_amu, temperature );
     NC::VDOSEval vdosEval( vdosData );
-    NC::VDOSGn vdosGn( vdosEval );
-    NC::VDOSGn::Order order{nvalue};
+    NC::VDOS::VDOSGn vdosGn( vdosEval );
+    NC::VDOS::VDOSGn::Order order{nvalue};
     vdosGn.growMaxOrder( order );
     auto xrange = vdosGn.eRange( order );
     const auto& y =  vdosGn.getRawSpectrum( order );
@@ -823,23 +823,29 @@ void ncrystal_raw_vdos2kernel( const double* vdos_egrid,
                                double scattering_xs,
                                double mass_amu,
                                double temperature,
-                               unsigned vdoslux,
+                               unsigned vdoslux_raw,
                                double (*order_weight_fct)( unsigned order ),
                                unsigned* nalpha,
                                unsigned* nbeta,
                                double** alpha,
                                double** beta,
                                double** sab,
-                               double target_emax,
+                               double target_emax_raw,
                                double* suggested_emax )
 {
   try {
     *suggested_emax = 0.0;
+    NC::VDOS::VDOSLux vdoslux(vdoslux_raw);
     auto vdosData = ncc::createVDOSDataFromRaw( vdos_egrid, vdos_density,
                                                 vdos_egrid_npts, vdos_density_npts,
                                                 scattering_xs, mass_amu, temperature );
-    auto ttpars = NC::VDOSGn::TruncAndThinningChoices::Default;
-    auto knldata = NC::createScatteringKernel( vdosData, vdoslux, target_emax, ttpars, order_weight_fct );
+    NC::Optional<NC::NeutronEnergy> target_emax;
+    if ( target_emax_raw != 0.0 )
+      target_emax = NC::NeutronEnergy{target_emax_raw};
+
+    auto knldata = NC::VDOS::createScatteringKernel( vdosData, vdoslux,
+                                                     target_emax,
+                                                     order_weight_fct );
     auto sabdata = NC::SABUtils::transformKernelToStdFormat( std::move(knldata) );
     if ( !order_weight_fct ) {
       // Only set suggested_emax if not using order_weight_fct, since it makes
@@ -872,7 +878,7 @@ void ncrystal_dealloc_doubleptr( double* arr )
 
 void ncrystal_dyninfo_extract_scatknl( ncrystal_info_t ci,
                                        unsigned idyninfo,
-                                       unsigned vdoslux,
+                                       unsigned vdoslux_raw,
                                        double * suggestedEmax,
                                        unsigned* negrid,
                                        unsigned* nalpha,
@@ -883,6 +889,7 @@ void ncrystal_dyninfo_extract_scatknl( ncrystal_info_t ci,
                                        const double** sab )
 {
   try {
+    NC::VDOS::VDOSLux vdoslux(vdoslux_raw);
     auto& di = ncc::extract(ci)->getDynamicInfoList().at(idyninfo);
     nc_assert_always(!!di);
     std::shared_ptr<const NC::SABData> shptr_sabdata;
@@ -897,6 +904,10 @@ void ncrystal_dyninfo_extract_scatknl( ncrystal_info_t ci,
       //global static array here:
       static std::vector<std::shared_ptr<const NC::SABData>> s_keepAlive;
       static std::mutex s_keepAlive_mutex;
+      //fixme: we should check how this is used in the python api, and when we
+      //are able to clear the cache in case it grows out of hand. It might be
+      //better to just return via a json query and obsolete this complicated
+      //function.
       NCRYSTAL_LOCK_GUARD(s_keepAlive_mutex);
       s_keepAlive.push_back(shptr_sabdata);
       static bool first = true;
