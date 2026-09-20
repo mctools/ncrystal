@@ -21,6 +21,7 @@
 #include "NCrystal/internal/sab/NCSABUtils.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
 #include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {

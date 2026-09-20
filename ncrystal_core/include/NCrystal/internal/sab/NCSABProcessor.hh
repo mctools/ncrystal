@@ -48,6 +48,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       enum class SampleSupport { YES, NO };
       enum class StoreExtraDiagnostics { YES, NO };
+
       SABProcessor( const SABCfg::Cfg& cfg,
                     shared_obj<const SABData>,
                     std::shared_ptr<const VectD> egrid,
@@ -62,7 +63,7 @@ namespace NCRYSTAL_NAMESPACE {
       double phaseSpaceIntegral( NeutronEnergy ) const;
 
       //Assuming SigmaBound=1barn, get the corresponding cross section:
-      CrossSect crossSectionUnitSigmaBound( NeutronEnergy ekin ) const;
+      CrossSect crossSectionUnitSigmaBound( NeutronEnergy ) const;
 
       //Sample a scattering event in (dE,mu) or (alpha,beta) space, with or
       //without diagnostics (fixme: needed?):
