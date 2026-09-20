@@ -430,7 +430,7 @@ namespace NCRYSTAL_NAMESPACE {
     {
       CrossSect maxXS {-1.0};
       NeutronEnergy maxXS_E{-1.0};
-      auto xscurve = m_helper.accessXSCurve();
+      auto& xscurve = m_helper.accessXSCurve();
       for ( auto iE : ncrange(xscurve.size()) ) {
         const auto probeE = NeutronEnergy{ vectAt(xscurve.xValues(),iE) };
         const auto probeXS = CrossSect{ vectAt(xscurve.yValues(),iE) };
