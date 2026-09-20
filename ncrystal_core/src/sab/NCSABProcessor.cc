@@ -25,9 +25,15 @@
 #include "NCrystal/internal/sab/NCSABIdx.hh"
 #include "NCrystal/internal/utils/NCMixedDataVector.hh"
 #include "NCrystal/internal/utils/NCTinyVector.hh"
+#include "NCrystal/internal/utils/NCFileUtils.hh"
+#include "NCrystal/internal/utils/NCSpline.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
+#include <fstream>
 
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
+
+//#define NCRYSTAL_SABPROC_SMOOTH_INTERP_LOGLOG
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -226,12 +232,17 @@ namespace NCRYSTAL_NAMESPACE {
 
         double m_kT;
         double m_invkT;
+        //constant needed for low E extrapolation:
+        double m_lowEExtrapolationConstant = 0.0;
 
         //Sorted energy grid (E/kT):
         VectD m_eGrid;
         //Equivalent phase-spaced bounded integral of S for each of the energy
         //points:
         VectD m_sIntegral;
+
+        //For smooth sIntegrals, we need:
+        Optional<PCHIPInterp> m_sIntegralSmooth;
 
         //Extra diagnostics data
         VectD m_diagnostics_fcAR; //Full cell AR at at each m_eGrid pt
@@ -379,8 +390,8 @@ namespace NCRYSTAL_NAMESPACE {
           }
 
           const double fullCellIntegral = mgr.getCellIntegral( it->cellidx );
-#define SUMADD_NEW//fixme ensure this is correct and then enable
-#ifndef SUMADD_NEW
+#define NCRYSTAL_SUMADD_NEW//fixme ensure this is correct and then enable
+#ifndef NCRYSTAL_SUMADD_NEW
           sumFullCells.add(fullCellIntegral);
 #endif
           if ( E_div_kT >= it->e_cover ) {
@@ -403,7 +414,7 @@ namespace NCRYSTAL_NAMESPACE {
             }
           }
         }
-#ifdef SUMADD_NEW
+#ifdef NCRYSTAL_SUMADD_NEW
         sumFullCells.add(sumCoveredCells);
         sumFullCells.add(sum);
 #endif
@@ -478,13 +489,14 @@ namespace NCRYSTAL_NAMESPACE {
                                  const std::function<double(double)>& f_of_e )
       {
         //fixme: this function could use some luxury parameters
-        constexpr double logS_raise_target = 1e-3;//fixme: lux?
         const double root_acc = cfg.egrid_emin_accuracy;
 
         const double e1 = e_search_range.first;
         const double e2 = e_search_range.second;
         const double logf1 = std::log(f_of_e( e1 ));
         const double logf2 = std::log(f_of_e( e2 ));
+        const double logS_raise_target = 1e-3*(logf2-logf1);//fixme: lux?
+        nc_assert_always(logS_raise_target > 0.0);
         const double logf1pluseps = logf1 + logS_raise_target;
         if ( logf2 <= logf1pluseps )
           return e2;
@@ -496,13 +508,51 @@ namespace NCRYSTAL_NAMESPACE {
         {
           ++ncalls;
           nc_assert(std::isfinite(loge));
-          if ( !(loge>loge1) )
-            return logf1;
-          if ( !(loge<loge2) )
-            return logf2;
-          return std::log(f_of_e(std::exp(loge)))-logf1pluseps;
+          double val;
+          if ( !(loge>loge1) ) {
+            val = logf1;
+          } else if ( !(loge<loge2) ) {
+            val = logf2;
+          } else {
+            val = std::log(f_of_e(std::exp(loge)));
+          }
+          return val - logf1pluseps;
         };
-        const double logemin = findRoot2(froot,loge1,loge2, root_acc);
+        if ( false ) {//fixme
+          std::string fn = "ncrystal_logemin_info.txt";
+          NCRYSTAL_WARN("Writing to "<<fn
+                        <<" if it does not already exist");
+          if (!file_exists(fn)) {
+            std::ofstream ofs(fn.c_str(), std::ofstream::out);
+            ofs << "#ncrystal_xycurve\n";
+            ofs << "#colnames = loge;deltalogf\n";
+            for ( auto loge : linspace(loge1,loge2,100000) )
+              ofs<<fmt(loge)<<" "<<fmt(froot(loge))<<"\n";
+            ofs.close();
+          }
+        }
+
+        double logemin;
+        try {
+          logemin = findRoot2(froot,loge1,loge2, root_acc);
+        } catch ( NC::Error::CalcError& e ) {
+          logemin = -1.0;
+          //Write fct to file for debugging:
+          std::string fn = "ncrystal_logemin_fail_info.txt";
+          NCRYSTAL_WARN("Failed to find emin via root-finding. Will attempt"
+                        " to write debugging info to "<<fn
+                        <<" if it does not already exist");
+          if (!file_exists(fn)) {
+            std::ofstream ofs(fn.c_str(), std::ofstream::out);
+            ofs << "#ncrystal_xycurve\n";
+            ofs << "#colnames = loge;deltalogf\n";
+            for ( auto loge : linspace(loge1,loge2,100000) )
+              ofs<<fmt(loge)<<" "<<fmt(froot(loge))<<"\n";
+            ofs.close();
+          }
+          throw;
+        }
+
         return ncclamp(std::exp(logemin),e1,e2);
       }
 
@@ -512,7 +562,6 @@ namespace NCRYSTAL_NAMESPACE {
                                          const VectD& cellTouch_E_div_kT,
                                          const double EMax_div_kT )
       {
-        (void)EMax_div_kT;//fixme??
         const VectD& e = cellTouch_E_div_kT;
         const VectD& s = cumulFullCellIntegral;
 
@@ -544,8 +593,8 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert_always( i2+4 < ns );
         }
 
-        constexpr double safety1 = 0.9;
-        PairDD res( vectAt(e,i1)*safety1, vectAt(e,i2) );
+        constexpr double safety1 = 0.001;
+        PairDD res( vectAt(e,i1)*safety1, ncmin(vectAt(e,i2)*10,0.5*EMax_div_kT) );
         nc_assert_always( std::isfinite(res.first) );
         nc_assert_always( std::isfinite(res.second) );
         nc_assert_always( std::isfinite(res.first) );
@@ -702,13 +751,14 @@ namespace NCRYSTAL_NAMESPACE {
             return tmp_result.integralWithinKB / se;
           };
           E_min_max.first = NeutronEnergy{ kT*determineEMinDivKT( cfg, r, f ) };
+
         }
         if ( E_min_max.first >= E_min_max.second ) {
-          //fixme: warning!
+          NCRYSTAL_WARN("Lowering Emin to 10% of Emax");
           E_min_max.first = NeutronEnergy( 0.1 * E_min_max.second.get() );
         }
         if ( E_min_max.first.get() < 1e-50*E_min_max.second.get() ) {
-          //fixme: warning!
+          NCRYSTAL_WARN("Raising Emin to 1e-50*Emax");
           E_min_max.first = NeutronEnergy( 1e-50 * E_min_max.second.get() );
         }
 
@@ -966,6 +1016,53 @@ namespace NCRYSTAL_NAMESPACE {
           m_bcEptInfo.shrink_to_fit();
         }
 
+
+        m_lowEExtrapolationConstant = ( m_sIntegral.front()
+                                        * std::sqrt(1.0/m_eGrid.front()) );
+
+        if ( cfg.sIntegralInterp == SABCfg::SIntegralInterpolation::Smooth ) {
+          //We set up PCHIP interpolation. For more "proper" PCHIP behaviour, we
+          //let the PCHIP class determine endpoint slopes automatically, but do
+          //some slope sanity checks afterwards.
+          VectD xvals(m_eGrid);
+#ifdef NCRYSTAL_SABPROC_SMOOTH_INTERP_LOGLOG
+          for ( auto& e : xvals ) {
+            nc_assert( e > 0.0 && std::isfinite(e) );
+            e = std::log(e);
+          }
+#endif
+          VectD yvals(m_sIntegral);
+#ifdef NCRYSTAL_SABPROC_SMOOTH_INTERP_LOGLOG
+          for ( auto& e : yvals ) {
+            nc_assert( e > 0.0 && std::isfinite(e) );
+            e = std::log(e);
+          }
+#endif
+#ifdef NCRYSTAL_SABPROC_SMOOTH_INTERP_LOGLOG
+          //f(e)=k*sqrt(e) => log(f(e)) = log(k) + 0.5*log(e)
+          //               => d(logf)/d(loge) = 0.5
+          const double leftSlope = 0.5;
+#else
+          //f(e)=k*sqrt(e) => f'(e)=k/(2*sqrt(e))
+          //And with k= s(emin)/sqrt(emin) we get f'(emin)=s(emin)/(2emin)
+          const auto leftSlope = 0.5 * m_sIntegral.front() / m_eGrid.front();
+#endif
+          //Always autodetect slope at Emax, since we can not be sure to what
+          //degree the limiting behaviour has been reached.
+          m_sIntegralSmooth.emplace( xvals, yvals );
+          auto slopes = m_sIntegralSmooth.value().endPointSlopes();
+          constexpr double leftSlopeTol = 0.1;//not very tight, just a sanity
+                                              //check
+          if ( !floateq(leftSlope,slopes.first,leftSlopeTol,1e-10) ) {
+            NCRYSTAL_THROW2(CalcError,"Integral(S(alpha,beta)) over available"
+                            " phasespace does not appear to decrease"
+                            " as sqrt(E) at low E (actual slope was "
+                            <<fmtg(slopes.first)
+                            <<" while expected value was around "
+                            <<fmtg(leftSlope)<<".");
+          }
+          //FIXME: No check of slope at Emax?!?
+        }
       }
 
       double SABProcImpl::phaseSpaceIntegral( NeutronEnergy ekin ) const
@@ -984,16 +1081,28 @@ namespace NCRYSTAL_NAMESPACE {
         if (t >= x.back())
           return y.back();
         if (t <= x.front()) {
-          const double kkk = y.front() * std::sqrt(1.0/x.front());//fixme: cache
-          return kkk * std::sqrt(t);
+          return m_lowEExtrapolationConstant * std::sqrt(t);
         }
+        if ( m_sIntegralSmooth.has_value() ) {
+          if ( t == 0.0 )
+            return kInfinity;
+#ifdef NCRYSTAL_SABPROC_SMOOTH_INTERP_LOGLOG
+          return std::exp(m_sIntegralSmooth.value().eval(std::log(t)));
+#else
+          //Clip at 0.0 just in case the interpolation in some rare cases could
+          //give values below 0.0 (should hopefully almost never happen in
+          //practice).
+          return ncmax(0.0,m_sIntegralSmooth.value().eval(t));
+#endif
+        }
+        //linear interpolation:
         auto it = std::lower_bound(x.begin(), x.end(), t);
         std::size_t i = static_cast<std::size_t>(it - x.begin()); // 1..n-1
         nc_assert( i>0 );
         nc_assert( i<x.size() );
         double x0 = x[i-1], x1 = x[i];
         double y0 = y[i-1], y1 = y[i];
-        double r = (t - x0) / (x1 - x0);//fixme: cache more!
+        double r = (t - x0) / (x1 - x0);//fixme: cache more! (if not in smooth mode)
         return y0 * (1.0-r) + r * y1;
       }
 
@@ -1195,13 +1304,13 @@ NCS::SABProcessor::~SABProcessor()
   }
 }
 
-
 double NCS::SABProcessor::phaseSpaceIntegral( NeutronEnergy ekin ) const
 {
   return sp_cimpl(m_impl)->phaseSpaceIntegral(ekin);
 }
 
-NC::CrossSect NCS::SABProcessor::crossSectionUnitSigmaBound( NeutronEnergy ekin ) const
+NC::CrossSect
+NCS::SABProcessor::crossSectionUnitSigmaBound( NeutronEnergy ekin ) const
 {
   //Fixme: optimise (most likely by caching in new vector in which we can
   //directly interpolate results as per the old SABXSProvider?)
@@ -1251,11 +1360,9 @@ NCS::SABProcessor::SABProcessor( const SABCfg::Cfg& cfg,
                                  std::shared_ptr<const VectD> req_egrid,
                                  SampleSupport sampleSupport,
                                  StoreExtraDiagnostics extraDiag )
-  : m_impl( static_cast<void*>( new SABProcImpl( cfg,
-                                                 std::move(sd),
-                                                 std::move(req_egrid),
-                                                 sampleSupport,
-                                                 extraDiag ) ) )
+  : m_impl( static_cast<void*>
+            ( new SABProcImpl( cfg, std::move(sd),std::move(req_egrid),
+                               sampleSupport,extraDiag ) ) )
 {
 }
 

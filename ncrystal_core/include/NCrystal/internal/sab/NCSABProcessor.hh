@@ -121,6 +121,7 @@ namespace NCRYSTAL_NAMESPACE {
     private:
       void * m_impl = nullptr;
     };
+
   }
 }
 
