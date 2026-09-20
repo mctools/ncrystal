@@ -113,7 +113,7 @@ namespace NCRYSTAL_NAMESPACE {
       const Info& info = cfg.info();
       const auto& inelas = ana.inelas;
       const auto ucnmode = cfg.get_ucnmode();
-      const auto vdoslux = cfg.get_vdoslux();
+      const VDOS::VDOSLux vdoslux( cfg.get_vdoslux() );
 
       nc_assert_always(isOneOf(inelas,"0","external","dyninfo","vdosdebye","freegas"));
 
@@ -237,7 +237,8 @@ namespace NCRYSTAL_NAMESPACE {
 
         if ( inelas != "freegas" ) {
           nc_assert_always( isOneOf(inelas,"dyninfo","vdosdebye" ) );
-          nc_assert_always( knllux >= -6 && knllux <= 6 );
+          nc_assert_always( ( knllux >= -6 && knllux <= 6 )
+                            || (knllux >= 100 && knllux <= 106) );
           if ( ucnmode.has_value() && knllux != -1)
             NCRYSTAL_THROW(BadInput,
                            "ucnmode only supported with legacy kernel processing");
@@ -326,7 +327,8 @@ namespace NCRYSTAL_NAMESPACE {
                                                             true/*use cache*/,
                                                             vdos2sabExcludeFlag );
                   if ( sabdata->boundXS() ) {
-                    nc_assert( knllux >= 0 && knllux <=6  );
+                    nc_assert( ( knllux >= 0 && knllux <= 6 )
+                               || (knllux >= 100 && knllux <= 106) );
                     auto sabext =
                       SAB::createSABExtendedWithCache(knllux, sabdata,
                                                       di_scatknl->energyGrid());
