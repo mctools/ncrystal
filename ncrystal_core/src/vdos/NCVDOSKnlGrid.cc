@@ -43,18 +43,47 @@ namespace NCRYSTAL_NAMESPACE {
       // `fs` contains the input functions and `ws` their corresponding weights.
       // The returned vector has one value for each point in `grid`.
 
-      struct PWLFct {
-        double x0; //x{i=0}
-        double binWidth;//distance between x{i} and x{i+1}
+      struct PWLFct final : private MoveOnly {
+        double x0 = 0.0; //x{i=0}
+        double binWidth = 0.0;//distance between x{i} and x{i+1}
         Span<const double> f;//values of f at the x{i} points. The size of the
                              //span encodes the number of points.
         double x1() const { return x0 + (f.size()-1)*binWidth; }
         VectD dataHolder;//optional, so can hold its data if needed.
+
+        //Move semantics must re-point f when it refers to our own data:
+        PWLFct() = default;
+        PWLFct( PWLFct&& o ) noexcept
+          : x0(o.x0), binWidth(o.binWidth), f(o.f)
+        {
+          moveDataFrom( o );
+        }
+        PWLFct& operator=( PWLFct&& o ) noexcept
+        {
+          if ( this != &o ) {
+            x0 = o.x0;
+            binWidth = o.binWidth;
+            f = o.f;
+            moveDataFrom( o );
+          }
+          return *this;
+        }
         Span<double> f_mutable()
         {
           //only possible when we hold our data
           nc_assert( dataHolder.size() == f.size() );
           return dataHolder;
+        }
+      private:
+        void moveDataFrom( PWLFct& o ) noexcept
+        {
+          const bool owns = ( !o.dataHolder.empty()
+                              && o.f.data() == o.dataHolder.data() );
+          dataHolder = std::move( o.dataHolder );
+          o.dataHolder.clear();
+          if ( owns )
+            f = Span<const double>( dataHolder );
+          o.f = Span<const double>();
         }
       };
 
@@ -551,6 +580,11 @@ NC::VDOS::determineAlphaBetaGridFromGn( const GnExpansion& gnexpn,
     {
       double rtol_try = 10*rtol;
       while ( v.size() < n ) {
+        //Below this, no further points could be added anyway (and
+        //1+rtol_try would eventually be indistinguishable from 1):
+        if ( rtol_try < 1e-12 )
+          NCRYSTAL_THROW(CalcError,"Unable to add enough points to"
+                         " reach requested grid size");
         topOffGrid(v, n, rtol_try );
         rtol_try *= 0.25;
       }
