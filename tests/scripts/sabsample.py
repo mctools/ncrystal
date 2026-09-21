@@ -46,14 +46,14 @@ class SampleResults:
     beta: np.ndarray
     egrid_div_kT : Optional[np.ndarray] = None # noqa FA100
 
-sample_methods =  ['ref','std','legacy','legacy_oversample','vdoslux5']
+sample_methods =  ['ref','std','legacy','legacy_oversample','highvdoslux']
 def dosample_query( method, ekin, nsamples, cfgstr, atomlbl, egrid = None ):
     assert egrid is None, "not implemented"#fixme: implement and use!
     assert method in sample_methods
     seedstr = gen_seedstr()
-    if method == 'vdoslux5':
+    if method == 'highvdoslux':
         method = 'std'
-        cfgstr += ';vdoslux=5;knllux=6'
+        cfgstr += ';vdoslux=2005;knllux=6'
         #fixme: egrid with just a few points (one at 2*ekin, the rest very low)
     if method == 'std':
         query = [ 'sab','proc', cfgstr, atomlbl,
@@ -251,7 +251,7 @@ def test( *,cfgstr,ekin, atomlbl='',
             colors={ 'ref' : 'blue',
                      'legacy':'orange',
                      'legacy_oversample':'purple',
-                     'vdoslux5':'red',
+                     'highvdoslux':'red',
                      'std':'none' }
             assert set(colors.keys()) == set(sample_methods)
             hstd.plot(label='std',
@@ -285,50 +285,56 @@ def main(do_plot,luxlvl,test_select):
         ncsetenv('FAKEPYPLOT','1')
 
     testpts = [
-        #Fixme: varying vdoslux in CaH2@20K shows that we perhaps do not have an
-        #ideal alpha-beta grid generated, since vdoslux 4 or 5 are needed to
-        #remove heavy artifacts:
+        # IMPORTANT NOTE: Keep a lot of tests with the legacy vdoslux (100x)
+        # since it "nicely" provided non-optimal alpha beta grids with lots of
+        # room for interesting sampling artifacts to show themselves.
 
-        #dict( cfgstr='solid:H/1gcm3',atomlbl='H',ekin='10.0');,
-
-        dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;knllux=6',atomlbl='C',#fixme: also 'C'
-              ekin='15'#fixme: also something extreme, like 10000
-             ),
-
-        dict( cfgstr='stdlib::Al_sg225.ncmat;knllux=6',ekin='1000.5'),#fixme: also something normal
-
-        dict( cfgstr='stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=2;knllux=1',
+        dict( cfgstr='stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=1002;knllux=1',
               atomlbl='H',
               ekin='0.0016694736654149164'#7Aa
              ),
-        dict( cfgstr='stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=2',
+
+        dict( cfgstr='stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=1002',
               atomlbl='H',
               ekin='0.0016694736654149164'#7Aa
              ),
-        dict( cfgstr='stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=2',
+        dict( cfgstr='stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=1002',
               atomlbl='Ca',
               ekin='0.0016694736654149164'#7A
              ),
-        dict( cfgstr='stdlib::Al_sg225.ncmat;vdoslux=0;temp=500', ekin='0.025' ),
 
-        dict( cfgstr='stdlib::Al_sg225.ncmat', ekin='0.025' ),
+        dict( cfgstr='stdlib::Al_sg225.ncmat;vdoslux=1000;temp=500', ekin='0.025' ),
 
-        dict( cfgstr='stdlib::Al_sg225.ncmat', ekin='0.0025' ),
+        dict( cfgstr='stdlib::Al_sg225.ncmat;vdoslux=1003', ekin='0.025' ),
 
-        dict( cfgstr='stdlib::Al_sg225.ncmat', ekin='25e-10' ),
-        #ref is too slow dict( cfgstr='stdlib::Al_sg225.ncmat', ekin='25e-10' ),
+        dict( cfgstr='stdlib::Al_sg225.ncmat;knllux=2;vdoslux=1003',ekin='1000.5'),
 
-        dict( cfgstr='stdlib::Al_sg225.ncmat', ekin='15' ),
+        dict( cfgstr='stdlib::Al_sg225.ncmat;vdoslux=1003', ekin='0.0025' ),
 
-        dict( cfgstr='solid::H/1gcm3;vdoslux=5', ekin='15' ),
+        dict( cfgstr='stdlib::Al_sg225.ncmat;vdoslux=1003', ekin='25e-10' ),#fixme: slow, but perhaps we could just use the limiting E->0 beta dist and speed up??
 
-        dict( cfgstr='solid::H/1gcm3;vdoslux=0', ekin='2' ),
+        dict( cfgstr='stdlib::Al_sg225.ncmat;vdoslux=1003', ekin='15' ),
 
-        dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;knllux=6',atomlbl='H',#fixme: also 'C'
-              ekin='15'#fixme: also something extreme, like 10000
-             ),
+        dict( cfgstr='solid::H/1gcm3;vdoslux=1005', ekin='15' ),
 
-        dict( cfgstr='stdlib::Be_sg194.ncmat', ekin='10' ),
+        dict( cfgstr='solid::H/1gcm3;vdoslux=1000', ekin='2' ),
+
+        dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;knllux=4;vdoslux=2003',atomlbl='H',
+              ekin='15' ),
+
+        dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;knllux=4;vdoslux=2003',atomlbl='H',
+              ekin='10000' ),
+
+        dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;knllux=4;vdoslux=2003',atomlbl='C',
+              ekin='15' ),
+
+        dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;knllux=4;vdoslux=2003',atomlbl='C',
+              ekin='10000' ),
+
+        dict( cfgstr='stdlib::Be_sg194.ncmat;vdoslux=1003', ekin='10' ),
+
+        dict( cfgstr='stdlib::Ca_sg229_Calcium-gamma.ncmat;vdoslux=1000;temp=800', ekin='0.04' ),
+
 
     ]
     npvals_tot = 0
