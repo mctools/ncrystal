@@ -82,11 +82,11 @@ Caught expected RuntimeError('File already exists (use --force to overwrite): tm
 Wrote: tmp_test_file.json
 ===========================================
 Contents of tmp_test_file.json: ========================================
-["version", "util", "mmc", "sab"]
+["version", "util", "mmc", "sab", "vdos"]
 ============= CLI >>foo<< ====================
 Caught expected NCBadInput('Invalid JSON query key: "foo"')
 ============= CLI >>list<< ====================
-['version', 'util', 'mmc', 'sab']
+['version', 'util', 'mmc', 'sab', 'vdos']
 ===========================================
 ============= CLI >>mmc list<< ====================
 ['run', 'scenario', 'inspectcfg', 'cfgdoc']
@@ -126,9 +126,9 @@ Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query
 {'neutron_energy': 0.025,
  'temperature': 293.15,
  'kT': 0.0252617037744,
- 'sab_phasespace_integral': 0.1675743489,
- 'cross_section': 0.0636271178426,
- 'sampling_acceptance_rate': 0.946167423957,
+ 'sab_phasespace_integral': 0.167574827568,
+ 'cross_section': 0.0636272995904,
+ 'sampling_acceptance_rate': 0.946167498112,
  'samples_format': ['alpha', 'beta', 'deltaE', 'mu'],
  'samples': [[6.18374920414, 2.53117244956, 0.0639417286227, -0.448211164642],
              [0.399074068358, 0.219456764072, 0.00554385176527, 0.822606229096],
