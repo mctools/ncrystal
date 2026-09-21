@@ -195,9 +195,9 @@ FAILED (as expected): Conversion to ENDF is not currently supported for material
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#29]
 Designated incoherent: Th
 >>> alpha points: 100, alpha range: (1.563e-49, 179.4)
->>> beta points: 116, beta range: (0, 36.95)
+>>> beta points: 116, beta range: (0, 36.93)
 >>> alpha points: 100, alpha range: (2.641e-49, 176)
->>> beta points: 102, beta range: (0, 11.99)
+>>> beta points: 102, beta range: (0, 12.02)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Th
 >> Prepare elastic approximations
@@ -247,7 +247,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" woul
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no incoherent elastic data found: coherent approximation [warn#49]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Combining (alpha, beta) grids from different temperatures. This usually results in a huge grid. [warn#50]
 >>> alpha points: 800, alpha range: (8.192e-50, 199.4)
->>> beta points: 790, beta range: (0, 35.07)
+>>> beta points: 808, beta range: (0, 35.07)
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#51]
 >>> alpha points: 100, alpha range: (1.18e-49, 179)
 >>> beta points: 102, beta range: (0, 21.8)

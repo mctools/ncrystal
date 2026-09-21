@@ -34,55 +34,55 @@ Aluminium PowderBragg diffraction cross-section @ [1, 2, 3, 4]Aa: [0.72722, 1.09
 Aluminium Bkgd cross-section @ 4.0Aa: 0.136214 barn
 Aluminium Bkgd+PowderBragg cross-section @ 4.0Aa: 1.76865 barn
 Aluminium absorption cross-section @ 4.0Aa: 0.513848 barn
-Germanium ScatFactSC cross-section @ 4.0Aa and (1.0, 0.15, 0.7): 0.600084 barn
-... same with xsect method: 0.600084 barn
-... same with xsect method2: 0.600084 barn
-... same with xsect method3: 0.600084 barn
+Germanium ScatFactSC cross-section @ 4.0Aa and (1.0, 0.15, 0.7): 0.60015 barn
+... same with xsect method: 0.60015 barn
+... same with xsect method2: 0.60015 barn
+... same with xsect method3: 0.60015 barn
 A few generated scattering angles using the full 3d vector interface:
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 51.645 deg and delta-E 0.00989444 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 118.134 deg and delta-E 0.0101006 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 138.229 deg and delta-E 0.00868527 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 111.826 deg and delta-E 0.0295808 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 141.599 deg and delta-E 0.00792446 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 51.6445 deg and delta-E 0.0098949 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 118.134 deg and delta-E 0.010101 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 138.229 deg and delta-E 0.00868569 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 111.822 deg and delta-E 0.0295935 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 141.598 deg and delta-E 0.00792478 eV
 scattering at 4 Aa from (1, 0.15, 0.7) happens at 161.686 deg and delta-E 0 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 70.6069 deg and delta-E 0.00212344 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 70.6064 deg and delta-E 0.00212406 eV
 scattering at 4 Aa from (1, 0.15, 0.7) happens at 49.6149 deg and delta-E 0 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 148.299 deg and delta-E 0.0100042 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 73.763 deg and delta-E 0.0356094 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 124.261 deg and delta-E 0.0118106 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 144.272 deg and delta-E 0.0345347 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 148.299 deg and delta-E 0.0100046 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 73.7611 deg and delta-E 0.0356123 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 124.261 deg and delta-E 0.011812 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 144.274 deg and delta-E 0.0345375 eV
 scattering at 4 Aa from (1, 0.15, 0.7) happens at 147.675 deg and delta-E 0 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 131.756 deg and delta-E 0.0123363 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 131.756 deg and delta-E 0.0123379 eV
 scattering at 4 Aa from (1, 0.15, 0.7) happens at 53.4004 deg and delta-E 0 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 76.0056 deg and delta-E 0.0126526 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 76.0047 deg and delta-E 0.0126544 eV
 scattering at 4 Aa from (1, 0.15, 0.7) happens at 165.539 deg and delta-E 0 eV
 scattering at 4 Aa from (1, 0.15, 0.7) happens at 84.5102 deg and delta-E 0 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 123.68 deg and delta-E 0.00629103 eV
-scattering at 4 Aa from (1, 0.15, 0.7) happens at 43.5993 deg and delta-E 0.0120409 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 89.075 deg and delta-E 0.0107011 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 167.352 deg and delta-E 0.00623719 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 123.679 deg and delta-E 0.00629171 eV
+scattering at 4 Aa from (1, 0.15, 0.7) happens at 43.5982 deg and delta-E 0.0120424 eV
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 89.0746 deg and delta-E 0.0107018 eV
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 167.351 deg and delta-E 0.00623787 eV
 scattering at 4 Aa from (1, 0.15, 0.6) happens at 85.9428 deg and delta-E 0 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 106.848 deg and delta-E 0.0100747 eV
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 106.848 deg and delta-E 0.010075 eV
 scattering at 4 Aa from (1, 0.15, 0.6) happens at 87.8472 deg and delta-E 0 eV
 scattering at 4 Aa from (1, 0.15, 0.6) happens at 111.132 deg and delta-E 0 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 157.993 deg and delta-E 0.0136959 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 113.388 deg and delta-E 0.022029 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 98.2781 deg and delta-E 0.011974 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 69.5869 deg and delta-E 0.0127569 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 143.377 deg and delta-E 0.0127753 eV
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 157.992 deg and delta-E 0.0136982 eV
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 113.378 deg and delta-E 0.0220385 eV
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 98.2775 deg and delta-E 0.0119754 eV
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 69.586 deg and delta-E 0.0127587 eV
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 143.376 deg and delta-E 0.0127772 eV
 scattering at 4 Aa from (1, 0.15, 0.6) happens at 153.659 deg and delta-E 0 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 141.426 deg and delta-E 0.00883977 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 103.016 deg and delta-E 0.00979397 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 161.127 deg and delta-E 0.011916 eV
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 141.425 deg and delta-E 0.00884021 eV
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 103.016 deg and delta-E 0.00979445 eV
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 161.126 deg and delta-E 0.0119174 eV
 scattering at 4 Aa from (1, 0.15, 0.6) happens at 58.5273 deg and delta-E 0 eV
 scattering at 4 Aa from (1, 0.15, 0.6) happens at 66.983 deg and delta-E 0 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 51.5278 deg and delta-E 0.0351566 eV
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 51.5263 deg and delta-E 0.0351598 eV
 scattering at 4 Aa from (1, 0.15, 0.6) happens at 57.3823 deg and delta-E 0 eV
-scattering at 4 Aa from (1, 0.15, 0.6) happens at 139.715 deg and delta-E 0.0324799 eV
-[ 52.297088  89.897538  101.06963 ... 142.61339  98.834939  118.11986 ]
-[ 23.12594  17.095977  30.847726 ... 38.098487  41.056472  35.149399 ]
-[ 107.22105  76.487457  85.689983 ... 49.431218  112.86565  162.93751 ]
-[ 35.470951  26.40059  23.936595 ... 24.686244  18.116696  23.562792 ]
+scattering at 4 Aa from (1, 0.15, 0.6) happens at 139.721 deg and delta-E 0.0325001 eV
+[ 52.297154  89.897649  101.06963 ... 142.62064  98.834924  118.11995 ]
+[ 23.125774  17.095798  30.847167 ... 38.099365  41.056531  35.149347 ]
+[ 107.22104  76.487491  85.689969 ... 49.431274  112.86574  162.93755 ]
+[ 35.470908  26.400225  23.936406 ... 24.685994  18.116628  23.562621 ]
 ===> Testing potentially vanishing scatter: "Be_sg194.ncmat;dcutoff=10.0":
     xs@1Aa : 1.20448
     xs@5Aa : 0.429629
@@ -96,16 +96,16 @@ scattering at 4 Aa from (1, 0.15, 0.6) happens at 139.715 deg and delta-E 0.0324
     xs@5Aa : 0.429629
     mean scat@1Aa : 1.9 rad, de=-0.016eV
 ===> Testing potentially vanishing scatter: "Al_sg225.ncmat;dcutoff=10.0":
-    xs@1Aa : 0.645793
-    xs@5Aa : 0.143287
+    xs@1Aa : 0.645791
+    xs@5Aa : 0.143286
     mean scat@1Aa : 1.9 rad, de=-0.0043eV
 ===> Testing potentially vanishing scatter: "Al_sg225.ncmat;dcutoff=10.0;inelas=0;incoh_elas=0":
     xs@1Aa : 0
     xs@5Aa : 0
     mean scat@1Aa : 0 rad, de=0eV
 ===> Testing potentially vanishing scatter: "Al_sg225.ncmat;dcutoff=10.0;coh_elas=0":
-    xs@1Aa : 0.645793
-    xs@5Aa : 0.143287
+    xs@1Aa : 0.645791
+    xs@5Aa : 0.143286
     mean scat@1Aa : 1.9 rad, de=-0.0045eV
 ===> Testing exceptions
 Caught NCException!:

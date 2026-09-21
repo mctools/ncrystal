@@ -10,25 +10,25 @@ CALLING plt.gca()
 CALLING ResultOf[plt.gca(..)].fill_between(alpha=0.3,color='blue',label='ref',step='post',x=array([  0.,   5.,  10.,  15.,  20.,  25.,  30.,  35.,  40.,  45.,  50.,
         55.,  60.,  65.,  70.,  75.,  80.,  85.,  90.,  95., 100., 105.,
        110., 115., 120., 125., 130., 135., 140., 145., 150., 155., 160.,
-       165., 170., 175., 180.]),y1=array([3.81909172e+03, 1.70376088e+01, 2.10458245e+01, 3.79895251e+01,
-       3.81221710e+01, 4.22397360e+01, 4.88022410e+01, 5.80081380e+01,
-       6.08875209e+01, 5.68244529e+02, 3.65296314e+02, 8.16873000e+01,
-       7.03358182e+01, 7.43036319e+01, 9.25475731e+01, 4.35936745e+02,
-       8.37958083e+01, 8.63891228e+01, 5.96768542e+02, 8.48931291e+01,
-       2.25386581e+02, 8.00549027e+01, 7.82258062e+01, 6.33843057e+01,
-       7.09345895e+01, 1.39594613e+02, 5.55474970e+01, 5.76444588e+01,
-       4.41282497e+01, 3.78689612e+01, 2.59123207e+02, 2.28247477e+01,
-       2.02576949e+01, 2.18687250e+02, 6.98128048e+00, 2.28201593e+00,
-       2.28201593e+00]),y2=array([3.89606341e+03, 1.99515662e+01, 2.41932039e+01, 4.22764620e+01,
-       4.22559031e+01, 4.65546609e+01, 5.35236945e+01, 6.30967787e+01,
-       6.59272630e+01, 5.94088328e+02, 3.85200561e+02, 8.77098607e+01,
-       7.55896491e+01, 7.96343407e+01, 9.87581346e+01, 4.56677069e+02,
-       8.95304061e+01, 9.22183601e+01, 6.19993296e+02, 9.06328171e+01,
-       2.38539825e+02, 8.56765622e+01, 8.35997582e+01, 6.81939259e+01,
-       7.62036153e+01, 1.48860803e+02, 6.01267935e+01, 6.23468293e+01,
-       4.82250447e+01, 4.15822295e+01, 2.72515928e+02, 2.55127553e+01,
-       2.29256678e+01, 2.31121498e+02, 8.43454555e+00, 3.23208898e+00,
-       3.23208898e+00]))
+       165., 170., 175., 180.]),y1=array([3.81884443e+03, 1.73761282e+01, 1.84283732e+01, 3.70658932e+01,
+       4.27664883e+01, 4.83458465e+01, 4.92564988e+01, 4.93486914e+01,
+       5.94844483e+01, 5.66673745e+02, 3.68140602e+02, 8.17572039e+01,
+       7.22208244e+01, 7.41927700e+01, 9.13627982e+01, 4.33733101e+02,
+       8.28060660e+01, 8.71835705e+01, 6.02166667e+02, 8.71386445e+01,
+       2.27291377e+02, 7.88506119e+01, 8.12056791e+01, 6.64578986e+01,
+       7.08550436e+01, 1.33688516e+02, 5.50937221e+01, 5.77489889e+01,
+       4.41191528e+01, 3.57151402e+01, 2.60702205e+02, 2.18057904e+01,
+       2.06135531e+01, 2.18091227e+02, 7.22260148e+00, 1.95708962e+00,
+       1.95708962e+00]),y2=array([3.89581793e+03, 2.04184062e+01, 2.13685973e+01, 4.13212777e+01,
+       4.73508664e+01, 5.30440854e+01, 5.38918727e+01, 5.38560395e+01,
+       6.44738230e+01, 5.92621204e+02, 3.88074722e+02, 8.76902068e+01,
+       7.75650244e+01, 7.96350581e+01, 9.75769758e+01, 4.54477724e+02,
+       8.84826526e+01, 9.30435705e+01, 6.25446907e+02, 9.29400359e+01,
+       2.40544397e+02, 8.43471879e+01, 8.68589364e+01, 7.14292937e+01,
+       7.60427957e+01, 1.42715598e+02, 5.96561807e+01, 6.24670872e+01,
+       4.81071815e+01, 3.92777687e+01, 2.74228180e+02, 2.44739935e+01,
+       2.33170895e+01, 2.30497713e+02, 8.67895411e+00, 2.72007807e+00,
+       2.72007807e+00]))
 CALLING ResultOf[plt.gca(..)].set_xlim(-5e-06,180.0)
 CALLING ResultOf[plt.gca(..)].grid()
 CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label='new',mec='black',mfc='black',x=['2.5', '7.5', '12.5', '...', '168.0', '172.0', '178.0'],xerr=2.5,y=['3.86e+03', '18.9', '19.9', '...', '224.0', '7.95', '2.34'],yerr=['38.5', '1.52', '1.47', '...', '6.2', '0.728', '0.381'])
@@ -45,10 +45,10 @@ Proceed with ref data only.
 More plotting code test
 CALLING plt.subplots()
 CALLING plt.gca()
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.3', '29.3', '62.8', '...', '36.2', '10.5', '10.5'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='lightblue',label='MULTISCAT_PUREELAS (20.2%)')
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.3', '29.3', '62.8', '...', '246.0', '10.5', '10.5'],['29.3', '29.3', '62.8', '...', '36.2', '10.5', '10.5'],edgecolor='none',facecolor='blue',label='SINGLESCAT_ELAS (23.7%)')
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['3.88e+03', '3.88e+03', '62.8', '...', '246.0', '10.5', '10.5'],['29.3', '29.3', '62.8', '...', '246.0', '10.5', '10.5'],edgecolor='none',facecolor='green',label='Transmitted (38.5%)')
-CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '62.8', '84.6', '...', '290.0', '246.0', '10.5'],yerr=['38.5', '2.66', '2.99', '...', '6.83', '6.36', '0.868'])
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.5', '29.5', '59.1', '...', '35.9', '10.3', '10.3'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='lightblue',label='MULTISCAT_PUREELAS (20.2%)')
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.5', '29.5', '59.1', '...', '246.0', '10.3', '10.3'],['29.5', '29.5', '59.1', '...', '35.9', '10.3', '10.3'],edgecolor='none',facecolor='blue',label='SINGLESCAT_ELAS (23.7%)')
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['3.88e+03', '3.88e+03', '59.1', '...', '246.0', '10.3', '10.3'],['29.5', '29.5', '59.1', '...', '246.0', '10.3', '10.3'],edgecolor='none',facecolor='green',label='Transmitted (38.5%)')
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '59.1', '95.8', '...', '291.0', '246.0', '10.3'],yerr=['38.5', '2.59', '3.28', '...', '6.89', '6.35', '0.822'])
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
@@ -56,16 +56,16 @@ CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  7
        165., 180.]),minor=True)
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
 CALLING ResultOf[plt.gca(..)].set_title('$10^4$ 1.8Aa neutrons through sphere with radius 100mm')
-CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (17.7%)')
-CALLING ResultOf[plt.gca(..)].legend([FakeHandle, FakeHandle, FakeHandle, FakeHandle],['MULTISCAT_PUREELAS (20.2%)', 'SINGLESCAT_ELAS (23.7%)', 'Transmitted (38.5%)', 'Absorbed (17.7%)'])
+CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (17.6%)')
+CALLING ResultOf[plt.gca(..)].legend([FakeHandle, FakeHandle, FakeHandle, FakeHandle],['MULTISCAT_PUREELAS (20.2%)', 'SINGLESCAT_ELAS (23.7%)', 'Transmitted (38.5%)', 'Absorbed (17.6%)'])
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING plt.show()
 CALLING plt.subplots()
 CALLING plt.gca()
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.3', '29.3', '62.8', '...', '36.2', '10.5', '10.5'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='lightblue',label='MULTISCAT_PUREELAS (20.2%)')
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.3', '29.3', '62.8', '...', '246.0', '10.5', '10.5'],['29.3', '29.3', '62.8', '...', '36.2', '10.5', '10.5'],edgecolor='none',facecolor='blue',label='SINGLESCAT_ELAS (23.7%)')
-CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['3.88e+03', '3.88e+03', '62.8', '...', '246.0', '10.5', '10.5'],['29.3', '29.3', '62.8', '...', '246.0', '10.5', '10.5'],edgecolor='none',facecolor='green',label='Transmitted (38.5%)')
-CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '62.8', '84.6', '...', '290.0', '246.0', '10.5'],yerr=['38.5', '2.66', '2.99', '...', '6.83', '6.36', '0.868'])
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.5', '29.5', '59.1', '...', '35.9', '10.3', '10.3'],['0.0', '0.0', '0.0', '...', '0.0', '0.0', '0.0'],edgecolor='none',facecolor='lightblue',label='MULTISCAT_PUREELAS (20.2%)')
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['29.5', '29.5', '59.1', '...', '246.0', '10.3', '10.3'],['29.5', '29.5', '59.1', '...', '35.9', '10.3', '10.3'],edgecolor='none',facecolor='blue',label='SINGLESCAT_ELAS (23.7%)')
+CALLING ResultOf[plt.gca(..)].fill_between(['0.0', '10.0', '10.0', '...', '170.0', '170.0', '180.0'],['3.88e+03', '3.88e+03', '59.1', '...', '246.0', '10.3', '10.3'],['29.5', '29.5', '59.1', '...', '246.0', '10.3', '10.3'],edgecolor='none',facecolor='green',label='Transmitted (38.5%)')
+CALLING ResultOf[plt.gca(..)].errorbar(ecolor='black',elinewidth=1.0,fmt='.',mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '59.1', '95.8', '...', '291.0', '246.0', '10.3'],yerr=['38.5', '2.59', '3.28', '...', '6.89', '6.35', '0.822'])
 CALLING ResultOf[plt.gca(..)].set_xlim(0.0,180.0)
 CALLING ResultOf[plt.gca(..)].set_xlabel('Scattering angle (degree)')
 CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  30.,  60.,  90., 120., 150., 180.]))
@@ -73,48 +73,48 @@ CALLING ResultOf[plt.gca(..)].set_xticks(array([  0.,  15.,  30.,  45.,  60.,  7
        165., 180.]),minor=True)
 CALLING ResultOf[plt.gca(..)].set_ylabel('Intensity (arbitrary units)')
 CALLING ResultOf[plt.gca(..)].set_title('$10^4$ 1.8Aa neutrons through sphere with radius 100mm')
-CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (17.7%)')
-CALLING ResultOf[plt.gca(..)].legend([FakeHandle, FakeHandle, FakeHandle, FakeHandle],['MULTISCAT_PUREELAS (20.2%)', 'SINGLESCAT_ELAS (23.7%)', 'Transmitted (38.5%)', 'Absorbed (17.7%)'])
+CALLING ResultOf[plt.gca(..)].plot([],[],' ',label='Absorbed (17.6%)')
+CALLING ResultOf[plt.gca(..)].legend([FakeHandle, FakeHandle, FakeHandle, FakeHandle],['MULTISCAT_PUREELAS (20.2%)', 'SINGLESCAT_ELAS (23.7%)', 'Transmitted (38.5%)', 'Absorbed (17.6%)'])
 CALLING plt.show()
 Dump test
 Hist1D(nbins=18,xmin=0,xmax=180):
   title     : theta
-  integral  : 8233.66
-  mean      : 46.8037
-  rms       : 52.5259
+  integral  : 8237.09
+  mean      : 46.7952
+  rms       : 52.4885
   minfilled : 0
-  maxfilled : 179.7360517338284751
+  maxfilled : 179.7328224931234786
   underflow : 0 +- 0
   overflow  : 0 +- 0
-  content[ibin=0] : 3876.07 +- 38.5134
-  content[ibin=1] : 62.7525 +- 2.65913
-  content[ibin=2] : 84.5862 +- 2.98774
-  content[ibin=3] : 111.715 +- 3.47082
-  content[ibin=4] : 644.574 +- 13.1653
-  content[ibin=5] : 459.947 +- 10.3977
-  content[ibin=6] : 149.932 +- 3.7423
-  content[ibin=7] : 541.96 +- 10.8251
-  content[ibin=8] : 175.967 +- 4.08857
-  content[ibin=9] : 696.144 +- 11.9617
-  content[ibin=10] : 314.829 +- 7.15211
-  content[ibin=11] : 146.702 +- 3.60596
-  content[ibin=12] : 217.797 +- 5.32975
-  content[ibin=13] : 117.833 +- 3.28185
-  content[ibin=14] : 85.9022 +- 2.7646
-  content[ibin=15] : 289.988 +- 6.8299
-  content[ibin=16] : 246.496 +- 6.35863
-  content[ibin=17] : 10.465 +- 0.868133
+  content[ibin=0] : 3876.23 +- 38.5168
+  content[ibin=1] : 59.0921 +- 2.58618
+  content[ibin=2] : 95.7536 +- 3.28215
+  content[ibin=3] : 103.177 +- 3.23276
+  content[ibin=4] : 641.627 +- 13.2114
+  content[ibin=5] : 462.831 +- 10.3992
+  content[ibin=6] : 151.807 +- 3.81376
+  content[ibin=7] : 538.575 +- 10.8277
+  content[ibin=8] : 175.758 +- 4.07931
+  content[ibin=9] : 703.846 +- 11.9961
+  content[ibin=10] : 315.517 +- 7.17382
+  content[ibin=11] : 152.976 +- 3.76411
+  content[ibin=12] : 211.651 +- 5.20579
+  content[ibin=13] : 117.483 +- 3.28163
+  content[ibin=14] : 83.6096 +- 2.67379
+  content[ibin=15] : 290.605 +- 6.89332
+  content[ibin=16] : 246.26 +- 6.34882
+  content[ibin=17] : 10.2894 +- 0.822058
 resA.tally('theta').hist_total.title='theta'
 ['theta']
 Sum test
 CALLING plt.subplots()
 CALLING plt.gca()
-CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([3876.07215052,   62.75250774,   84.5862355 ,  111.71542614,
-        129.37001153,  156.87857064,  149.93172003,  185.36564548,
-        175.96684865,  184.6705862 ,  158.25598268,  146.70189798,
-        141.15598451,  117.83278931,   85.90224251,   51.22638043,
-         36.23112347,   10.46496547]),label=None,width=10.0,x=['0.0', '10.0', '20.0', '...', '150.0', '160.0', '170.0'])
-CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '62.8', '84.6', '...', '51.2', '36.2', '10.5'],yerr=['38.5', '2.66', '2.99', '...', '1.95', '1.69', '0.868'])
+CALLING ResultOf[plt.gca(..)].bar(align='edge',alpha=None,color=None,height=array([3876.22844609,   59.0920707 ,   95.7536433 ,  103.17655121,
+        124.0716281 ,  160.30395756,  151.80683844,  181.92785751,
+        175.75792983,  188.19152443,  155.96087993,  152.97590394,
+        136.83743531,  117.48298941,   83.60962162,   52.82335187,
+         35.87077191,   10.28936164]),label=None,width=10.0,x=['0.0', '10.0', '20.0', '...', '150.0', '160.0', '170.0'])
+CALLING ResultOf[plt.gca(..)].errorbar(alpha=None,ecolor='black',elinewidth=1.0,fmt='.',label=None,mec='black',mfc='black',x=['5.0', '15.0', '25.0', '...', '155.0', '165.0', '175.0'],xerr=5.0,y=['3.88e+03', '59.1', '95.8', '...', '52.8', '35.9', '10.3'],yerr=['38.5', '2.59', '3.28', '...', '2.0', '1.69', '0.822'])
 CALLING ResultOf[plt.gca(..)].set_xlim(-1e-05,180.0)
 CALLING ResultOf[plt.gca(..)].semilogy()
 CALLING ResultOf[plt.gca(..)].set_title('MULTISCAT_PUREELAS')
@@ -491,9 +491,9 @@ Caught expected NCBadInput('Unsupported data format')
 Caught expected NCBadInput('Tally not available in MiniMC dataset: "e" (available tallies are "de", "mu", "q")')
 Caught expected NCBadInput('Tally not available in MiniMC dataset: "e" (no tallies were enabled!).')
 resA long title:
-'"constant;n=1e4;z=-0.009999999;wl=1.8" on "sphere;r=0.1" (69557 fills) ("nthreads=1;tallybins=theta:36:0:180")'
+'"constant;n=1e4;z=-0.009999999;wl=1.8" on "sphere;r=0.1" (69499 fills) ("nthreads=1;tallybins=theta:36:0:180")'
 resB long title:
-'"circular;n=1e4;z=-0.04338835;wl=2;r=0.04338835" on "sphere;r=0.04338835" (31554 fills) ("nthreads=2;tallybins=theta:36:0:180")'
+'"circular;n=1e4;z=-0.043389;wl=2;r=0.043389" on "sphere;r=0.043389" (31572 fills) ("nthreads=2;tallybins=theta:36:0:180")'
 resV3 long title:
 '"circular;n=1;z=-0.005;ekin=1;r=0.005" on "sphere;r=0.005" (1 fills) ("nthreads=1;tally=de,mu,q")'
 resV0 long title:

@@ -44,8 +44,8 @@ Caught expected NCBadInput('Invalid energy unit on "1.0ergs". Possible units inc
   scenario = "1.8Aa on 0.5mfp"
   cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-    -> geomcfg   = "sphere;r=0.0286512"
-    -> srccfg    = "circular;z=-0.0286512;r=0.0286512;wl=1.8;n=1e6"
+    -> geomcfg   = "sphere;r=0.02865125"
+    -> srccfg    = "circular;z=-0.02865125;r=0.02865125;wl=1.8;n=1e6"
 
 >>> Testing
   scenario = ""
@@ -65,20 +65,19 @@ Caught expected NCBadInput('Invalid energy unit on "1.0ergs". Possible units inc
   scenario = "2kT"
   cfgstr   = "stdlib:: Al_sg225.ncmat   ;temp=20 C"
 
-    -> geomcfg   = "sphere;r=0.059843"
-    -> srccfg    = "circular;z=-0.059843;r=0.059843;ekin=0.0505234;n=1e6"
+    -> geomcfg   = "sphere;r=0.0598435"
+    -> srccfg    = "circular;z=-0.0598435;r=0.0598435;ekin=0.0505234;n=1e6"
 
 >>> Testing
   scenario = ""
   cfgstr   = "solid::Al/1gcm3"
 
-    -> geomcfg   = "sphere;r=0.1578695"
-    -> srccfg    = "circular;z=-0.1578695;r=0.1578695;ekin=0.0252617;n=1e6"
+    -> geomcfg   = "sphere;r=0.157894"
+    -> srccfg    = "circular;z=-0.157894;r=0.157894;ekin=0.0252617;n=1e6"
 
 >>> Testing
   scenario = ""
   cfgstr   = "solid::Al/1gcm3;temp=1K"
-NCrystal WARNING: Discarding 5 edges of provided kernel data due to missing S values.
 
     -> geomcfg   = "sphere;r=0.1490995"
     -> srccfg    = "circular;z=-0.1490995;r=0.1490995;ekin=8.61733e-05;n=1e6"
@@ -87,8 +86,8 @@ NCrystal WARNING: Discarding 5 edges of provided kernel data due to missing S va
   scenario = ""
   cfgstr   = "solid::Al/1gcm3;temp=1000K"
 
-    -> geomcfg   = "sphere;r=0.1578085"
-    -> srccfg    = "circular;z=-0.1578085;r=0.1578085;ekin=0.0861733;n=1e6"
+    -> geomcfg   = "sphere;r=0.1577995"
+    -> srccfg    = "circular;z=-0.1577995;r=0.1577995;ekin=0.0861733;n=1e6"
 
 >>> Testing
   scenario = "1.8meV"
@@ -231,8 +230,8 @@ Caught expected NCBadInput('Can not use kT as a unit for a multi-phase material 
   scenario = ""
   cfgstr   = "phases<0.001*solid::Be/1gcm3;temp=100K&0.999*solid::Al/1gcm3;temp=200K>"
 
-    -> geomcfg   = "sphere;r=0.1567945"
-    -> srccfg    = "circular;z=-0.1567945;r=0.1567945;wl=1.8;n=1e6"
+    -> geomcfg   = "sphere;r=0.156757"
+    -> srccfg    = "circular;z=-0.156757;r=0.156757;wl=1.8;n=1e6"
 
 >>> Testing
   scenario = "1BT on 1m"

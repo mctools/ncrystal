@@ -1,8 +1,7 @@
 Calling nc_vdos.extractKnl( m=27, T=0.5, vdoslux=1, target_emax=0 )
-NCrystal WARNING: Discarding 30 edges of provided kernel data due to missing S values.
  Got alpha : NumpyArray( shape=100 )
- Got beta : NumpyArray( shape=170 )
- Got sab : NumpyArray( shape=17000 )
+ Got beta : NumpyArray( shape=200 )
+ Got sab : NumpyArray( shape=20000 )
  Got mass_amu : 27.0
  Got temperature : 0.5
  Got scatxs : 1.0
