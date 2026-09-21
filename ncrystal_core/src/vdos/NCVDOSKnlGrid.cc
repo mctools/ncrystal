@@ -361,7 +361,8 @@ NC::VDOS::getCombinedGnFct( const GnExpansion& gnexpn )
         //strictly the same, since the thinning+trimming might have left the two
         //grids "out of phase", so it is not true that the two x0's are offset
         //by an integral number of bin widths. But at high n, we are anyway
-
+        //looking at very smooth bell-curves whose width is much larger than the
+        //binwidths.
         individual_grids.back()
           = coverEquidistantGrids( individual_grids.back(),
                                    EquidistantGrid{ f.x0, bw, npts } );
