@@ -147,8 +147,8 @@ namespace NCRYSTAL_NAMESPACE {
       Order& operator=(const Order& o) { m_order = o.m_order; return *this; }
       Order& operator=(const int& o) { nc_assert(o>0); m_order = o; checkValid(); return *this; }
       Order& operator=(const unsigned& o) { m_order = o; checkValid(); return *this; }
-      bool operator<(const Order& o) { return m_order < o.m_order; }
-      bool operator<=(const Order& o) { return m_order <= o.m_order; }
+      bool operator<(const Order& o) const { return m_order < o.m_order; }
+      bool operator<=(const Order& o) const { return m_order <= o.m_order; }
       Order& operator++() { ++m_order; checkValid(); return *this; }
       unsigned value() const { return m_order; }
     private:
