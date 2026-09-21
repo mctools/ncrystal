@@ -160,11 +160,8 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
   } else {
     //fixme: this seems reasonable but when vdoslux=0 or 1 we might wish to
     //adjust the trunc and thinning parameters.
-    order_limit = 1000;
-    if ( targetEmax_requested.has_value() || vdoslux.lvl() >= 5 )
-      order_limit = 10000;
-    else
-      order_limit = 1000;
+    order_limit = ( ( targetEmax_requested.has_value() || vdoslux.lvl() >= 5 )
+                    ? 10000 : 1000 );
   }
 
   const NeutronEnergy emax_lowest_allowed
@@ -233,7 +230,7 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
       if (s_verbose)
         NCRYSTAL_WARN("VDOS expansion could only reach Emax="
                       <<targetEmax_reduced
-                      <<" and not the requested Emax="<<targetEmax<<"K");
+                      <<" and not the requested Emax="<<targetEmax);
       targetEmax = targetEmax_reduced;
       targetEmax_div_kT = targetEmax.dbl() * invkT;
       break;
