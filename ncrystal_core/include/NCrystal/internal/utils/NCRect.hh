@@ -35,7 +35,9 @@ namespace NCRYSTAL_NAMESPACE {
     Rectangle(const PairDD& xRange, const PairDD& yRange);
     Rectangle(double x0, double x1, double y0, double y1);
 
-    Rectangle& operator=(const Rectangle& r);
+    Rectangle(const Rectangle&) = default;
+    Rectangle& operator=(const Rectangle&) = default;
+
     bool operator==(const Rectangle& r) const;
     bool operator<(const Rectangle& r) const;
 
@@ -90,13 +92,6 @@ namespace NCRYSTAL_NAMESPACE {
   inline Rectangle::Rectangle(double x0, double x1, double y0, double y1)
     : Rectangle(PairDD(x0, x1), PairDD(y0, y1))
   {
-  }
-
-  inline Rectangle& Rectangle::operator=(const Rectangle& r)
-  {
-    m_xRange = r.m_xRange;
-    m_yRange = r.m_yRange;
-    return *this;
   }
 
   inline double Rectangle::x0() const
