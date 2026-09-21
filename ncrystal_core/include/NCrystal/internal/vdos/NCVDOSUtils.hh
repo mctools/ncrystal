@@ -91,6 +91,14 @@ namespace NCRYSTAL_NAMESPACE {
     };
     VectD makeCommonGrid( Span<const EquidistantGrid> );
 
+
+    // Merge two grids a and b into one. Taking all points of a and those pts in
+    // b that are either an extreme point (highest or lowest of both grids) or
+    // far enough from pts in a. Far enough means different signs (+/-/0), or
+    // that the ratio of their absolute values is larger than 1+rtol.
+    VectD mergeGridsWithTol( const VectD& a, const VectD& b,
+                             double rtol = 0.01 );
+
     // Combines two overlapping grids with common binWidth into a single grid.
     // The returned grid starts at the lower origin of the grids
     // (i.e. x0=min(g1.x0,g2.x0)), and has just enough points for both original

@@ -689,3 +689,70 @@ void NC::VDOS::trimEquidistantGridUpperEdge(EquidistantGrid& g, double xmax)
   }
   nc_assert(check());
 }
+
+NC::VectD NC::VDOS::mergeGridsWithTol( const VectD& a, const VectD& b,
+                                       double rtol )
+{
+  nc_assert( rtol > 0.0 );
+  nc_assert( rtol < 0.5 );
+  nc_assert(nc_is_grid(a));
+  nc_assert(nc_is_grid(b));
+  nc_assert(!a.empty());
+  nc_assert(!b.empty());
+  nc_assert(std::isfinite(rtol) && rtol > 0.0);
+  const double fac = 1.0 + rtol;
+  const double lo = ncmin(a.front(), b.front());
+  const double hi = ncmax(a.back(), b.back());
+  VectD g;
+  g.reserve(a.size() + b.size());
+  auto add = [&g](double x)
+  {
+    if (g.empty() || x != g.back())
+      g.push_back(x);
+  };
+  auto nearlyEqual = [](double x, double y)
+  {
+    return ncabs(x - y) <= 1e-11 * ncmax(ncabs(x), ncabs(y));
+  };
+  auto farEnough = [fac](double x, double y)
+  {
+    if (x == y || x == 0.0 || y == 0.0)
+      return x != y;
+    if ((x < 0.0) != (y < 0.0))
+      return true;
+    const double ax = ncabs(x);
+    const double ay = ncabs(y);
+    return ncmax(ax, ay) / ncmin(ax, ay) > fac;
+  };
+  std::size_t ia = 0;
+  for (std::size_t ib = 0; ib < b.size(); ++ib) {
+    const double x = vectAt(b, ib);
+    while (ia < a.size() && vectAt(a, ia) < x) {
+      add(vectAt(a, ia));
+      ++ia;
+    }
+    bool keep = x == lo || x == hi;
+    //A point which is the same as one in a, up to rounding errors, is not
+    //kept. Notably the same node of a lattice might have been calculated in
+    //different ways for the two grids. Without this, whether they end up
+    //bitwise identical (and thus one of them is removed by add) or an ulp
+    //apart (in which case both would be kept) would depend on rounding errors.
+    if (!keep) {
+      if (ia < a.size() && nearlyEqual(x, vectAt(a, ia)))
+        continue;
+      if (ia > 0 && nearlyEqual(x, vectAt(a, ia - 1)))
+        continue;
+    }
+    if (!keep && ia < a.size())
+      keep = farEnough(x, vectAt(a, ia));
+    if (!keep && ia > 0)
+      keep = farEnough(x, vectAt(a, ia - 1));
+    if (keep)
+      add(x);
+  }
+  while (ia < a.size()) {
+    add(vectAt(a, ia));
+    ++ia;
+  }
+  return g;
+}
