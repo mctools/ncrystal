@@ -689,13 +689,13 @@ NC::VDOS::setupE0ABGrid( const GnExpansion& gnexpn, unsigned npts )
       nc_assert( g.binWidth > 0.0 );
       g.npts = f.f.size();
       trimEquidistantGridUpperEdge(g, gridmax);
-      nc_assert( g.x1() < gridmax );
+      nc_assert( g.x1() <= gridmax );
     }
 
     grid = makeCommonGrid( allgrids );
 
     nc_assert_always(!grid.empty());
-    nc_assert( grid.back() < gridmax );
+    nc_assert( grid.back() <= gridmax );
     nc_assert_always( grid.size() >= 10 );
     //ensure we have 0.0 in this:
     if ( grid.front() < 1e-3 * fcts.front().binWidth ) {
