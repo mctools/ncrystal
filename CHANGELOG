@@ -1,4 +1,6 @@
 v4.4.7 (work in progress)
+     * Bug fix: Python API functions accepting numpy arrays now work correctly
+       for non-float64 or non-contiguous arrays.
      * ...
 
 v4.4.6 2026-06-30

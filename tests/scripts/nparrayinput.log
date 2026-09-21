@@ -1,0 +1,9 @@
+scatter xsect(ekin): all memory layouts and containers ok
+absorption xsect(ekin): all memory layouts and containers ok
+scatter xsect(ekin=): all memory layouts and containers ok
+scatter xsect(wl=): all memory layouts and containers ok
+float32 and integer arrays are converted correctly
+repeat with strided array ok
+input arrays are not modified
+multi-dimensional arrays are rejected with a clear error
+sampling functions ok

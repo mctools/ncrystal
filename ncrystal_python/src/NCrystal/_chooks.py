@@ -88,12 +88,36 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     _cstrp = ctypes.POINTER(_cstr)
     _cstrpp = ctypes.POINTER(_cstrp)
     _dblpp = ctypes.POINTER(_dblp)
+    def _check_ndarray_layout(a, ctype):
+        if ( a.dtype != _np.dtype(ctype) or not a.flags['C_CONTIGUOUS']
+             or a.ndim != 1 ):
+            from .exceptions import NCLogicError
+            raise NCLogicError('Internal error: Array passed to C function is'
+                               ' not a contiguous one-dimensional array of'
+                               f' {_np.dtype(ctype)} (dtype={a.dtype},'
+                               f' ndim={a.ndim},'
+                               f' contiguous={a.flags["C_CONTIGUOUS"]})')
     def ndarray_to_dblp(a):
+        _check_ndarray_layout(a, _dbl)
         return a.ctypes.data_as(_dblp)
     def ndarray_to_uintp(a):
+        _check_ndarray_layout(a, _uint)
         return a.ctypes.data_as(_uintp)
     def ndarray_to_intp(a):
+        _check_ndarray_layout(a, _int)
         return a.ctypes.data_as(_intp)
+
+    def as_contiguous_double_array(a, what='array'):
+        #Users might provide non-contiguous arrays or arrays with e.g. integer
+        #values instead of doubles - so fix this (does not copy data if already
+        #in right form).
+        _ensure_numpy()
+        a = _np.ascontiguousarray( a, dtype=_dbl )
+        if a.ndim != 1:
+            from .exceptions import NCBadInput
+            raise NCBadInput(f'{what} must be a scalar or a one-dimensional'
+                             f' array (got {a.ndim} dimensions)')
+        return a
 
     def _create_numpy_double_array(n):
         _ensure_numpy()
@@ -316,8 +340,8 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
 
     def raw_vdos2gn( egrid, density, scatxs, mass_amu, temperature, nvalue ):
         _ensure_numpy()
-        _egrid = _np.asarray(egrid,dtype=float)
-        _density = _np.asarray(density,dtype=float)
+        _egrid = as_contiguous_double_array(egrid,'egrid')
+        _density = as_contiguous_double_array(density,'density')
         _s = _dbl(float(scatxs))
         _m = _dbl(float(mass_amu))
         _t = _dbl(float(temperature))
@@ -341,8 +365,8 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     def raw_vdos2knl( egrid, density, scatxs, mass_amu, temperature,
                       vdoslux, order_weight_fct, target_emax ):
         _ensure_numpy()
-        _egrid = _np.asarray(egrid,dtype=float)
-        _density = _np.asarray(density,dtype=float)
+        _egrid = as_contiguous_double_array(egrid,'egrid')
+        _density = as_contiguous_double_array(density,'density')
         _s = _dbl(float(scatxs))
         _m = _dbl(float(mass_amu))
         _t = _dbl(float(temperature))
@@ -406,6 +430,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     _raw_vdoseval = _wrap('ncrystal_vdoseval',None,(_dbl,_dbl,_uint,_dblp,_dbl,_dbl,_dblp,_dblp,_dblp,_dblp,_dblp),hide=True)
     def nc_vdoseval(emin,emax,density,temp,mass_amu):
         msd,dt,g0,teff,oint=_dbl(),_dbl(),_dbl(),_dbl(),_dbl()
+        density = as_contiguous_double_array(density,'density')
         _raw_vdoseval(emin,emax,len(density),ndarray_to_dblp(density),temp,mass_amu,
                       msd,dt,g0,teff,oint)
         return dict(msd=msd.value,debye_temp=dt.value,gamma0=g0.value,teff=teff.value,integral=oint.value)
@@ -512,7 +537,8 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         if repeat is None and not hasattr(ekin,'__len__'):
             return None#scalar case, array interface not triggered
         repeat = 1 if repeat is None else repeat
-        ekin = (ekin if hasattr(ekin,'ctypes') else _np.asarray(ekin,dtype=float) ) if hasattr(ekin,'__len__') else _np.ones(1)*ekin
+        ekin = ( as_contiguous_double_array(ekin,'Energy or wavelength values')
+                 if hasattr(ekin,'__len__') else _np.ones(1)*ekin )
         #NB: returning the ekin object itself is important in order to keep a reference to it after the call:
         return ndarray_to_dblp(ekin),len(ekin),repeat,ekin
 
