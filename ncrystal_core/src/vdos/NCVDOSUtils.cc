@@ -538,23 +538,30 @@ NC::VectD NC::VDOS::evalPWLSum( Span<const PWLFct> fs,
     if (g == grid.size() || gridPtr[g] > xmax)
       continue;
 
+    // For consistency, the bin edges must be calculated exactly like the node
+    // positions (p.xAt(i)). Otherwise a grid point at a node can end up in the
+    // neighbouring bin and get a value affected by rounding errors instead of
+    // exactly the value at the node.
+    double xLeft = p.x0;
     for (std::size_t i = 0; i < lastBin && g < grid.size(); ++i) {
-      const double xLeft =
-        p.x0 + static_cast<double>(i) * p.binWidth;
-      const double xRight = xLeft + p.binWidth;
+      const double xRight = p.xAt(i + 1);
       const double y0 = vectAt(f, i);
       const double y1 = vectAt(f, i + 1);
       const double slope = (y1 - y0) * invbw;
-      const double intercept = y0 - slope * xLeft;
+      const double ylo = ncmin(y0, y1);
+      const double yhi = ncmax(y0, y1);
       std::size_t end = g;
       while (end < grid.size() && gridPtr[end] < xRight)
         ++end;
 
-      // This loop is deliberately simple so the compiler can
-      // auto-vectorize it.
+      // The result is exactly y0 at x=xLeft, and the clamping ensures that the
+      // result never falls outside [y0,y1] (or below 0 for non-negative data)
+      // due to rounding errors.
       for (std::size_t k = g; k < end; ++k)
-        outPtr[k] += weight * (intercept + slope * gridPtr[k]);
+        outPtr[k] += weight * ncclamp(y0 + slope * (gridPtr[k] - xLeft),
+                                      ylo, yhi);
       g = end;
+      xLeft = xRight;
     }
 
     // Handle the final sample at x == xmax.

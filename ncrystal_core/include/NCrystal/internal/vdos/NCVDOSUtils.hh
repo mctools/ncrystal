@@ -104,7 +104,8 @@ namespace NCRYSTAL_NAMESPACE {
       double binWidth = 0.0;//distance between x{i} and x{i+1}
       Span<const double> f;//values of f at the x{i} points. The size of the
                            //span encodes the number of points.
-      double x1() const { return x0 + (f.size()-1)*binWidth; }
+      double xAt( std::size_t i ) const noexcept;//x{i}
+      double x1() const { return xAt( f.size()-1 ); }
       VectD dataHolder;//optional, so can hold its data if needed.
 
       //Move semantics (re-points f if it refers to dataHolder):
@@ -159,6 +160,11 @@ namespace NCRYSTAL_NAMESPACE {
         moveDataFrom( o );
       }
       return *this;
+    }
+
+    inline double PWLFct::xAt( std::size_t i ) const noexcept
+    {
+      return x0 + static_cast<double>(i)*binWidth;
     }
 
     inline void PWLFct::moveDataFrom( PWLFct& o ) noexcept

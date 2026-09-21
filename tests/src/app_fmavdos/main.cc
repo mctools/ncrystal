@@ -181,34 +181,40 @@ namespace {
   {
     //Mirror of the algorithm in evalPWLSum, but with unfused arithmetic:
     NC::VectD out( grid.size(), 0.0 );
+    auto xAt = []( const NCV::PWLFct& p, std::size_t i )
+    {
+      return p.x0 + rnd( static_cast<double>(i) * p.binWidth );
+    };
     for ( std::size_t n = 0; n < fs.size(); ++n ) {
       const auto& p = fs[n];
       const auto& f = p.f;
       const std::size_t lastBin = f.size() - 1;
       const double invbw = 1.0 / p.binWidth;
       const double weight = ws.empty() ? 1.0 : ws[n];
-      const double xmax = p.x0 + rnd( static_cast<double>(lastBin)
-                                      * p.binWidth );
+      const double xmax = xAt( p, lastBin );
       std::size_t g = static_cast<std::size_t>
         ( std::lower_bound( grid.begin(), grid.end(), p.x0 )
           - grid.begin() );
       if ( g == grid.size() || grid[g] > xmax )
         continue;
+      double xLeft = p.x0;
       for ( std::size_t i = 0; i < lastBin && g < grid.size(); ++i ) {
-        const double xLeft = p.x0 + rnd( static_cast<double>(i)
-                                         * p.binWidth );
-        const double xRight = xLeft + p.binWidth;
+        const double xRight = xAt( p, i + 1 );
         const double y0 = f[i];
         const double y1 = f[i+1];
         const double slope = ( y1 - y0 ) * invbw;
-        const double intercept = y0 - rnd( slope * xLeft );
+        const double ylo = std::min( y0, y1 );
+        const double yhi = std::max( y0, y1 );
         std::size_t end = g;
         while ( end < grid.size() && grid[end] < xRight )
           ++end;
-        for ( std::size_t k = g; k < end; ++k )
-          out[k] = out[k] + rnd( weight
-                                 * ( intercept + rnd( slope * grid[k] ) ) );
+        for ( std::size_t k = g; k < end; ++k ) {
+          double v = y0 + rnd( slope * ( grid[k] - xLeft ) );
+          v = std::max( ylo, std::min( yhi, v ) );
+          out[k] = out[k] + rnd( weight * v );
+        }
         g = end;
+        xLeft = xRight;
       }
       if ( g < grid.size() && grid[g] <= xmax ) {
         const double y = f[lastBin];
@@ -253,49 +259,34 @@ namespace {
     requireIdentical( res_nows, refEvalPWLSum( fs, grid, {} ),
                       "evalPWLSum (no weights)" );
 
-    //Nodes where a function is exactly zero must evaluate to exactly zero, not
-    //to tiny (possibly negative) numbers from rounding in the interpolation
-    //formula. Test with each function on its own. NB: For this we use dyadic
-    //x0 and binWidth values, so all node positions and bin boundaries are
-    //represented exactly (with general values the bin boundaries computed by
-    //accumulation and the node positions computed by multiplication can differ
-    //by an ulp, in which case a node can end up in the neighbouring bin and
-    //be evaluated with a rounding error there). The products slope*xLeft still
-    //require rounding, so fusion is still detected.
-    std::vector<NCV::PWLFct> dy;
-    dy.push_back( makePWL( -0.375, 0.015625, genVals( 40, 5, 0.137 ) ) );
-    dy.push_back( makePWL( 0.0078125, 0.0078125, genVals( 60, 7, 0.071 ) ) );
-    dy.push_back( makePWL( -0.25, 0.015625, genVals( 45, 4, 0.0313 ) ) );
-    NC::VectD dgrid = NC::linspace( -0.5, 0.6, 1537 );
-    for ( auto& f : dy )
-      for ( std::size_t i = 0; i < f.f.size(); ++i )
-        dgrid.push_back( f.x0 + static_cast<double>(i) * f.binWidth );
-    std::sort( dgrid.begin(), dgrid.end() );
-    dgrid.erase( std::unique( dgrid.begin(), dgrid.end() ), dgrid.end() );
-    requireIdentical( NCV::evalPWLSum( dy, dgrid, ws ),
-                      refEvalPWLSum( dy, dgrid, ws ),
-                      "evalPWLSum (dyadic)" );
-    for ( auto& f : dy ) {
+    //Each function on its own: At all node positions the value must be exactly
+    //the node value (not just approximately, and not tiny non-zero numbers at
+    //zero-valued nodes, which is what happens if the bin edges are not
+    //calculated consistently with the node positions or if the interpolation
+    //suffers from cancellation or fusion). Also, values must be non-negative
+    //(the node values are) and never above the maximum node value.
+    for ( auto& f : fs ) {
       std::vector<NCV::PWLFct> one;
       one.push_back( makePWL( f.x0, f.binWidth,
                               NC::VectD( f.f.begin(), f.f.end() ) ) );
-      auto r1 = NCV::evalPWLSum( one, dgrid );
+      auto r1 = NCV::evalPWLSum( one, grid );
+      const double ymax = *std::max_element( f.f.begin(), f.f.end() );
+      for ( double v : r1 )
+        REQUIRE( v >= 0.0 && v <= ymax );
       std::size_t nzero = 0;
       for ( std::size_t i = 0; i < f.f.size(); ++i ) {
-        const double xn = f.x0 + static_cast<double>(i) * f.binWidth;
+        const double xn = f.x0 + rnd( static_cast<double>(i) * f.binWidth );
         const auto k = static_cast<std::size_t>
-          ( std::lower_bound( dgrid.begin(), dgrid.end(), xn )
-            - dgrid.begin() );
-        REQUIRE( k < dgrid.size() && dgrid[k] == xn );
-        if ( f.f[i] == 0.0 ) {
-          ++nzero;
-          if ( r1[k] != 0.0 ) {
-            std::cout << "ERROR: non-zero value "
-                      << NC::fmt(r1[k],"%.17g")
-                      << " at zero-valued node of piecewise linear function"
-                      << std::endl;
-            REQUIRE( false );
-          }
+          ( std::lower_bound( grid.begin(), grid.end(), xn )
+            - grid.begin() );
+        REQUIRE( k < grid.size() && grid[k] == xn );
+        nzero += ( f.f[i] == 0.0 ? 1 : 0 );
+        if ( r1[k] != f.f[i] ) {
+          std::cout << "ERROR: value " << NC::fmt(r1[k],"%.17g")
+                    << " at node " << i << " of piecewise linear function"
+                    << " with node value " << NC::fmt(f.f[i],"%.17g")
+                    << std::endl;
+          REQUIRE( false );
         }
       }
       REQUIRE( nzero >= 1 );
