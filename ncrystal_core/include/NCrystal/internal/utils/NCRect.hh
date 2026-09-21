@@ -29,7 +29,7 @@ namespace NCRYSTAL_NAMESPACE {
   class Rectangle final {
   public:
     // Immutable class representing an axis-aligned rectangle, i.e. the set of
-    // (x,y) values with x0<=x<=x1 and x0<=y<=x1.
+    // (x,y) values with x0<=x<=x1 and y0<=y<=y1.
     // It is not allowed to access coordinates of empty rectangles.
     Rectangle();//Empty
     Rectangle(const PairDD& xRange, const PairDD& yRange);
