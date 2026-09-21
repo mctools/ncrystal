@@ -262,7 +262,10 @@ def build_cmdstr(cfgstr,atomlbl=None):
     if prog.startswith('sb_'):
         #simplebuild support:
         prog = prog.split('_',2)[-1]
-    assert prog=='testvdosexpand'
+    elif prog=='vdosexpand.py':
+        #ctest support:
+        prog='testvdosexpand'
+    assert prog=='testvdosexpand', f'unexpected name: {prog}'
     a=[ prog, cfgstr ]
     if atomlbl is not None:
         a += [atomlbl]
