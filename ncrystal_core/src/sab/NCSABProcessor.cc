@@ -1455,3 +1455,66 @@ void NCS::SABProcessor::toJSONProcessInfo( std::ostream& os,
   streamJSONDictEntry( os, "sabprocessor_uid",
                        getUniqueID().value, JSONDictPos::LAST );
 }
+
+//fixme: remove:
+#include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/phys_utils/NCFreeGasUtils.hh"
+void NCS::SABProcessor::testJSON( shared_obj<const SABData> sd,
+                                  std::ostream& os )
+{
+  //MAKE touchedinteg(E) curve first -> reeeelatively cheap I hope, and we
+  //anyway need (most) of the cell integrals.
+  SABSurveyor surv(sd);
+  CellMgr cellmgr(sd);
+  nc_assert_always( !surv.data().empty() );
+
+  auto cfg = SABCfg::createConfig( 3 );
+
+  //fixme: some backwards compat overrides:
+  cfg.integScheme = SABCfg::IntegrationScheme::Flex17;
+  cfg.integSchemeDetermineEGrid = SABCfg::IntegrationScheme::Flex5;
+  cfg.egrid_npts = 300;
+
+  VectD test_egrid = determineEGrid( cfg, sd, cellmgr, surv, {} );
+  VectD test_sint;
+  VectD test_sint_full;
+  std::vector<std::size_t> test_sint_ncrossed;
+  const auto scheme = cfg.integScheme;
+  sIntegralAtE_Result result;
+  result.crossedIntegrals.reserve(256);
+  for ( auto& E_div_kT : test_egrid ) {
+    sIntegralAtE( E_div_kT, cellmgr, surv, scheme, result, true );
+    test_sint.push_back( result.integralWithinKB );
+    test_sint_full.push_back( result.integralTouchedCells );
+    test_sint_ncrossed.push_back( result.crossedIntegrals.size() );
+  }
+
+  auto sIntByEtouch
+    = determineSIntegralByTouchedCells( cellmgr, surv,
+                                        sd->temperature().kT() );
+
+
+  //fixme: hugevect?
+  os << "{\"E/kT\":";
+  streamJSON(os,sIntByEtouch.e);
+  os << ",\"sumcellint\":";
+  streamJSON(os,sIntByEtouch.sint);
+  os << ",\"kT\":";
+  streamJSON(os,sd->temperature().kT());
+  os << ",\"T\":";
+  streamJSON(os,sd->temperature().get());
+  os << ",\"E/kT_careful\":";
+  streamJSON(os,test_egrid);
+  os << ",\"Sintegral_careful\":";
+  streamJSON(os,test_sint);
+  os << ",\"Sintegral_careful_fullcells\":";
+  streamJSON(os,test_sint_full);
+  os << ",\"Sintegral_careful_ncrossed\":";
+  streamJSON(os,test_sint_ncrossed);
+  os << ",\"egrid_range\":";
+  std::pair<double,double> egrid_range{ test_egrid.front(),
+                                        test_egrid.back() };
+  streamJSON(os,egrid_range);
+  os << "}";
+
+}
