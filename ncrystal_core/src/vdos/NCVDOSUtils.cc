@@ -338,13 +338,6 @@ void NC::VDOS::topOffGrid( VectD& g, std::size_t npts, double rtol )
   nc_assert(nc_is_grid(g));
 }
 
-namespace NCRYSTAL_NAMESPACE {
-  namespace VDOS {
-    namespace {
-    }
-  }
-}
-
 NC::VectD NC::VDOS::makeCommonGrid(Span<const EquidistantGrid> grids )
 {
   struct Entry {
