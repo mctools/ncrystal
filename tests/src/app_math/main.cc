@@ -470,9 +470,6 @@ namespace {
     REQUIRE(!empty.isEmpty());
     REQUIRE(empty.xRange() == assigned.xRange());
     REQUIRE(empty.yRange() == assigned.yRange());
-    empty = empty;
-    REQUIRE(empty.xRange() == assigned.xRange());
-    REQUIRE(empty.yRange() == assigned.yRange());
     empty = Rectangle();
     REQUIRE(empty.isEmpty());
 

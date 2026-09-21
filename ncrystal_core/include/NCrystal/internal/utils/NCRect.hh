@@ -26,7 +26,7 @@
 
 namespace NCRYSTAL_NAMESPACE {
 
-  class Rectangle {
+  class Rectangle final {
   public:
     // Immutable class representing an axis-aligned rectangle, i.e. the set of
     // (x,y) values with x0<=x<=x1 and x0<=y<=x1.
@@ -34,9 +34,6 @@ namespace NCRYSTAL_NAMESPACE {
     Rectangle();//Empty
     Rectangle(const PairDD& xRange, const PairDD& yRange);
     Rectangle(double x0, double x1, double y0, double y1);
-
-    Rectangle(const Rectangle&) = default;
-    Rectangle& operator=(const Rectangle&) = default;
 
     bool operator==(const Rectangle& r) const;
     bool operator<(const Rectangle& r) const;
