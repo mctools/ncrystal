@@ -1,14 +1,17 @@
 NCrystal.constants.const_neutron_mass_amu = 1.00866491588
+NCrystal.constants.const_neutron_mass_evc2 = 1.0454075096044565e-28
 NCrystal.constants.constant_avogadro = 6.022140857e+23
 NCrystal.constants.constant_boltzmann = 8.6173303e-05
 NCrystal.constants.constant_c = 2.99792458e+18
 NCrystal.constants.constant_dalton2eVc2 = 931494095.17
 NCrystal.constants.constant_dalton2kg = 1.66053904e-27
+NCrystal.constants.constant_hbar = 6.582119513926018e-16
 NCrystal.constants.constant_planck = 4.135667662e-15
 NCrystal.constants.k2Pi = 6.283185307179586
 NCrystal.constants.k4PiSq = 39.47841760435743
 NCrystal.constants.k4Pidiv100 = 0.12566370614359174
 NCrystal.constants.kInf = inf
+NCrystal.constants.kInv2Pi = 0.15915494309189535
 NCrystal.constants.kPi = 3.141592653589793
  ---- test wl = 0.0 Aa
       -> wl2ekin(0 Aa) = inf eV
