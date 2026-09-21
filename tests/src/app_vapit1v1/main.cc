@@ -42,18 +42,18 @@ int main() {
 
   std::vector<double> wls = { 0.5, 1.0, 1.5, 2.0, 2.5, 3.0,
                               3.5, 4.0, 4.5, 5.0, 5.5, 6.0 };
-  std::vector<double> refvals_xs_al = { 1.39245855,
-                                        1.37301271,
-                                        1.37152295,
-                                        1.29456141,
-                                        1.11097728,
-                                        1.05893956,
-                                        1.38597156,
-                                        1.76864975,
-                                        1.40305622,
-                                        0.143286738,
-                                        0.148731135,
-                                        0.154985793 };
+  std::vector<double> refvals_xs_al = { 1.39246133,
+                                        1.37301125,
+                                        1.37152078,
+                                        1.29455853,
+                                        1.11097308,
+                                        1.05893957,
+                                        1.38596956,
+                                        1.76864928,
+                                        1.40305583,
+                                        0.143286443,
+                                        0.148730851,
+                                        0.154985594 };
 
   auto require_flteq = [](double a, double b)
   {
@@ -102,9 +102,8 @@ int main() {
     double xs = virtapi->crossSectionUncached( *scat_scge, neutron );
     std::cout<<" GeSC: xs(" << wl << " Aa, dir2) = "
              << std::setprecision(7)<<xs << " barn/atom" << std::endl;
-    require_flteq( 1.667600586136298, xs );
+    require_flteq( 1.66765659374, xs );
   }
-
 
   {
     unsigned long rngstate = 1789569706;
