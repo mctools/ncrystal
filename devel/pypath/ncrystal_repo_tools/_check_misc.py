@@ -51,6 +51,7 @@ def main():
         'ncrystal_python/src/NCrystal/core.py' : 100,
         'tests/data/QE_pw_Al.out' : 2000,
         'tests/src/app_mmcgeom/main.cc' : 80,
+        'tests/src/app_fft/refvals.hh' : 200,
         #fixme:
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux0_temp10K.ncmat' : 4000000,
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux1_temp10K.ncmat' : 4000000,
