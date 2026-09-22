@@ -157,6 +157,11 @@ namespace NCRYSTAL_NAMESPACE {
   //that output is in [a,b]:
   double intervalPos01(double a, double b, double relpos);
 
+  //Linear interpolation, from a at t=0 to b at t=1 (a,b need not be ordered and
+  //t outside [0,1] simplly extrapolates). Uses an explicit std::fma, so a hot,
+  //array-processed caller can benefit from NCRYSTAL_FMADISPATCH_ATTR:
+  double nclerp(double a, double b, double t);
+
   class Fct1D {
   public:
     //A very basic function object based on dynamic polymorphism (we can replace
@@ -558,6 +563,14 @@ inline double NCrystal::intervalPos01(double a, double b, double relpos)
   nc_assert( 0.0 <= relpos );
   nc_assert( relpos <= 1.0 );
   return ncclamp(std::fma(relpos, b, (1.0-relpos)*a),a,b);
+}
+
+inline double NCrystal::nclerp(double a, double b, double t)
+{
+  nc_assert( std::isfinite(a) );
+  nc_assert( std::isfinite(b) );
+  nc_assert( std::isfinite(t) );
+  return std::fma( t, b - a, a );//most accurate of the forms tried, exact at t=0
 }
 
 inline double NCrystal::exp_smallarg_approx( double x )

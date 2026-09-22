@@ -167,6 +167,32 @@ namespace {
     std::cout << "intervalPos ok" << std::endl;
   }
 
+  void testNclerp()
+  {
+    //Uses an explicit std::fma, so the result must be identical on all
+    //platforms and independent of contraction. Unlike intervalPos, a and b
+    //need not be ordered:
+    const double as[] = { -1.7, 0.0, 0.3, 12.5, 1e-9, 5.0 };
+    const double bs[] = { 0.0, 0.7, 3.1, 12.6, 1.0000001e-9, -5.0 };
+    for ( double a : as ) {
+      for ( double b : bs ) {
+        //Exact at t=0 is provable (0*(b-a) is exactly 0.0 for any finite
+        //b-a, so the fma reduces to exactly a); NOT asserting exactness at
+        //t=1, which (unlike for intervalPos's fma(t,b,(1-t)*a) form) is not
+        //generally guaranteed for fma(t,b-a,a):
+        REQUIRE( NC::nclerp( a, b, 0.0 ) == a );
+        for ( int i = -20; i <= 120; ++i ) {
+          const double t = i * 0.01;
+          //b-a is a plain subtraction, not itself at risk of contraction
+          //(only a*b+c-shaped expressions are), so no rnd() needed here:
+          const double ref = std::fma( t, b - a, a );
+          REQUIRE( NC::nclerp( a, b, t ) == ref );
+        }
+      }
+    }
+    std::cout << "nclerp ok" << std::endl;
+  }
+
   void testStableSums()
   {
     //The compensation in Kahan/Neumaier summation depends on the addends being
@@ -257,6 +283,7 @@ int main()
   testLinspace();
   testPowspace();
   testIntervalPos();
+  testNclerp();
   testStableSums();
   testFastConvolve();
   testReducePts();
