@@ -193,6 +193,31 @@ f"""
 #define NCRYSTAL_VERSION_PATCH {cfg.ncrystal_version_patch}
 #define NCRYSTAL_VERSION_STR "{cfg.ncrystal_version_str}"
 #define NCRYSTAL_VERSION {cfg.ncrystal_version_int}
+//For now, just assume the target_clones-based FMA dispatch technique (see
+//ncrystal_fmadispatch.cmake, not used by simplebuild) works on the
+//platforms/compilers we are confident about, rather than actually probing
+//for it. This must stay a compile-time (not Python-side) check: it needs to
+//match whatever compiler simplebuild actually invokes, not the host running
+//this script. Falls through to the safe (disabled) fallback in ncapi.h.in
+//on anything else, notably ARM (where "fma" is not even a valid
+//target_clones string -- see docs/devel_fma_attribute.md) and Windows:
+#if defined(__x86_64__) || defined(__i386__)
+#if defined(__linux__) || defined(__APPLE__)
+#if ( defined(__clang__) && __clang_major__ >= 14 ) || ( defined(__GNUC__) && !defined(__clang__) && __GNUC__ >= 6 )
+//Clang debug builds (NDEBUG undefined) hit a confirmed Clang codegen bug
+//where an ODR-used inline function only reachable via a target_clones
+//function's throw path (e.g. nc_assert's LogicError construction) can get
+//an undefined reference instead of the weak definition it is owed -- see
+//doc/devel_fma_attribute.md rule 7:
+#if defined(__clang__) && !defined(NDEBUG)
+#define NCRYSTAL_FMADISPATCH_ATTR
+#else
+#define NCRYSTAL_FMADISPATCH_ATTR __attribute__((target_clones("default,fma")))
+#endif
+#define NCRYSTAL_FMADISPATCH_ENABLED 1
+#endif
+#endif
+#endif
 //Uncomment to debug deadlocks: #define NCRYSTAL_DEBUG_LOCKS
 #ifndef NDEBUG
 // Specifically test aligned allocs in simplebuild debug mode:

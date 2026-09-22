@@ -53,6 +53,9 @@ function( nccfgapp_create_ncapi_h resvar_includepath )
     #WINDOWS_EXPORT_ALL_SYMBOLS:
     string( APPEND ncapidefs "#define NCRYSTAL_PREVENT_WINDLLEXPORT\n")
   endif()
+  include( ncrystal_fmadispatch )
+  ncrystal_probe_fmadispatch( fmadispatch_defs )
+  string( APPEND ncapidefs "${fmadispatch_defs}")
   set( NCRYSTAL_HOOK_FOR_ADDING_DEFINES
     " -- CMake definitions begin -- */\n\n${ncapidefs}\n/* -- CMake definitions end --" )
   configure_file( "${srctemplate}" "${tgtfile}" @ONLY )

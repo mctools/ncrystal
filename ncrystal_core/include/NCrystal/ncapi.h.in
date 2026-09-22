@@ -78,6 +78,13 @@
 #ifndef NCRYSTAL_VERSION_STR
 #  define NCRYSTAL_VERSION_STR "999.999.999"
 #endif
+/* note: NCRYSTAL_FMADISPATCH macros are for internal NCrystal use only */
+#ifndef NCRYSTAL_FMADISPATCH_ATTR
+#  define NCRYSTAL_FMADISPATCH_ATTR
+#endif
+#ifndef NCRYSTAL_FMADISPATCH_ENABLED
+#  define NCRYSTAL_FMADISPATCH_ENABLED 0
+#endif
 
 #ifdef NCRYSTAL_API
 #  undef NCRYSTAL_API
