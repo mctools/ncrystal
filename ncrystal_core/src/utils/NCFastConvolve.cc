@@ -25,9 +25,6 @@
 #include <complex>
 namespace NC = NCrystal;
 
-//Temporarily uncomment the following define to test with safer but slower code:
-//#define NCRYSTAL_FASTCONVOLVE_EXTRASAFEMATH
-
 namespace NCRYSTAL_NAMESPACE {
 
   namespace {
@@ -228,6 +225,44 @@ void NC::FastConvolve::convolveLegacy( const VectD& a1, const VectD& a2,
 }
 
 
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+
+    //Pointwise complex multiply of two interleaved-[re,im,re,im,...] arrays, in
+    //place into the first (data1 *= data2), replacing std::complex<
+    //double>::operator*= (whose exact formula/precision is otherwise up to the
+    //standard library implementation -- an extra, uncontrolled source of
+    //cross-platform variance, beyond just FMA contraction). Uses explicit
+    //std::fma and NCRYSTAL_FMADISPATCH_ATTR:
+    NCRYSTAL_FMADISPATCH_ATTR
+    void fastConvolveSpectralMultiply( double* data1, const double* data2,
+                                       std::size_t n )
+    {
+      for ( std::size_t i = 0; i < n; ++i ) {
+        const double a = data1[2*i], b = data1[2*i+1];
+        const double c = data2[2*i], d = data2[2*i+1];
+        data1[2*i]   = std::fma( a, c, -(b*d) );
+        data1[2*i+1] = std::fma( a, d, b*c );
+      }
+    }
+
+    //out[i] = re(data[i])^2 + im(data[i])^2, for the (legacy) magnitude
+    //computation in convolve() below. The choice of std::fma(a,a,b*b) (over the
+    //equally valid std::fma(b,b,a*a)) is arbitrary but must be fixed, to pin
+    //down a single, reproducible answer:
+    NCRYSTAL_FMADISPATCH_ATTR
+    void fastConvolveMagSquared( double* out, const double* data,
+                                 std::size_t n )
+    {
+      for ( std::size_t i = 0; i < n; ++i ) {
+        const double a = data[2*i], b = data[2*i+1];
+        out[i] = std::fma( a, a, b*b );
+      }
+    }
+
+  }
+}
+
 void NC::FastConvolve::Impl::convolve( const VectD& a1, const VectD& a2,
                                        VectD& y, double dt,
                                        bool useLegacyBehaviour )
@@ -244,10 +279,9 @@ void NC::FastConvolve::Impl::convolve( const VectD& a1, const VectD& a2,
   fft<true>(b2,minimum_out_size);
 
   nc_assert(b1.size()==b2.size());
-  std::vector<std::complex<double> >::iterator
-    itb1(b1.begin()), itb1E(b1.end()), itb2(b2.begin());
-  while (itb1!=itb1E)
-    *itb1++ *= *itb2++;
+  fastConvolveSpectralMultiply( reinterpret_cast<double*>( b1.data() ),
+                                reinterpret_cast<const double*>( b2.data() ),
+                                b1.size() );
 
   fft<false>(b1,minimum_out_size);
 
@@ -256,7 +290,7 @@ void NC::FastConvolve::Impl::convolve( const VectD& a1, const VectD& a2,
   nc_assert(b1.size()==b2.size());
   nc_assert(y.size()<=b1.size());
   VectD::iterator ity(y.begin()), ityE(y.end());
-  itb1 = b1.begin();
+  std::vector<std::complex<double> >::iterator itb1(b1.begin());
 
   //LegacyBehaviour: Wrongly used std::abs. However, result is supposed to be
   //real already, with only tiny numerical fluctuations in the imaginary
@@ -269,24 +303,14 @@ void NC::FastConvolve::Impl::convolve( const VectD& a1, const VectD& a2,
   if ( useLegacyBehaviour ) {
     //Wrongly used std::abs. However, result is supposed to be real already,
     //with only tiny numerical fluctuations in the imaginary component.
-#   ifdef NCRYSTAL_FASTCONVOLVE_EXTRASAFEMATH
-    for(;ity!=ityE;++ity,++itb1) {
-      //NB: Use std::abs which calls std::hypot behind the
-      //    scenes (expensive but can avoid overflows)
-      *ity = k * std::abs(*itb1);
-    }
-#   else
     //Naive and simple, avoids std::hypot, more easily vectorisable:
-    for(;ity!=ityE;++ity,++itb1) {
-      double a(itb1->real());
-      double b(itb1->imag());
-      *ity = a*a+b*b;
-    }
+    fastConvolveMagSquared( y.data(),
+                            reinterpret_cast<const double*>( b1.data() ),
+                            y.size() );
     for(ity = y.begin();ity!=ityE;++ity)
       *ity = std::sqrt(*ity);
     for(ity = y.begin();ity!=ityE;++ity)
       *ity *= k;
-#   endif
   } else {
     //Result is the real part of the calculations:
     for(;ity!=ityE;++ity,++itb1)
@@ -350,6 +374,43 @@ void NC::FastConvolve::Impl::applySwaps( const SwapPatternCache& swapcache,
   }
 }
 
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+
+    //One stage of the FFT butterfly, applied to a run of count consecutive
+    //j-values (see the caller in fft<is_forward> below for how a stage
+    //decomposes into such runs): reads/writes count complex numbers each at
+    //data_j and data_sympos (both interleaved [re,im,...], with a fixed stride
+    //of 2 doubles between consecutive elements of the run), and reads count
+    //complex numbers from wtable (also interleaved, but strided by
+    //wtable_stride doubles between consecutive elements of the run, not
+    //necessarily 2).
+    NCRYSTAL_FMADISPATCH_ATTR
+    void fastConvolveButterflyRun( double* data_j, double* data_sympos,
+                                   const double* wtable,
+                                   std::ptrdiff_t wtable_stride,
+                                   bool is_forward, int count )
+    {
+      for ( int k = 0; k < count; ++k ) {
+        const double a = data_j[0], b = data_j[1];
+        const double c = wtable[0];
+        const double d = ( is_forward ? wtable[1] : -wtable[1] );
+        const double jr = std::fma( a, c, -(b*d) );
+        const double ji = std::fma( a, d, b*c );
+        const double sr = data_sympos[0], si = data_sympos[1];
+        data_j[0] = sr - jr;
+        data_j[1] = si - ji;
+        data_sympos[0] = sr + jr;
+        data_sympos[1] = si + ji;
+        data_j += 2;
+        data_sympos += 2;
+        wtable += wtable_stride;
+      }
+    }
+
+  }
+}
+
 template<bool is_forward>
 void NC::FastConvolve::Impl::fft( std::vector<std::complex<double>> &data,
                                   unsigned long minimum_output_size )
@@ -399,87 +460,29 @@ void NC::FastConvolve::Impl::fft( std::vector<std::complex<double>> &data,
   nc_assert_always(wtable.size()%output_size==0);
   const int jump = wtable.size()/output_size;
 
-#ifndef NCRYSTAL_FASTCONVOLVE_EXTRASAFEMATH
+  //For a given stage i, the (j>>i)%2 condition below is true for
+  //alternating runs of i1=(1<<i) CONSECUTIVE j-values (starting at
+  //j0=i1,3*i1,5*i1,...), each run visiting data_j/data_sympos at
+  //consecutive (stride-2-double) positions and wtable at a fixed stride of
+  //i2*jump*2 doubles between consecutive elements of the run (z=0,i2,2*i2,
+  //...,(i1-1)*i2 within the run). This is phrased as an explicit loop over
+  //runs (rather than the "if/else, skip ahead by i1-1" form this replaced),
+  //so it can call an array-processing kernel once per run (verified to
+  //actually be faster on realistic sizes; calling such a kernel once per
+  //individual j, by contrast, was measured to be a net SLOWDOWN, since the
+  //per-element work is too small to amortise the non-inlinable call):
   double * rawdata = reinterpret_cast<double*>( data.data() );
   const double * raww = reinterpret_cast<const double*>( wtable.data() );
-#endif
   for(int i=0;i<output_log_size;++i){
-    int z=0;
     const int i1 = (1<<i);
-#ifndef NCRYSTAL_FASTCONVOLVE_EXTRASAFEMATH
-    auto twoi1 = i1*2;
-#endif
-
-    const int i1m1 = i1-1;
     const int i2 = 1<<(output_log_size-i-1);
-
-    for(int j=0;j<output_size;++j){
-
-#if 0
-      //original (integer division very expensive!):
-      if((j/i1)%2) {
-#else
-      //NB: j/i1=j>>i since i1=(1<<i):
-      if( (j>>i)%2 ) {
-        //Todo: Perhaps we can figure out a bit mask for the check (j>>i)%2
-        //instead of doing it each time?
-        nc_assert( j/i1 == j>>i );
-#endif
-#ifdef NCRYSTAL_FASTCONVOLVE_EXTRASAFEMATH
-        std::complex<double>& data_j = data[j];
-        std::complex<double>& data_sympos = data[j-i1];
-        //std::complex<> multiplication is slow since it takes care of proper inf/nan/overflow
-        data_j *= ((!is_forward)?std::conj(wtable[z*jump]):wtable[z*jump]);
-        //and the -=,+= operators seems to carry significant overhead for some reason:
-        std::complex<double> temp = data_sympos;
-        data_sympos += data_j;
-        temp -= data_j;
-        data_j = temp;
-#else
-        //naive and simple is faster:
-#  if 1
-        //v2:
-        auto twoj = j*2;
-        double* rawdata_j = std::next(rawdata,twoj);
-        double* rawdata_sympos = std::next(rawdata,twoj-twoi1);
-        const double* rawdata_wzjump = std::next(raww,z*jump*2);
-        //const auto& w_zjump = wtable[z*jump];
-        double& a = *rawdata_j;// accessReal( data_j );
-        double& b = *std::next(rawdata_j); //accessImag( data_j );
-        const double& c = *rawdata_wzjump;//accessReal( w_zjump );
-        const double d = ( is_forward
-                           ? (*std::next(rawdata_wzjump))//accessImag( w_zjump );
-                           : -(*std::next(rawdata_wzjump)) );//accessImag( w_zjump );
-        //const double d = convfact * (*std::next(rawdata_wzjump));//accessImag( w_zjump );
-        const double jr(a*c-b*d);
-        const double ji(a*d+b*c);
-        double& sr = *rawdata_sympos;//accessReal(data_sympos);
-        double& si = *std::next(rawdata_sympos);//accessImag(data_sympos);
-        a = sr - jr;
-        b = si - ji;
-        sr += jr;
-        si += ji;
-#  else
-        //v1:
-        const std::complex<double>& w_zjump = wtable[z*jump];
-        const double a(data_j.real()), b(data_j.imag()), c(w_zjump.real());
-        const double d = ( is_forward ? w_zjump.imag() : - w_zjump.imag() );
-        const double jr(a*c-b*d);
-        const double ji(a*d+b*c);
-        const double sr(data_sympos.real());//no by-ref access to real/imag parts
-        const double si(data_sympos.imag());
-        data_j.real( sr - jr );
-        data_j.imag( si - ji );
-        data_sympos.real( sr + jr );
-        data_sympos.imag( si + ji );
-#  endif
-#endif
-        z += i2;
-      } else {
-        z = 0;
-        //will be the same result for the next i1-1 loops, so skip ahead:
-        j += i1m1;
-      }
+    const std::ptrdiff_t wtable_stride
+      = static_cast<std::ptrdiff_t>(i2) * jump * 2;
+    for(int j0=i1;j0<output_size;j0+=2*i1){
+      double* rawdata_j = std::next(rawdata,j0*2);
+      double* rawdata_sympos = std::next(rawdata_j,-(i1*2));
+      fastConvolveButterflyRun( rawdata_j, rawdata_sympos, raww,
+                                wtable_stride, is_forward, i1 );
     }
   }
 }

@@ -3,6 +3,10 @@ v4.4.7 (work in progress)
        for non-float64 or non-contiguous arrays.
      * Cmdline script errors in case of invalid choices now always gives output
        like latest (Py3.14.7) argparse, thus ensuring consistent output.
+     * Use explicit std::fma in FastConvolve utility for improved
+       reproducibility. Uses new NCRYSTAL_FMADISPATCH_ATTR so this does not cost
+       performance on portably built binaries such as the published wheels and
+       conda packages.
      * ...
 
 v4.4.6 2026-06-30
