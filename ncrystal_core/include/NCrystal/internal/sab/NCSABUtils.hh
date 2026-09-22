@@ -330,7 +330,14 @@ inline double NCrystal::SABUtils::integrateAlphaInterval(double a1,double s1, do
     const double c5           = 0.0108984020095131206242317353428464539575650687  ; // = 5098/467775
     const double c6           = 0.00839377592816746255899695053134206573360012513 ; // = 5359534/638512875
     const double ysq = y*y;
-    return da*ps*(0.5-ysq*(c1+ysq*(c2+ysq*(c3+ysq*(c4+ysq*(c5+ysq*c6))))));
+    //Horner's method with std::fma for extra reproducibility:
+    double p = c6;
+    p = std::fma( ysq, p, c5 );
+    p = std::fma( ysq, p, c4 );
+    p = std::fma( ysq, p, c3 );
+    p = std::fma( ysq, p, c2 );
+    p = std::fma( ysq, p, c1 );
+    return da*ps*std::fma( -ysq, p, 0.5 );
   }
   //Evaluate via analytical expression or fall-back to trapezoidal integration:
   return ncmin(s1,s2)<1e-300 ? 0.5*da*ps : da*ds/std::log(s2/s1);
@@ -380,7 +387,11 @@ inline double NCrystal::SABUtils::integrateAlphaInterval_fast(double a1,double s
   const double c2           = 0.0444444444444444444444444444444444444444444444  ; // = 2/45
   const double c3           = 0.0232804232804232804232804232804232804232804233  ; // = 22/945
   const double ysq = y*y;
-  return da*ps*(0.5-ysq*(c1+ysq*(c2+ysq*c3)));
+  //Horner's method with std::fma for extra reproducibility:
+  double p = c3;
+  p = std::fma( ysq, p, c2 );
+  p = std::fma( ysq, p, c1 );
+  return da*ps*std::fma( -ysq, p, 0.5 );
 }
 
 inline double NCrystal::SABUtils::sampleLogLinDist(double a, double fa, double b, double fb, double rand)
