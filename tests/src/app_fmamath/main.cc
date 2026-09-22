@@ -96,7 +96,7 @@ namespace {
       NC::VectD ref;
       const double interval = ( r.b - r.a ) / ( r.n - 1 );
       for ( unsigned i = 0; i + 1 < r.n; ++i )
-        ref.push_back( r.a + rnd( static_cast<double>(i) * interval ) );
+        ref.push_back( std::fma( static_cast<double>(i), interval, r.a ) );
       ref.push_back( r.b );
       requireIdentical( res, ref, "linspace" );
     }
@@ -121,20 +121,18 @@ namespace {
       ref.back() = r.b;
       for ( unsigned i = 1; i + 1 < r.n; ++i ) {
         const double s = static_cast<double>(i) * step;
-        double t;
         if ( r.p == 2.0 )
-          t = rnd( delta * (s*s) );
+          ref[i] = std::fma( delta, s*s, r.a );
         else if ( r.p == 3.0 )
-          t = rnd( rnd( delta * (s*s) ) * s );
+          ref[i] = std::fma( delta*(s*s), s, r.a );
         else if ( r.p == 4.0 )
-          t = rnd( delta * ( (s*s) * (s*s) ) );
+          ref[i] = std::fma( delta, (s*s)*(s*s), r.a );
         else if ( r.p == 1.5 )
-          t = rnd( delta * ( s * std::sqrt(s) ) );
+          ref[i] = std::fma( delta, s * std::sqrt(s), r.a );
         else if ( r.p == 0.5 )
-          t = rnd( delta * std::sqrt(s) );
+          ref[i] = std::fma( delta, std::sqrt(s), r.a );
         else
-          t = rnd( delta * std::pow( s, r.p ) );
-        ref[i] = r.a + t;
+          ref[i] = std::fma( delta, std::pow( s, r.p ), r.a );
       }
       requireIdentical( res, ref, "powspace" );
     }
@@ -228,9 +226,10 @@ namespace {
     //detects fused multiply-adds in the FFT butterfly operations.
     NC::VectD a1, a2;
     for ( int i = 0; i < 100; ++i )
-      a1.push_back( 1.0 / ( 1.0 + 0.01 * i * i ) );
+      a1.push_back( 1.0 / std::fma( 0.01, static_cast<double>(i*i), 1.0 ) );
     for ( int i = 0; i < 77; ++i )
-      a2.push_back( 0.1 * ( i % 7 + 1 ) + 1.0 / ( 3.0 + i ) );
+      a2.push_back( std::fma( 0.1, static_cast<double>( i % 7 + 1 ),
+                              1.0 / ( 3.0 + i ) ) );
     NC::FastConvolve fc;
     NC::VectD y, yl;
     fc.convolve( a1, a2, y, 0.0137 );
@@ -246,9 +245,10 @@ namespace {
     //Larger, needs a bigger table of phase factors and more butterfly stages:
     NC::VectD b1, b2;
     for ( int i = 0; i < 1500; ++i )
-      b1.push_back( 1.0 / ( 1.0 + 1e-4 * i * i ) );
+      b1.push_back( 1.0 / std::fma( 1e-4, static_cast<double>(i*i), 1.0 ) );
     for ( int i = 0; i < 1101; ++i )
-      b2.push_back( 0.05 * ( i % 11 ) + 1.0 / ( 7.0 + i ) );
+      b2.push_back( std::fma( 0.05, static_cast<double>( i % 11 ),
+                              1.0 / ( 7.0 + i ) ) );
     fc.convolve( b1, b2, y, 0.0031 );
     std::cout << "convolve (large) bit-hash: " << bitHash(y) << std::endl;
   }

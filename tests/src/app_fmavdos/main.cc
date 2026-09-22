@@ -178,7 +178,7 @@ namespace {
   NC::VectD refEvalPWLSum( const std::vector<NCV::PWLFct>& fs,
                            const NC::VectD& grid, const NC::VectD& ws )
   {
-    //Mirror of the algorithm in evalPWLSum, but with unfused arithmetic:
+    //Mirror of the algorithm in evalPWLSum:
     NC::VectD out( grid.size(), 0.0 );
     auto xAt = []( const NCV::PWLFct& p, std::size_t i )
     {
@@ -209,9 +209,9 @@ namespace {
         while ( end < grid.size() && grid[end] < xRight )
           ++end;
         for ( std::size_t k = g; k < end; ++k ) {
-          double v = y0 + rnd( slope * ( grid[k] - xLeft ) );
+          double v = std::fma( slope, grid[k]-xLeft, y0 );
           v = std::max( ylo, std::min( yhi, v ) );
-          out[k] = out[k] + rnd( weight * v );
+          out[k] = std::fma( weight, v, out[k] );
         }
         g = end;
         xLeft = xRight;
@@ -222,7 +222,7 @@ namespace {
         while ( end < grid.size() && grid[end] <= xmax + xtol )
           ++end;
         for ( std::size_t k = g; k < end; ++k )
-          out[k] = out[k] + rnd( weight * y );
+          out[k] = std::fma( weight, y, out[k] );
       }
     }
     return out;

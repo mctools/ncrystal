@@ -74,9 +74,8 @@ NC::VectD NC::linspace(double start, double stop, unsigned num)
   v.reserve(num) ;
   unsigned num_minus_1 = num - 1;
   const double interval = (stop-start)/num_minus_1;
-  //Like this for highest numerical precision:
   for (unsigned i = 0; i<num_minus_1;++i)
-    v.push_back(start+i*interval);
+    v.push_back(std::fma(static_cast<double>(i),interval,start));
   v.push_back( stop );
   return v;
 }
@@ -109,32 +108,32 @@ NC::VectD NC::powspace(double a, double b, unsigned num, double p )
   if (p == 2.0) {
     for (double i = 1.0; i < nm1; i += 1.0) {
       const double s = i * step;
-      res.push_back(a + delta * ncsquare(s));
+      res.push_back(std::fma(delta,ncsquare(s),a));
     }
   } else if (p == 3.0) {
     for (double i = 1.0; i < nm1; i += 1.0) {
       const double s = i * step;
-      res.push_back(a + delta * ncsquare(s)*s);
+      res.push_back(std::fma(delta*ncsquare(s),s,a));
     }
   } else if (p == 4.0) {
     for (double i = 1.0; i < nm1; i += 1.0) {
       const double s = i * step;
-      res.push_back(a + delta * ncsquare(ncsquare(s)));
+      res.push_back(std::fma(delta,ncsquare(ncsquare(s)),a));
     }
   } else if (p == 1.5) {
     for (double i = 1.0; i < nm1; i += 1.0) {
       const double s = i * step;
-      res.push_back(a + delta * (s * std::sqrt(s)));
+      res.push_back(std::fma(delta,s * std::sqrt(s),a));
     }
   } else if (p == 0.5) {
     for (double i = 1.0; i < nm1; i += 1.0) {
       const double s = i * step;
-      res.push_back(a + delta * (std::sqrt(s)));
+      res.push_back(std::fma(delta,std::sqrt(s),a));
     }
   } else {
     for (double i = 1.0; i < nm1; i += 1.0) {
       const double s = i * step;
-      res.push_back(a + delta * std::pow(s, p));
+      res.push_back(std::fma(delta,std::pow(s, p),a));
     }
   }
 
