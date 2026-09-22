@@ -39,6 +39,12 @@ jobs:
     env:
       CC: ${{ matrix.CC }}
       CXX: ${{ matrix.CXX }}
+    defaults:
+      run:
+        #Explicit "bash" (rather than the platform default) also gives us
+        #"-o pipefail", needed so a "cmd | tee log" step below still fails
+        #the step if cmd itself fails:
+        shell: bash
 
     steps:
     - name: Checkout
@@ -62,6 +68,9 @@ jobs:
     - name: Pip install dependencies
       run: python -mpip install -r ./src/devel/reqs/requirements_all_and_devel.txt
 
+    - name: Prepare log capture dir
+      run: mkdir -p ${{github.workspace}}/ci-logs
+
     - name: Configure CMake
       run: >
         cmake
@@ -74,13 +83,67 @@ jobs:
         -DNCRYSTAL_ENABLE_TESTING=ON
         -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
         -DNCRYSTAL_TEST_ENABLE_LONG=ON
+        2>&1 | tee ${{github.workspace}}/ci-logs/configure.log
 
     - name: Build
       run: >
         cmake
         --build ${{github.workspace}}/build
         --config ${{ matrix.buildtype }}
+        2>&1 | tee ${{github.workspace}}/ci-logs/build.log
 
     - name: CTest
-      run: ctest --test-dir ./build --no-tests=error --output-on-failure --test-output-size-failed 100000 --test-output-truncation middle
+      run: >
+        ctest --test-dir ./build --no-tests=error --output-on-failure
+        --test-output-size-failed 100000 --test-output-truncation middle
+        2>&1 | tee ${{github.workspace}}/ci-logs/ctest.log
+
+    - name: Package logs
+      #Runs even if earlier steps failed -- that's when the logs matter most.
+      #ctest's own LastTest.log has full (not just failure) output, unlike
+      #the tee'd console capture above. Upload the plain directory (not a
+      #tarball): collect_logs below bundles every leg into one tarball, and
+      #a tarball-in-a-tarball would just be extra hassle to unpack:
+      if: always()
+      run: |
+        mkdir -p ${{github.workspace}}/ci-logs
+        for f in build/CMakeFiles/CMakeConfigureLog.yaml \
+                 build/CMakeFiles/CMakeError.log \
+                 build/CMakeFiles/CMakeOutput.log \
+                 build/Testing/Temporary/LastTest.log; do
+          [ -f "${{github.workspace}}/$f" ] && cp "${{github.workspace}}/$f" ${{github.workspace}}/ci-logs/
+        done
+
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: ci-logs-${{ matrix.os }}-${{ matrix.CC }}-py${{ matrix.python }}-${{ matrix.buildtype }}
+        path: ${{github.workspace}}/ci-logs
+        if-no-files-found: warn
+
+  collect_logs:
+    #Single job downloading every per-leg "ci-logs-*" artifact above and
+    #re-bundling them into one tarball, so the whole matrix's build/test
+    #output can be grabbed with a single download instead of one per leg.
+    name: Collect all CI logs
+    needs: [ ncdevtool_check, build ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all per-leg logs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: ci-logs-*
+          path: all-ci-logs
+
+      - name: Bundle into a single tarball
+        run: tar -czf all-ci-logs.tar.gz all-ci-logs
+
+      - name: Upload combined log tarball
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: all-ci-logs
+          path: all-ci-logs.tar.gz
+          if-no-files-found: warn
 
