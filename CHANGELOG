@@ -5,9 +5,11 @@ v4.4.7 (work in progress)
        like latest (Py3.14.7) argparse, thus ensuring consistent output.
      * Use explicit std::fma in several utilities for improved reproducibility.
        Uses new NCRYSTAL_FMADISPATCH_ATTR so this does not cost performance on
-       portably built binaries such as the published wheels and conda
-       packages. Utilities affected include FastConvolve (FFT), nclerp (new
-       linear interpolation fct), and finally VDOS and Gn evaluation.
+       portably built binaries such as the published wheels and conda packages.
+       Utilities affected include FastConvolve (FFT), nclerp (new linear
+       interpolation fct), VDOS and Gn evaluation, VDOS grid regularisation,
+       egrid interpolation, and Stirling's series usage for factorial
+       estimation in alpha factors.
      * ...
 
 v4.4.6 2026-06-30

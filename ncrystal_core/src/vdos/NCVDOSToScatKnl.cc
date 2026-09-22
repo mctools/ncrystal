@@ -73,10 +73,19 @@ inline double NCV::detail::stirlingsSeriesSum9thOrder(double inv_n)
   constexpr double c7 = -534703531./902961561600.;
   constexpr double c8 = -4483131259./86684309913600.;
   constexpr double c9 = 432261921612371./514904800886784000.;
-  return 1.0 + inv_n
-    *(c1+inv_n*(c2+inv_n*(c3+inv_n*(c4+inv_n*(c5+inv_n*(c6+inv_n
-                                                        *(c7+inv_n
-                                                          *(c8+inv_n*c9))))))));
+  //Horner's method, explicit std::fma per step (reproducible, and this
+  //multiply-add pattern silently contracts under -mfma otherwise; see
+  //doc/devel_fma_attribute.md):
+  double p = c9;
+  p = std::fma( inv_n, p, c8 );
+  p = std::fma( inv_n, p, c7 );
+  p = std::fma( inv_n, p, c6 );
+  p = std::fma( inv_n, p, c5 );
+  p = std::fma( inv_n, p, c4 );
+  p = std::fma( inv_n, p, c3 );
+  p = std::fma( inv_n, p, c2 );
+  p = std::fma( inv_n, p, c1 );
+  return std::fma( inv_n, p, 1.0 );
 }
 
 namespace NCRYSTAL_NAMESPACE {

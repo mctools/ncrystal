@@ -658,12 +658,17 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   double mm = std::floor( oldEmaxMinusEminDivEmin * best.second );
   nc_assert_always ( mm <= 20000 );
   unsigned new_npts = static_cast<unsigned>( mm + 0.5 ) + 1;
-  double new_emax = emin + new_binwidth * ( new_npts - 1 );
+  //Explicit std::fma per step below (reproducible, and confirmed this
+  //multiply-add pattern silently contracts under -mfma otherwise; see
+  //doc/devel_fma_attribute.md):
+  double new_emax = std::fma( new_binwidth,
+                              static_cast<double>(new_npts - 1), emin );
 
   if ( new_emax < oldEmax ) {
     //Add one extra point to make sure new range encompasses old range.
     ++new_npts;
-    new_emax = emin + new_binwidth * ( new_npts - 1 );
+    new_emax = std::fma( new_binwidth,
+                         static_cast<double>(new_npts - 1), emin );
   }
   nc_assert( new_emax >= oldEmax);
   if ( extra_verbose )
@@ -702,9 +707,13 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   //Loop like this rather than calling linspace(..), since new_binwidth is not
   //exactly the same as (emax-emin)/nbins-1 due to FP inaccuracies:
   for ( auto ieval : ncrange(new_npts) ) {
+    //Explicit std::fma below (reproducible, and confirmed this multiply-add
+    //pattern silently contracts under -mfma otherwise; see
+    //doc/devel_fma_attribute.md):
     const double eval = ( ieval + 1 == new_npts
                           ? new_emax
-                          : emin + new_binwidth * ieval++ );
+                          : std::fma( new_binwidth,
+                                     static_cast<double>(ieval++), emin ) );
     //Increment position in old grid if needed:
     while ( it != itLast && eval >= *std::next(it) )
       ++it;
