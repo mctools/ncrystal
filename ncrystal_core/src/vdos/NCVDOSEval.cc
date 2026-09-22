@@ -65,7 +65,15 @@ namespace NCRYSTAL_NAMESPACE {
         constexpr double c12 = -1382./638512875.;
         constexpr double c14 = 4./18243225.;
         const double y = x*x;
-        return c0+y*(c2+y*(c4+y*(c6+y*(c8+y*(c10+y*(c12+y*c14))))));
+        //Horner's method with std::fma for extra reproducibility:
+        double p = c14;
+        p = std::fma( y, p, c12 );
+        p = std::fma( y, p, c10 );
+        p = std::fma( y, p, c8 );
+        p = std::fma( y, p, c6 );
+        p = std::fma( y, p, c4 );
+        p = std::fma( y, p, c2 );
+        return std::fma( y, p, c0 );
       } else {
         return x / std::tanh(x);
       }
@@ -89,7 +97,18 @@ namespace NCRYSTAL_NAMESPACE {
         constexpr double c18 = -3617./162820783125;
         constexpr double c20 = 87734./38979295480125;
         const double y = x*x;
-        return y*(c2+y*(c4+y*(c6+y*(c8+y*(c10+y*(c12+y*(c14+y*(c16+y*(c18+y*(c20))))))))));
+        //Horner's method with std::fma for extra reproducibility:
+        double p = c20;
+        p = std::fma( y, p, c18 );
+        p = std::fma( y, p, c16 );
+        p = std::fma( y, p, c14 );
+        p = std::fma( y, p, c12 );
+        p = std::fma( y, p, c10 );
+        p = std::fma( y, p, c8 );
+        p = std::fma( y, p, c6 );
+        p = std::fma( y, p, c4 );
+        p = std::fma( y, p, c2 );
+        return y*p;
       } else {
         return x*x*x / std::tanh(x);
       }
@@ -105,7 +124,12 @@ namespace NCRYSTAL_NAMESPACE {
         constexpr double c6 = -31./15120.;
         constexpr double c8 = 127./604800.;
         const double y = x*x;
-        return 1.0+y*(c2+y*(c4+y*(c6+y*c8)));
+        //Horner's method with std::fma for extra reproducibility:
+        double p = c8;
+        p = std::fma( y, p, c6 );
+        p = std::fma( y, p, c4 );
+        p = std::fma( y, p, c2 );
+        return std::fma( y, p, 1.0 );
       } else {
         return x / std::sinh(x);
       }
@@ -167,15 +191,17 @@ void NC::VDOSEval::integrateBinsWithFunction( Fct f, TStableSum& sum ) const
   for ( unsigned ibin = 0; ibin < nbins; ++ibin ) {
     const double d0=m_density.at(ibin);
     const double d1=m_density.at(ibin+1);
-    const double e0=m_emin + m_binwidth*ibin;
-    const double e1= (ibin+1==nbins ? m_emax : m_emin + m_binwidth*(ibin+1));
+    const double e0 = std::fma( m_binwidth, static_cast<double>(ibin), m_emin );
+    const double e1 = ( ibin+1==nbins ? m_emax
+                        : std::fma( m_binwidth, static_cast<double>(ibin+1),
+                                   m_emin ) );
     //In this bin, rho(E) = (E-e0)*(d1-d0)/(e1-e0) + d0 = A*E+B,
     //with A=(d1-d0)/(e1-e0), B=d0-e0 *A
     const double A = (d1-d0)*m_invbinwidth;
-    const double B = d0-e0*A;
+    const double B = std::fma( e0, -A, d0 );
     //NB: Reduced from integrateRomberg33 to integrateRomberg17 since it showed
     //up in profiling:
-    double bincontrib = integrateRomberg17([&f,A,B](double e){return f(e)*(A*e+B);}, e0, e1);
+    double bincontrib = integrateRomberg17([&f,A,B](double e){return f(e)*std::fma(A,e,B);}, e0, e1);
     sum.add(bincontrib);
   }
 }
