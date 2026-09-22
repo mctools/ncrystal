@@ -80,8 +80,8 @@ def create_ArgumentParser( *args, **kwargs ):
         f(parser)
 
     thepyversion = _pyversion()
-    if thepyversion < (3,14) and hasattr(parser,'_check_value'):
-        #Monkey patch object to have same _check_value as in 3.14
+    if hasattr(parser,'_check_value') and not _argparse_quotes_choices():
+        #Patch object to match "invalid choice" behaviour of py 3.14.7
         def _check_value( action, value):
             # converted value must be one of the choices (if specified)
             choices = action.choices
@@ -90,8 +90,8 @@ def create_ArgumentParser( *args, **kwargs ):
                     choices = iter(choices)
                 if value not in choices:
                     args = {'value': str(value),
-                            'choices': ', '.join(repr(str(choice))
-                                                 for choice in action.choices)}
+                            'choices': ', '.join(repr(str(c))
+                                                 for c in action.choices)}
                     from gettext import gettext as _
                     msg = _('invalid choice: %(value)r'
                             ' (choose from %(choices)s)')
@@ -137,6 +137,26 @@ def _pyversion():
     #returns tuple like (3,13)
     import sys
     return sys.version_info[0:2]
+
+_cache_argparse_quotes_choices = [None]
+def _argparse_quotes_choices():
+    if _cache_argparse_quotes_choices[0] is None:
+        _cache_argparse_quotes_choices[0] = _argparse_quotes_choices_impl()
+    return _cache_argparse_quotes_choices[0]
+
+def _argparse_quotes_choices_impl():
+    #Detect whether this Python argparse produce same "invalid choice" error
+    #messages as Py3.14.7. The change did not happen at strict version bounds,
+    #so triggering the issue to check. This is not great, and hopefully we can
+    #remove it at some point in the future.
+    from argparse import ArgumentError, ArgumentParser
+    p = ArgumentParser(add_help=False)
+    act = p.add_argument('--x', choices=['a'])
+    try:
+        p._check_value(act,'b')
+    except ArgumentError as e:
+        return "'a'" in str(e)
+    return False
 
 class ctxmgr_modify_argparse_creation:
 
