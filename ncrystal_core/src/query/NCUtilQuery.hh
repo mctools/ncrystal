@@ -24,9 +24,106 @@
 #include "NCrystal/internal/query/NCQuery.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
+#include <chrono>
 
 namespace NCRYSTAL_NAMESPACE {
   namespace {
+
+    //queryimpl_fmadiagnose_cmulXXX: Version with NCRYSTAL_FMADISPATCH_ATTR
+    NCRYSTAL_FMADISPATCH_ATTR
+    void queryimpl_fmadiagnose_cmulDispatch( double* re, double* im,
+                                             const double* cre,
+                                             const double* cim,
+                                             std::size_t n )
+    {
+      for ( std::size_t i = 0; i < n; ++i ) {
+        double a = re[i], b = im[i], c = cre[i], d = cim[i];
+        re[i] = std::fma( a, c, -(b*d) );
+        im[i] = std::fma( a, d, b*c );
+      }
+    }
+
+    //queryimpl_fmadiagnose_cmulXXX: Version without NCRYSTAL_FMADISPATCH_ATTR
+    void queryimpl_fmadiagnose_cmulReference( double* re, double* im,
+                                              const double* cre,
+                                              const double* cim,
+                                              std::size_t n )
+    {
+      for ( std::size_t i = 0; i < n; ++i ) {
+        double a = re[i], b = im[i], c = cre[i], d = cim[i];
+        re[i] = std::fma( a, c, -(b*d) );
+        im[i] = std::fma( a, d, b*c );
+      }
+    }
+
+    void queryimpl_fmadiagnose( std::ostream& os )
+    {
+      const std::size_t n = 32768;
+      VectD re0(n), im0(n), cre(n), cim(n);
+      for ( auto i : ncrange(n) ) {
+        const double x = static_cast<double>(i);
+        re0[i] = 1.0/(1.0+0.001*x);
+        im0[i] = 0.3*std::sin(0.01*x);
+        cre[i] = std::cos(0.02*x);
+        cim[i] = std::sin(0.02*x);
+      }
+
+      VectD reA(re0), imA(im0), reB(re0), imB(im0);
+      queryimpl_fmadiagnose_cmulDispatch( reA.data(), imA.data(),
+                                          cre.data(), cim.data(), n );
+      queryimpl_fmadiagnose_cmulReference( reB.data(), imB.data(),
+                                           cre.data(), cim.data(), n );
+      const bool correct = ( reA == reB && imA == imB );
+
+      //Best-of-ntrials timing, in ns/element (kept fast: this is a diagnostic
+      //query, not a benchmark):
+      auto timeIt = []( void(*f)(double*,double*,const double*,
+                                 const double*,std::size_t),
+                        const VectD& re0_, const VectD& im0_,
+                        const VectD& cre_, const VectD& cim_ )
+      {
+        const std::size_t nn = re0_.size();
+        const int ntrials = 5, nrep = 20;
+        double best = 1e300;
+        for ( auto trial : ncrange(ntrials) ) {
+          (void)trial;
+          VectD re(re0_), im(im0_);
+          const auto t0 = std::chrono::steady_clock::now();
+          for ( auto r : ncrange(nrep) ) {
+            (void)r;
+            f( re.data(), im.data(), cre_.data(), cim_.data(), nn );
+          }
+          const auto t1 = std::chrono::steady_clock::now();
+          volatile double sink = re[0] + im[0];
+          (void)sink;
+          const double ns
+            = std::chrono::duration<double,std::nano>(t1-t0).count();
+          best = ncmin( best, ns / ( static_cast<double>(nrep)
+                                    * static_cast<double>(nn) ) );
+        }
+        return best;
+      };
+      const double tDispatch = timeIt( queryimpl_fmadiagnose_cmulDispatch,
+                                       re0, im0, cre, cim );
+      const double tReference = timeIt( queryimpl_fmadiagnose_cmulReference,
+                                        re0, im0, cre, cim );
+      const double speedup = tReference / tDispatch;
+
+      //Whether this is an optimised (NDEBUG) build: in an unoptimised
+      //(e.g. simplebuild debug cache) build, target_clones clones do not
+      //get the optimisation needed to show their benefit, so callers
+      //should not enforce a speedup requirement unless this is true:
+#ifdef NDEBUG
+      constexpr bool optimised = true;
+#else
+      constexpr bool optimised = false;
+#endif
+      streamJSONDictEntry( os, "enabled", bool(NCRYSTAL_FMADISPATCH_ENABLED),
+                           JSONDictPos::FIRST );
+      streamJSONDictEntry( os, "correct", correct );
+      streamJSONDictEntry( os, "optimised", optimised );
+      streamJSONDictEntry( os, "speedup", speedup, JSONDictPos::LAST );
+    }
 
     void queryimpl_version( std::ostream& os, const Query& query )
     {
@@ -79,10 +176,16 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr auto sv_wl2ekin = StrView::make("wl2ekin");
       constexpr auto sv_ekin2wl = StrView::make("ekin2wl");
       constexpr auto sv_mathval = StrView::make("mathval");
+      constexpr auto sv_fmadiagnose = StrView::make("fmadiagnose");
       if ( key == sv_list ) {
         if ( nargs != 0 )
           invalid("no arguments should come after: [\"util\",\"list\"]");
-        os<<"[\"wl2ekin\", \"ekin2wl\", \"mathval\"]";
+        os<<"[\"wl2ekin\", \"ekin2wl\", \"mathval\", \"fmadiagnose\"]";
+      } else if ( key == sv_fmadiagnose ) {
+        if ( nargs != 0 )
+          invalid("no arguments should come after:"
+                  " [\"util\",\"fmadiagnose\"]");
+        queryimpl_fmadiagnose( os );
       } else if ( isOneOf(key,sv_wl2ekin,sv_ekin2wl) ) {
         double val = ( nargs == 1
                        ? arg(0).toDbl().value_or(-1.0)
