@@ -79,6 +79,20 @@ inline double NCV::detail::stirlingsSeriesSum9thOrder(double inv_n)
                                                           *(c8+inv_n*c9))))))));
 }
 
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+    //sab[i] += aFact[i]*c, for i in [0,n) with explicit std::fma. Used in the
+    //hottest loop below:
+    NCRYSTAL_FMADISPATCH_ATTR
+    void vdosScatKnlAccumulate( double* sab, const double* aFact,
+                                double c, std::size_t n )
+    {
+      for ( std::size_t i = 0; i < n; ++i )
+        sab[i] = std::fma( aFact[i], c, sab[i] );
+    }
+  }
+}
+
 NC::VectD
 NCV::detail::fillSABFromVDOS( const VDOSGn& Gn_asym,
                               const double alpha2x,
@@ -202,11 +216,9 @@ NCV::detail::fillSABFromVDOS( const VDOSGn& Gn_asym,
       if ( !(Gn_asym_eval>0.0) ) {
         continue;
       }
-      const double * itAFact = alpha_factors.data() + ialphaB;
-      const double * itAFactE = alpha_factors.data() + ialphaE;
-      double* itSab = &sab[ibeta*nalpha+ialphaB];
-      for ( ; itAFact != itAFactE; ++itAFact, ++itSab )
-        *itSab += ( *itAFact * Gn_asym_eval );
+      vdosScatKnlAccumulate( &sab[ibeta*nalpha+ialphaB],
+                             alpha_factors.data() + ialphaB,
+                             Gn_asym_eval, ialphaE - ialphaB );
     }//beta loop
   }//phonon order loop
 
