@@ -306,6 +306,36 @@ namespace NCRYSTAL_NAMESPACE {
                                                   std::size_t targetN,
                                                   const PtReduceCfg& cfg = {} );
 
+  //Alternative to reducePtsInDistribution, with the same contract (the result
+  //has exactly min(targetN,x.size()) points which are a subset of the input
+  //points, in the same order, always including the first and last), and using
+  //the same PtReduceCfg parameters. But instead of greedily removing the least
+  //important points one by one (which is a discrete process where a tiny
+  //change of the input can change the selection of many points), it places the
+  //points at equal steps of the cumulative integral of an importance density
+  //along x ("equidistribution"), and picks the closest input point in each
+  //case. The importance density is a mixture of:
+  //
+  // 1) sqrt(|y''|) (relative to the maximum), which is the density of points
+  //    which minimises the error of a piecewise linear approximation of y
+  // 2) the same for ln(y) (with the tail_floor), so tails are also resolved
+  // 3) a constant, in a fraction equidistant_fraction of the total. This
+  //    guarantees that the distance between points can not become larger than
+  //    about (x.back()-x.front())/(equidistant_fraction*(targetN-1)).
+  //
+  //with terms 1 and 2 having the same weight, and each of them normalised to
+  //have the same total integral. The integral is evaluated over the actual
+  //intervals between the input points, so adding or removing a point in the
+  //input only has a very minor influence on the result (with some cases
+  //where the closest point is then a different point, but importantly there
+  //is no cascade of changes). Similarly, the result depends continuously on
+  //the y-values. In the special case where terms 1 and 2 vanish (a straight
+  //line), the result is equidistant points.
+  std::pair<VectD,VectD> reducePtsByEquidistribution( Span<const double> x,
+                                                      Span<const double> y,
+                                                      std::size_t targetN,
+                                                      const PtReduceCfg& cfg = {} );
+
   //Vector utilities:
   inline void vectorAppend(VectD& v1, const VectD& v2);//appends contents of v2 to v1
   template<class TVector, class Func>

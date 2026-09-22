@@ -1,0 +1,23 @@
+contract for many sizes ok
+no-op when target >= input size ok
+two and three points ok
+constant function gives equidistant points ok
+exponential function ok
+scale invariance ok
+symmetric input gives (almost) symmetric selection ok
+points concentrate where the function varies ok
+max gap guarantee ok
+equidistant_fraction=1 gives equidistant points ok
+step function ok
+zeros and all-zero input ok
+non-uniform input grids ok
+tails and tail_floor ok
+tail_floor ok
+robust to noise in y ok
+robust to removal of single input points ok
+much more robust than the greedy algorithm ok
+continuous dependence on the input ok
+quality ok
+repeated reduction ok
+large input ok
+randomised inputs ok
