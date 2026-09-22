@@ -1,5 +1,1 @@
 std::fma is exact
-a*b+c: not fused
-a*b-c*d: not fused
-out[i]+=a[i]*b[i]: not fused
-No floating point contraction detected
