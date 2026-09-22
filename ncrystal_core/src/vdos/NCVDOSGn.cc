@@ -151,7 +151,26 @@ double NCV::VDOSGnData::interpolateDensity(double energy) const
   double f = a - floor_a;//a-index instead would mix int and double => slower.
   nc_assert( index+1 < m_spec.size() );
   const double * valptr = &m_spec[index];
-  return (*valptr) * (1.0-f) +  f * (*(valptr+1));
+  return nclerp( *valptr, *(valptr+1), f );
+}
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+    //Batched form of interpolateDensity's nclerp(spec[ix],spec[ix+1],f)
+    //call above; must match it bit for bit (see the debug assertion in
+    //interpolateDensityMany below). See doc/devel_fma_attribute.md for
+    //the audit this requires:
+    NCRYSTAL_FMADISPATCH_ATTR
+    void vdosGnInterpolateDensityRun( double* out, const double* f,
+                                      const double* ix_as_dbl,//indices, as double
+                                      const double* spec, std::size_t count )
+    {
+      for ( std::size_t k = 0; k < count; ++k ) {
+        const std::size_t ix = static_cast<std::size_t>(ix_as_dbl[k]);
+        out[k] = nclerp( spec[ix], spec[ix+1], f[k] );
+      }
+    }
+  }
 }
 
 void NCV::VDOSGnData::interpolateDensityMany( Span<const double> energy,
@@ -234,21 +253,8 @@ void NCV::VDOSGnData::interpolateDensityMany( Span<const double> energy,
     buf_ix[i] = static_cast<double>(ix);
   }
 
-  for (std::size_t i = beg; i < end; ++i) {
-    const double f = buf_f[i];
-    const std::size_t ix =
-      static_cast<std::size_t>(buf_ix[i]);
-
-    op[i] = vectAt(m_spec, ix) * (1.0 - f);
-  }
-
-  for (std::size_t i = beg; i < end; ++i) {
-    const double f = buf_f[i];
-    const std::size_t ix =
-      static_cast<std::size_t>(buf_ix[i]);
-
-    op[i] += f * vectAt(m_spec, ix + 1);
-  }
+  vdosGnInterpolateDensityRun( op + beg, buf_f + beg, buf_ix + beg,
+                               m_spec.data(), end - beg );
 
 #ifndef NDEBUG
   for (std::size_t i = 0; i < energy.size(); ++i)

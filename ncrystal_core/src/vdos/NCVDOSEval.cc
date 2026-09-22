@@ -274,7 +274,7 @@ double NC::VDOSEval::eval(double energy) const
   if (ibin>ilastbin)
     return m_density.back();//just below emax, but rounding error put us here.
   relpos = ncclamp(relpos - ibin, 0.0, 1.0);
-  return (1.0-relpos)*m_density.at(ibin)+relpos*m_density.at(ibin+1);
+  return nclerp( m_density.at(ibin), m_density.at(ibin+1), relpos );
 }
 
 NC::VDOSEval::GridInfo NC::VDOSEval::getGridInfo() const
