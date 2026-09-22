@@ -29,7 +29,7 @@
 import shlex
 
 import numpy as np
-from NCrystalDev._numpy import _np_linspace
+from NCrystalDev._numpy import _np_linspace, _np_trapezoid
 from NCrystalDev.misc import evaluate_query as ncquery
 from NCTestUtils.common import (
     calc_reldiff,
@@ -85,7 +85,7 @@ def do_test( cfgstr, atomlbl = None, do_plot = None):
         gn_of_beta = gns[n]['values']*kT#*kT to preserve unit integral
         emin,emax = gns[n]['energy_range']
         beta = _np_linspace( emin/kT, emax/kT, len(gn_of_beta ) )
-        assert 0.999 < np.trapezoid(gn_of_beta, beta) < 1.001
+        assert 0.999 < _np_trapezoid(gn_of_beta, beta) < 1.001
         gnpts.append( (beta, gn_of_beta) )
 
     title = f'"{data_in["cfgstr"]}"'
