@@ -326,7 +326,7 @@ namespace NCRYSTAL_NAMESPACE {
           cell.S[2] = s21;
           cell.S[3] = s22;
           for ( auto i : ncrange(4) )
-            cell.logS[i] = ( cell.S[i] > 0.0 ? std::log(cell.S[i]) : 0.0 );
+            cell.logS[i] = NC::SABUtils::safeLogOrElse( cell.S[i], 0.0 );
         }
         {
           StableSumKahan sum_full;

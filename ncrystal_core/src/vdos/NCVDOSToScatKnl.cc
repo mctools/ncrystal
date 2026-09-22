@@ -140,9 +140,8 @@ NCV::detail::fillSABFromVDOS( const VDOSGn& Gn_asym,
                                   [](double x){ return std::exp(-0.5*x); } );
   VectD logx_vals;
   if ( maxOrder >= stirling_threshold )
-    logx_vals = vectorTrf(x_vals,[](double x){ return ( x > 0.0
-                                                        ? std::log(x)
-                                                        : -kInfinity ); } );
+    logx_vals = vectorTrf(x_vals,[](double x){
+      return NC::SABUtils::safeLogOrElse( x, -kInfinity ); } );
 
   auto fxn_cache = expmhalfx_vals;//We apply half of the exp(-x) factor before
   //the x^n/n! factor is added, and the other

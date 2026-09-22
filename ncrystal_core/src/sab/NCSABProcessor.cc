@@ -69,7 +69,7 @@ namespace NCRYSTAL_NAMESPACE {
           auto itSE = sab.end();
           double * itLS = m_logS.get();
           for ( ; itS != itSE; ++itS, ++itLS )
-            *itLS = ( *itS ? std::log(*itS) : 0.0 );
+            *itLS = NCS::safeLogOrElse( *itS, 0.0 );
         }
         void initCellIntegrals()
         {

@@ -112,7 +112,7 @@ namespace NCRYSTAL_NAMESPACE {
       c.S[2] = vectAt(sab,i++);
       c.S[3] = vectAt(sab,i);
       for ( int j = 0; j < 4; ++j )
-        c.logS[j] = ( c.S[j] > 0.0 ? std::log(c.S[j]) : 0.0 );
+        c.logS[j] = NC::SABUtils::safeLogOrElse( c.S[j], 0.0 );
     }
 
     //This can initialise a CellData object from scratch based on lower corner

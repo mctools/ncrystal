@@ -126,7 +126,7 @@ namespace NCRYSTAL_NAMESPACE {
         VectD logsab;
         logsab.reserve(sab.size());
         for (auto e: sab)
-          logsab.push_back( e>0.0 ? std::log(e) : -kInfinity);
+          logsab.push_back( NC::SABUtils::safeLogOrElse( e, -kInfinity ) );
 
         //For each beta-idx, integrate each grid cell along alpha:
         VectD alphaintegrals_cumul;

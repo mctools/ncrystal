@@ -205,7 +205,7 @@ namespace NCRYSTAL_NAMESPACE {
         {
           nc_assert( sval >= 0.0 && !ncisnanorinf(sval) );
           nc_assert(i<4);
-          this->logS[i] = ( sval > 0.0 ? std::log( sval ) : -kInfinity );
+          this->logS[i] = safeLogOrElse( sval, -kInfinity );
         }
       };
       struct SCE_Empty {

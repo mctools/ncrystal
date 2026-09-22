@@ -94,6 +94,10 @@ namespace NCRYSTAL_NAMESPACE {
     //Faster version with pre-calculated logs. Returns slightly reduced (better than 1e-14) precision results.
     double integrateAlphaInterval_fast(double a1,double s1, double a2 , double s2 , double logs1, double logs2);
 
+    //log(s) if s>0.0 else valueIfNonPositive. Use instead of the naive
+    //ternary: unsafe under clang, see definition below.
+    double safeLogOrElse( double s, double valueIfNonPositive );
+
     //Find the grid cells touched by the kinematically accessible region for
     //ekin_div_kt = ekin/kT. The ibeta_low index will indicate the lowest
     //beta-bin, which will span [ibeta_low,ibeta_low+1], and the alpha-values
@@ -330,6 +334,26 @@ inline double NCrystal::SABUtils::integrateAlphaInterval(double a1,double s1, do
   }
   //Evaluate via analytical expression or fall-back to trapezoidal integration:
   return ncmin(s1,s2)<1e-300 ? 0.5*da*ps : da*ds/std::log(s2/s1);
+}
+
+inline double NCrystal::SABUtils::safeLogOrElse( double s, double valueIfNonPositive )
+{
+#if defined(__clang__)
+  //Workaround for buggy clang behaviour (seen in clang 21.1.8): clang -O3
+  //optimises the naive ternary into an unconditional log(s), incl. for
+  //s==0.0, which traps FE_DIVBYZERO under this project's FPE-catching test
+  //builds. volatile is required: without it, clang optimises the floor
+  //back out too. log(denorm_min)==-744.4400719213812 exactly (both GCC and
+  //clang), always < log of any genuine s>0.0:
+  volatile double vs = ( s > 0.0 ? s
+                         : std::numeric_limits<double>::denorm_min() );
+  const double lv = std::log( vs );
+  if ( lv <= -744.4400719213812 )
+    return valueIfNonPositive;
+  return lv;
+#else
+  return s > 0.0 ? std::log(s) : valueIfNonPositive;
+#endif
 }
 
 inline double NCrystal::SABUtils::integrateAlphaInterval_fast(double a1,double s1, double a2 , double s2 , double logs1, double logs2)
