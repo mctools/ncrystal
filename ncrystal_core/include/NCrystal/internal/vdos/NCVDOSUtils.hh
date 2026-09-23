@@ -36,14 +36,17 @@ namespace NCRYSTAL_NAMESPACE {
     PairDD rangeXNexpMX(unsigned n, double eps, double accuracy = 1e-13 );
 
     // Estimate the interval [x0,x1] outside of which a tabulated Gn spectrum
-    // (density values, on grid points egrid, both of the same size and with
-    // egrid strictly increasing) is everywhere below relcontriblvl*max(spec)
-    // (0<relcontriblvl<1). Used by VDOSGn::eRange (which extracts egrid/spec
-    // from its own internal equidistant-grid representation and calls this).
-    // Not yet wired into production code -- see app_gnerange and
-    // docs/claude_session_vdos_fma_reprod.md for the reproducibility
+    // (density values at the equidistant grid points egrid_lower+i*
+    // egrid_binwidth, i=0..spec.size()-1) is everywhere below
+    // relcontriblvl*max(spec) (0<relcontriblvl<1). Takes the grid as
+    // (lower,binwidth) rather than a materialised array, since it only ever
+    // needs a handful of points from a small local window around each
+    // crossing (computed on demand via equidistantGridPoint) -- avoiding an
+    // O(spec.size()) allocation on every call, which matters since this is
+    // called ~twice per phonon order from VDOSGn::eRange. See app_gnerange
+    // and docs/claude_session_vdos_fma_reprod.md for the reproducibility
     // investigation this is part of.
-    PairDD estimateGnErange( Span<const double> egrid,
+    PairDD estimateGnErange( double egrid_lower, double egrid_binwidth,
                              Span<const double> spec,
                              double relcontriblvl );
 
