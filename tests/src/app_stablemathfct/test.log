@@ -2,4 +2,5 @@ stable_exp: 31 cases checked
 stable_expm1: 30 cases checked
 stable_tanh: 25 cases checked
 stable_sinh: 25 cases checked
+stable_log: 36 cases checked
 All checks passed
