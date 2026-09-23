@@ -61,6 +61,11 @@ def run_test( script, verbose ):
     #Needed for windows, leaving them on all the time for now:
     env['PYTHONIOENCODING']='UTF-8'
     env['PYTHONLEGACYWINDOWSSTDIO']='UTF-8'
+    #Force off Python 3.13+'s argparse/traceback colourised output
+    #(_colorize.can_colorize() honours an ambient FORCE_COLOR env var even
+    #when stdout is not a tty), so the reference-log comparison below
+    #stays deterministic regardless of the invoking shell's environment:
+    env['PYTHON_COLORS']='0'
     #Make sure we ignore any plugins in the environment, or we might get
     #spurious test failures:
     env['NCRYSTAL_DISABLE_DYNLOAD']='1'

@@ -77,6 +77,11 @@ list(
   APPEND nctest_pyenvmod
   "PYTHONIOENCODING=set:UTF-8"
   "PYTHONLEGACYWINDOWSSTDIO=set:UTF-8"
+  #Force off Python 3.13+'s argparse/traceback colourised output
+  #(_colorize.can_colorize() honours an ambient FORCE_COLOR env var even
+  #when stdout is not a tty), so reference-log comparisons stay
+  #deterministic regardless of the invoking shell's environment:
+  "PYTHON_COLORS=set:0"
 )
 
 option(

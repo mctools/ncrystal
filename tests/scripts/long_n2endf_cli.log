@@ -13,8 +13,8 @@ Files created:
 Suggested material density: 2.698645518 g/cm^3
 ============================================================================================================================================
 ============= CLI >>-h<< ====================
-[1;34musage: [0m[35mncrystal_ncmat2endf CFGSTR [--elas MODE] [--name NAME] [--mdata DATA]
-                           [<<additional options described below>>][0m
+usage: ncrystal_ncmat2endf CFGSTR [--elas MODE] [--name NAME] [--mdata DATA]
+                           [<<additional options described below>>]
 
 Script for creating a set of ENDF-6 thermal scattering files for the material
 described by a particular NCrystal cfg-string.
@@ -40,39 +40,39 @@ Example invocations:
 
     $> ncrystal_ncmat2endf  "Bi_sg166.ncmat;comp=inelas;temp=77K" -m "AUTH:J. Doe"
 
-[1;34moptions:[0m
-  [1;32m-h[0m, [1;36m--help[0m            show this help message and exit
-  [1;32m-v[0m, [1;36m--verbose[0m         Increase verbosity. Specify twice for additional verbosity.
-  [1;36m--quiet[0m, [1;32m-q[0m           Silence non-error output.
+options:
+  -h, --help            show this help message and exit
+  -v, --verbose         Increase verbosity. Specify twice for additional verbosity.
+  --quiet, -q           Silence non-error output.
 
-[1;34mrequired arguments:[0m
-  [1;32mCFGSTR[0m                NCrystal cfg-string defining the material.
+required arguments:
+  CFGSTR                NCrystal cfg-string defining the material.
 
-[1;34mCommonly used arguments:[0m
-  [1;32m-n[0m, [1;36m--name[0m [1;33mNAME[0m       Name of the material to be processed.If set ENDF files will
+Commonly used arguments:
+  -n, --name NAME       Name of the material to be processed.If set ENDF files will
                         be named tsl_element_in_<NAME>.endf.
-  [1;32m-e[0m, [1;36m--elas[0m [1;33mMODE[0m       Approximation used for the elastic component (default
+  -e, --elas MODE       Approximation used for the elastic component (default
                         "scaled, other options are "greater" and "mixed"). See
                         DOI:10.1016/j.nima.2021.166227 for meaning of modes.
-  [1;36m--mdata[0m [1;33mMDATA[0m         JSON dictionary containing ENDF-6 metadata. Run with
+  --mdata MDATA         JSON dictionary containing ENDF-6 metadata. Run with
                         --mdata=help for more information.
-  [1;32m-m[0m [1;33mKEY:VAL [KEY:VAL ...][0m
+  -m KEY:VAL [KEY:VAL ...]
                         Add metadata entries. Run with --mdata=help for more info.
-  [1;36m--now[0m                 Set metadata fields EDATE, DDATE and RDATE to current date.
-  [1;32m-d[0m, [1;36m--dir[0m [1;33mPATH[0m        Directory for output files (default: current).
-  [1;32m-i[0m, [1;36m--index[0m [1;33mFILE[0m      Story summary of output in FILE (JSON format).
-  [1;32m-f[0m, [1;36m--force[0m           Overwrite output files if they already exist (danger!)
+  --now                 Set metadata fields EDATE, DDATE and RDATE to current date.
+  -d, --dir PATH        Directory for output files (default: current).
+  -i, --index FILE      Story summary of output in FILE (JSON format).
+  -f, --force           Overwrite output files if they already exist (danger!)
 
-[1;34mAdvanced expert-only arguments:[0m
-  [1;36m--othertemps[0m [1;33mTVALS [TVALS ...][0m
+Advanced expert-only arguments:
+  --othertemps TVALS [TVALS ...]
                         Additional temperatures to process. As noted above this is
                         not normally recommended, and it is preferred to invoke the
                         script for each temperature independently using the "temp"
                         keyword in the cfg-string.
-  [1;36m--smin[0m [1;33mVALUE[0m          Minimum value of S(alpha, beta) stored (default: 1e-100)
-  [1;36m--emax[0m [1;33mEMAX[0m           Maximum neutron energy covered by the kernels (default: 5eV)
-  [1;36m--asymsab[0m             Store S(a,b) in asymmetric form.
-  [1;36m--totsab[0m              Store S(a,b) branches for positive and negative beta
+  --smin VALUE          Minimum value of S(alpha, beta) stored (default: 1e-100)
+  --emax EMAX           Maximum neutron energy covered by the kernels (default: 5eV)
+  --asymsab             Store S(a,b) in asymmetric form.
+  --totsab              Store S(a,b) branches for positive and negative beta
 
 =============================================
 ============= CLI >>--mdata=help<< ====================
