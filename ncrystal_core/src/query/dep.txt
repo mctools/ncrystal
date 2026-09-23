@@ -4,6 +4,7 @@ dyninfoutils
 extd_utils
 factories
 minimc
+phys_utils
 sab
 utils
 vdos

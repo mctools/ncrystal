@@ -1,0 +1,12 @@
+alpha_minus/alpha_plus: 259 grid points
+  worst error/tolerance ratio over grid: 0.0237 (<=1 required)
+beta_minus/beta_plus: 266 grid points
+  worst error/tolerance ratio over grid: 0.0188 (<=1 required)
+naive-vs-hardened comparison right at the singularities:
+  alpha_minus(e=1,beta=1e-06): naive=2.50022e-13 ref=2.5e-13 naive_rel_err_of_value=8.94e-05
+  alpha_minus(e=1,beta=1e-08): naive=0 ref=2.5e-17 naive_rel_err_of_value=1
+  alpha_minus(e=1,beta=1e-10): naive=0 ref=2.5e-21 naive_rel_err_of_value=1
+  beta_minus(e=1,alpha=4+1e-08): naive=5e-09 ref=5e-09 naive_rel_err_of_value=8.82e-08
+  beta_minus(e=1,alpha=4+1e-14): naive=5.32907e-15 ref=4.88498e-15 naive_rel_err_of_value=0.0909
+  beta_minus(e=1,alpha=4+1e-15): naive=8.88178e-16 ref=4.44089e-16 naive_rel_err_of_value=1
+ALL OK
