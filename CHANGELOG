@@ -23,6 +23,18 @@ v4.4.7 (work in progress)
        self-convolution) and uses several points symmetrically rather than
        trusting a single point as ground truth, substantially reducing this
        last-ULP sensitivity (see tests/src/app_gnerange).
+     * Fix BoundedCellSampler's edge-envelope calculation (used when sampling
+       S(alpha,beta) cells whose kinematically accessible region touches
+       beta=0) evaluating beta_minus(alpha) as the naive alpha-2*sqrt(E*alpha)
+       instead of using the existing getBetaMinus utility, which switches to a
+       Taylor expansion specifically to avoid the catastrophic cancellation
+       this naive formula suffers whenever alpha is close to 4*E (exactly
+       where beta_minus touches 0). Depending on whether the compiler fused
+       the multiply-subtract into a single rounding or not (platform/compiler/
+       -mfma dependent), this could give a substantially (order unity
+       relative) different envelope height in that narrow regime, changing
+       the sampling efficiency for affected cells. Found via a cross-platform
+       CI divergence in a test exercising exactly this regime.
      * Fix NCrystal.vdos.extractKnl/extractGn (used internally by ncmat2endf)
        feeding the C API a VDOS curve that had already been redundantly
        renormalised (by a freshly numpy-computed integral) and, for curves

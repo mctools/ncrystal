@@ -504,11 +504,17 @@ NCS::BoundedCellSampler::prepareBCSData( double probability_b1_edge,
       }
     } else {
       if ( r.is_bounded_by_betaminus ) {
-        //bound by [betaminus(alpha),b2]
-        const double sqrte = std::sqrt(e);
-        const double twosqrte = 2.0 * sqrte;
-        auto pt = [b2,updateO12,twosqrte]( double a ) {
-          const double bminus = a - twosqrte*std::sqrt(a);
+        //bound by [betaminus(alpha),b2]. Uses the shared getBetaMinus
+        //utility rather than the naive a-2*sqrt(e*a) formula inline: the
+        //naive formula is a catastrophic-cancellation trap whenever alpha
+        //is close to 4*e (where betaminus touches 0), amplifying whatever
+        //rounding difference exists between a fused (single-rounding) and
+        //non-fused (two-rounding) evaluation of the multiply-subtract into
+        //a large, platform/compiler/-mfma-dependent relative difference in
+        //the result -- getBetaMinus already switches to a Taylor expansion
+        //in exactly that regime to avoid this (see NCKinUtils.hh):
+        auto pt = [b2,updateO12,e]( double a ) {
+          const double bminus = getBetaMinus(e,a);
           updateO12((bminus+b2)*0.5,b2-bminus,a);
         };
         pt( r.alpha_up );
