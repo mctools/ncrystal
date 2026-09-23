@@ -99,6 +99,26 @@ namespace {
                 << NC::fmt(r.y1(),"%.17g") << std::endl;
     }
 
+    //Raw (unfiltered, pre-relcontriblvl-threshold) per-order Gn diagnostics,
+    //to see exactly which order's *construction* (not just its thresholded
+    //abRange) first diverges -- in particular binWidth reveals when the
+    //on-demand thinning path in produceNewOrderByConvolutionImpl kicks in
+    //(see NCVDOSGn.cc), and specSize reveals truncation-boundary shifts:
+    std::cout << "gnexpn raw Gn [" << gnexpn.Gn.maxOrder().value()
+              << "] (n binWidth eRangeLo eRangeHi specSize spec.front spec.back):" << std::endl;
+    for ( auto n : NC::ncrange(1u,gnexpn.Gn.maxOrder().value()+1) ) {
+      NC::VDOS::VDOSGn::Order order( n );
+      auto erange = gnexpn.Gn.eRange( order );
+      const auto& spec = gnexpn.Gn.getRawSpectrum( order );
+      std::cout << "  " << n << ' '
+                << NC::fmt(gnexpn.Gn.binWidth(order),"%.17g") << ' '
+                << NC::fmt(erange.first,"%.17g") << ' '
+                << NC::fmt(erange.second,"%.17g") << ' '
+                << spec.size() << ' '
+                << NC::fmt(spec.front(),"%.17g") << ' '
+                << NC::fmt(spec.back(),"%.17g") << std::endl;
+    }
+
     auto knldata = NC::VDOS::createScatteringKernel( vdosdata, vdoslux, targetEmax );
     dumpVectD( "knl alphaGrid", knldata.alphaGrid );
     dumpVectD( "knl betaGrid", knldata.betaGrid );
