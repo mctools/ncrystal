@@ -180,6 +180,23 @@ NC::VDOS::getCombinedGnFct( const GnExpansion& gnexpn )
   }
 
   VectD grid = makeCommonGrid( individual_grids );
+
+  //All Gn functions are on lattices which (mathematically) have a node at
+  //beta=0, but numerically the node positions there are off by a few ulps
+  //from 0, with random sign. Snap them to exactly 0, otherwise a random tiny
+  //value (rather than exactly 0) can end up in the final beta grid, which
+  //must contain exactly 0. Since points closer than 10% of the smallest bin
+  //width are merged, there is at most a single point which can be affected.
+  {
+    double minbw = kInfinity;
+    for ( auto& g : individual_grids )
+      minbw = ncmin( minbw, g.binWidth );
+    for ( auto& x : grid ) {
+      if ( ncabs(x) < 1e-6 * minbw )
+        x = 0.0;
+    }
+  }
+
   VectD vals = evalPWLSum(fs,grid,ws);
   std::pair<VectD,VectD> res;
   res.first = std::move(grid);
@@ -237,22 +254,28 @@ NC::VDOS::determineAlphaBetaGridFromGn( const GnExpansion& gnexpn,
     //Discard pts outside betaRange, but occasionally keep one point extra, to
     //avoid an edge-effects due to an inadvertent extrapolation towards 0 in the
     //edge region.
+    //
+    //All comparisons with the edges have a tiny tolerance, since with all Gn on
+    //lattices anchored at 0, points can be mathematically exactly at the edges
+    //(which are given by nodes of the Gn), and whether they end up on one or
+    //the other side of it should not depend on rounding errors.
+    const double etol = 1e-9 * ( betaRange.second - betaRange.first );
     std::size_t i = 0;
-    while ( bvals_view[i] < betaRange.first )
+    while ( bvals_view[i] < betaRange.first - etol )
       ++i;
-    if ( i > 0 && bvals_view[i] > betaRange.first )
+    if ( i > 0 && bvals_view[i] > betaRange.first + etol )
       --i;//keep one point going over the edge.
 
     bvals_view = bvals_view.subspan(i);
     gnprojvals_view = gnprojvals_view.subspan(i);
-    if ( bvals_view.back() > betaRange.second ) {
+    if ( bvals_view.back() > betaRange.second + etol ) {
       //Do the same for the upper limit, although this is expected to happen
       //only extremely rarely in usual operations.
       auto newsize = bvals_view.size();
       nc_assert_always( bvals_view.size() >= 5 );
       while ( newsize > 2
               && ncmin(bvals_view[newsize-1],
-                       bvals_view[newsize-2]) > betaRange.second ) {
+                       bvals_view[newsize-2]) > betaRange.second + etol ) {
         --newsize;
       }
       bvals_view = bvals_view.subspan(0,newsize);
@@ -466,7 +489,7 @@ NC::VDOS::setupE0ABGrid( const GnExpansion& gnexpn, unsigned npts )
     //Now add alpha and phase space factors:
     for (std::size_t i = 0; i < f.f.size(); ++i) {
       //note alpha=beta on the E->0 phasespace, so x=beta*alpha2x
-      const double beta = f.x0 + i * f.binWidth;
+      const double beta = f.xAt(i);
       //relative phasespace width is proportional to sqrt(b) as E->0
       double factor = std::sqrt(beta);
       //Add also alpha factor: exp(-x)*x^n/n!:
@@ -495,12 +518,16 @@ NC::VDOS::setupE0ABGrid( const GnExpansion& gnexpn, unsigned npts )
       nc_assert( g.binWidth > 0.0 );
       g.npts = f.f.size();
       trimEquidistantGridUpperEdge(g, gridmax);
-      nc_assert( g.x1() <= gridmax );
+      nc_assert( g.x1() <= gridmax + 2e-9*g.binWidth );
     }
 
     grid = makeCommonGrid( allgrids );
 
     nc_assert_always(!grid.empty());
+    //trimEquidistantGridUpperEdge has a tiny tolerance, so we might be
+    //marginally above gridmax:
+    if ( grid.back() > gridmax )
+      grid.back() = gridmax;
     nc_assert( grid.back() <= gridmax );
     nc_assert_always( grid.size() >= 10 );
     //ensure we have 0.0 in this:
