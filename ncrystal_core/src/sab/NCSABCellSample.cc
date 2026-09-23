@@ -491,8 +491,12 @@ NCS::BoundedCellSampler::prepareBCSData( double probability_b1_edge,
         };
         pt(r.alpha_up,true,true);
         pt(r.alpha_low,true,true);
-        const double amax1 = ncsquare( std::sqrt(e+b2)- sqrte );
-        const double amax2 = ncsquare( std::sqrt(e+b1)- sqrte );
+        //alpha^-(b2)/alpha^-(b1) via the shared, cancellation-hardened
+        //getAlphaMinus utility (see the note on prepareBCSData's
+        //beta^-(alpha) computation, below, for why the naive formula this
+        //replaced was unsafe):
+        const double amax1 = getAlphaMinus(e,b2);
+        const double amax2 = getAlphaMinus(e,b1);
         if ( valueInInterval( r.alpha_low, r.alpha_up, amax1 ) )
           pt( amax1, true, false );
         if ( valueInInterval( r.alpha_low, r.alpha_up, amax2 ) )
@@ -741,17 +745,20 @@ namespace NCRYSTAL_NAMESPACE {
         const double e = E_div_kT;
         if (c.b2 <= -e)
           return NullOpt;//no overlap
-        const double twoe = 2.0*e;
-        const double tmp = 2.0*std::sqrt(e*(b2+e));
-        const double ap2 = twoe+b2+tmp;//alpha^+(b2)
+        //Uses the shared getAlphaMinus/getAlphaPlus utilities rather than
+        //re-deriving alpha^-/alpha^+(beta) inline: the naive
+        //2*e+beta-2*sqrt(e*(e+beta)) formula for alpha^-(beta) is a
+        //catastrophic-cancellation trap whenever beta is close to 0 (where
+        //alpha^- touches 0), which getAlphaMinus already guards against via
+        //a Taylor expansion -- see the same class of bug fixed in
+        //prepareBCSData's beta^-(alpha) computation below:
+        const double ap2 = getAlphaPlus(e,b2);//alpha^+(b2)
         if ( a1 >= ap2 )
           return NullOpt;//no overlap
-        const double am2 = twoe+b2-tmp;//alpha^-(b2)
+        const double am2 = getAlphaMinus(e,b2);//alpha^-(b2)
         double am1(-1.0);
         if ( b1 >= -e ) {
-          const double tmp2 = 2.0*std::sqrt(e*(b1+e));
-          const double twoe_plus_b1 = twoe+b1;
-          am1 = twoe_plus_b1-tmp2;//alpha^-(b1)
+          am1 = getAlphaMinus(e,b1);//alpha^-(b1)
         }
         //snap along alpha:
         a2 = ncmin(a2,ap2);
@@ -782,14 +789,17 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert(m_aup>m_alow);
           nc_assert(valueInInterval(m_alow,m_aup,a));
           AlphaPtGeom res;
-          double tmp = 2.0*std::sqrt( a * m_e);
-          double bl = a - tmp;
-          double bu = a + tmp;
+          //Uses the shared getBetaMinus/getBetaPlus utilities rather than
+          //the naive a-2*sqrt(a*e) formula for beta^-(alpha), which is a
+          //catastrophic-cancellation trap whenever alpha is close to 4*e
+          //(the same class of bug fixed in prepareBCSData, below):
+          const double bl = getBetaMinus(m_e,a);
+          const double bu = getBetaPlus(m_e,a);
           res.blow = ncmax(m_cell.b1,bl);
           res.bup = ncmin(m_cell.b2,bu);
           if ( bl >= m_cell.b1 && bu <= m_cell.b2 ) {
             res.bmid = a;
-            res.bwidth = 2.0*tmp;
+            res.bwidth = bu-bl;
           } else {
             res.bmid = 0.5*(res.blow+res.bup);
             res.bwidth = res.bup - res.blow;
@@ -852,26 +862,30 @@ namespace NCRYSTAL_NAMESPACE {
           //added safety, we must also evaluate on these if they fall in a given
           //alpha-bin. Otherwise the overlay value determined purely from the
           //alpha-bin edges could be underestimated.
-          TinyVector<double,9> special_avals;
+          TinyVector<double,7> special_avals;
           {
-            //candidates (the ncabs(..) inside the sqrt is inserted for safety,
-            //it is no harm to add spurious candidates here if that candidate
-            //did not actually exist in the given setup.
-            const double sqrte = std::sqrt(m_e);
-            const double da1 = 2*std::sqrt(ncabs(m_e*(m_cell.b1+m_e)));
-            const double da2 = 2*std::sqrt(ncabs(m_e*(m_cell.b2+m_e)));
-
-            std::array<double,9> special_avals_candidates
-              = { m_e, m_cell.b1/3, m_cell.b2/3,
-                  ncsquare( std::sqrt( ncabs(m_e + m_cell.b1) ) - sqrte ),
-                  ncsquare( std::sqrt( ncabs(m_e + m_cell.b2) ) - sqrte ),
-                  2*m_e+m_cell.b1-da1,
-                  2*m_e+m_cell.b1+da1,
-                  2*m_e+m_cell.b2-da2,
-                  2*m_e+m_cell.b2+da2 };
-            for ( auto a : special_avals_candidates ) {
+            //Candidates: alpha^-(b1), alpha^+(b1), alpha^-(b2), alpha^+(b2),
+            //via the shared getAlphaMinus/getAlphaPlus utilities rather than
+            //a naive inline formula (the same class of catastrophic
+            //-cancellation bug fixed in prepareBCSData, below) -- it is no
+            //harm to skip a candidate here if the corresponding kinematic
+            //point does not actually exist in the given setup (e+beta<0),
+            //so we just skip it rather than forcing a spurious value
+            //through via ncabs as the old inline formula needed to:
+            auto addIfValid = [&]( double a ) {
               if ( valueInInterval(m_alow,m_aup,a) )
                 special_avals.push_back(a);
+            };
+            addIfValid( m_e );
+            addIfValid( m_cell.b1/3 );
+            addIfValid( m_cell.b2/3 );
+            if ( m_cell.b1 + m_e >= 0.0 ) {
+              addIfValid( getAlphaMinus(m_e,m_cell.b1) );
+              addIfValid( getAlphaPlus(m_e,m_cell.b1) );
+            }
+            if ( m_cell.b2 + m_e >= 0.0 ) {
+              addIfValid( getAlphaMinus(m_e,m_cell.b2) );
+              addIfValid( getAlphaPlus(m_e,m_cell.b2) );
             }
           }
 
