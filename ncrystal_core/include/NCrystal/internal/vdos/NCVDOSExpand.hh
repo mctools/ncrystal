@@ -55,6 +55,15 @@ namespace NCRYSTAL_NAMESPACE {
       //the minimum rectangular range of (alpha,beta) values that table must
       //cover (Rectangle x is alpha, Rectangle y is beta):
       Rectangle sabRange;
+
+      //Diagnostic only (see doc/claude_session_vdos_fma_reprod.md): the
+      //full (alpha,beta) range of each individual phonon order n=1..maxOrder
+      //(i.e. before intersecting with the kinematically accessible region),
+      //indexed abRanges.at(n-1). Used to bisect cross-platform/compiler
+      //reproducibility divergences in the order-growth stopping criterion
+      //in expandVDOSToGnFcts, by comparing per-order ranges instead of only
+      //the final union in sabRange:
+      std::vector<Rectangle> abRanges;
     };
 
     //Perform Sjolander expansion. The targetEmax default value is given by
