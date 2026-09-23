@@ -36,12 +36,12 @@ namespace NCRYSTAL_NAMESPACE {
       //The function 1/(exp(x)-1) (x not near 0 of course!). Implemented so we
       //do not trigger  FE_OVERFLOW for large x during 1/expm1(x) = 1/inf = 0
       if ( x <= 700 ) {
-        const double em1 = std::expm1(x);
+        const double em1 = stable_expm1(x);
         nc_assert(em1!=0.0);
         return 1.0/em1;
       } else {
         //1/(exp(x)-1) = exp(-x)/(1-exp(-x))
-        const double emx = std::exp(-x);
+        const double emx = stable_exp(-x);
         return emx/(1.0-emx);
       }
     }
@@ -75,7 +75,7 @@ namespace NCRYSTAL_NAMESPACE {
         p = std::fma( y, p, c2 );
         return std::fma( y, p, c0 );
       } else {
-        return x / std::tanh(x);
+        return x / stable_tanh(x);
       }
     }
 
@@ -110,7 +110,7 @@ namespace NCRYSTAL_NAMESPACE {
         p = std::fma( y, p, c2 );
         return y*p;
       } else {
-        return x*x*x / std::tanh(x);
+        return x*x*x / stable_tanh(x);
       }
     }
 
@@ -131,7 +131,7 @@ namespace NCRYSTAL_NAMESPACE {
         p = std::fma( y, p, c2 );
         return std::fma( y, p, 1.0 );
       } else {
-        return x / std::sinh(x);
+        return x / stable_sinh(x);
       }
     }
 #ifndef NDEBUG
@@ -345,7 +345,7 @@ double NC::VDOSEval::calcGamma0() const
     //4e-5. However, this is only at the extreme T=1e6K, at T=1000K and
     //emin=1e-10eV we would get a precision of 3e-8. So it would most likely be
     //OK for this integration to loosen the emin limit from 1e-5 to 1e-10 eV.
-    return 1.0 / ( e * std::tanh( e * inv2kT ) );
+    return 1.0 / ( e * stable_tanh( e * inv2kT ) );
   };
   integrateBinsWithFunction( f_binnedpart, sum );
   return m_emax * sum.sum();
@@ -428,7 +428,7 @@ NC::PairDD NC::VDOSEval::evalG1AsymmetricAtEPair( double energy, double gamma0 )
     double G1sym = evalG1Symmetric( energy, gamma0 );
     if (!G1sym)
       return { 0.0, 0.0 };
-    const double dbfact = std::exp( energy / (2*m_kT) );
+    const double dbfact = stable_exp( energy / (2*m_kT) );
     nc_assert( dbfact > 0.0 );
     nc_assert( G1sym > 0.0 );
     return { G1sym*dbfact, G1sym/dbfact };
@@ -440,7 +440,7 @@ NC::PairDD NC::VDOSEval::evalG1AsymmetricAtEPair( double energy, double gamma0 )
 
 
     const double eDivKT = energy / m_kT;
-    return { -kkk / std::expm1( -eDivKT ),//-energy (absorb sign on kkk as well)
+    return { -kkk / stable_expm1( -eDivKT ),//-energy (absorb sign on kkk as well)
              kkk*safe_rec_expm1( +eDivKT ) };
   }
 }
@@ -461,7 +461,7 @@ double NC::VDOSEval::evalG1Asymmetric( double energy, double gamma0 ) const
     return kkk*safe_rec_expm1( energy / m_kT );
   }
   double G1sym = evalG1Symmetric(absE,gamma0);
-  return G1sym ? G1sym * std::exp( -energy / (2*kT()) ) : 0.0;
+  return G1sym ? G1sym * stable_exp( -energy / (2*kT()) ) : 0.0;
 }
 
 double NC::VDOSEval::evalG1Symmetric( double energy, double gamma0 ) const
@@ -480,7 +480,7 @@ double NC::VDOSEval::evalG1Symmetric( double energy, double gamma0 ) const
     //Here f(E) = m_k*E^2, so with u=E/2kT: G1 = (m_k*2kT/2*gamma0) * u / (sinh(u))
     return ( m_k * m_kT * m_emax / gamma0 ) * safe_xdivsinhx( u );
   } else {
-    return eval(energy) * m_emax / ( energy * 2.0 * gamma0 * std::sinh(u) );
+    return eval(energy) * m_emax / ( energy * 2.0 * gamma0 * stable_sinh(u) );
   }
 }
 
