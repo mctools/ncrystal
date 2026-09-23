@@ -95,7 +95,89 @@ namespace NCRYSTAL_NAMESPACE {
     EquidistantGrid coverEquidistantGrids( const EquidistantGrid&,
                                            const EquidistantGrid& );
 
+    struct PWLFct final : private MoveOnly {
+      // Utility struct representing a piecewise-linear function with values f
+      // at the equidistant points x0+i*binWidth, and zero outside [x0,x1()]. It
+      // is a move-only class, since it can optionally own the data that f
+      // refers to.
+      double x0 = 0.0; //x{i=0}
+      double binWidth = 0.0;//distance between x{i} and x{i+1}
+      Span<const double> f;//values of f at the x{i} points. The size of the
+                           //span encodes the number of points.
+      double x1() const { return x0 + (f.size()-1)*binWidth; }
+      VectD dataHolder;//optional, so can hold its data if needed.
+
+      //Move semantics (re-points f if it refers to dataHolder):
+      PWLFct() = default;
+      PWLFct( PWLFct&& ) noexcept;
+      PWLFct& operator=( PWLFct&& ) noexcept;
+      Span<double> f_mutable();//edit data (must own data!)
+    private:
+      void moveDataFrom( PWLFct& ) noexcept;
+    };
+
+    // Narrow a PWL function to its part at positive x (new x0 will be above
+    // tol*binWidth to zero). The returned function owns its data.
+    PWLFct pwlNarrowToPos( const PWLFct&, double tol = 1e-3 );
+
+    // Evaluates the weighted sum of functions on the supplied grid. Optionally
+    // weights can be applied to each function (unit weights if empty).
+    VectD evalPWLSum( Span<const PWLFct> fs,
+                      Span<const double> grid,
+                      Span<const double> weights = {} );
+
+    // Given a non-negative piecewise-linear function defined by by x and y,
+    // this function removes (in-place) as many points from the back as possible
+    // while keeping the discarded integral at most frac times the total.
+    void trimTailByIntegral( VectD& x, VectD& y, double frac );
+
+    // Remove points from the top of the grid until g.x1() <= xmax, but always
+    // keeping at least 2 points.
+    void trimEquidistantGridUpperEdge( EquidistantGrid& g, double xmax );
+
   }
 }
 
+////////////////////////////
+// Inline implementations //
+////////////////////////////
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace VDOS {
+    inline PWLFct::PWLFct( PWLFct&& o ) noexcept
+      : x0(o.x0), binWidth(o.binWidth), f(o.f)
+    {
+      moveDataFrom( o );
+    }
+
+    inline PWLFct& PWLFct::operator=( PWLFct&& o ) noexcept
+    {
+      if ( this != &o ) {
+        x0 = o.x0;
+        binWidth = o.binWidth;
+        f = o.f;
+        moveDataFrom( o );
+      }
+      return *this;
+    }
+
+    inline void PWLFct::moveDataFrom( PWLFct& o ) noexcept
+    {
+      const bool owns = ( !o.dataHolder.empty()
+                          && o.f.data() == o.dataHolder.data() );
+      dataHolder = std::move( o.dataHolder );
+      o.dataHolder.clear();
+      if ( owns )
+        f = Span<const double>( dataHolder );
+      o.f = Span<const double>();
+    }
+
+    inline Span<double> PWLFct::f_mutable()
+    {
+      nc_assert( dataHolder.size() == f.size() );
+      return dataHolder;
+    }
+
+  }
+}
 #endif
