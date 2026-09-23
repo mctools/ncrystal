@@ -150,6 +150,8 @@ namespace NCRYSTAL_NAMESPACE {
   double stable_expm1(double x);
   double stable_tanh(double x);
   double stable_sinh(double x);
+  double stable_log(double x);//refined via std::exp (Newton-Raphson on
+                              //f(y)=exp(y)-x=0), same idea as stable_exp.
 
   //Evaluate erfc(a)-erfc(b) in a relatively numerically safe
   //manner and with as few actual calls to std::erfc as possible:

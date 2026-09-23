@@ -429,6 +429,26 @@ double NC::stable_expm1( double x )
   return std::fma( correction, onepy0, y0 );
 }
 
+double NC::stable_log( double x )
+{
+  const double y0 = std::log(x);
+  if ( !std::isfinite(y0) )
+    return y0;//x<=0 (-inf/nan) or x=+inf: nothing to refine.
+  //One Newton-Raphson step on f(y)=exp(y)-x=0 (f'(y)=exp(y)):
+  //y1 = y0 - (exp(y0)-x)/exp(y0) = y0 + (x-exp(y0))/exp(y0). The
+  //subtraction x-exp(y0) is close to exact (Sterbenz's lemma: exp(y0) is
+  //within a handful of ULP of x by construction, well within the 2x
+  //factor Sterbenz's lemma requires for an exact FP subtraction), so no
+  //separate stabilisation is needed there -- just a plain division and
+  //sum (no std::fma: the correction here has unit scale, so a plain sum
+  //is already a single rounding, unlike stable_exp's multiply-add):
+  const double expy0 = std::exp(y0);
+  if ( !( expy0 > 0.0 ) || !std::isfinite(expy0) )
+    return y0;//underflow/overflow reconstructing exp(y0): nothing to refine.
+  const double correction = (x - expy0)/expy0;
+  return y0 + correction;
+}
+
 double NC::stable_tanh( double x )
 {
   //tanh(x) = (e^(2x)-1)/(e^(2x)+1) = expm1(2x)/(expm1(2x)+2). Well
