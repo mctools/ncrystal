@@ -255,11 +255,24 @@ double NC::VDOSEval::eval(double energy) const
   nc_assert(energy>=0.0);
   if (energy<=m_emin)
     return m_k * energy * energy;
+  //The density is defined to be 0 at and above emax. We must test this
+  //explicitly, since for energy==emax the relative position calculated below
+  //is the number of the last node, but with a rounding error which can put it
+  //on either side of it. Without this, the result for energy==emax (which is
+  //where the last point on an energy grid typically is) would be either 0 or
+  //the last density value, depending on the last bit of the rounding error, and
+  //thus on the platform (e.g. if the compiler fuses operations or not). We
+  //choose 0, since it makes the piecewise linear function represented by a
+  //spectrum on an energy grid (with zero at the edges) have the same integral
+  //as the sum over the grid points which is used for normalisation.
+  if (!(energy<m_emax))
+    return 0.0;
+  const int ilastbin = static_cast<int>(m_density.size())-2;
   double relpos = ncclamp((energy-m_emin)*m_invbinwidth, -0.5, m_density.size()+0.5);
   int ibin = static_cast<int>(relpos);
   nc_assert(ibin>=0);
-  if (ibin>=static_cast<int>(m_density.size()-1))
-    return 0.0;
+  if (ibin>ilastbin)
+    return m_density.back();//just below emax, but rounding error put us here.
   relpos = ncclamp(relpos - ibin, 0.0, 1.0);
   return (1.0-relpos)*m_density.at(ibin)+relpos*m_density.at(ibin+1);
 }
