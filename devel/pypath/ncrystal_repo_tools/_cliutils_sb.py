@@ -64,6 +64,12 @@ def mainsb( mode, is_debug, parser ):
                               _cfgfilename( is_debug ))
     env = os.environ.copy()
     env['SIMPLEBUILD_CFG'] = str(sbcfg)
+    #Force off Python 3.13+'s argparse/traceback colourised output
+    #(_colorize.can_colorize() honours an ambient FORCE_COLOR env var even
+    #when stdout is not a tty), so test scripts comparing their output
+    #against a reference log stay deterministic regardless of the
+    #invoking shell's environment:
+    env['PYTHON_COLORS'] = '0'
     if allow_long_tests:
         env['NCDEVSBL_ALLOW_LONG_TESTS'] = '1'
 
