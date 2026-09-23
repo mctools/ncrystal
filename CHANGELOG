@@ -49,6 +49,20 @@ v4.4.7 (work in progress)
        All six now go through the shared, Taylor-hardened getAlphaMinus/
        getAlphaPlus/getBetaMinus/getBetaPlus utilities from NCKinUtils.hh
        instead of re-deriving the same formulas inline.
+     * Fix two more instances of the same bug class, this time in the actual
+       cross-section integration path (NCSABCellInteg.cc's
+       IntegrandOfA::contrib and impl_numIntRegion, reached via
+       NCSABProcessor.cc from the "next-gen" SABScatterNG scatter process):
+       bl/bu were computed as the naive alpha-+2*sqrt(E*alpha) instead of via
+       getBetaMinus/getBetaPlus. Also fixed a related instance in
+       NCSABRefSampler.cc's cell-overlap culling check, rewritten as a
+       squared comparison (matching the safe pattern already used in
+       NCSABEval.cc's kbStatus) to avoid subtracting a computed sqrt from a
+       raw alpha value. Added tests/scripts/kinutils.py (via a new
+       ["util","kinutils"] query), validating getAlphaMinus/getAlphaPlus/
+       getBetaMinus/getBetaPlus against an independent mpmath reference
+       across their domain, including densely around the two singular
+       points, to directly regression-test this whole class of bug.
      * Fix NCrystal.vdos.extractKnl/extractGn (used internally by ncmat2endf)
        feeding the C API a VDOS curve that had already been redundantly
        renormalised (by a freshly numpy-computed integral) and, for curves
