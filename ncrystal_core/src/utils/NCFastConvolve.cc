@@ -354,16 +354,17 @@ template<bool is_forward>
 void NC::FastConvolve::Impl::fft( std::vector<std::complex<double>> &data,
                                   unsigned long minimum_output_size )
 {
-  const double output_log_size_fp = std::ceil(std::log2(minimum_output_size));
   static_assert( sizeof(int) == sizeof(std::int32_t), "" );//otherwise we need
                                                            //to update the code
                                                            //in this class!!
-  nc_assert_always(output_log_size_fp<32);
-  const int output_log_size = output_log_size_fp;
-  const int output_size = ( 1 << output_log_size );//this is now
-                                                   //minimum_output_size rounded
-                                                   //up to next power of 2
-  nc_assert_always( data.size() <= (std::size_t)output_size );
+  //Actual output_size is minimum_output_size rounded up to next power of 2
+  //(with integers, to avoid floating point precision issues):
+  nc_assert_always( minimum_output_size <= (1ul<<31) );
+  int output_log_size = 0;
+  while ( (1ul<<output_log_size) < minimum_output_size )
+    ++output_log_size;
+  const int output_size = ( 1 << output_log_size );
+  nc_assert( data.size() <= (std::size_t)output_size );
 
   if ( m_w->size() < (std::size_t)output_size )
     m_w = getFastConvolveCacheMgr().getWTable( output_size );
