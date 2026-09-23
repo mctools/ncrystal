@@ -26,9 +26,9 @@
 
 def _clip_floats(obj):
     #Pass all floats in data structure (assumed loaded from JSON) through
-    #'%.12g' to reduce FP fluctuations.
+    #'%.11g' to reduce FP fluctuations.
     if isinstance(obj, float):
-        return float('%.12g'%obj)
+        return float('%.11g'%obj)
     if isinstance(obj, dict):
         return {k: _clip_floats(v) for k, v in obj.items()}
     if isinstance(obj, list):
