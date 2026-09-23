@@ -53,7 +53,7 @@ def main():
         'tests/src/app_mmcgeom/main.cc' : 80,
         'tests/src/app_fft/refvals.hh' : 200,
         #fixme:
-        'tests/src/app_vdos2knldiag/test.log' : 2000,
+        'tests/src/app_vdos2knldiag/test.log' : 3000,
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux0_temp10K.ncmat' : 4000000,
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux1_temp10K.ncmat' : 4000000,
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux2_temp10K.ncmat' : 4000000,
