@@ -119,6 +119,16 @@ namespace {
                 << NC::fmt(spec.back(),"%.17g") << std::endl;
     }
 
+    //Full raw G1 spectrum (the base single-phonon spectrum, before any
+    //convolution at all): if this is already bit-different between
+    //platforms, the noise enters in VDOSEval's spectrum construction
+    //(std::exp/tanh/sinh calls, inherently libm-version-sensitive); if it
+    //is bit-identical, the noise must enter during the G1(x)G1 -> G2
+    //self-convolution (order 2) itself:
+    dumpVectD( "gnexpn G1 rawspec", gnexpn.Gn.getRawSpectrum( NC::VDOS::VDOSGn::Order(1u) ) );
+    //Full raw G2 spectrum (G1(x)G1, the very first actual convolution):
+    dumpVectD( "gnexpn G2 rawspec", gnexpn.Gn.getRawSpectrum( NC::VDOS::VDOSGn::Order(2u) ) );
+
     auto knldata = NC::VDOS::createScatteringKernel( vdosdata, vdoslux, targetEmax );
     dumpVectD( "knl alphaGrid", knldata.alphaGrid );
     dumpVectD( "knl betaGrid", knldata.betaGrid );
