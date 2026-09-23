@@ -3,13 +3,26 @@ v4.4.7 (work in progress)
        for non-float64 or non-contiguous arrays.
      * Cmdline script errors in case of invalid choices now always gives output
        like latest (Py3.14.7) argparse, thus ensuring consistent output.
-     * Use explicit std::fma in several utilities for improved reproducibility.
-       Uses new NCRYSTAL_FMADISPATCH_ATTR so this does not cost performance on
-       portably built binaries such as the published wheels and conda packages.
+     * Use explicit std::fma widely for improved reproducibility.  Uses new
+       NCRYSTAL_FMADISPATCH_ATTR so this does not cost performance on portably
+       built binaries such as the published wheels and conda packages.
        Utilities affected include FastConvolve (FFT), nclerp (new linear
        interpolation fct), VDOS and Gn evaluation, VDOS grid regularisation,
-       egrid interpolation, and Stirling's series usage for factorial
-       estimation in alpha factors.
+       egrid interpolation, and Stirling's series usage for factorial estimation
+       in alpha factors.
+     * Fix NCrystal.vdos.extractKnl/extractGn (used internally by ncmat2endf)
+       feeding the C API a VDOS curve that had already been redundantly
+       renormalised (by a freshly numpy-computed integral) and, for curves
+       natively stored as a compact [emin,emax] energy range, needlessly
+       expanded into a full numpy.linspace grid. Neither transformation was
+       needed (the underlying C++ VDOS machinery expands/regularises/
+       renormalises internally regardless of the input's form or scale), and
+       both were a source of platform/numpy-version-dependent last-few-ULP
+       noise ahead of that robust computation. This changes the exact bit
+       pattern of some VDOS/scattering-kernel-derived numerical results
+       (typically at the level of the last few significant digits, though
+       rare threshold-sensitive cases can shift by more), without any
+       expected impact on physical accuracy.
      * ...
 
 v4.4.6 2026-06-30

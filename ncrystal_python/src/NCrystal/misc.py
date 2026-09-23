@@ -246,13 +246,12 @@ class AnyVDOS:
         integral."""
         return self.__d['derived']['dos%s_integral'%self.__choice(orig)]
 
-    def egrid( self, *, orig = False ):
-        """Access the energy grid values. Note that this is always the full
-        energy grid, even if just a tuple "(emin,emax)" was used to construct
-        the object.
-        """
+    def egrid( self, *, orig = False, expand = True ):
+        """Access the energy grid values. Unless expand=False, this is always
+        the full energy grid, even if just a tuple "(emin,emax)" was used to
+        construct the object."""
         choice = self.__choice(orig)
-        eg = self.__d['derived'].get('dos%s_expandedegrid'%choice)
+        eg = self.__d['derived'].get('dos%s_expandedegrid'%choice) if expand else None
         return eg if eg is not None else self.__d['dos%s'%choice][0]
 
     def dos( self, *, orig = False, norm = True ):
