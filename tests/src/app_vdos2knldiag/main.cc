@@ -47,6 +47,7 @@
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/factories/NCMatCfg.hh"
 #include "NCrystal/interfaces/NCInfo.hh"
+#include "NCrystal/internal/vdos/NCVDOSEval.hh"
 #include "NCrystal/internal/vdos/NCVDOSExpand.hh"
 #include "NCrystal/internal/vdos/NCVDOSToScatKnl.hh"
 #include "NCrystal/internal/sab/NCSABUtils.hh"
@@ -70,7 +71,25 @@ namespace {
               << " amu, temperature=" << NC::fmt(di.temperature().dbl(),"%.17g")
               << "K) ===" << std::endl;
 
-    const auto& vdosdata = di_vdos.vdosData();
+    //Build the VDOSData the same way ncc::createVDOSDataFromRaw does in
+    //ncrystal.cc (regularising the ORIGINAL, pre-regularisation VDOS
+    //curve fresh), rather than reusing DI_VDOS::vdosData() (regularised
+    //once already, at .ncmat load time): this is the exact pipeline
+    //NCrystal.vdos.extractKnl / ncrystal_raw_vdos2kernel / ncmat2endf /
+    //tests/scripts/n2endf_bad.py use, and it turned out NOT to be
+    //equivalent to vdosData() for reproducibility purposes -- see
+    //docs/claude_session_vdos_fma_reprod.md for how this was found (a
+    //CI round showed this app's own alpha/beta range matching exactly
+    //while n2endf_bad.py still diverged, using the vdosData()-based
+    //version of this app):
+    NC::VectD regEgrid, regDensity;
+    std::tie( regEgrid, regDensity )
+      = NC::regulariseVDOSGrid( di_vdos.vdosOrigEgrid(), di_vdos.vdosOrigDensity() );
+    nc_assert_always( regEgrid.size() == 2 );
+    NC::VDOSData vdosdata( NC::PairDD( regEgrid.front(), regEgrid.back() ),
+                           std::move(regDensity), di.temperature(),
+                           di.atomData().scatteringXS(),
+                           di.atomData().averageMassAMU() );
     std::cout << "vdos_egrid: " << NC::fmt(vdosdata.vdos_egrid().first,"%.17g")
               << ' ' << NC::fmt(vdosdata.vdos_egrid().second,"%.17g") << std::endl;
     dumpVectD( "vdos_density", vdosdata.vdos_density() );
