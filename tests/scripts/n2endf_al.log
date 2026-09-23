@@ -437,7 +437,7 @@ Initialise nuclear data...
 Designated incoherent: Al
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "N" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#7]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#8]
->>> alpha points: 100, alpha range: (2.19e-49, 820)
+>>> alpha points: 100, alpha range: (2.19e-49, 821)
 >>> beta points: 150, beta range: (0, 1.3e+02)
 >>> alpha points: 100, alpha range: (2.33e-49, 823)
 >>> beta points: 142, beta range: (0, 90)

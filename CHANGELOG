@@ -10,6 +10,19 @@ v4.4.7 (work in progress)
        interpolation fct), VDOS and Gn evaluation, VDOS grid regularisation,
        egrid interpolation, and Stirling's series usage for factorial estimation
        in alpha factors.
+     * VDOSGn::eRange (used internally to decide how many phonon orders' worth
+       of a Gn spectrum contribute above a relative threshold) now locates the
+       threshold crossing via a windowed quadratic fit of ln(spectrum) vs
+       energy, rather than snapping to the nearest grid point that clears the
+       threshold. The old approach discretised a continuous root-finding problem
+       to bin-width resolution -- amplifying a tiny, platform-varying last-ULP
+       difference into a whole-bin output difference whenever the true crossing
+       sat close to a grid point, and occasionally shifting how many phonon
+       orders get included. The new fit matches the Gaussian-like shape
+       high-order Gn spectra approach (central limit theorem via repeated
+       self-convolution) and uses several points symmetrically rather than
+       trusting a single point as ground truth, substantially reducing this
+       last-ULP sensitivity (see tests/src/app_gnerange).
      * Fix NCrystal.vdos.extractKnl/extractGn (used internally by ncmat2endf)
        feeding the C API a VDOS curve that had already been redundantly
        renormalised (by a freshly numpy-computed integral) and, for curves

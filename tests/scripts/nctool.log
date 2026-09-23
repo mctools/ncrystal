@@ -193,7 +193,7 @@ Dynamic info for H (100%):
 ==> Scattering process (code level objects):
                            ProcComposition(2 components, isotropic)
                               |-- ElIncScatter(nelements=1;max_contrib=82.0168barn)
-                              \-- SABScatter(nalpha=50;nbeta=100;Emax=0.0260446eV;T=293.15K;M=1.00798u;sigma_free=20.4902barn)
+                              \-- SABScatter(nalpha=50;nbeta=100;Emax=0.0255263eV;T=293.15K;M=1.00798u;sigma_free=20.4902barn)
 ===========================================
 ============= CLI >>'dummyAl.ncmat;temp=300K' --cfg<< ====================
 ==> Debugging cfg-string: "dummyAl.ncmat;temp=300K"
@@ -203,7 +203,7 @@ Dynamic info for H (100%):
 ==> Scattering process (code level objects):
                            ProcComposition(2 components, isotropic)
                               |-- ElIncScatter(nelements=1;max_contrib=82.0168barn)
-                              \-- SABScatter(nalpha=50;nbeta=100;Emax=0.0219541eV;T=300K;M=1.00798u;sigma_free=20.4902barn)
+                              \-- SABScatter(nalpha=50;nbeta=100;Emax=0.021302eV;T=300K;M=1.00798u;sigma_free=20.4902barn)
 ===========================================
 ============= CLI >>--test<< ====================
 Tests completed succesfully
@@ -597,7 +597,7 @@ Testing work_in_tmpdir()
 ==> Scattering process (code level objects):
                            ProcComposition(2 components, isotropic)
                               |-- ElIncScatter(nelements=1;max_contrib=82.0168barn)
-                              \-- SABScatter(nalpha=50;nbeta=100;Emax=0.0219541eV;T=300K;M=1.00798u;sigma_free=20.4902barn)
+                              \-- SABScatter(nalpha=50;nbeta=100;Emax=0.021302eV;T=300K;M=1.00798u;sigma_free=20.4902barn)
 ===========================================
 ============= CLI >>--extract dummyAl.ncmat<< ====================
 NCMAT v5
@@ -632,7 +632,7 @@ Caught expected NCFileNotFound('Could not find data: "missing.ncmat"')
 ==> Scattering process (code level objects):
                            ProcComposition(2 components, isotropic)
                               |-- ElIncScatter(nelements=1;max_contrib=82.0168barn)
-                              \-- SABScatter(nalpha=50;nbeta=100;Emax=0.0219541eV;T=300K;M=1.00798u;sigma_free=20.4902barn)
+                              \-- SABScatter(nalpha=50;nbeta=100;Emax=0.021302eV;T=300K;M=1.00798u;sigma_free=20.4902barn)
 ===========================================
 ============= CLI >>'missing.ncmat;temp=300K' --cfg<< ====================
 ==> Debugging cfg-string: "missing.ncmat;temp=300K"

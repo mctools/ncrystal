@@ -10,14 +10,14 @@
   snapToGrid      : [-1.576271186, 1.576271186]  (err_lo=0.0868, err_hi=-0.0868)
   linear2pt       : [-1.671158257, 1.671158257]  (err_lo=-0.00812, err_hi=0.00812)
   logLinear2pt    : [-1.662637575, 1.662637575]  (err_lo=0.000398, err_hi=-0.000398)
-  estimateGnErange: [-1.663035651, 1.663035651]  (err_lo=6.66e-16, err_hi=-2.22e-16)
+  estimateGnErange: [-1.663035651, 1.663035651]  (err_lo=6.66e-16, err_hi=-4.44e-16)
   truth           : [-1.663035651, 1.663035651]
 
 === gaussian, fine (400 pts) (npts=400, relcontriblvl=1e-06) ===
   snapToGrid      : [-1.661654135, 1.661654135]  (err_lo=0.000621, err_hi=-0.000621)
   linear2pt       : [-1.662349707, 1.662349707]  (err_lo=-7.46e-05, err_hi=7.46e-05)
   logLinear2pt    : [-1.662272459, 1.662272459]  (err_lo=2.68e-06, err_hi=-2.68e-06)
-  estimateGnErange: [-1.662275141, 1.662275141]  (err_lo=-2.22e-16, err_hi=0)
+  estimateGnErange: [-1.662275141, 1.662275141]  (err_lo=-2.22e-16, err_hi=-2.22e-16)
   truth           : [-1.662275141, 1.662275141]
 
 --- Synthetic: same coarse Gaussian, with noise injected right at the naive crossing points (the "one-sidedness" concern) ---

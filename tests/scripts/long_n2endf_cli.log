@@ -148,7 +148,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given i
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Creating non standard S(a,b) with LASYM = 3 [warn#3]
 Initialise nuclear data...
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=1eV with the provided cfg-string but a value of Emax=5eV was enforced. [warn#4]
->>> alpha points: 100, alpha range: (8.36e-50, 821)
+>>> alpha points: 100, alpha range: (8.36e-50, 822)
 >>> beta points: 129, beta range: (0, 77)
 >>> Interpolating T=293.15K for Al
 >> Prepare elastic approximations

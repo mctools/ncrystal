@@ -776,37 +776,38 @@ NC::VectD NC::VDOS::mergeGridsWithTol( const VectD& a, const VectD& b,
 
 namespace NCRYSTAL_NAMESPACE {
   namespace {
-    //Estimate where a locally-Gaussian-like curve (egrid[i],spec[i]),
-    //spec>0, crosses yval, given the immediate bracket (idxLo,idxHi=idxLo+1)
-    //with min(spec[idxLo],spec[idxHi]) < yval <= max(...). High-order Gn
-    //spectra approach a Gaussian shape via the central limit theorem acting
-    //on repeated self-convolution, i.e. ln(spec) is close to QUADRATIC (not
-    //linear) in energy in the tails where this function is used -- so this
-    //fits a quadratic (ordinary least squares) to ln(spec) vs egrid over a
-    //small window extending up to nExtra points beyond the bracket on each
-    //side (clipped to the array bounds, and to spec>0 points, since
-    //non-positive values can't enter a log-space fit), and solves it for the
-    //root nearest the bracket. Using several points symmetrically, rather
-    //than trusting only the single point on each side of the naive bracket,
-    //reduces sensitivity to a last-ULP-level fluctuation landing on any one
-    //of those points (confirmed empirically in app_gnerange: with the
-    //quadratic model, injecting a 1e-3 relative perturbation at the two
-    //bracket points moves the estimated crossing by only ~1e-6 relative on
-    //a synthetic Gaussian test case). The result is always clamped to stay
-    //within the window's own x-extent, so an ill-conditioned or unlucky fit
-    //can never extrapolate far from the region it was fitted to, and the
-    //function falls back to the plain 2-point bracket (log-linear, or if
-    //that also fails, linear) interpolation whenever the windowed fit is
-    //degenerate (fewer than 5 usable points, non-finite/non-positive
-    //discriminant, or a fit that is not really quadratic):
-    double gnErangeCrossing( Span<const double> egrid,
-                             Span<const double> spec,
+    //Estimate where a locally-Gaussian-like curve on the equidistant grid
+    //x0+i*binwidth crosses yval, given the immediate bracket
+    //(idxLo,idxHi=idxLo+1) with min(spec[idxLo],spec[idxHi]) < yval <=
+    //max(...). High-order Gn spectra approach a Gaussian shape via the
+    //central limit theorem acting on repeated self-convolution, i.e.
+    //ln(spec) is close to QUADRATIC (not linear) in energy in the tails
+    //where this function is used -- so this fits a quadratic (ordinary
+    //least squares) to ln(spec) vs x over a small window extending up to
+    //nExtra points beyond the bracket on each side (clipped to the array
+    //bounds, and to spec>0 points, since non-positive values can't enter a
+    //log-space fit), and solves it for the root nearest the bracket. Using
+    //several points symmetrically, rather than trusting only the single
+    //point on each side of the naive bracket, reduces sensitivity to a
+    //last-ULP-level fluctuation landing on any one of those points
+    //(confirmed empirically in app_gnerange: with the quadratic model,
+    //injecting a 1e-3 relative perturbation at the two bracket points moves
+    //the estimated crossing by only ~1e-6 relative on a synthetic Gaussian
+    //test case). The result is always clamped to stay within the window's
+    //own x-extent, so an ill-conditioned or unlucky fit can never
+    //extrapolate far from the region it was fitted to, and the function
+    //falls back to the plain 2-point bracket (log-linear, or if that also
+    //fails, linear) interpolation whenever the windowed fit is degenerate
+    //(fewer than 5 usable points, non-finite/non-positive discriminant, or
+    //a fit that is not really quadratic):
+    double gnErangeCrossing( double x0, double binwidth, Span<const double> spec,
                              std::size_t idxLo, std::size_t idxHi,
                              double yval, std::size_t nExtra )
     {
       nc_assert( idxHi == idxLo + 1 );
       nc_assert( ncmin(spec[idxLo],spec[idxHi]) < yval
                 && yval <= ncmax(spec[idxLo],spec[idxHi]) );
+      auto xAt = [x0,binwidth](std::size_t i) { return VDOS::equidistantGridPoint(x0,binwidth,i); };
 
       auto twoPointFallback = [&]( bool logspace )
       {
@@ -815,7 +816,7 @@ namespace NCRYSTAL_NAMESPACE {
         const double t = ( logspace && v0 > 0.0 && v1 > 0.0
                           ? (std::log(yval)-std::log(v0))/(std::log(v1)-std::log(v0))
                           : (yval-v0)/(v1-v0) );
-        return nclerp( egrid[idxLo], egrid[idxHi], ncclamp(t,0.0,1.0) );
+        return nclerp( xAt(idxLo), xAt(idxHi), ncclamp(t,0.0,1.0) );
       };
       if ( !( spec[idxLo] > 0.0 && spec[idxHi] > 0.0 ) )
         return twoPointFallback(false);//can't do log-space at all
@@ -823,16 +824,16 @@ namespace NCRYSTAL_NAMESPACE {
       const std::size_t wlo = ( idxLo >= nExtra ? idxLo-nExtra : 0 );
       const std::size_t whi = std::min<std::size_t>( idxHi+nExtra, spec.size()-1 );
 
-      //Fit ln(spec) = a + b*xc + c*xc^2, xc=egrid-xmid (centred on the
-      //bracket midpoint for conditioning), via the normal equations for an
+      //Fit ln(spec) = a + b*xc + c*xc^2, xc=x-xmid (centred on the bracket
+      //midpoint for conditioning), via the normal equations for an
       //ordinary least-squares quadratic fit:
-      const double xmid = 0.5*( egrid[idxLo] + egrid[idxHi] );
+      const double xmid = 0.5*( xAt(idxLo) + xAt(idxHi) );
       double S0(0.0), S1(0.0), S2(0.0), S3(0.0), S4(0.0);
       double T0(0.0), T1(0.0), T2(0.0);
       for ( auto i : ncrange(wlo,whi+1) ) {
         if ( !(spec[i]>0.0) )
           continue;
-        const double x = egrid[i]-xmid;
+        const double x = xAt(i)-xmid;
         const double y = std::log(spec[i]);
         const double x2 = x*x;
         S0 += 1.0; S1 += x; S2 += x2; S3 += x2*x; S4 += x2*x2;
@@ -872,25 +873,26 @@ namespace NCRYSTAL_NAMESPACE {
       const double result = xcross + xmid;
       if ( !std::isfinite(result) )
         return twoPointFallback(true);
-      return ncclamp( result, egrid[wlo], egrid[whi] );
+      return ncclamp( result, xAt(wlo), xAt(whi) );
     }
   }
 }
 
-NC::PairDD NC::VDOS::estimateGnErange( Span<const double> egrid,
+NC::PairDD NC::VDOS::estimateGnErange( double egrid_lower, double egrid_binwidth,
                                        Span<const double> spec,
                                        double relcontriblvl )
 {
 #ifndef NDEBUG
-  nc_assert_always( egrid.size() == spec.size() );
   nc_assert_always( spec.size() >= 2 );
   nc_assert_always( relcontriblvl > 0.0 && relcontriblvl < 1.0 );
-  nc_assert_always( std::is_sorted( egrid.begin(), egrid.end() ) );
+  nc_assert_always( std::isfinite(egrid_lower) && egrid_binwidth > 0.0 );
   nc_assert_always( *std::min_element(spec.begin(),spec.end()) >= 0.0 );
 #endif
+  auto xAt = [egrid_lower,egrid_binwidth](std::size_t i)
+  { return equidistantGridPoint(egrid_lower,egrid_binwidth,i); };
   const double spec_max = *std::max_element( spec.begin(), spec.end() );
   const double threshold = relcontriblvl * spec_max;
-  PairDD erange( egrid.front(), egrid.back() );
+  PairDD erange( xAt(0), xAt(spec.size()-1) );
 
   constexpr std::size_t nExtra = 2;//extra points on each side of the
                                    //immediate bracket to include in the
@@ -899,16 +901,18 @@ NC::PairDD NC::VDOS::estimateGnErange( Span<const double> egrid,
   for ( auto e : enumerate(spec) ) {
     if ( e.val >= threshold ) {
       erange.first = ( e.idx == 0 )
-        ? egrid.front()
-        : gnErangeCrossing( egrid, spec, e.idx-1, e.idx, threshold, nExtra );
+        ? xAt(0)
+        : gnErangeCrossing( egrid_lower, egrid_binwidth, spec,
+                            e.idx-1, e.idx, threshold, nExtra );
       break;
     }
   }
   for ( std::size_t i = spec.size(); i > 0; --i ) {
     if ( spec[i-1] >= threshold ) {
       const double x = ( i == spec.size() )
-        ? egrid[i-1]
-        : gnErangeCrossing( egrid, spec, i-1, i, threshold, nExtra );
+        ? xAt(i-1)
+        : gnErangeCrossing( egrid_lower, egrid_binwidth, spec,
+                           i-1, i, threshold, nExtra );
       erange.second = ncmin( erange.second, x );
       break;
     }

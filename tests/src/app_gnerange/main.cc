@@ -157,11 +157,14 @@ namespace {
   // Reporting helper //
   //////////////////////
 
-  void report( const char* label,
-              NC::Span<const double> egrid, NC::Span<const double> spec,
+  void report( const char* label, double x0, double binwidth,
+              NC::Span<const double> spec,
               double relcontriblvl,
               const NC::PairDD* truth = nullptr )
   {
+    NC::VectD egrid( spec.size() );
+    for ( auto i : NC::ncrange(spec.size()) )
+      egrid[i] = NCV::equidistantGridPoint(x0,binwidth,i);
     const double spec_max = *std::max_element(spec.begin(),spec.end());
     const double threshold = relcontriblvl*spec_max;
     std::cout << "=== " << label << " (npts=" << spec.size()
@@ -181,7 +184,7 @@ namespace {
     pr( "snapToGrid      ", snapToGrid(egrid,spec,threshold) );
     pr( "linear2pt       ", twoPoint(egrid,spec,threshold,false) );
     pr( "logLinear2pt    ", twoPoint(egrid,spec,threshold,true) );
-    pr( "estimateGnErange", NC::VDOS::estimateGnErange(egrid,spec,relcontriblvl) );
+    pr( "estimateGnErange", NC::VDOS::estimateGnErange(x0,binwidth,spec,relcontriblvl) );
     if ( truth )
       std::cout << "  truth           : [" << NC::fmt(truth->first,"%.10g")
                 << ", " << NC::fmt(truth->second,"%.10g") << "]" << std::endl;
@@ -202,11 +205,10 @@ namespace {
                      std::size_t npts, double relcontriblvl,
                      double noiseAmplRel = 0.0 )
   {
-    NC::VectD egrid(npts), spec(npts);
+    NC::VectD spec(npts);
     const double binwidth = 2.0*halfwidth/(npts-1);
     for ( auto i : NC::ncrange(npts) ) {
       const double x = mu - halfwidth + i*binwidth;
-      egrid[i] = x;
       spec[i] = std::exp( -k*(x-mu)*(x-mu) );
     }
     if ( noiseAmplRel != 0.0 ) {
@@ -232,7 +234,7 @@ namespace {
     const double spec_max = *std::max_element(spec.begin(),spec.end());
     const double d = std::sqrt( std::log( 1.0/(relcontriblvl*spec_max) )/k );
     NC::PairDD truth( mu-d, mu+d );
-    report( label, egrid, spec, relcontriblvl, &truth );
+    report( label, mu-halfwidth, binwidth, spec, relcontriblvl, &truth );
   }
 
   ///////////////////////////////////
@@ -246,16 +248,15 @@ namespace {
   //discontinuity rather than a smooth tail:
   void stepCase( double mu, double w, std::size_t npts, double relcontriblvl )
   {
-    NC::VectD egrid(npts), spec(npts);
+    NC::VectD spec(npts);
     const double halfwidth = 2.0*w;
     const double binwidth = 2.0*halfwidth/(npts-1);
     for ( auto i : NC::ncrange(npts) ) {
       const double x = mu - halfwidth + i*binwidth;
-      egrid[i] = x;
       spec[i] = ( NC::ncabs(x-mu) <= w ) ? 1.0 : 0.0;
     }
     report( "hard step (discontinuous, robustness check)",
-            egrid, spec, relcontriblvl );
+            mu-halfwidth, binwidth, spec, relcontriblvl );
   }
 
   ///////////////////////////////////////////////////////////////////
@@ -287,13 +288,10 @@ namespace {
       const auto& spec = gn.getRawSpectrum( order );
       const double lower = gn.eRange( order ).first;//exact grid edge
       const double binwidth = gn.binWidth( order );
-      NC::VectD egrid( spec.size() );
-      for ( auto i : NC::ncrange(spec.size()) )
-        egrid[i] = NCV::equidistantGridPoint( lower, binwidth, i );
       for ( auto relcontriblvl : relcontriblvls ) {
         std::ostringstream oss;
         oss << label << ", order=" << n;
-        report( oss.str().c_str(), egrid, spec, relcontriblvl );
+        report( oss.str().c_str(), lower, binwidth, spec, relcontriblvl );
       }
     }
   }

@@ -194,10 +194,10 @@ Initialise nuclear data...
 FAILED (as expected): Conversion to ENDF is not currently supported for materials where the same element has multiple dynamic roles (problematic element: Al)
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#29]
 Designated incoherent: Th
->>> alpha points: 100, alpha range: (1.563e-49, 179.4)
->>> beta points: 116, beta range: (0, 36.95)
->>> alpha points: 100, alpha range: (2.641e-49, 176)
->>> beta points: 102, beta range: (0, 11.99)
+>>> alpha points: 100, alpha range: (1.563e-49, 179.5)
+>>> beta points: 116, beta range: (0, 37)
+>>> alpha points: 100, alpha range: (2.641e-49, 176.1)
+>>> beta points: 102, beta range: (0, 12.03)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Th
 >> Prepare elastic approximations
@@ -212,7 +212,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#35]
 >>> alpha points: 400, alpha range: (6.91e-50, 198.7)
 >>> beta points: 464, beta range: (0, 39.98)
->>> alpha points: 400, alpha range: (1.342e-49, 198.7)
+>>> alpha points: 400, alpha range: (1.342e-49, 198.8)
 >>> beta points: 464, beta range: (0, 39.98)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Si
@@ -223,7 +223,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given i
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain a Bragg diffraction component [warn#39]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#40]
 >>> alpha points: 400, alpha range: (8.364e-50, 198.7)
->>> beta points: 429, beta range: (0, 34.93)
+>>> beta points: 429, beta range: (0, 34.94)
 >>> Interpolating T=293.15K for Al
 >> Prepare elastic approximations
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no Bragg edges found: incoherent approximation [warn#41]
@@ -231,7 +231,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given i
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain a Bragg diffraction component [warn#43]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#44]
 >>> alpha points: 400, alpha range: (8.364e-50, 198.7)
->>> beta points: 429, beta range: (0, 34.93)
+>>> beta points: 429, beta range: (0, 34.94)
 >>> Interpolating T=293.15K for Al
 >> Prepare elastic approximations
 >> Principal elastic mode for Al: incoherent
@@ -239,14 +239,14 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given i
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): ENDF output will not contain any incoherent elastic component [warn#46]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#47]
 >>> alpha points: 400, alpha range: (8.364e-50, 198.7)
->>> beta points: 429, beta range: (0, 34.93)
+>>> beta points: 429, beta range: (0, 34.94)
 >>> Interpolating T=293.15K for Al
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Al" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#48]
 >>> Interpolating T=300K for Al
 >> Prepare elastic approximations
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Mixed elastic mode for Al but no incoherent elastic data found: coherent approximation [warn#49]
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Combining (alpha, beta) grids from different temperatures. This usually results in a huge grid. [warn#50]
->>> alpha points: 800, alpha range: (8.192e-50, 199.4)
+>>> alpha points: 800, alpha range: (8.192e-50, 199.5)
 >>> beta points: 808, beta range: (0, 35.07)
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): Temperature not explicitly given in the cfg-string, using T=293.15K [warn#51]
 >>> alpha points: 100, alpha range: (1.18e-49, 179)
@@ -261,7 +261,7 @@ CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "O" would
 CAUGHT ESCAPED WARNING (NCrystalUserWarning): The extracted kernel for "Si" would normally cover energies up to Emax=5eV with the provided cfg-string but a value of Emax=1eV was enforced. [warn#55]
 >>> alpha points: 400, alpha range: (6.91e-50, 198.7)
 >>> beta points: 464, beta range: (0, 39.98)
->>> alpha points: 400, alpha range: (1.342e-49, 198.7)
+>>> alpha points: 400, alpha range: (1.342e-49, 198.8)
 >>> beta points: 464, beta range: (0, 39.98)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Si

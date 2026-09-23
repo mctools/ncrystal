@@ -450,29 +450,8 @@ NC::PairDD NCV::VDOSGn::eRange( Order n, double relthreshold ) const
 {
   nc_assert(relthreshold>0.0&&relthreshold<1.0);
   const auto& p = m_impl->accessAtOrder(n);
-  const auto& spec = p.getSpectrum();
-  const double spec_max = p.maxDensity();
-  const double threshold = relthreshold * spec_max;
-  PairDD erange(p.getEGridLower(), p.getEGridUpper());
-
-  for ( auto e :  enumerate(spec) ) {
-    if ( e.val >= threshold ) {
-      erange.first = equidistantGridPoint( p.getEGridLower(),
-                                           p.getEGridBinwidth(), e.idx );
-      break;
-    }
-  }
-
-  for (std::size_t i = spec.size(); i>0; --i) {
-    if ( vectAt(spec,i-1) >= threshold ) {
-      erange.second = ncmin(erange.second,
-                            equidistantGridPoint( p.getEGridLower(),
-                                                  p.getEGridBinwidth(), i-1 ));
-      break;
-    }
-  }
-  nc_assert( erange.second >= erange.first );
-  return erange;
+  return estimateGnErange( p.getEGridLower(), p.getEGridBinwidth(),
+                           p.getSpectrum(), relthreshold );
 }
 
 NC::PairDD NCV::VDOSGn::eRange( Order n ) const
