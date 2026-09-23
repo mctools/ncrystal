@@ -68,6 +68,12 @@ namespace NCRYSTAL_NAMESPACE {
     // course be called again if needed, possibly with a lower rtol).
     void topOffGrid( VectD& g, std::size_t npts, double rtol = 0.1 );
 
+    // Position of point i of an equidistant grid: x0+i*binWidth, but calculated
+    // with a single rounding (using an explicit std::fma). For consistency, all
+    // node positions of equidistant grids and piecewise linear functions must
+    // be calculated with this function.
+    double equidistantGridPoint( double x0, double binWidth, std::size_t i );
+
     // The makeCommonGrid function merges several evenly spaced input grids into
     // a single grid.
     //
@@ -80,11 +86,8 @@ namespace NCRYSTAL_NAMESPACE {
     struct EquidistantGrid final {
       double x0, binWidth;
       std::size_t npts;
-      double x1() const
-      {
-        //x0 + binWidth*(npts-1)
-        return std::fma( binWidth,static_cast<double>(npts - 1),x0);
-      }
+      double xAt( std::size_t i ) const;//x{i}=x0+i*binWidth (safely)
+      double x1() const { return xAt( npts - 1 ); }
     };
     VectD makeCommonGrid( Span<const EquidistantGrid> );
 
@@ -104,7 +107,7 @@ namespace NCRYSTAL_NAMESPACE {
       double binWidth = 0.0;//distance between x{i} and x{i+1}
       Span<const double> f;//values of f at the x{i} points. The size of the
                            //span encodes the number of points.
-      double xAt( std::size_t i ) const noexcept;//x{i}
+      double xAt( std::size_t i ) const;//x{i}=x0+i*binWidth (safely)
       double x1() const { return xAt( f.size()-1 ); }
       VectD dataHolder;//optional, so can hold its data if needed.
 
@@ -123,6 +126,8 @@ namespace NCRYSTAL_NAMESPACE {
 
     // Evaluates the weighted sum of functions on the supplied grid. Optionally
     // weights can be applied to each function (unit weights if empty).
+    // For stability, grid points within a tiny tolerance (1e-9*binWidth) of the
+    // endpoints of a function are considered to be exactly at the endpoint.
     VectD evalPWLSum( Span<const PWLFct> fs,
                       Span<const double> grid,
                       Span<const double> weights = {} );
@@ -133,7 +138,9 @@ namespace NCRYSTAL_NAMESPACE {
     void trimTailByIntegral( VectD& x, VectD& y, double frac );
 
     // Remove points from the top of the grid until g.x1() <= xmax, but always
-    // keeping at least 2 points.
+    // keeping at least 2 points. A tolerance of 1e-9*binWidth is applied, so a
+    // node which mathematically is at xmax is kept regardless of rounding
+    // errors.
     void trimEquidistantGridUpperEdge( EquidistantGrid& g, double xmax );
 
   }
@@ -162,11 +169,6 @@ namespace NCRYSTAL_NAMESPACE {
       return *this;
     }
 
-    inline double PWLFct::xAt( std::size_t i ) const noexcept
-    {
-      return x0 + static_cast<double>(i)*binWidth;
-    }
-
     inline void PWLFct::moveDataFrom( PWLFct& o ) noexcept
     {
       const bool owns = ( !o.dataHolder.empty()
@@ -182,6 +184,22 @@ namespace NCRYSTAL_NAMESPACE {
     {
       nc_assert( dataHolder.size() == f.size() );
       return dataHolder;
+    }
+
+    inline double equidistantGridPoint( double x0, double binWidth,
+                                        std::size_t i )
+    {
+      return std::fma( binWidth, static_cast<double>(i), x0 );
+    }
+
+    inline double PWLFct::xAt( std::size_t i ) const
+    {
+      return equidistantGridPoint( x0, binWidth, i );
+    }
+
+    inline double EquidistantGrid::xAt( std::size_t i ) const
+    {
+      return equidistantGridPoint( x0, binWidth, i );
     }
 
   }

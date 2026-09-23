@@ -437,7 +437,7 @@ NC::VectD NC::VDOS::makeCommonGrid(Span<const EquidistantGrid> grids )
     nc_assert(item.point < g.npts);
     item.x = ( item.point == g.npts - 1
                ? g.x1()
-               : g.x0 + g.binWidth * static_cast<double>(item.point) );
+               : g.xAt(item.point) );
     heap.front() = item;
     siftDown();
     nc_assert( heap.empty()
@@ -473,7 +473,11 @@ NC::VDOS::coverEquidistantGrids( const EquidistantGrid& g1,
     const double q = (g.x0 - x0) / g.binWidth;
     nc_assert(std::isfinite(q));
     nc_assert(q >= 0.0);
-    const double first = std::ceil(q);
+    //Tolerance, since (for our VDOS-Gn usage) g.x0-x0 is often an exact integer
+    //number of bins (grids on the same lattice), and we should not get a
+    //different result depending on which side of the integer rounding errors
+    //put us:
+    const double first = std::ceil(q - 1e-6);
     nc_assert(first
               < static_cast<double>(std::numeric_limits<std::size_t>::max()));
     const std::size_t i0 = static_cast<std::size_t>(first);
@@ -502,7 +506,7 @@ NC::VDOS::PWLFct NC::VDOS::pwlNarrowToPos( const PWLFct& p, double tol )
                     (std::ceil((t - p.x0) / p.binWidth)) : 0u );
   i = std::min<std::size_t>(i, p.f.size());
   PWLFct res;
-  res.x0 = p.x0 + i * p.binWidth;
+  res.x0 = p.xAt(i);
   res.binWidth = p.binWidth;
   res.dataHolder.assign(p.f.begin() + i, p.f.end());
   res.f = res.dataHolder;
@@ -532,10 +536,18 @@ NC::VectD NC::VDOS::evalPWLSum( Span<const PWLFct> fs,
     const double weight = weighted ? ws[n] : 1.0;
     const double xmax = p.x1();
 
-    std::size_t g = static_cast<std::size_t>
-      (std::lower_bound(grid.begin(), grid.end(), p.x0) - grid.begin());
+    // Grid points which are meant to be at the endpoints of the function (e.g.
+    // because they are nodes of another function with the same endpoint) can be
+    // a few ulps outside, due to rounding errors in the calculation of one or
+    // the other. Since the function value at an endpoint might be very
+    // different from the (zero) value just outside it, we treat points within a
+    // tiny tolerance of the endpoints as being at the endpoints.
+    const double xtol = 1e-9 * p.binWidth;
 
-    if (g == grid.size() || gridPtr[g] > xmax)
+    std::size_t g = static_cast<std::size_t>
+      (std::lower_bound(grid.begin(), grid.end(), p.x0 - xtol) - grid.begin());
+
+    if (g == grid.size() || gridPtr[g] > xmax + xtol)
       continue;
 
     // For consistency, the bin edges must be calculated exactly like the node
@@ -565,10 +577,10 @@ NC::VectD NC::VDOS::evalPWLSum( Span<const PWLFct> fs,
     }
 
     // Handle the final sample at x == xmax.
-    if (g < grid.size() && gridPtr[g] <= xmax) {
+    if (g < grid.size() && gridPtr[g] <= xmax + xtol) {
       const double y = vectAt(f, lastBin);
       std::size_t end = g;
-      while (end < grid.size() && gridPtr[end] <= xmax)
+      while (end < grid.size() && gridPtr[end] <= xmax + xtol)
         ++end;
       for (std::size_t k = g; k < end; ++k)
         outPtr[k] += weight * y;
@@ -618,6 +630,10 @@ void NC::VDOS::trimTailByIntegral( VectD& x, VectD& y, double frac )
 
 void NC::VDOS::trimEquidistantGridUpperEdge(EquidistantGrid& g, double xmax)
 {
+  //A tiny tolerance ensures that a node which mathematically is at xmax is
+  //always kept, rather than randomly dropped or kept depending on rounding
+  //errors in xmax or in the node position:
+  xmax += 1e-9 * g.binWidth;
 #ifndef NDEBUG
   nc_assert(g.npts >= 2);
   nc_assert(std::isfinite(g.x0));
