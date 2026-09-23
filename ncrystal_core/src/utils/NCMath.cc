@@ -401,6 +401,69 @@ double NC::findRoot(const Fct1D*f,double a, double b, double acc)
 
 NC::Fct1D::~Fct1D(){}
 
+double NC::stable_exp( double x )
+{
+  const double y0 = std::exp(x);
+  if ( y0 == 0.0 || !std::isfinite(y0) )
+    return y0;//underflow, overflow, or nan-in-nan-out: nothing to refine.
+  //One Newton-Raphson step on f(y)=ln(y)-x=0 (f'(y)=1/y):
+  //y1 = y0 - (ln(y0)-x)*y0 = y0+y0*(x-ln(y0)). Use std::fma for the final
+  //combination (single rounding), rather than y0*(1+correction) (two
+  //roundings: forming 1+correction, then the product):
+  const double correction = x - std::log(y0);
+  return std::fma( y0, correction, y0 );
+}
+
+double NC::stable_expm1( double x )
+{
+  const double y0 = std::expm1(x);
+  if ( !std::isfinite(y0) )
+    return y0;//overflow, or nan-in-nan-out.
+  const double onepy0 = 1.0 + y0;
+  if ( onepy0 == 0.0 )
+    return y0;//y0=-1 exactly (x very negative): nothing left to refine.
+  //One Newton-Raphson step on f(y)=log1p(y)-x=0 (f'(y)=1/(1+y)):
+  //y1 = y0 - (log1p(y0)-x)*(1+y0) = y0 + (x-log1p(y0))*(1+y0). Use
+  //std::fma for the final combination (single rounding):
+  const double correction = x - std::log1p(y0);
+  return std::fma( correction, onepy0, y0 );
+}
+
+double NC::stable_tanh( double x )
+{
+  //tanh(x) = (e^(2x)-1)/(e^(2x)+1) = expm1(2x)/(expm1(2x)+2). Well
+  //conditioned for all x (no cancellation near x=0, since stable_expm1
+  //already handles that), and inherits stable_expm1's refined accuracy
+  //directly rather than needing its own Newton-Raphson correction (which
+  //would be ill-conditioned for tanh: atanh'(y)->infinity as y->+-1):
+  if ( ncisnan(x) )
+    return x;
+  const double t = stable_expm1(2.0*x);
+  if ( t == kInfinity )
+    return 1.0;//avoids inf*inf/inf further down for large positive x.
+  return t/(t+2.0);
+}
+
+double NC::stable_sinh( double x )
+{
+  //sinh(x) = t*(t+2)/(2*(1+t)) for t=expm1(x)=e^x-1, since
+  //t*(t+2)/(1+t) = (e^x-1)(e^x+1)/e^x = e^x-e^-x = 2*sinh(x). Well
+  //conditioned for x>=0 (then t>=0, so 1+t>=1), but the (1+t) denominator
+  //goes to 0 as x->-infinity (t->-1), amplifying t's own tiny relative
+  //error into a large one -- confirmed empirically (e.g. off by ~2e-8
+  //relative for x=-20, far more than a rounding-level error). Sidestep
+  //this entirely using the odd-function symmetry sinh(-x)=-sinh(x) (an
+  //exact identity: negation is a free, lossless sign-bit flip), so the
+  //division is only ever evaluated in the well-conditioned x>=0 branch:
+  if ( ncisnan(x) )
+    return x;
+  if ( x < 0.0 )
+    return -stable_sinh(-x);
+  const double t = stable_expm1(x);
+  if ( t == kInfinity )
+    return kInfinity;//avoids inf*inf/inf further down for large positive x.
+  return 0.5*t*(t+2.0)/(1.0+t);
+}
 
 namespace NCRYSTAL_NAMESPACE {
   double erfcdiff_notaylor(double a, double b)

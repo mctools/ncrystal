@@ -110,6 +110,39 @@ namespace NCRYSTAL_NAMESPACE {
   double atan_approx(double x);//calling atan_smallarg_approx when |x|<0.442 and falling back to std::atan and exact results otherwise.
   double expm1_smallarg_approx(double x);//7th order Taylor expansion
 
+  //"Stabilised" transcendental functions: a thin wrapper around the
+  //corresponding std:: function, refined with a single Newton-Raphson
+  //correction step (stable_exp via std::log, stable_expm1 via
+  //std::log1p; stable_tanh/stable_sinh are then built on stable_expm1
+  //via algebraic identities, so they need no separate correction step of
+  //their own) to substantially reduce the platform/libm-version dependent
+  //last-few-ULP variation that plain std::exp/expm1/tanh/sinh calls are
+  //prone to (different libm implementations are not required to be
+  //correctly rounded, and legitimately disagree by a handful of ULPs for
+  //some inputs -- this is not fixable via std::fma, which only applies to
+  //the +,-,*,/ operators). This is NOT guaranteed to be exactly correctly
+  //rounded for every possible double -- composing several individually
+  //correctly-rounded steps does not itself guarantee a correctly-rounded
+  //final result (double rounding), and truly guaranteeing correct
+  //rounding for every double is a much harder, open-ended problem (see
+  //e.g. the "table maker's dilemma") that whole dedicated correctly-
+  //rounded-libm projects exist to address. What is verified, against
+  //high-precision (mpmath) reference values for a broad set of
+  //representative and edge-case arguments in app_stablemathfct, is that
+  //the result is within a few ULP of correctly rounded, which is far
+  //tighter than plain std:: calls are guaranteed to achieve, and in
+  //practice removes the observed cross-platform divergence.
+  //
+  //Cost: each of these needs one extra transcendental call beyond the
+  //plain std:: one it wraps (stable_exp = std::exp + std::log;
+  //stable_expm1 = std::expm1 + std::log1p; stable_tanh/stable_sinh call
+  //stable_expm1 once, the sign handling in stable_sinh being a free sign-
+  //bit flip) -- so roughly 2x the cost of the plain call, not more:
+  double stable_exp(double x);
+  double stable_expm1(double x);
+  double stable_tanh(double x);
+  double stable_sinh(double x);
+
   //Evaluate erfc(a)-erfc(b) in a relatively numerically safe
   //manner and with as few actual calls to std::erfc as possible:
   double erfcdiff(double a, double b);
