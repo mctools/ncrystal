@@ -34,12 +34,24 @@
 //
 // This app builds synthetic curves (a clean Gaussian-shaped bump, the same
 // bump with noise injected right at the naive crossing points, and a hard
-// step) plus real Gn spectra captured from two cases that showed up as
-// cross-platform-sensitive on actual CI runs (a Li2O-derived Li spectrum at
-// order 129, and a synthetic Debye-model spectrum at order 153 -- both
-// vdoslux=2000, i.e. relcontriblvl=1e-6), and compares four crossing
-// estimators against each other (and, for the synthetic cases, against the
-// true analytic answer):
+// step) plus real Gn spectra generated LIVE from the actual production
+// VDOSGn/VDOSEval machinery -- not hand-transcribed, so a broad sweep of
+// "nuisance" cases can be tried cheaply and without risk of transcription
+// error. The live sweep covers: three Debye models spanning very different
+// characteristic scales (narrow/steep, Al-like, wide), each swept across
+// phonon orders from 1 (where a Debye model's hard cutoff at the Debye
+// energy is barely smoothed by convolution) up to 100 (where the
+// central-limit-theorem-driven Gaussian shape dominates) and across
+// relcontriblvl spanning the full vdoslux 0-6 range (1e-3 down to 1e-13);
+// plus a real multi-element file-based material (Li2O, both elements),
+// loaded exactly as NCrystal itself would load it, swept the same way.
+// This deliberately includes the two specific cases (a Li2O/Li spectrum,
+// and a Debye-model spectrum) that showed up as cross-platform-sensitive on
+// actual CI runs earlier this session (see
+// docs/claude_session_vdos_fma_reprod.md), now generalised into a much
+// broader sweep around them. Compares four crossing estimators against
+// each other (and, for the synthetic cases, against the true analytic
+// answer):
 //
 //  * snapToGrid:       today's production VDOSGn::eRange behaviour.
 //  * linear2pt:        linear interpolation between the immediate bracket.
@@ -67,10 +79,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/vdos/NCVDOSUtils.hh"
+#include "NCrystal/internal/vdos/NCVDOSGn.hh"
+#include "NCrystal/internal/vdos/NCVDOSEval.hh"
+#include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include <iostream>
+#include <sstream>
 
 namespace NC = NCrystal;
+namespace NCV = NCrystal::VDOS;
 
 namespace {
 
@@ -238,151 +258,87 @@ namespace {
             egrid, spec, relcontriblvl );
   }
 
-  ///////////////////////////////////////////////////////////////
-  // Real data, captured via temporary debug instrumentation in //
-  // VDOSGn::eRange while investigating the sabxs/nctool CI     //
-  // divergences documented in                                  //
-  // docs/claude_session_vdos_fma_reprod.md.                    //
-  ///////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////
+  // Real data, generated LIVE from the actual production VDOSGn/    //
+  // VDOSEval machinery (not hand-transcribed), so a broad sweep of  //
+  // "nuisance" cases can be tried cheaply and without any risk of   //
+  // transcription error: many phonon orders (from n=1, where the    //
+  // underlying VDOS's own shape -- including a Debye model's hard   //
+  // cutoff -- is barely smoothed by convolution, up to high orders  //
+  // where the central-limit-theorem-driven Gaussian shape dominates),//
+  // many relcontriblvl values (spanning the full vdoslux 0-6 range), //
+  // several very different Debye temperatures (narrow vs wide        //
+  // characteristic spectra), and a real multi-element file-based     //
+  // material (Li2O, both elements) loaded exactly as NCrystal itself //
+  // would load it.                                                   //
+  ///////////////////////////////////////////////////////////////////
 
-  //Debye-model VDOS (debyeTemp=410K, as in app_fmavdos's testExpansionGrids),
-  //VDOSLux(2000) => relcontriblvl=1e-6, order=153 (=maxOrder for this case):
-  void debyeOrder153Case()
+  void sweepSpectrum( const char* label, const NC::VDOSData& vdosdata,
+                      NC::Span<const unsigned> orders,
+                      NC::Span<const double> relcontriblvls )
   {
-    const double lower = -2.8995131203490909;
-    const double binwidth = 0.021638157614545454;
-    const NC::VectD spec = {
-      3.5285831638648959e-13, 7.9416557395114186e-13, 1.7616423881341544e-12,
-      3.8535173829849065e-12, 8.3130665343855631e-12, 1.7690057548626921e-11,
-      3.7138413843954209e-11, 7.6932143671248009e-11, 1.5727079816181896e-10,
-      3.1732752472983032e-10, 6.3204303227586635e-10, 1.2428655777294966e-09,
-      2.4132245839823095e-09, 4.6272549350747501e-09, 8.7630593331003398e-09,
-      1.639260436272431e-08, 3.0293671816193269e-08, 5.5311858116976203e-08,
-      9.9792139760772752e-08, 1.7792393440103246e-07, 3.1353021974917828e-07,
-      5.4610651540732562e-07, 9.4031435330186411e-07, 1.60070135957299e-06,
-      2.694212615586963e-06, 4.4841433595257316e-06, 7.3806393942868516e-06,
-      1.2014763459072707e-05, 1.9345597850927932e-05, 3.0812919117973241e-05,
-      4.8551705751815892e-05, 7.5689121329201379e-05, 0.00011674957341874873,
-      0.0001781987930855037, 0.00026916327608871672, 0.00040236635979588295,
-      0.00059532595530774812, 0.00087186056344022158, 0.0012639485083900427,
-      0.0018139789748601025, 0.0025774209792698744, 0.003625916409142115,
-      0.0050507744862018054, 0.0069668066224631347, 0.0095163924911285704,
-      0.012873611017277105, 0.01724820590251613, 0.022889087636759339,
-      0.030087007636656948, 0.039175981575036593, 0.050532995765671961,
-      0.06457551108032486, 0.081756291869027622, 0.10255514055491548,
-      0.12746721803513283, 0.15698777892859239, 0.1915933483538089,
-      0.23171960782628281, 0.27773653130281006, 0.32992160234025386,
-      0.38843222899600005, 0.45327873011230807, 0.52429946883131384,
-      0.60113983090130474, 0.68323676397653088, 0.76981049288754322,
-      0.85986479622426193, 0.95219687316918444, 1.0454173592716456,
-      1.1379804900430215, 1.2282237963953515, 1.3144160885298022,
-      1.394811892074874, 1.4677099898955579, 1.5315133391269804,
-      1.5847874116907077, 1.6263139721490338, 1.6551374690954923,
-      1.670601569354927, 1.6723738863069157, 1.6604576087853797,
-      1.6351894783179104, 1.5972243360850582, 1.5475072108704018,
-      1.4872345921650256, 1.4178070825457314, 1.3407760156183326,
-      1.2577868390439659, 1.1705220901795268, 1.0806466430574726,
-      0.98975760129216728, 0.89934078393764594, 0.81073523923224211,
-      0.72510666663609902, 0.64343007211197034, 0.56648146279255385,
-      0.49483793597390952, 0.4288851563010837, 0.36883095730788124,
-      0.31472365314921691, 0.26647359906596729, 0.22387658360134088,
-      0.18663775557302195, 0.15439496503057465, 0.12674060961018338,
-      0.10324130629190324, 0.083454936158531889, 0.06694482205918019,
-      0.053290985467928265, 0.042098582474756188, 0.033003736526340789,
-      0.025677067156876489, 0.019825261927261625, 0.015191057337780528,
-      0.011551988904443325, 0.0087182466599474047, 0.0065299357493555938,
-      0.0048539977512721145, 0.0035810013307342255, 0.00262196438798126,
-      0.0019053266418256065, 0.0013741533234781578, 0.00098361831818445634,
-      0.00069878899386986585, 0.00049271492018100117, 0.00034480818475462945,
-      0.00023949332222448103, 0.00016509915287753028, 0.00011296223845621545,
-      7.6711410463931823e-05, 5.170421104229645e-05, 3.4588520003554188e-05,
-      2.2965654051122935e-05, 1.5134459047519326e-05, 9.899118289663627e-06,
-      6.4263998885247204e-06, 4.1407642578271976e-06, 2.6481007848426415e-06,
-      1.6808512754949705e-06, 1.0589225106143327e-06, 6.621224902628531e-07,
-      4.1091380125808288e-07, 2.5310464637482963e-07, 1.5473376424129942e-07,
-      9.388669205016139e-08, 5.6539915605942196e-08, 3.3793754635371761e-08,
-      2.0046830161559381e-08, 1.1802677886406865e-08, 6.8966529691565971e-09,
-      3.999598201576595e-09, 2.3020326485236863e-09, 1.3149838373954515e-09,
-      7.4548638421514508e-10, 4.1943592926081002e-10, 2.3420376771729576e-10,
-      1.2978378303610078e-10, 7.1374007102099835e-11, 3.8953576988022259e-11,
-      2.1097728815440002e-11, 1.1339667041341752e-11, 6.0483158719457259e-12,
-      3.2012842168437777e-12, 1.6814112515985862e-12, 8.7621725469248586e-13,
-      4.5313957497504441e-13, 2.3248425706281867e-13,
-    };
-    NC::VectD egrid(spec.size());
-    for ( auto i : NC::ncrange(spec.size()) )
-      egrid[i] = NC::VDOS::equidistantGridPoint(lower,binwidth,i);
-    report( "real: Debye VDOS (T=410K), order=153, vdoslux=2000",
-            egrid, spec, 1e-6 );
+    NC::VDOSEval ve(vdosdata);
+    NCV::VDOSGn gn( ve, NCV::VDOSGn::Cfg::Default );
+    unsigned maxorder = 0;
+    for ( auto n : orders ) maxorder = std::max(maxorder,n);
+    gn.growMaxOrder( maxorder );
+    for ( auto n : orders ) {
+      const NCV::VDOSGn::Order order(n);
+      const auto& spec = gn.getRawSpectrum( order );
+      const double lower = gn.eRange( order ).first;//exact grid edge
+      const double binwidth = gn.binWidth( order );
+      NC::VectD egrid( spec.size() );
+      for ( auto i : NC::ncrange(spec.size()) )
+        egrid[i] = NCV::equidistantGridPoint( lower, binwidth, i );
+      for ( auto relcontriblvl : relcontriblvls ) {
+        std::ostringstream oss;
+        oss << label << ", order=" << n;
+        report( oss.str().c_str(), egrid, spec, relcontriblvl );
+      }
+    }
   }
 
-  //Li2O_sg225_LithiumOxide.ncmat, Li element, temp=293.15K,
-  //VDOSLux(2000) => relcontriblvl=1e-6, order=129 (=maxOrder for Li here):
-  void li2oOrder129Case()
+  NC::VDOSData makeDebyeVDOS( double debyeTempK, double tempK )
   {
-    const double lower = -6.737992804182225;
-    const double binwidth = 0.037853892158327108;
-    const NC::VectD spec = {
-      2.4018326197233627e-13, 5.847091923795665e-13, 1.3985335023138133e-12,
-      3.287551586393825e-12, 7.596400478881977e-12, 1.7258200862047844e-11,
-      3.8559030717202e-11, 8.47406107970998e-11, 1.8322458087583387e-10,
-      3.8984279065390105e-10, 8.163842450527712e-10, 1.6829970141712412e-09,
-      3.41615842389853e-09, 6.82871988226768e-09, 1.3445169911653304e-08,
-      2.607933420058272e-08, 4.984319441666212e-08, 9.387908367336454e-08,
-      1.7428435116762332e-07, 3.189672173223916e-07, 5.755749961979074e-07,
-      1.0242234790262413e-06, 1.7975949519039726e-06, 3.1121411982908906e-06,
-      5.315716593613001e-06, 8.959068821075785e-06, 1.4901317214939004e-05,
-      2.4462912365000082e-05, 3.964360593032082e-05, 6.342759378283182e-05,
-      0.00010020303324737984, 0.00015632821563798445, 0.00024088123157143182,
-      0.0003666331939276956, 0.0005512859273664137, 0.0008190122092935482,
-      0.0012023287032246702, 0.0017443171596581363, 0.00250118689701343,
-      0.0035451400040914117, 0.004967459760020927, 0.0068816930338309315,
-      0.009426740733254944, 0.012769610023051513, 0.017107522910621523,
-      0.022669024299717278, 0.02971369636459355, 0.03853007340092262,
-      0.04943137035602322, 0.06274869609882694, 0.07882152397280144,
-      0.09798533869817813, 0.12055656727732275, 0.14681512416549122,
-      0.17698514428986048, 0.21121472336576252, 0.24955571142298513,
-      0.29194478852064343, 0.3381871675276844, 0.387944296653267,
-      0.44072685872415535, 0.49589417755123383, 0.5526608463628436,
-      0.6101110021019235, 0.6672202057075243, 0.722884384676335,
-      0.775954789069422, 0.8252774475854637, 0.8697352272901724,
-      0.9082903348874516, 0.9400249759513069, 0.9641779263240422,
-      0.9801749682318384, 0.9876514897638029, 0.9864660143480362,
-      0.9767039802632257, 0.9586716854680145, 0.9328809036263005,
-      0.9000252181618456, 0.8609495731110959, 0.8166148720955443,
-      0.7680596509053499, 0.7163608984397459, 0.6625960108264516,
-      0.6078076510820789, 0.5529729768967365, 0.49897832287329263,
-      0.446600014076817, 0.3964915775813423, 0.3491772369139407,
-      0.3050512444104519, 0.26438234514586095, 0.2273224825021407,
-      0.19391875160972946, 0.16412757851972604, 0.13783014065447943,
-      0.11484813496705472, 0.0949591295554225, 0.07791088709949039,
-      0.06343421021411948, 0.051254017333390925, 0.04109850328483777,
-      0.03270636432305377, 0.02583216892929663, 0.0202500315724535,
-      0.01575579744366068, 0.012167974142593291, 0.009327654738372113,
-      0.007097669485752819, 0.005361184844767866, 0.004019942240453038,
-      0.0029922986845395006, 0.0022111998512400702, 0.0016221856890777466,
-      0.0011815007447430535, 0.0008543570629823144, 0.0006133772910623087,
-      0.00043722953688567727, 0.0003094533895800244, 0.00021746789730275166,
-      0.0001517466861688891, 0.00010514223345749383, 7.234002615491207e-05,
-      4.9423438097211494e-05, 3.353120906414468e-05, 2.2591047821786635e-05,
-      1.5114826546658785e-05, 1.0042876466822723e-05, 6.626886978987173e-06,
-      4.342758016959359e-06, 2.826404139961336e-06, 1.826935439416417e-06,
-      1.172843343117397e-06, 7.478113449978027e-07, 4.735725374732798e-07,
-      2.9787248272133846e-07, 1.8609319443206175e-07, 1.1547645930055734e-07,
-      7.117471589422507e-08, 4.357462045230393e-08, 2.649861429232971e-08,
-      1.600664483874134e-08, 9.60441181497638e-09, 5.7245336130949956e-09,
-      3.3893286667507067e-09, 1.9934100899941806e-09, 1.1646460583422373e-09,
-      6.759435042001941e-10, 3.8971800517563627e-10, 2.232124441278612e-10,
-      1.27004272419174e-10, 7.178828636653034e-11, 4.031145331279735e-11,
-      2.2487619041829344e-11, 1.2462436797248393e-11, 6.861325871258659e-12,
-      3.7528431107566266e-12, 2.039225600339778e-12, 1.1008248179772373e-12,
-      5.903264456279235e-13, 3.1450496474651e-13, 1.6645611076888047e-13,
-    };
-    NC::VectD egrid(spec.size());
-    for ( auto i : NC::ncrange(spec.size()) )
-      egrid[i] = NC::VDOS::equidistantGridPoint(lower,binwidth,i);
-    report( "real: Li2O (Li), order=129, vdoslux=2000",
-            egrid, spec, 1e-6 );
+    return NC::createVDOSDebye( NC::DebyeTemperature{debyeTempK},
+                                NC::Temperature{tempK},
+                                NC::SigmaBound{1.5},
+                                NC::AtomMass{26.98} );
+  }
+
+  void debyeSweep()
+  {
+    //vdoslux 0..6 (non-legacy) span relcontriblvl 1e-6..1e-13; legacy spans
+    //1e-3..1e-13. Orders from 1 (barely-convolved: for a Debye model this is
+    //where the input's own hard cutoff at the Debye energy is most directly
+    //visible) up through orders high enough that the central-limit-theorem
+    //Gaussian shape dominates:
+    const unsigned ordersArr[] = { 1, 2, 3, 5, 10, 30, 100 };
+    const double lvlsArr[] = { 1e-3, 1e-6, 1e-9, 1e-12, 1e-13 };
+    //Three very different characteristic scales (Debye temp vs material
+    //temp ratio controls how "steep"/narrow the resulting spectrum is):
+    sweepSpectrum( "Debye T=80K,temp=293.15K (narrow/steep)",
+                   makeDebyeVDOS(80.0,293.15), ordersArr, lvlsArr );
+    sweepSpectrum( "Debye T=410K,temp=293.15K (Al-like)",
+                   makeDebyeVDOS(410.0,293.15), ordersArr, lvlsArr );
+    sweepSpectrum( "Debye T=2000K,temp=293.15K (wide)",
+                   makeDebyeVDOS(2000.0,293.15), ordersArr, lvlsArr );
+  }
+
+  void li2oSweep()
+  {
+    NC::MatCfg cfg( "Li2O_sg225_LithiumOxide.ncmat;vdoslux=3;temp=293.15K" );
+    auto info = NC::FactImpl::createInfo( cfg );
+    const unsigned ordersArr[] = { 1, 2, 3, 5, 20, 60 };
+    const double lvlsArr[] = { 1e-3, 1e-6, 1e-9, 1e-12, 1e-13 };
+    for ( auto& di : info->getDynamicInfoList() ) {
+      auto di_vdos = dynamic_cast<const NC::DI_VDOS*>( di.get() );
+      if ( !di_vdos )
+        continue;
+      std::ostringstream oss;
+      oss << "Li2O (real material), element=" << di->atomData().elementName();
+      sweepSpectrum( oss.str().c_str(), di_vdos->vdosData(), ordersArr, lvlsArr );
+    }
   }
 }
 
@@ -403,9 +359,13 @@ int main() {
   std::cout << "--- Synthetic: hard step (discontinuity robustness) ---" << std::endl;
   stepCase( 0.0, 1.0, 40, 1e-6 );
 
-  std::cout << "--- Real data captured from CI-sensitive cases ---" << std::endl;
-  debyeOrder153Case();
-  li2oOrder129Case();
+  std::cout << "--- Real data: live Debye-model sweep"
+               " (many orders/temperatures/relcontriblvl) ---" << std::endl;
+  debyeSweep();
+
+  std::cout << "--- Real data: live Li2O (Li,O) sweep"
+               " (many orders/relcontriblvl) ---" << std::endl;
+  li2oSweep();
 
   return 0;
 }

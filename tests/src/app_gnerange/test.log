@@ -42,16 +42,995 @@
   logLinear2pt    : [-1.076922974, 1.076922974]
   estimateGnErange: [-1.076922974, 1.076922974]
 
---- Real data captured from CI-sensitive cases ---
-=== real: Debye VDOS (T=410K), order=153, vdoslux=2000 (npts=167, relcontriblvl=1e-06) ===
-  snapToGrid      : [-2.380197338, 0.08655263046]
-  linear2pt       : [-2.400417255, 0.08684757595]
-  logLinear2pt    : [-2.400015129, 0.08678942029]
-  estimateGnErange: [-2.400031707, 0.08679137714]
+--- Real data: live Debye-model sweep (many orders/temperatures/relcontriblvl) ---
+=== Debye T=80K,temp=293.15K (narrow/steep), order=1 (npts=837, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.006877371742, 0.006877371742]
+  linear2pt       : [-0.006893847748, 0.006893842587]
+  logLinear2pt    : [-0.006893847748, 0.006893842587]
+  estimateGnErange: [-0.006893847748, 0.006893842587]
 
-=== real: Li2O (Li), order=129, vdoslux=2000 (npts=162, relcontriblvl=1e-06) ===
-  snapToGrid      : [-5.943061069, -1.741279039]
-  linear2pt       : [-5.946146763, -1.724785616]
-  logLinear2pt    : [-5.945449276, -1.726823663]
-  estimateGnErange: [-5.945480136, -1.726755977]
+=== Debye T=80K,temp=293.15K (narrow/steep), order=1 (npts=837, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.006877371742, 0.006877371742]
+  linear2pt       : [-0.006893864224, 0.006893864218]
+  logLinear2pt    : [-0.006893864224, 0.006893864218]
+  estimateGnErange: [-0.006893864224, 0.006893864218]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=1 (npts=837, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.006877371742, 0.006877371742]
+  linear2pt       : [-0.00689386424, 0.00689386424]
+  logLinear2pt    : [-0.00689386424, 0.00689386424]
+  estimateGnErange: [-0.00689386424, 0.00689386424]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=1 (npts=837, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.006877371742, 0.006877371742]
+  linear2pt       : [-0.00689386424, 0.00689386424]
+  logLinear2pt    : [-0.00689386424, 0.00689386424]
+  estimateGnErange: [-0.00689386424, 0.00689386424]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=1 (npts=837, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.006877371742, 0.006877371742]
+  linear2pt       : [-0.00689386424, 0.00689386424]
+  logLinear2pt    : [-0.00689386424, 0.00689386424]
+  estimateGnErange: [-0.00689386424, 0.00689386424]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=2 (npts=1669, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.01375474348, 0.01373825099]
+  linear2pt       : [-0.01375474348, 0.01375308034]
+  logLinear2pt    : [-0.01375474348, 0.01375245708]
+  estimateGnErange: [-0.01375474348, 0.01375245708]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=2 (npts=1669, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.01375474348, 0.01375474348]
+  linear2pt       : [-0.01375474348, 0.01375474348]
+  logLinear2pt    : [-0.01375474348, 0.01375474348]
+  estimateGnErange: [-0.01375474348, 0.01375474348]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=2 (npts=1669, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.01375474348, 0.01375474348]
+  linear2pt       : [-0.01375474348, 0.01375474348]
+  logLinear2pt    : [-0.01375474348, 0.01375474348]
+  estimateGnErange: [-0.01375474348, 0.01375474348]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=2 (npts=1669, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.01375474348, 0.01375474348]
+  linear2pt       : [-0.01375474348, 0.01375474348]
+  logLinear2pt    : [-0.01375474348, 0.01375474348]
+  estimateGnErange: [-0.01375474348, 0.01375474348]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=2 (npts=1669, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.01375474348, 0.01375474348]
+  linear2pt       : [-0.01375474348, 0.01375474348]
+  logLinear2pt    : [-0.01375474348, 0.01375474348]
+  estimateGnErange: [-0.01375474348, 0.01375474348]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=3 (npts=2503, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.02020331027, 0.0199889078]
+  linear2pt       : [-0.02021578495, 0.02000026333]
+  logLinear2pt    : [-0.02021567141, 0.02000017373]
+  estimateGnErange: [-0.02021572032, 0.02000021514]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=3 (npts=2503, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.02063211523, 0.02063211523]
+  linear2pt       : [-0.02063211523, 0.02063211523]
+  logLinear2pt    : [-0.02063211523, 0.02063211523]
+  estimateGnErange: [-0.02063211523, 0.02063211523]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=3 (npts=2503, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.02063211523, 0.02063211523]
+  linear2pt       : [-0.02063211523, 0.02063211523]
+  logLinear2pt    : [-0.02063211523, 0.02063211523]
+  estimateGnErange: [-0.02063211523, 0.02063211523]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=3 (npts=2503, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.02063211523, 0.02063211523]
+  linear2pt       : [-0.02063211523, 0.02063211523]
+  logLinear2pt    : [-0.02063211523, 0.02063211523]
+  estimateGnErange: [-0.02063211523, 0.02063211523]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=3 (npts=2503, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.02063211523, 0.02063211523]
+  linear2pt       : [-0.02063211523, 0.02063211523]
+  logLinear2pt    : [-0.02063211523, 0.02063211523]
+  estimateGnErange: [-0.02063211523, 0.02063211523]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=5 (npts=1043, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.03028022666, 0.02882888682]
+  linear2pt       : [-0.03029814742, 0.02889380566]
+  logLinear2pt    : [-0.03029774102, 0.02889378004]
+  estimateGnErange: [-0.03029785343, 0.02889377927]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=5 (npts=1043, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.03364469629, 0.03338081632]
+  linear2pt       : [-0.03370579778, 0.03342210965]
+  logLinear2pt    : [-0.03370492306, 0.033420049]
+  estimateGnErange: [-0.03370485594, 0.03342053773]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=5 (npts=1043, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.03423842623, 0.03423842623]
+  linear2pt       : [-0.03430148885, 0.03425243888]
+  logLinear2pt    : [-0.03429728218, 0.03424573195]
+  estimateGnErange: [-0.03429134187, 0.03424787239]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=5 (npts=1043, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.03437036621, 0.03437036621]
+  linear2pt       : [-0.03437036621, 0.03437036621]
+  logLinear2pt    : [-0.03437036621, 0.03437036621]
+  estimateGnErange: [-0.03437036621, 0.03437036621]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=5 (npts=1043, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.03437036621, 0.03437036621]
+  linear2pt       : [-0.03437036621, 0.03437036621]
+  logLinear2pt    : [-0.03437036621, 0.03437036621]
+  estimateGnErange: [-0.03437036621, 0.03437036621]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=10 (npts=507, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.04697063482, 0.04195691537]
+  linear2pt       : [-0.04698941218, 0.04221509907]
+  logLinear2pt    : [-0.04698853317, 0.04221483325]
+  estimateGnErange: [-0.04698866918, 0.04221484823]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=10 (npts=507, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.05884523351, 0.05594255383]
+  linear2pt       : [-0.058971356, 0.05612338249]
+  logLinear2pt    : [-0.05896365148, 0.05611781851]
+  estimateGnErange: [-0.05896456482, 0.05611838107]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=10 (npts=507, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.06412283293, 0.06280343308]
+  linear2pt       : [-0.06432764965, 0.06285976037]
+  logLinear2pt    : [-0.06431485377, 0.06285144778]
+  estimateGnErange: [-0.06431608247, 0.06285261494]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=10 (npts=507, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.06649775267, 0.06596999273]
+  linear2pt       : [-0.06676030986, 0.06607068982]
+  logLinear2pt    : [-0.06675928504, 0.06604606042]
+  estimateGnErange: [-0.06675686387, 0.06604803298]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=10 (npts=507, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.06702551261, 0.06649775267]
+  linear2pt       : [-0.06702551261, 0.06649775267]
+  logLinear2pt    : [-0.06702551261, 0.06649775267]
+  estimateGnErange: [-0.06702551261, 0.06649775267]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=30 (npts=288, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.08760815034, 0.0707198322]
+  linear2pt       : [-0.08835967393, 0.07100964906]
+  logLinear2pt    : [-0.08833785215, 0.07099038828]
+  estimateGnErange: [-0.08833972475, 0.0709919605]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=30 (npts=288, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.1171627071, 0.1013299088]
+  linear2pt       : [-0.1177020731, 0.1021326581]
+  logLinear2pt    : [-0.1176616242, 0.1021039799]
+  estimateGnErange: [-0.1176637001, 0.1021053397]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=30 (npts=288, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.1372175849, 0.1234958264]
+  linear2pt       : [-0.1379763362, 0.124224739]
+  logLinear2pt    : [-0.1379290969, 0.1241800316]
+  estimateGnErange: [-0.1379310368, 0.1241817054]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=30 (npts=288, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.1530503831, 0.1403841445]
+  linear2pt       : [-0.1531142855, 0.1412049578]
+  logLinear2pt    : [-0.1531000381, 0.1411569822]
+  estimateGnErange: [-0.1531009806, 0.1411586241]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=30 (npts=288, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.1572724627, 0.1456617439]
+  linear2pt       : [-0.1572724627, 0.1456617439]
+  logLinear2pt    : [-0.1572724627, 0.1456617439]
+  estimateGnErange: [-0.1572724627, 0.1456617439]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=100 (npts=283, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.1773273405, 0.1161071872]
+  linear2pt       : [-0.1773955577, 0.1163300083]
+  logLinear2pt    : [-0.1773891945, 0.1163110768]
+  estimateGnErange: [-0.1773897018, 0.1163124649]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=100 (npts=283, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.2343254142, 0.1752163007]
+  linear2pt       : [-0.2359408312, 0.1766148224]
+  logLinear2pt    : [-0.2358819187, 0.1765454619]
+  estimateGnErange: [-0.2358843261, 0.176548182]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=100 (npts=283, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.2786572493, 0.2216591756]
+  linear2pt       : [-0.2796418032, 0.2220062163]
+  logLinear2pt    : [-0.2795451155, 0.2219583284]
+  estimateGnErange: [-0.2795478219, 0.2219595865]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=100 (npts=283, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.3145449253, 0.2575468516]
+  linear2pt       : [-0.3154618972, 0.2595432503]
+  logLinear2pt    : [-0.3153499979, 0.2595174788]
+  estimateGnErange: [-0.3153525973, 0.2595181793]
+
+=== Debye T=80K,temp=293.15K (narrow/steep), order=100 (npts=283, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.3251001242, 0.2702130902]
+  linear2pt       : [-0.3251001242, 0.2702130902]
+  logLinear2pt    : [-0.3251001242, 0.2702130902]
+  estimateGnErange: [-0.3251001242, 0.2702130902]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=1 (npts=837, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.03524653018, 0.03524653018]
+  linear2pt       : [-0.03533096971, 0.03533071309]
+  logLinear2pt    : [-0.03533096971, 0.03533071309]
+  estimateGnErange: [-0.03533096971, 0.03533071309]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=1 (npts=837, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.03524653018, 0.03524653018]
+  linear2pt       : [-0.03533105415, 0.03533105389]
+  logLinear2pt    : [-0.03533105415, 0.03533105389]
+  estimateGnErange: [-0.03533105415, 0.03533105389]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=1 (npts=837, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.03524653018, 0.03524653018]
+  linear2pt       : [-0.03533105423, 0.03533105423]
+  logLinear2pt    : [-0.03533105423, 0.03533105423]
+  estimateGnErange: [-0.03533105423, 0.03533105423]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=1 (npts=837, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.03524653018, 0.03524653018]
+  linear2pt       : [-0.03533105423, 0.03533105423]
+  logLinear2pt    : [-0.03533105423, 0.03533105423]
+  estimateGnErange: [-0.03533105423, 0.03533105423]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=1 (npts=837, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.03524653018, 0.03524653018]
+  linear2pt       : [-0.03533105423, 0.03533105423]
+  logLinear2pt    : [-0.03533105423, 0.03533105423]
+  estimateGnErange: [-0.03533105423, 0.03533105423]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=2 (npts=1669, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.07049306035, 0.07015496414]
+  linear2pt       : [-0.07049306035, 0.07023795991]
+  logLinear2pt    : [-0.07049306035, 0.07023777803]
+  estimateGnErange: [-0.07049306035, 0.0702356638]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=2 (npts=1669, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.07049306035, 0.07049306035]
+  linear2pt       : [-0.07049306035, 0.07049306035]
+  logLinear2pt    : [-0.07049306035, 0.07049306035]
+  estimateGnErange: [-0.07049306035, 0.07049306035]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=2 (npts=1669, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.07049306035, 0.07049306035]
+  linear2pt       : [-0.07049306035, 0.07049306035]
+  logLinear2pt    : [-0.07049306035, 0.07049306035]
+  estimateGnErange: [-0.07049306035, 0.07049306035]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=2 (npts=1669, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.07049306035, 0.07049306035]
+  linear2pt       : [-0.07049306035, 0.07049306035]
+  logLinear2pt    : [-0.07049306035, 0.07049306035]
+  estimateGnErange: [-0.07049306035, 0.07049306035]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=2 (npts=1669, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.07049306035, 0.07049306035]
+  linear2pt       : [-0.07049306035, 0.07049306035]
+  logLinear2pt    : [-0.07049306035, 0.07049306035]
+  estimateGnErange: [-0.07049306035, 0.07049306035]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=3 (npts=2503, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.1045562538, 0.096949089]
+  linear2pt       : [-0.1046345154, 0.09695679841]
+  logLinear2pt    : [-0.1046341173, 0.09695672507]
+  estimateGnErange: [-0.1046340897, 0.09695675978]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=3 (npts=2503, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.1057395905, 0.1054860184]
+  linear2pt       : [-0.1057395905, 0.1055530678]
+  logLinear2pt    : [-0.1057395905, 0.1055491601]
+  estimateGnErange: [-0.1057395905, 0.1055506445]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=3 (npts=2503, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.1057395905, 0.1057395905]
+  linear2pt       : [-0.1057395905, 0.1057395905]
+  logLinear2pt    : [-0.1057395905, 0.1057395905]
+  estimateGnErange: [-0.1057395905, 0.1057395905]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=3 (npts=2503, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.1057395905, 0.1057395905]
+  linear2pt       : [-0.1057395905, 0.1057395905]
+  logLinear2pt    : [-0.1057395905, 0.1057395905]
+  estimateGnErange: [-0.1057395905, 0.1057395905]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=3 (npts=2503, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.1057395905, 0.1057395905]
+  linear2pt       : [-0.1057395905, 0.1057395905]
+  logLinear2pt    : [-0.1057395905, 0.1057395905]
+  estimateGnErange: [-0.1057395905, 0.1057395905]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=5 (npts=1043, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.1633004707, 0.1244194063]
+  linear2pt       : [-0.163598153, 0.1245917413]
+  logLinear2pt    : [-0.1635963489, 0.1245903234]
+  estimateGnErange: [-0.163596714, 0.1245905436]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=5 (npts=1043, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.1741195496, 0.1646528556]
+  linear2pt       : [-0.1742692737, 0.1648305355]
+  logLinear2pt    : [-0.1742442101, 0.164825283]
+  estimateGnErange: [-0.174254097, 0.164826438]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=5 (npts=1043, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.1758100306, 0.1741195496]
+  linear2pt       : [-0.176110797, 0.1742755605]
+  logLinear2pt    : [-0.176012029, 0.1742496097]
+  estimateGnErange: [-0.176012029, 0.1742591522]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=5 (npts=1043, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.1761481268, 0.1758100306]
+  linear2pt       : [-0.1761481268, 0.1761078986]
+  logLinear2pt    : [-0.1761481268, 0.1760057678]
+  estimateGnErange: [-0.1761481268, 0.1760057678]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=5 (npts=1043, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.1761481268, 0.1761481268]
+  linear2pt       : [-0.1761481268, 0.1761481268]
+  logLinear2pt    : [-0.1761481268, 0.1761481268]
+  estimateGnErange: [-0.1761481268, 0.1761481268]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=10 (npts=502, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.2758865096, 0.1555242579]
+  linear2pt       : [-0.2768477927, 0.1558908499]
+  logLinear2pt    : [-0.2768284724, 0.1558799981]
+  estimateGnErange: [-0.2768313178, 0.1558810008]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=10 (npts=502, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.3191628248, 0.2420768883]
+  linear2pt       : [-0.3203208851, 0.2431149998]
+  logLinear2pt    : [-0.3202896003, 0.2430977182]
+  estimateGnErange: [-0.3202924658, 0.2430989294]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=10 (npts=502, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.3380962127, 0.2948198975]
+  linear2pt       : [-0.3382751879, 0.2949362398]
+  logLinear2pt    : [-0.3382219898, 0.2949241453]
+  estimateGnErange: [-0.3382378581, 0.2949256134]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=10 (npts=502, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.344858137, 0.3232199794]
+  linear2pt       : [-0.3461940348, 0.3239572808]
+  logLinear2pt    : [-0.3461697661, 0.3238811193]
+  estimateGnErange: [-0.3461436352, 0.3238887311]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=10 (npts=502, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.3475629067, 0.3299819036]
+  linear2pt       : [-0.3475629067, 0.3299819036]
+  logLinear2pt    : [-0.3475629067, 0.3299819036]
+  estimateGnErange: [-0.3475629067, 0.3299819036]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=30 (npts=274, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.6004588738, 0.1676957215]
+  linear2pt       : [-0.6043258571, 0.1693229664]
+  logLinear2pt    : [-0.6041960554, 0.169221801]
+  estimateGnErange: [-0.6042081968, 0.1692292686]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=30 (npts=274, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.7248782801, 0.335391443]
+  linear2pt       : [-0.7301322417, 0.3378868159]
+  logLinear2pt    : [-0.7301004147, 0.3377111232]
+  estimateGnErange: [-0.7301011549, 0.3377183187]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=30 (npts=274, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.8114309105, 0.4598108493]
+  linear2pt       : [-0.8128137672, 0.463028748]
+  logLinear2pt    : [-0.812557527, 0.4628061237]
+  estimateGnErange: [-0.8125709265, 0.4628129958]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=30 (npts=274, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.870935844, 0.562592098]
+  linear2pt       : [-0.8714636647, 0.5637587241]
+  logLinear2pt    : [-0.8713159579, 0.5635857518]
+  estimateGnErange: [-0.8713251318, 0.5635906324]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=30 (npts=274, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.8871644622, 0.589639795]
+  linear2pt       : [-0.8871644622, 0.589639795]
+  logLinear2pt    : [-0.8871644622, 0.589639795]
+  estimateGnErange: [-0.8871644622, 0.589639795]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=100 (npts=268, relcontriblvl=0.001) ===
+  snapToGrid      : [-1.471394718, -0.05409539404]
+  linear2pt       : [-1.477130826, -0.05068373439]
+  logLinear2pt    : [-1.476825702, -0.05091274]
+  estimateGnErange: [-1.476850189, -0.05089670671]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=100 (npts=268, relcontriblvl=1e-06) ===
+  snapToGrid      : [-1.741871688, 0.2488388126]
+  linear2pt       : [-1.744775234, 0.2585268964]
+  logLinear2pt    : [-1.744436348, 0.2583732765]
+  estimateGnErange: [-1.74445077, 0.2583790373]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=100 (npts=268, relcontriblvl=1e-09) ===
+  snapToGrid      : [-1.936615107, 0.4868585463]
+  linear2pt       : [-1.940651813, 0.4960907546]
+  logLinear2pt    : [-1.940128784, 0.4958368897]
+  estimateGnErange: [-1.940144671, 0.4958433822]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=100 (npts=268, relcontriblvl=1e-12) ===
+  snapToGrid      : [-2.08808221, 0.6924210437]
+  linear2pt       : [-2.098022054, 0.6957565888]
+  logLinear2pt    : [-2.097780368, 0.6953166195]
+  estimateGnErange: [-2.097785642, 0.6953248334]
+
+=== Debye T=410K,temp=293.15K (Al-like), order=100 (npts=268, relcontriblvl=1e-13) ===
+  snapToGrid      : [-2.142177604, 0.7465164377]
+  linear2pt       : [-2.142177604, 0.7465164377]
+  logLinear2pt    : [-2.142177604, 0.7465164377]
+  estimateGnErange: [-2.142177604, 0.7465164377]
+
+=== Debye T=2000K,temp=293.15K (wide), order=1 (npts=837, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.1719342935, 0.1719342935]
+  linear2pt       : [-0.1723461937, 0.1719741383]
+  logLinear2pt    : [-0.1723461937, 0.1719741383]
+  estimateGnErange: [-0.1723461937, 0.1719741383]
+
+=== Debye T=2000K,temp=293.15K (wide), order=1 (npts=837, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.1719342935, 0.1719342935]
+  linear2pt       : [-0.1723466056, 0.1723462335]
+  logLinear2pt    : [-0.1723466056, 0.1723462335]
+  estimateGnErange: [-0.1723466056, 0.1723462335]
+
+=== Debye T=2000K,temp=293.15K (wide), order=1 (npts=837, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.1719342935, 0.1719342935]
+  linear2pt       : [-0.172346606, 0.1723466056]
+  logLinear2pt    : [-0.172346606, 0.1723466056]
+  estimateGnErange: [-0.172346606, 0.1723466056]
+
+=== Debye T=2000K,temp=293.15K (wide), order=1 (npts=837, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.1719342935, 0.1719342935]
+  linear2pt       : [-0.172346606, 0.172346606]
+  logLinear2pt    : [-0.172346606, 0.172346606]
+  estimateGnErange: [-0.172346606, 0.172346606]
+
+=== Debye T=2000K,temp=293.15K (wide), order=1 (npts=837, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.1719342935, 0.1719342935]
+  linear2pt       : [-0.172346606, 0.172346606]
+  logLinear2pt    : [-0.172346606, 0.172346606]
+  estimateGnErange: [-0.172346606, 0.172346606]
+
+=== Debye T=2000K,temp=293.15K (wide), order=2 (npts=1669, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.3438685871, 0.1669865441]
+  linear2pt       : [-0.3438685871, 0.1673575469]
+  logLinear2pt    : [-0.3438685871, 0.1673573014]
+  estimateGnErange: [-0.3438685871, 0.1673573237]
+
+=== Debye T=2000K,temp=293.15K (wide), order=2 (npts=1669, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.3438685871, 0.3236652768]
+  linear2pt       : [-0.3438685871, 0.3238402512]
+  logLinear2pt    : [-0.3438685871, 0.3238385442]
+  estimateGnErange: [-0.3438685871, 0.3238391699]
+
+=== Debye T=2000K,temp=293.15K (wide), order=2 (npts=1669, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.3438685871, 0.3438685871]
+  linear2pt       : [-0.3438685871, 0.3438685871]
+  logLinear2pt    : [-0.3438685871, 0.3438685871]
+  estimateGnErange: [-0.3438685871, 0.3438685871]
+
+=== Debye T=2000K,temp=293.15K (wide), order=2 (npts=1669, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.3438685871, 0.3438685871]
+  linear2pt       : [-0.3438685871, 0.3438685871]
+  logLinear2pt    : [-0.3438685871, 0.3438685871]
+  estimateGnErange: [-0.3438685871, 0.3438685871]
+
+=== Debye T=2000K,temp=293.15K (wide), order=2 (npts=1669, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.3438685871, 0.3438685871]
+  linear2pt       : [-0.3438685871, 0.3438685871]
+  logLinear2pt    : [-0.3438685871, 0.3438685871]
+  estimateGnErange: [-0.3438685871, 0.3438685871]
+
+=== Debye T=2000K,temp=293.15K (wide), order=3 (npts=2502, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.5133290059, 0.1377123598]
+  linear2pt       : [-0.5136040578, 0.1379056218]
+  logLinear2pt    : [-0.5135906128, 0.1379050649]
+  estimateGnErange: [-0.5135969449, 0.1379051059]
+
+=== Debye T=2000K,temp=293.15K (wide), order=3 (npts=2502, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.5158028806, 0.3484040241]
+  linear2pt       : [-0.5158028806, 0.3487146105]
+  logLinear2pt    : [-0.5158028806, 0.3487139588]
+  estimateGnErange: [-0.5158028806, 0.348714001]
+
+=== Debye T=2000K,temp=293.15K (wide), order=3 (npts=2502, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.5158028806, 0.4766331975]
+  linear2pt       : [-0.5158028806, 0.4768405221]
+  logLinear2pt    : [-0.5158028806, 0.4768387449]
+  estimateGnErange: [-0.5158028806, 0.4768390744]
+
+=== Debye T=2000K,temp=293.15K (wide), order=3 (npts=2502, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.5158028806, 0.5137413184]
+  linear2pt       : [-0.5158028806, 0.5140841341]
+  logLinear2pt    : [-0.5158028806, 0.5140732123]
+  estimateGnErange: [-0.5158028806, 0.5140747343]
+
+=== Debye T=2000K,temp=293.15K (wide), order=3 (npts=2502, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.5158028806, 0.5153905682]
+  linear2pt       : [-0.5158028806, 0.5153905682]
+  logLinear2pt    : [-0.5158028806, 0.5153905682]
+  estimateGnErange: [-0.5158028806, 0.5153905682]
+
+=== Debye T=2000K,temp=293.15K (wide), order=5 (npts=957, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.8295726585, 0.04617899491]
+  linear2pt       : [-0.8305272107, 0.04693938333]
+  logLinear2pt    : [-0.830485068, 0.04693224287]
+  estimateGnErange: [-0.8304965588, 0.04693270492]
+
+=== Debye T=2000K,temp=293.15K (wide), order=5 (npts=957, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.8543114058, 0.3199544647]
+  linear2pt       : [-0.8556436229, 0.3201110829]
+  logLinear2pt    : [-0.8554550814, 0.3201076488]
+  estimateGnErange: [-0.8555229121, 0.3201077913]
+
+=== Debye T=2000K,temp=293.15K (wide), order=5 (npts=957, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.8592591553, 0.5228121924]
+  linear2pt       : [-0.8592591553, 0.5234367365]
+  logLinear2pt    : [-0.8592591553, 0.5234243307]
+  estimateGnErange: [-0.8592591553, 0.5234248193]
+
+=== Debye T=2000K,temp=293.15K (wide), order=5 (npts=957, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.8592591553, 0.6761924255]
+  linear2pt       : [-0.8592591553, 0.6774911783]
+  logLinear2pt    : [-0.8592591553, 0.6774790033]
+  estimateGnErange: [-0.8592591553, 0.6774797555]
+
+=== Debye T=2000K,temp=293.15K (wide), order=5 (npts=957, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.8592591553, 0.7174236709]
+  linear2pt       : [-0.8592591553, 0.7174236709]
+  logLinear2pt    : [-0.8592591553, 0.7174236709]
+  estimateGnErange: [-0.8592591553, 0.7174236709]
+
+=== Debye T=2000K,temp=293.15K (wide), order=10 (npts=738, relcontriblvl=0.001) ===
+  snapToGrid      : [-1.537100831, -0.2605814713]
+  linear2pt       : [-1.539816804, -0.2572915949]
+  logLinear2pt    : [-1.539782454, -0.257291824]
+  estimateGnErange: [-1.539787294, -0.2572918058]
+
+=== Debye T=2000K,temp=293.15K (wide), order=10 (npts=738, relcontriblvl=1e-06) ===
+  snapToGrid      : [-1.642652819, 0.108850488]
+  linear2pt       : [-1.643416505, 0.1121193448]
+  logLinear2pt    : [-1.643316553, 0.1121182811]
+  estimateGnErange: [-1.643332141, 0.1121183152]
+
+=== Debye T=2000K,temp=293.15K (wide), order=10 (npts=738, relcontriblvl=1e-09) ===
+  snapToGrid      : [-1.685533314, 0.4024169556]
+  linear2pt       : [-1.68640183, 0.4034823403]
+  logLinear2pt    : [-1.686167644, 0.4034517056]
+  estimateGnErange: [-1.686213287, 0.403452444]
+
+=== Debye T=2000K,temp=293.15K (wide), order=10 (npts=738, relcontriblvl=1e-12) ===
+  snapToGrid      : [-1.702025812, 0.6465059287]
+  linear2pt       : [-1.705285816, 0.6491619767]
+  logLinear2pt    : [-1.705227549, 0.6491355609]
+  estimateGnErange: [-1.705160595, 0.6491375242]
+
+=== Debye T=2000K,temp=293.15K (wide), order=10 (npts=738, relcontriblvl=1e-13) ===
+  snapToGrid      : [-1.708622812, 0.7223714204]
+  linear2pt       : [-1.708622812, 0.7223714204]
+  logLinear2pt    : [-1.708622812, 0.7223714204]
+  estimateGnErange: [-1.708622812, 0.7223714204]
+
+=== Debye T=2000K,temp=293.15K (wide), order=30 (npts=344, relcontriblvl=0.001) ===
+  snapToGrid      : [-4.037363555, -1.781189804]
+  linear2pt       : [-4.046080699, -1.77967846]
+  logLinear2pt    : [-4.04575415, -1.779764451]
+  estimateGnErange: [-4.045787088, -1.779759315]
+
+=== Debye T=2000K,temp=293.15K (wide), order=30 (npts=344, relcontriblvl=1e-06) ===
+  snapToGrid      : [-4.35401952, -1.200653868]
+  linear2pt       : [-4.364760664, -1.194504986]
+  logLinear2pt    : [-4.364364826, -1.194795983]
+  estimateGnErange: [-4.364388495, -1.194787092]
+
+=== Debye T=2000K,temp=293.15K (wide), order=30 (npts=344, relcontriblvl=1e-09) ===
+  snapToGrid      : [-4.565123497, -0.7388639185]
+  linear2pt       : [-4.567927751, -0.7273029682]
+  logLinear2pt    : [-4.567385383, -0.7274623016]
+  estimateGnErange: [-4.567415488, -0.7274589159]
+
+=== Debye T=2000K,temp=293.15K (wide), order=30 (npts=344, relcontriblvl=1e-12) ===
+  snapToGrid      : [-4.697063482, -0.3298499636]
+  linear2pt       : [-4.710245586, -0.3229573011]
+  logLinear2pt    : [-4.710239882, -0.3233518622]
+  estimateGnErange: [-4.710230964, -0.3233454323]
+
+=== Debye T=2000K,temp=293.15K (wide), order=30 (npts=344, relcontriblvl=1e-13) ===
+  snapToGrid      : [-4.736645478, -0.2111039767]
+  linear2pt       : [-4.736645478, -0.2111039767]
+  logLinear2pt    : [-4.736645478, -0.2111039767]
+  estimateGnErange: [-4.736645478, -0.2111039767]
+
+=== Debye T=2000K,temp=293.15K (wide), order=100 (npts=162, relcontriblvl=0.001) ===
+  snapToGrid      : [-12.03292667, -7.916399127]
+  linear2pt       : [-12.0373378, -7.87141707]
+  logLinear2pt    : [-12.03659669, -7.872524541]
+  estimateGnErange: [-12.03666533, -7.872446988]
+
+=== Debye T=2000K,temp=293.15K (wide), order=100 (npts=162, relcontriblvl=1e-06) ===
+  snapToGrid      : [-12.7190146, -6.913655238]
+  linear2pt       : [-12.7598614, -6.884248973]
+  logLinear2pt    : [-12.75672946, -6.887043528]
+  estimateGnErange: [-12.75687669, -6.886954155]
+
+=== Debye T=2000K,temp=293.15K (wide), order=100 (npts=162, relcontriblvl=1e-09) ===
+  snapToGrid      : [-13.24677454, -6.122015325]
+  linear2pt       : [-13.27745181, -6.103763503]
+  logLinear2pt    : [-13.27219399, -6.106623292]
+  estimateGnErange: [-13.27236936, -6.106565862]
+
+=== Debye T=2000K,temp=293.15K (wide), order=100 (npts=162, relcontriblvl=1e-12) ===
+  snapToGrid      : [-13.66898249, -5.435927401]
+  linear2pt       : [-13.68575578, -5.432855806]
+  logLinear2pt    : [-13.68084907, -5.433563757]
+  estimateGnErange: [-13.68096576, -5.433553081]
+
+=== Debye T=2000K,temp=293.15K (wide), order=100 (npts=162, relcontriblvl=1e-13) ===
+  snapToGrid      : [-13.77453448, -5.277599418]
+  linear2pt       : [-13.77453448, -5.277599418]
+  logLinear2pt    : [-13.77453448, -5.277599418]
+  estimateGnErange: [-13.77453448, -5.277599418]
+
+--- Real data: live Li2O (Li,O) sweep (many orders/relcontriblvl) ---
+=== Li2O (real material), element=Li, order=1 (npts=20453, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.0944961053, 0.09160346169]
+  linear2pt       : [-0.09450064198, 0.09160421278]
+  logLinear2pt    : [-0.09450064198, 0.09160421143]
+  estimateGnErange: [-0.09450064198, 0.09160421253]
+
+=== Li2O (real material), element=Li, order=1 (npts=20453, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.0944961053, 0.0944961053]
+  linear2pt       : [-0.09450534227, 0.09450514877]
+  logLinear2pt    : [-0.09450534227, 0.09450514877]
+  estimateGnErange: [-0.09450534227, 0.09450514877]
+
+=== Li2O (real material), element=Li, order=1 (npts=20453, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.0944961053, 0.0944961053]
+  linear2pt       : [-0.09450534697, 0.09450534678]
+  logLinear2pt    : [-0.09450534697, 0.09450534678]
+  estimateGnErange: [-0.09450534697, 0.09450534678]
+
+=== Li2O (real material), element=Li, order=1 (npts=20453, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.0944961053, 0.0944961053]
+  linear2pt       : [-0.09450534698, 0.09450534698]
+  logLinear2pt    : [-0.09450534698, 0.09450534698]
+  estimateGnErange: [-0.09450534698, 0.09450534698]
+
+=== Li2O (real material), element=Li, order=1 (npts=20453, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.0944961053, 0.0944961053]
+  linear2pt       : [-0.09450534698, 0.09450534698]
+  logLinear2pt    : [-0.09450534698, 0.09450534698]
+  estimateGnErange: [-0.09450534698, 0.09450534698]
+
+=== Li2O (real material), element=Li, order=2 (npts=40901, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.1819038475, 0.1412220034]
+  linear2pt       : [-0.1819051232, 0.1412304484]
+  logLinear2pt    : [-0.1819051212, 0.1412304481]
+  estimateGnErange: [-0.1819051222, 0.1412304484]
+
+=== Li2O (real material), element=Li, order=2 (npts=40901, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.1884192269, 0.1811737553]
+  linear2pt       : [-0.1884263724, 0.1811820574]
+  logLinear2pt    : [-0.1884263463, 0.1811820559]
+  estimateGnErange: [-0.1884263557, 0.1811820565]
+
+=== Li2O (real material), element=Li, order=2 (npts=40901, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.1889922106, 0.1882436351]
+  linear2pt       : [-0.1889922106, 0.1882524502]
+  logLinear2pt    : [-0.1889922106, 0.1882524448]
+  estimateGnErange: [-0.1889922106, 0.1882524381]
+
+=== Li2O (real material), element=Li, order=2 (npts=40901, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.1889922106, 0.1889922106]
+  linear2pt       : [-0.1889922106, 0.1889922106]
+  logLinear2pt    : [-0.1889922106, 0.1889922106]
+  estimateGnErange: [-0.1889922106, 0.1889922106]
+
+=== Li2O (real material), element=Li, order=2 (npts=40901, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.1889922106, 0.1889922106]
+  linear2pt       : [-0.1889922106, 0.1889922106]
+  logLinear2pt    : [-0.1889922106, 0.1889922106]
+  estimateGnErange: [-0.1889922106, 0.1889922106]
+
+=== Li2O (real material), element=Li, order=3 (npts=61083, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.2550147217, 0.1636792686]
+  linear2pt       : [-0.2550198606, 0.1636804271]
+  logLinear2pt    : [-0.2550198587, 0.1636804268]
+  estimateGnErange: [-0.255019859, 0.1636804269]
+
+=== Li2O (real material), element=Li, order=3 (npts=61083, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.2768158281, 0.2376496184]
+  linear2pt       : [-0.276819551, 0.2376550763]
+  logLinear2pt    : [-0.2768195432, 0.2376550747]
+  estimateGnErange: [-0.2768195448, 0.2376550749]
+
+=== Li2O (real material), element=Li, order=3 (npts=61083, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.2819357149, 0.2688957144]
+  linear2pt       : [-0.2819397121, 0.2689014104]
+  logLinear2pt    : [-0.2819396845, 0.2689014069]
+  estimateGnErange: [-0.2819396894, 0.2689014076]
+
+=== Li2O (real material), element=Li, order=3 (npts=61083, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.2833219658, 0.279616055]
+  linear2pt       : [-0.2833222492, 0.2796233792]
+  logLinear2pt    : [-0.2833222315, 0.2796233698]
+  estimateGnErange: [-0.28332226, 0.2796234225]
+
+=== Li2O (real material), element=Li, order=3 (npts=61083, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.2834328659, 0.2810669976]
+  linear2pt       : [-0.2834328659, 0.2810669976]
+  logLinear2pt    : [-0.2834328659, 0.2810669976]
+  estimateGnErange: [-0.2834328659, 0.2810669976]
+
+=== Li2O (real material), element=Li, order=5 (npts=1510, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.3838621252, 0.1738913171]
+  linear2pt       : [-0.3844127415, 0.1744113824]
+  logLinear2pt    : [-0.3844115994, 0.1744106244]
+  estimateGnErange: [-0.3844117471, 0.1744106917]
+
+=== Li2O (real material), element=Li, order=5 (npts=1510, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.4311794904, 0.3016482031]
+  linear2pt       : [-0.4311872811, 0.3020052347]
+  logLinear2pt    : [-0.431186807, 0.3020021098]
+  estimateGnErange: [-0.4311868997, 0.3020023689]
+
+=== Li2O (real material), element=Li, order=5 (npts=1510, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.4536552388, 0.3738071851]
+  linear2pt       : [-0.4541448484, 0.3738406554]
+  logLinear2pt    : [-0.4541327094, 0.3738395031]
+  estimateGnErange: [-0.4541339429, 0.3738396028]
+
+=== Li2O (real material), element=Li, order=5 (npts=1510, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.4637101789, 0.4163928137]
+  linear2pt       : [-0.4641110372, 0.416955666]
+  logLinear2pt    : [-0.4640680375, 0.4169539544]
+  estimateGnErange: [-0.4640724969, 0.4169540118]
+
+=== Li2O (real material), element=Li, order=5 (npts=1510, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.4654845801, 0.4270392209]
+  linear2pt       : [-0.4654845801, 0.4270392209]
+  logLinear2pt    : [-0.4654845801, 0.4270392209]
+  estimateGnErange: [-0.4654845801, 0.4270392209]
+
+=== Li2O (real material), element=Li, order=20 (npts=241, relcontriblvl=0.001) ===
+  snapToGrid      : [-1.135616765, 0.01892694608]
+  linear2pt       : [-1.144650645, 0.0192100462]
+  logLinear2pt    : [-1.144584166, 0.01918499902]
+  estimateGnErange: [-1.144588805, 0.01918667828]
+
+=== Li2O (real material), element=Li, order=20 (npts=241, relcontriblvl=1e-06) ===
+  snapToGrid      : [-1.305959279, 0.2933676642]
+  linear2pt       : [-1.311849989, 0.3022161918]
+  logLinear2pt    : [-1.311278717, 0.3021324109]
+  estimateGnErange: [-1.311311266, 0.3021355293]
+
+=== Li2O (real material), element=Li, order=20 (npts=241, relcontriblvl=1e-09) ===
+  snapToGrid      : [-1.419520956, 0.5110275441]
+  linear2pt       : [-1.42238628, 0.5182594618]
+  logLinear2pt    : [-1.421755173, 0.5179562325]
+  estimateGnErange: [-1.421782491, 0.5179647481]
+
+=== Li2O (real material), element=Li, order=20 (npts=241, relcontriblvl=1e-12) ===
+  snapToGrid      : [-1.49522874, 0.6908335319]
+  linear2pt       : [-1.504240355, 0.696013516]
+  logLinear2pt    : [-1.503986214, 0.6955401106]
+  estimateGnErange: [-1.503992147, 0.6955513375]
+
+=== Li2O (real material), element=Li, order=20 (npts=241, relcontriblvl=1e-13) ===
+  snapToGrid      : [-1.523619159, 0.7476143701]
+  linear2pt       : [-1.523619159, 0.7476143701]
+  logLinear2pt    : [-1.523619159, 0.7476143701]
+  estimateGnErange: [-1.523619159, 0.7476143701]
+
+=== Li2O (real material), element=Li, order=60 (npts=219, relcontriblvl=0.001) ===
+  snapToGrid      : [-2.80118802, -0.7760047892]
+  linear2pt       : [-2.80515406, -0.7684046763]
+  logLinear2pt    : [-2.804711143, -0.7689240309]
+  estimateGnErange: [-2.804749342, -0.7688894107]
+
+=== Li2O (real material), element=Li, order=60 (npts=219, relcontriblvl=1e-06) ===
+  snapToGrid      : [-3.141873049, -0.3028311373]
+  linear2pt       : [-3.1556354, -0.2953446609]
+  logLinear2pt    : [-3.154727394, -0.2960520509]
+  estimateGnErange: [-3.154770325, -0.2960284453]
+
+=== Li2O (real material), element=Li, order=60 (npts=219, relcontriblvl=1e-09) ===
+  snapToGrid      : [-3.387923348, 0.05678083824]
+  linear2pt       : [-3.404788998, 0.07346254085]
+  logLinear2pt    : [-3.404154156, 0.07304060204]
+  estimateGnErange: [-3.40417525, 0.07305080018]
+
+=== Li2O (real material), element=Li, order=60 (npts=219, relcontriblvl=1e-12) ===
+  snapToGrid      : [-3.596119755, 0.3785389216]
+  linear2pt       : [-3.603088505, 0.3878254362]
+  logLinear2pt    : [-3.601600203, 0.3867824877]
+  estimateGnErange: [-3.601638828, 0.3868011178]
+
+=== Li2O (real material), element=Li, order=60 (npts=219, relcontriblvl=1e-13) ===
+  snapToGrid      : [-3.652900593, 0.473173652]
+  linear2pt       : [-3.652900593, 0.473173652]
+  logLinear2pt    : [-3.652900593, 0.473173652]
+  estimateGnErange: [-3.652900593, 0.473173652]
+
+=== Li2O (real material), element=O, order=1 (npts=20453, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.09441293025, 0.08336913114]
+  linear2pt       : [-0.09441604836, 0.08337713988]
+  logLinear2pt    : [-0.09441601918, 0.08337713887]
+  estimateGnErange: [-0.0944160504, 0.08337713941]
+
+=== Li2O (real material), element=O, order=1 (npts=20453, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.0944961053, 0.0944961053]
+  linear2pt       : [-0.09450533475, 0.09450483194]
+  logLinear2pt    : [-0.09450533475, 0.09450483194]
+  estimateGnErange: [-0.09450533475, 0.09450483194]
+
+=== Li2O (real material), element=O, order=1 (npts=20453, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.0944961053, 0.0944961053]
+  linear2pt       : [-0.09450534696, 0.09450534646]
+  logLinear2pt    : [-0.09450534696, 0.09450534646]
+  estimateGnErange: [-0.09450534696, 0.09450534646]
+
+=== Li2O (real material), element=O, order=1 (npts=20453, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.0944961053, 0.0944961053]
+  linear2pt       : [-0.09450534698, 0.09450534697]
+  logLinear2pt    : [-0.09450534698, 0.09450534697]
+  estimateGnErange: [-0.09450534698, 0.09450534697]
+
+=== Li2O (real material), element=O, order=1 (npts=20453, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.0944961053, 0.0944961053]
+  linear2pt       : [-0.09450534698, 0.09450534698]
+  logLinear2pt    : [-0.09450534698, 0.09450534698]
+  estimateGnErange: [-0.09450534698, 0.09450534698]
+
+=== Li2O (real material), element=O, order=2 (npts=40901, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.1661467952, 0.1176187709]
+  linear2pt       : [-0.1661511317, 0.1176193858]
+  logLinear2pt    : [-0.1661511306, 0.1176193854]
+  estimateGnErange: [-0.1661511314, 0.1176193852]
+
+=== Li2O (real material), element=O, order=2 (npts=40901, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.1874396096, 0.168300105]
+  linear2pt       : [-0.1874436558, 0.1683089122]
+  logLinear2pt    : [-0.1874436377, 0.1683089118]
+  estimateGnErange: [-0.1874436438, 0.168308912]
+
+=== Li2O (real material), element=O, order=2 (npts=40901, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.1889737273, 0.1871253927]
+  linear2pt       : [-0.1889785304, 0.1871281]
+  logLinear2pt    : [-0.1889780227, 0.1871280868]
+  estimateGnErange: [-0.1889780301, 0.187128091]
+
+=== Li2O (real material), element=O, order=2 (npts=40901, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.1889922106, 0.1889552439]
+  linear2pt       : [-0.1889922106, 0.1889630419]
+  logLinear2pt    : [-0.1889922106, 0.1889628755]
+  estimateGnErange: [-0.1889922106, 0.1889628811]
+
+=== Li2O (real material), element=O, order=2 (npts=40901, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.1889922106, 0.1889922106]
+  linear2pt       : [-0.1889922106, 0.1889922106]
+  logLinear2pt    : [-0.1889922106, 0.1889922106]
+  estimateGnErange: [-0.1889922106, 0.1889922106]
+
+=== Li2O (real material), element=O, order=3 (npts=60753, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.219212481, 0.1481624998]
+  linear2pt       : [-0.2192188071, 0.1481674385]
+  logLinear2pt    : [-0.2192188061, 0.1481674375]
+  estimateGnErange: [-0.2192188067, 0.1481674375]
+
+=== Li2O (real material), element=O, order=3 (npts=60753, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.2656241622, 0.2051928632]
+  linear2pt       : [-0.2656301142, 0.2051934461]
+  logLinear2pt    : [-0.2656301118, 0.2051934457]
+  estimateGnErange: [-0.2656301123, 0.2051934456]
+
+=== Li2O (real material), element=O, order=3 (npts=60753, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.2799764802, 0.2481943671]
+  linear2pt       : [-0.2799848761, 0.2481993478]
+  logLinear2pt    : [-0.2799848715, 0.2481993463]
+  estimateGnErange: [-0.2799848725, 0.2481993465]
+
+=== Li2O (real material), element=O, order=3 (npts=60753, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.2828876072, 0.27472721]
+  linear2pt       : [-0.2828923297, 0.2747311201]
+  logLinear2pt    : [-0.2828922736, 0.2747311146]
+  estimateGnErange: [-0.2828922928, 0.27473116]
+
+=== Li2O (real material), element=O, order=3 (npts=60753, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.2832203074, 0.278229804]
+  linear2pt       : [-0.2832203074, 0.278229804]
+  logLinear2pt    : [-0.2832203074, 0.278229804]
+  estimateGnErange: [-0.2832203074, 0.278229804]
+
+=== Li2O (real material), element=O, order=5 (npts=1426, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.3140690115, 0.1685681135]
+  linear2pt       : [-0.3144263721, 0.1685755951]
+  logLinear2pt    : [-0.3144227624, 0.168575487]
+  estimateGnErange: [-0.3144227553, 0.1685754982]
+
+=== Li2O (real material), element=O, order=5 (npts=1426, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.3779474545, 0.2661601792]
+  linear2pt       : [-0.3781642585, 0.2663601127]
+  logLinear2pt    : [-0.378159204, 0.2663562018]
+  estimateGnErange: [-0.3781590055, 0.2663565278]
+
+=== Li2O (real material), element=O, order=5 (npts=1426, relcontriblvl=1e-09) ===
+  snapToGrid      : [-0.4252648197, 0.3247154187]
+  linear2pt       : [-0.4253494259, 0.325082128]
+  logLinear2pt    : [-0.4253459833, 0.325076569]
+  estimateGnErange: [-0.4253465257, 0.3250770088]
+
+=== Li2O (real material), element=O, order=5 (npts=1426, relcontriblvl=1e-12) ===
+  snapToGrid      : [-0.4530637718, 0.3708498497]
+  linear2pt       : [-0.4531165607, 0.3712648683]
+  logLinear2pt    : [-0.4531113017, 0.3712586032]
+  estimateGnErange: [-0.4531124614, 0.3712587714]
+
+=== Li2O (real material), element=O, order=5 (npts=1426, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.4577955083, 0.3850450593]
+  linear2pt       : [-0.4577955083, 0.3850450593]
+  logLinear2pt    : [-0.4577955083, 0.3850450593]
+  estimateGnErange: [-0.4577955083, 0.3850450593]
+
+=== Li2O (real material), element=O, order=20 (npts=208, relcontriblvl=0.001) ===
+  snapToGrid      : [-0.8990299388, 0.0946347304]
+  linear2pt       : [-0.9013367323, 0.1037274907]
+  logLinear2pt    : [-0.9010521994, 0.1036844095]
+  estimateGnErange: [-0.9010804328, 0.1036874868]
+
+=== Li2O (real material), element=O, order=20 (npts=208, relcontriblvl=1e-06) ===
+  snapToGrid      : [-1.040982034, 0.3406850294]
+  linear2pt       : [-1.049357739, 0.3417522901]
+  logLinear2pt    : [-1.049059138, 0.3416103609]
+  estimateGnErange: [-1.049073776, 0.3416160642]
+
+=== Li2O (real material), element=O, order=20 (npts=208, relcontriblvl=1e-09) ===
+  snapToGrid      : [-1.145080238, 0.5110275441]
+  linear2pt       : [-1.154328147, 0.5202398572]
+  logLinear2pt    : [-1.154236522, 0.520182879]
+  estimateGnErange: [-1.154239543, 0.5201841339]
+
+=== Li2O (real material), element=O, order=20 (npts=208, relcontriblvl=1e-12) ===
+  snapToGrid      : [-1.239714968, 0.6624431128]
+  linear2pt       : [-1.240605219, 0.664958735]
+  logLinear2pt    : [-1.240337359, 0.6645336749]
+  estimateGnErange: [-1.240342163, 0.6645454614]
+
+=== Li2O (real material), element=O, order=20 (npts=208, relcontriblvl=1e-13) ===
+  snapToGrid      : [-1.258641914, 0.7002970049]
+  linear2pt       : [-1.258641914, 0.7002970049]
+  logLinear2pt    : [-1.258641914, 0.7002970049]
+  estimateGnErange: [-1.258641914, 0.7002970049]
+
+=== Li2O (real material), element=O, order=60 (npts=189, relcontriblvl=0.001) ===
+  snapToGrid      : [-2.138744907, -0.3974658677]
+  linear2pt       : [-2.15627282, -0.3958767035]
+  logLinear2pt    : [-2.156031679, -0.3960610108]
+  estimateGnErange: [-2.156050968, -0.3960491739]
+
+=== Li2O (real material), element=O, order=60 (npts=189, relcontriblvl=1e-06) ===
+  snapToGrid      : [-2.46050299, -1.491862189e-16]
+  linear2pt       : [-2.460894575, 0.008439172658]
+  logLinear2pt    : [-2.460808363, 0.007574326599]
+  estimateGnErange: [-2.460814603, 0.00760404508]
+
+=== Li2O (real material), element=O, order=60 (npts=189, relcontriblvl=1e-09) ===
+  snapToGrid      : [-2.668699397, 0.3028311373]
+  linear2pt       : [-2.680322995, 0.3209891684]
+  logLinear2pt    : [-2.678746012, 0.3207950119]
+  estimateGnErange: [-2.678797032, 0.3207998722]
+
+=== Li2O (real material), element=O, order=60 (npts=189, relcontriblvl=1e-12) ===
+  snapToGrid      : [-2.839041912, 0.5678083824]
+  linear2pt       : [-2.854222229, 0.5858539655]
+  logLinear2pt    : [-2.852789594, 0.5855931935]
+  estimateGnErange: [-2.852826298, 0.5855980858]
+
+=== Li2O (real material), element=O, order=60 (npts=189, relcontriblvl=1e-13) ===
+  snapToGrid      : [-2.89582275, 0.6624431128]
+  linear2pt       : [-2.89582275, 0.6624431128]
+  logLinear2pt    : [-2.89582275, 0.6624431128]
+  estimateGnErange: [-2.89582275, 0.6624431128]
 
