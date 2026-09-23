@@ -35,6 +35,20 @@ v4.4.7 (work in progress)
        relative) different envelope height in that narrow regime, changing
        the sampling efficiency for affected cells. Found via a cross-platform
        CI divergence in a test exercising exactly this regime.
+     * Fix five more instances of the same class of bug as the BoundedCellSampler
+       beta_minus(alpha) issue above, found via a static sweep of the sab
+       component for other naive, catastrophic-cancellation-prone re-
+       derivations of the alpha_minus/alpha_plus/beta_minus/beta_plus
+       kinematic boundary formulas: BoundedCellSampler::prepareBCSData's
+       amax1/amax2 (alpha_minus(b1)/alpha_minus(b2)), findActiveAlphaRange's
+       ap2/am2/am1, RCSImpl::alphaPtGem's bl/bu (beta_minus/beta_plus(alpha)),
+       RCSImpl's special_avals_candidates list (which also carried a
+       redundant duplicate-formula pair for the same two quantities), all in
+       NCSABCellSample.cc, and SABCellSurvey's constructor in
+       NCSABSurveyor.cc (essentially a duplicate of findActiveAlphaRange).
+       All six now go through the shared, Taylor-hardened getAlphaMinus/
+       getAlphaPlus/getBetaMinus/getBetaPlus utilities from NCKinUtils.hh
+       instead of re-deriving the same formulas inline.
      * Fix NCrystal.vdos.extractKnl/extractGn (used internally by ncmat2endf)
        feeding the C API a VDOS curve that had already been redundantly
        renormalised (by a freshly numpy-computed integral) and, for curves
