@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/vdos/NCVDOSGn.hh"
 #include "NCrystal/internal/vdos/NCVDOSEval.hh"
+#include "NCrystal/internal/vdos/NCVDOSUtils.hh"
 #include "NCrystal/internal/utils/NCFastConvolve.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
@@ -68,10 +69,19 @@ namespace NCRYSTAL_NAMESPACE {
 
       class VDOSGnData : private MoveOnly {
       public:
+        //The egrid_lower value is the energy of the first point in the
+        //spectrum, and startIdx is the integer number such that egrid_lower =
+        //startIdx*egrid_binwidth (only used in the non-legacy mode where this
+        //is how we ensure that the energy grids of all orders are on lattices
+        //which are anchored at energy=0, independently of rounding errors and
+        //where truncation happens to cut).
+        //Fixme: Safer with std::int64_t for startIdx?
         VDOSGnData( const VectD &spec,
                     double egrid_lower,
                     double egrid_binwidth,
-                    unsigned long thinFactor );
+                    unsigned long thinFactor,
+                    long startIdx = 0 );
+        long getStartIdx() const { return m_startIdx; }
         double interpolateDensity(double energy) const;
         void interpolateDensityMany(Span<const double>, VectD&, VectD&) const;
 
@@ -90,6 +100,7 @@ namespace NCRYSTAL_NAMESPACE {
         double m_egrid_binwidth, m_egrid_invbinwidth, m_specMaxVal;
         unsigned long m_thinFactor;//NB: binwidth is G1's binwidth multiplied
                                    //    by m_thinFactor
+        long m_startIdx;
       };
     }
   }
@@ -98,9 +109,11 @@ namespace NCRYSTAL_NAMESPACE {
 NCV::VDOSGnData::VDOSGnData( const VectD &spec,
                              double egrid_lower,
                              double egrid_binwidth,
-                             unsigned long thinFactor )
+                             unsigned long thinFactor,
+                             long startIdx )
   : m_spec(spec.begin(),spec.end()),
-    m_thinFactor(thinFactor)
+    m_thinFactor(thinFactor),
+    m_startIdx(startIdx)
 {
   m_egrid_lower = egrid_lower;
   m_egrid_binwidth = egrid_binwidth;
@@ -108,7 +121,8 @@ NCV::VDOSGnData::VDOSGnData( const VectD &spec,
   m_egrid_invbinwidth = 1.0/egrid_binwidth;
   nc_assert(m_spec.size()>3);
   m_spec_size_minus_2 = m_spec.size() - 2;
-  m_egrid_upper = m_egrid_lower+(m_spec.size()-1)*m_egrid_binwidth;
+  m_egrid_upper = equidistantGridPoint( m_egrid_lower, m_egrid_binwidth,
+                                        m_spec.size()-1 );
   nc_assert_always(!m_spec.empty());
   //The assymetric Gn functions are constructed/required to have unit area, so
   //must normalise.  NB: In principle higher-order spectra are guaranteed to be
@@ -172,21 +186,21 @@ void NCV::VDOSGnData::interpolateDensityMany( Span<const double> energy,
   const auto no_overlap = [](const double* a, std::size_t an,
                              const double* b, std::size_t bn) {
     const std::uintptr_t ab =
-        reinterpret_cast<std::uintptr_t>(a);
+      reinterpret_cast<std::uintptr_t>(a);
     const std::uintptr_t ae = ab + an * sizeof(double);
     const std::uintptr_t bb =
-        reinterpret_cast<std::uintptr_t>(b);
+      reinterpret_cast<std::uintptr_t>(b);
     const std::uintptr_t be = bb + bn * sizeof(double);
 
     return ae <= bb || be <= ab;
   };
 
   nc_assert(no_overlap(
-      energy.data(), energy.size(), out.data(), out.size()));
+                       energy.data(), energy.size(), out.data(), out.size()));
   nc_assert(no_overlap(
-      energy.data(), energy.size(), workbuf.data(), workbuf.size()));
+                       energy.data(), energy.size(), workbuf.data(), workbuf.size()));
   nc_assert(no_overlap(
-      out.data(), out.size(), workbuf.data(), workbuf.size()));
+                       out.data(), out.size(), workbuf.data(), workbuf.size()));
 #endif
 
   const std::size_t n = energy.size();
@@ -200,21 +214,21 @@ void NCV::VDOSGnData::interpolateDensityMany( Span<const double> energy,
   double* ncrestrict buf_ix = buf_f + n;
 
   const auto first = std::lower_bound(
-      energy.begin(), energy.end(), m_egrid_lower);
+                                      energy.begin(), energy.end(), m_egrid_lower);
   const auto last = std::upper_bound(
-      first, energy.end(), m_egrid_upper);
+                                     first, energy.end(), m_egrid_upper);
 
   const std::size_t beg =
-      static_cast<std::size_t>(first - energy.begin());
+    static_cast<std::size_t>(first - energy.begin());
   const std::size_t end =
-      static_cast<std::size_t>(last - energy.begin());
+    static_cast<std::size_t>(last - energy.begin());
 
   for (std::size_t i = beg; i < end; ++i) {
     const double a =
-        (ep[i] - m_egrid_lower) * m_egrid_invbinwidth;
+      (ep[i] - m_egrid_lower) * m_egrid_invbinwidth;
     const double fa = std::floor(a);
     const std::size_t ix = ncmin(
-        m_spec_size_minus_2, static_cast<std::size_t>(fa));
+                                 m_spec_size_minus_2, static_cast<std::size_t>(fa));
 
     buf_f[i] = a - fa;
     buf_ix[i] = static_cast<double>(ix);
@@ -223,7 +237,7 @@ void NCV::VDOSGnData::interpolateDensityMany( Span<const double> energy,
   for (std::size_t i = beg; i < end; ++i) {
     const double f = buf_f[i];
     const std::size_t ix =
-        static_cast<std::size_t>(buf_ix[i]);
+      static_cast<std::size_t>(buf_ix[i]);
 
     op[i] = vectAt(m_spec, ix) * (1.0 - f);
   }
@@ -231,7 +245,7 @@ void NCV::VDOSGnData::interpolateDensityMany( Span<const double> energy,
   for (std::size_t i = beg; i < end; ++i) {
     const double f = buf_f[i];
     const std::size_t ix =
-        static_cast<std::size_t>(buf_ix[i]);
+      static_cast<std::size_t>(buf_ix[i]);
 
     op[i] += f * vectAt(m_spec, ix + 1);
   }
@@ -335,13 +349,30 @@ NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
     --itLast;
   if ( itFirst >= itLast || std::distance(itFirst,itLast) < 3 )
     NCRYSTAL_THROW(CalcError,"Too few non-zero pts in G1 spectrum.");
+  //Index of first point, in units of binwidth (point 'nbins' is at energy 0):
+  nc_assert( std::distance( itB, itFirst ) > 0 );
+  const auto distBF = std::distance( itB, itFirst );
+#ifndef NDEBUG
+  nc_assert( static_cast<std::size_t>(nbins)+1
+             < static_cast<std::size_t>(std::numeric_limits<long>::max())/4 );
+  nc_assert( static_cast<std::size_t>(distBF)+1
+             < static_cast<std::size_t>(std::numeric_limits<long>::max())/4 );
+#endif
+  const long g1StartIdx
+    = ( static_cast<long>( distBF ) - static_cast<long>( nbins ) );
   if ( itFirst != itB || itLast != std::prev(itE) ) {
     actual_edgelower += std::distance( itB, itFirst ) * binwidth;
     VectD( itFirst, std::next(itLast) ).swap( G1spectrum );
   }
 
   //Place G1:
-  m_gndata.emplace_back( G1spectrum, actual_edgelower, binwidth, 1 );
+  if ( m_cfg.legacyConvolve ) {
+    m_gndata.emplace_back( G1spectrum, actual_edgelower, binwidth, 1 );
+  } else {
+    m_gndata.emplace_back( G1spectrum,
+                           static_cast<double>(g1StartIdx) * binwidth,
+                           binwidth, 1, g1StartIdx );
+  }
 
   if (s_verbose_vdosgn)
     NCRYSTAL_MSG("VDOSGn constructed (input spectrum size: "<<G1spectrum.size()
@@ -365,7 +396,7 @@ NCV::VDOSGn::~VDOSGn() {
     NCRYSTAL_MSG("VDOSGn destructed (final max order: "
                  <<maxOrder().value()<<")")
 
-}
+      }
 
 NCV::VDOSGn::VDOSGn( const VDOSEval& vde, Cfg cfg )
   : m_impl(vde,cfg),
@@ -394,7 +425,7 @@ double NCV::VDOSGn::eval( Order n, double energy ) const
 }
 
 void NCV::VDOSGn::evalMany( Order n, Span<const double> egrid,
-                             VectD& out, VectD& workbuf ) const
+                            VectD& out, VectD& workbuf ) const
 {
   m_impl->accessAtOrder(n).interpolateDensityMany(egrid,out,workbuf);
 }
@@ -420,7 +451,8 @@ NC::PairDD NCV::VDOSGn::eRange( Order n, double relthreshold ) const
 
   for ( auto e :  enumerate(spec) ) {
     if ( e.val >= threshold ) {
-      erange.first = p.getEGridLower() + e.idx * p.getEGridBinwidth();
+      erange.first = equidistantGridPoint( p.getEGridLower(),
+                                           p.getEGridBinwidth(), e.idx );
       break;
     }
   }
@@ -428,7 +460,8 @@ NC::PairDD NCV::VDOSGn::eRange( Order n, double relthreshold ) const
   for (std::size_t i = spec.size(); i>0; --i) {
     if ( vectAt(spec,i-1) >= threshold ) {
       erange.second = ncmin(erange.second,
-                            p.getEGridLower() + (i-1) * p.getEGridBinwidth());
+                            equidistantGridPoint( p.getEGridLower(),
+                                                  p.getEGridBinwidth(), i-1 ));
       break;
     }
   }
@@ -537,16 +570,46 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
   //Function which can thin a vector (i.e. increase binwidth by merging bins),
   //used two places below:
   auto thinVector = [](unsigned thinFactor, const VectD& v)
-                    {
-                      nc_assert(thinFactor>1);
-                      VectD vt;
-                      auto newsize = ( v.size() + thinFactor - 1 ) / thinFactor;
-                      vt.reserve( newsize );
-                      for ( std::size_t i = 0; i<v.size(); i+= thinFactor )
-                        vt.push_back(vectAt(v,i));
-                      nc_assert_always( vt.size() == newsize  );
-                      return vt;
-                    };
+  {
+    nc_assert(thinFactor>1);
+    VectD vt;
+    auto newsize = ( v.size() + thinFactor - 1 ) / thinFactor;
+    vt.reserve( newsize );
+    for ( std::size_t i = 0; i<v.size(); i+= thinFactor )
+      vt.push_back(vectAt(v,i));
+    nc_assert_always( vt.size() == newsize  );
+    return vt;
+  };
+
+  //In non-legacy mode, all grids are anchored at energy 0. I.e. the energy of
+  //point j in a spectrum of G1 is (startIdx+j)*binwidth, with integer startIdx
+  //(in units of the binwidth of that spectrum). Thinning then keeps the
+  //points where startIdx+j is a multiple of the thinning factor, and
+  //truncation just adds to startIdx. This makes the energy grid of every order
+  //independent of rounding errors, and of where truncation happens to cut
+  //(which could otherwise shift the phase of a thinned grid by a fraction of
+  //a bin, whenever tiny noise in the spectrum changed the cut by one bin).
+  const bool anchored = !m_cfg.legacyConvolve;
+  auto thinVectorAnchored = [](unsigned long thinFactor, const VectD& v,
+                               long& startIdx)
+  {
+    nc_assert(thinFactor>1);
+    const long f = static_cast<long>(thinFactor);
+    long r = startIdx % f;
+    if ( r < 0 )
+      r += f;
+    const std::size_t skip = static_cast<std::size_t>( r ? f - r : 0 );
+    nc_assert_always( v.size() > skip );
+    VectD vt;
+    vt.reserve( ( v.size() - skip + thinFactor - 1 ) / thinFactor );
+    for ( std::size_t i = skip; i < v.size(); i += thinFactor )
+      vt.push_back(vectAt(v,i));
+    nc_assert( ( startIdx + static_cast<long>(skip) ) % f == 0 );
+    startIdx = ( startIdx + static_cast<long>(skip) ) / f;
+    return vt;
+  };
+  long startIdx1 = p1.getStartIdx();
+  long startIdx2 = p2.getStartIdx();
 
   double dt;
   double dt1 = p1.getEGridBinwidth();
@@ -572,7 +635,9 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
       nc_assert(thinFactor1%thinFactor2==0);
       unsigned long thinFactor = thinFactor1 / thinFactor2;
       nc_assert_always( floateq(dt,dt2*thinFactor) );
-      vtmp = thinVector(thinFactor,*input2_spec);
+      vtmp = ( anchored
+               ? thinVectorAnchored(thinFactor,*input2_spec,startIdx2)
+               : thinVector(thinFactor,*input2_spec) );
       input2_spec = &vtmp;
       thinFactor2 *= thinFactor;
     } else {
@@ -580,7 +645,9 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
       nc_assert(thinFactor2%thinFactor1==0);
       unsigned long thinFactor = thinFactor2 / thinFactor1;
       nc_assert_always( floateq(dt,dt1*thinFactor) );
-      vtmp = thinVector(thinFactor,*input1_spec);
+      vtmp = ( anchored
+               ? thinVectorAnchored(thinFactor,*input1_spec,startIdx1)
+               : thinVector(thinFactor,*input1_spec) );
       input1_spec = &vtmp;
       thinFactor1 *= thinFactor;
     }
@@ -589,6 +656,7 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
 
   VectD phonon_spe;
   double start_energy = p1.getEGridLower() + p2.getEGridLower();
+  long startIdx = startIdx1 + startIdx2;//(only used when anchored)
   if ( m_cfg.legacyConvolve )
     fastConvolve.convolveLegacy( *input1_spec, *input2_spec, phonon_spe, dt );
   else
@@ -625,7 +693,8 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
         }
       }
     }
-    start_energy += ifront*dt;
+    start_energy = equidistantGridPoint( start_energy, dt, ifront );
+    startIdx += static_cast<long>( ifront );
   }
 
   int minThinOrder = m_cfg.minThinOrder;
@@ -654,9 +723,15 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
       extraThinFactor /= 2;
     }
 
-    phonon_spe = thinVector( extraThinFactor, phonon_spe );
+    if ( anchored )
+      phonon_spe = thinVectorAnchored( extraThinFactor, phonon_spe, startIdx );
+    else
+      phonon_spe = thinVector( extraThinFactor, phonon_spe );
     dt *= extraThinFactor;
   }
+
+  if ( anchored )
+    start_energy = static_cast<double>(startIdx) * dt;
 
   if (s_verbose_vdosgn) {
     std::ostringstream msg;
@@ -670,7 +745,8 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
     NCRYSTAL_MSG(msg.str());
   }
 
-  return VDOSGnData{ phonon_spe, start_energy, dt, thinFactor1*extraThinFactor };
+  return VDOSGnData{ phonon_spe, start_energy, dt,
+                     thinFactor1*extraThinFactor, startIdx };
 }
 
 NCV::VDOSGn::VDOSGn( VDOSGn&& ) = default;
