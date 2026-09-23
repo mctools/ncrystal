@@ -37,12 +37,13 @@ namespace NCRYSTAL_NAMESPACE {
 
       double combinedGnFctWeight( VDOSGn::Order n )
       {
-        // We want to assign higher weight to lower n values, and highest of all to
-        // n=1. w(n)=1/n is unstable since sum of all weights does not converge, so
-        // we go for ~1/n^2 instead. We also choose a form where the sum to n=inf is
-        // normalised, and the parameter we tune is the weight of n=1. It is a bit
-        // of trial and error, and likely not super crucial how this is setup. But
-        // the following seemed to give sensible results.
+        // We want to assign higher weight to lower n values, and highest of all
+        // to n=1. w(n)=1/n is unstable since sum of all weights does not
+        // converge, so we go for ~1/n^2 instead. We also choose a form where
+        // the sum to n=inf is normalised, and the parameter we tune is the
+        // weight of n=1. It is a bit of trial and error, and likely not super
+        // crucial how this is setup. But the following seemed to give sensible
+        // results.
         constexpr double p1 = 0.3;//1st order phonon weight
         constexpr double a = 1.0/p1-2.0;
         constexpr double ap1 = a + 1.0;
@@ -236,7 +237,7 @@ NC::VDOS::determineAlphaBetaGridFromGn( const GnExpansion& gnexpn,
 
   //Reduce number of points:
   std::tie(bvals, gnprojvals)
-    = reducePtsInDistribution( bvals_view, gnprojvals_view, nbeta );
+    = reducePtsByEquidistribution( bvals_view, gnprojvals_view, nbeta );
   nc_assert_always( bvals.size() >= 2 );
   nc_assert_always( bvals.size() <= nbeta );
   nc_assert_always( bvals.size() == gnprojvals.size() );
@@ -497,7 +498,7 @@ NC::VDOS::setupE0ABGrid( const GnExpansion& gnexpn, unsigned npts )
 
   nc_assert_always( grid.size() == contrib.size() );
   if ( npts < grid.size() )
-    std::tie(grid, contrib) = reducePtsInDistribution( grid, contrib, npts );
+    std::tie(grid, contrib) = reducePtsByEquidistribution( grid, contrib, npts );
   nc_assert_always( grid.size() <= npts );
   nc_assert_always( grid.size() == contrib.size() );
   nc_assert_always( grid.front() >= 0.0 );
