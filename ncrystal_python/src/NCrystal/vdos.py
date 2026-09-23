@@ -94,7 +94,14 @@ def extractGn( vdos, n, mass_amu, temperature, scatxs = 1.0, expand_egrid = True
     from .misc import AnyVDOS
     v = AnyVDOS(vdos)
     from ._chooks import _get_raw_cfcts
-    emin, emax, Gn =  _get_raw_cfcts()['raw_vdos2gn'](v.egrid(),v.dos(),scatxs, mass_amu, temperature, int(n) )
+    #expand=False, norm=False: raw_vdos2gn constructs a VDOSEval, which
+    #always expands/regularises/renormalises internally (via its own
+    #StableSum-based integral, so a compact [emin,emax] egrid and the
+    #density's overall scale are both irrelevant to the result) -- passing
+    #the numpy-expanded/normalised curve instead would just add redundant,
+    #platform/numpy-version-dependent rounding ahead of that robust C++
+    #computation:
+    emin, emax, Gn =  _get_raw_cfcts()['raw_vdos2gn'](v.egrid(expand=False),v.dos(norm=False),scatxs, mass_amu, temperature, int(n) )
     if not expand_egrid:
         return (emin,emax),Gn
     else:
@@ -129,8 +136,15 @@ def extractKnl( vdos, mass_amu, temperature, vdoslux = 3, scatxs = 1.0,
     v = AnyVDOS(vdos)
     from ._chooks import _get_raw_cfcts
     f = _get_raw_cfcts()['raw_vdos2knl']
-    a, b, sab, suggested_emax = f( v.egrid(),
-                                   v.dos(),
+    #expand=False, norm=False: raw_vdos2kernel constructs a VDOSEval, which
+    #always expands/regularises/renormalises internally (via its own
+    #StableSum-based integral, so a compact [emin,emax] egrid and the
+    #density's overall scale are both irrelevant to the result) -- passing
+    #the numpy-expanded/normalised curve instead would just add redundant,
+    #platform/numpy-version-dependent rounding ahead of that robust C++
+    #computation:
+    a, b, sab, suggested_emax = f( v.egrid(expand=False),
+                                   v.dos(norm=False),
                                    scatxs,
                                    mass_amu,
                                    temperature,

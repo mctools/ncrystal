@@ -197,7 +197,7 @@ Designated incoherent: Th
 >>> alpha points: 100, alpha range: (1.563e-49, 179.4)
 >>> beta points: 116, beta range: (0, 36.95)
 >>> alpha points: 100, alpha range: (2.641e-49, 176)
->>> beta points: 102, beta range: (0, 12)
+>>> beta points: 102, beta range: (0, 11.99)
 >>> Interpolating T=293.15K for O
 >>> Interpolating T=293.15K for Th
 >> Prepare elastic approximations
