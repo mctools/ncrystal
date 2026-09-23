@@ -133,11 +133,19 @@ namespace NCRYSTAL_NAMESPACE {
   //tighter than plain std:: calls are guaranteed to achieve, and in
   //practice removes the observed cross-platform divergence.
   //
-  //Cost: each of these needs one extra transcendental call beyond the
-  //plain std:: one it wraps (stable_exp = std::exp + std::log;
+  //Cost: each of these needs one extra transcendental library call beyond
+  //the plain std:: one it wraps (stable_exp = std::exp + std::log;
   //stable_expm1 = std::expm1 + std::log1p; stable_tanh/stable_sinh call
-  //stable_expm1 once, the sign handling in stable_sinh being a free sign-
-  //bit flip) -- so roughly 2x the cost of the plain call, not more:
+  //stable_expm1 once, the sign handling in stable_sinh being a free
+  //sign-bit flip), plus a subtraction and an std::fma (which buys a
+  //single rounding for the final combination, not extra speed: fma has
+  //essentially the same latency as a plain multiply on any hardware with
+  //a hardware FMA unit). The overall overhead relative to the plain call
+  //is therefore NOT simply "2x": it depends on the relative cost of the
+  //two library calls involved (e.g. std::log vs std::exp), which differs
+  //by libm/platform and was found, when spot-checked here, to vary too
+  //much between repeated runs to quote a reliable number -- benchmark on
+  //the actual target platform if the overhead matters:
   double stable_exp(double x);
   double stable_expm1(double x);
   double stable_tanh(double x);
