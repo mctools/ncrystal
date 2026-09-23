@@ -1,0 +1,57 @@
+--- Synthetic: clean Gaussian bump, varying resolution ---
+=== gaussian, coarse (24 pts) (npts=24, relcontriblvl=1e-06) ===
+  snapToGrid      : [-1.434782609, 1.434782609]  (err_lo=0.233, err_hi=-0.233)
+  linear2pt       : [-1.692928767, 1.692928767]  (err_lo=-0.0256, err_hi=0.0256)
+  logLinear2pt    : [-1.665266315, 1.665266315]  (err_lo=0.0021, err_hi=-0.0021)
+  estimateGnErange: [-1.667367789, 1.667367789]  (err_lo=2.22e-16, err_hi=2.22e-16)
+  truth           : [-1.667367789, 1.667367789]
+
+=== gaussian, medium (60 pts) (npts=60, relcontriblvl=1e-06) ===
+  snapToGrid      : [-1.576271186, 1.576271186]  (err_lo=0.0868, err_hi=-0.0868)
+  linear2pt       : [-1.671158257, 1.671158257]  (err_lo=-0.00812, err_hi=0.00812)
+  logLinear2pt    : [-1.662637575, 1.662637575]  (err_lo=0.000398, err_hi=-0.000398)
+  estimateGnErange: [-1.663035651, 1.663035651]  (err_lo=6.66e-16, err_hi=-2.22e-16)
+  truth           : [-1.663035651, 1.663035651]
+
+=== gaussian, fine (400 pts) (npts=400, relcontriblvl=1e-06) ===
+  snapToGrid      : [-1.661654135, 1.661654135]  (err_lo=0.000621, err_hi=-0.000621)
+  linear2pt       : [-1.662349707, 1.662349707]  (err_lo=-7.46e-05, err_hi=7.46e-05)
+  logLinear2pt    : [-1.662272459, 1.662272459]  (err_lo=2.68e-06, err_hi=-2.68e-06)
+  estimateGnErange: [-1.662275141, 1.662275141]  (err_lo=-2.22e-16, err_hi=0)
+  truth           : [-1.662275141, 1.662275141]
+
+--- Synthetic: same coarse Gaussian, with noise injected right at the naive crossing points (the "one-sidedness" concern) ---
+=== gaussian, coarse, +-1e-6 rel noise at crossing (npts=24, relcontriblvl=1e-06) ===
+  snapToGrid      : [-1.434782609, 1.434782609]  (err_lo=0.233, err_hi=-0.233)
+  linear2pt       : [-1.692928768, 1.692928765]  (err_lo=-0.0256, err_hi=0.0256)
+  logLinear2pt    : [-1.665266364, 1.665266266]  (err_lo=0.0021, err_hi=-0.0021)
+  estimateGnErange: [-1.66736779, 1.667367788]  (err_lo=-1.34e-09, err_hi=-1.34e-09)
+  truth           : [-1.667367789, 1.667367789]
+
+=== gaussian, coarse, +-1e-3 rel noise at crossing (npts=24, relcontriblvl=1e-06) ===
+  snapToGrid      : [-1.434782609, 1.434782609]  (err_lo=0.233, err_hi=-0.233)
+  linear2pt       : [-1.692930424, 1.692927113]  (err_lo=-0.0256, err_hi=0.0256)
+  logLinear2pt    : [-1.665315312, 1.665217301]  (err_lo=0.00205, err_hi=-0.00215)
+  estimateGnErange: [-1.667369109, 1.667366425]  (err_lo=-1.32e-06, err_hi=-1.36e-06)
+  truth           : [-1.667367789, 1.667367789]
+
+--- Synthetic: hard step (discontinuity robustness) ---
+=== hard step (discontinuous, robustness check) (npts=40, relcontriblvl=1e-06) ===
+  snapToGrid      : [-0.9743589744, 0.9743589744]
+  linear2pt       : [-1.076922974, 1.076922974]
+  logLinear2pt    : [-1.076922974, 1.076922974]
+  estimateGnErange: [-1.076922974, 1.076922974]
+
+--- Real data captured from CI-sensitive cases ---
+=== real: Debye VDOS (T=410K), order=153, vdoslux=2000 (npts=167, relcontriblvl=1e-06) ===
+  snapToGrid      : [-2.380197338, 0.08655263046]
+  linear2pt       : [-2.400417255, 0.08684757595]
+  logLinear2pt    : [-2.400015129, 0.08678942029]
+  estimateGnErange: [-2.400031707, 0.08679137714]
+
+=== real: Li2O (Li), order=129, vdoslux=2000 (npts=162, relcontriblvl=1e-06) ===
+  snapToGrid      : [-5.943061069, -1.741279039]
+  linear2pt       : [-5.946146763, -1.724785616]
+  logLinear2pt    : [-5.945449276, -1.726823663]
+  estimateGnErange: [-5.945480136, -1.726755977]
+
