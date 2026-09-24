@@ -29,6 +29,7 @@
 #include "NCrystal/internal/utils/NCSpline.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
 #include <fstream>
+#include <iomanip>//SABXSDIAG-TEMPORARY
 
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
@@ -1081,6 +1082,37 @@ namespace NCRYSTAL_NAMESPACE {
           m_bcEptInfo.shrink_to_fit();
         }
 
+
+        //SABXSDIAG-TEMPORARY: dedicated diagnostic commit, see tests/src/app_sabxsdiag.
+        if ( std::getenv("NCRYSTAL_SABXS_DIAG") ) {
+          NCRYSTAL_MSG( "SABXSDIAG m_eGrid/m_sIntegral size=" << m_eGrid.size() );
+          for ( auto i : ncrange(m_eGrid.size()) )
+            NCRYSTAL_MSG( "SABXSDIAG eGrid[" << i << "]="
+                         << std::setprecision(17) << vectAt(m_eGrid,i)
+                         << " sIntegral[" << i << "]="
+                         << std::setprecision(17) << vectAt(m_sIntegral,i) );
+          //Dump a window around the point where e_touch first becomes
+          //nonzero (many leading cells straddle the alpha=beta diagonal and
+          //have e_touch exactly 0.0 -- the interesting, noise-sensitive
+          //region is right where it starts rising from 0):
+          std::size_t firstNonZero = surv.data().size();
+          for ( auto i : ncrange(surv.data().size()) ) {
+            if ( surv.data()[i].e_touch > 0.0 ) { firstNonZero = i; break; }
+          }
+          std::size_t dumpBegin = ( firstNonZero > 50 ? firstNonZero-50 : 0 );
+          std::size_t dumpEnd = std::min<std::size_t>( firstNonZero+300,
+                                                       surv.data().size() );
+          NCRYSTAL_MSG( "SABXSDIAG survCells total=" << surv.data().size()
+                       << " firstNonZeroEtouch=" << firstNonZero
+                       << " dumping [" << dumpBegin << "," << dumpEnd << ")" );
+          for ( auto i : ncrange(dumpBegin,dumpEnd) ) {
+            const auto& ci = surv.data()[i];
+            NCRYSTAL_MSG( "SABXSDIAG cell[" << i << "] e_touch="
+                         << std::setprecision(17) << ci.e_touch
+                         << " e_cover=" << std::setprecision(17) << ci.e_cover
+                         << " cellidx=" << ci.cellidx.val );
+          }
+        }
 
         m_lowEExtrapolationConstant = ( m_sIntegral.front()
                                         * std::sqrt(1.0/m_eGrid.front()) );

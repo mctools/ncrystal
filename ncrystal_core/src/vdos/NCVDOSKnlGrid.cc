@@ -23,6 +23,8 @@
 #include "NCrystal/internal/utils/NCSpan.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"//SABXSDIAG-TEMPORARY
+#include <iomanip>//SABXSDIAG-TEMPORARY
 
 //TODO: reduce usage of nc_assert_always in this file once the model has been
 //      used in production for a while.
@@ -358,6 +360,17 @@ NC::VDOS::determineAlphaBetaGridFromGn( const GnExpansion& gnexpn,
   // -> both are grids of course:
   nc_assert( nc_is_grid( avals ) );
   nc_assert( nc_is_grid( bvals ) );
+  //SABXSDIAG-TEMPORARY: dedicated diagnostic commit, see tests/src/app_sabxsdiag.
+  if ( std::getenv("NCRYSTAL_SABXS_DIAG") ) {
+    NCRYSTAL_MSG( "SABXSDIAG alphaGrid size=" << avals.size()
+                 << " betaGrid size=" << bvals.size() );
+    for ( auto i : ncrange(avals.size()) )
+      NCRYSTAL_MSG( "SABXSDIAG alphaGrid[" << i << "]="
+                   << std::setprecision(17) << vectAt(avals,i) );
+    for ( auto i : ncrange(bvals.size()) )
+      NCRYSTAL_MSG( "SABXSDIAG betaGrid[" << i << "]="
+                   << std::setprecision(17) << vectAt(bvals,i) );
+  }
   return {avals, bvals};
 }
 
