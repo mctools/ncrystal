@@ -66,13 +66,21 @@
 #include "NCrystal/factories/NCMatCfg.hh"
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 #include <iostream>
 #include <sstream>
 
 namespace NC = NCrystal;
 namespace NCV = NCrystal::VDOS;
 
+#define REQUIRE(x) nc_assert_always(x)
+
 namespace {
+
+  //Exact, FMA-sensitive per-point error values are only printed under this
+  //(not part of the routinely cross-platform-compared output -- see
+  //checkNoiseFloor below):
+  const bool s_verbose = NC::ncgetenv_bool("GNCONVNOISEFLOOR_VERBOSE");
 
   // O(n^2) direct linear convolution (Neumaier-summed), same {a1,a2,dt}
   // convention as FastConvolve::convolve. Accurate to ~1ULP regardless of n,
@@ -95,15 +103,29 @@ namespace {
   }
 
   // Convolves a1,a2 both via FastConvolve and via referenceConvolve, and
-  // reports FastConvolve's true max absolute error against
-  // estimateFFTConvolutionNoiseFloor's bound at the given safetyFactor.
-  // Also reports the LOCAL absolute error right at the production
-  // truncation edge (the first/last point exceeding
-  // prodThreshold*peak=1e-13*peak, i.e. exactly the point that decides
-  // where produceNewOrderByConvolutionImpl trims the spectrum today) --
-  // this, not the global max, is what actually determines whether that
-  // edge point is cross-platform reproducible. Returns the ratio
-  // maxErr/noiseFloor (<=1 means the bound held).
+  // *asserts* (REQUIRE, not just a printed value) that FastConvolve's true
+  // max absolute error stays within estimateFFTConvolutionNoiseFloor's
+  // bound at the given safetyFactor -- this is the actual property the
+  // whole utility exists to guarantee, so it must be a real, hard check
+  // that fails the test outright on a genuine regression, not something
+  // that could be silently papered over by a maintainer running --update
+  // on a log-diff mismatch.
+  //
+  // maxErr and the local error right at the production truncation edge
+  // (the first/last point exceeding prodThreshold*peak=1e-13*peak, i.e.
+  // exactly the point that decides where produceNewOrderByConvolutionImpl
+  // trims the spectrum today) are themselves FastConvolve's own round-off
+  // -- by construction, exactly the quantity that legitimately varies with
+  // FMA contraction (build flags/platform/compiler). Printing their exact
+  // value in the routinely-diffed (committed, cross-platform-compared)
+  // output would make the test fail on every platform that contracts
+  // differently, even though the REQUIRE above already correctly confirms
+  // nothing is actually wrong -- a false positive, not a real one. So the
+  // routine output only contains quantities that are themselves
+  // deterministic/reproducible (label/n/peak/noiseFloor/edgeVal and the
+  // qualitative verdict); the exact noisy values are still available for
+  // interactive debugging via GNCONVNOISEFLOOR_VERBOSE=1. See
+  // docs/claude_session_vdos_fma_reprod.md.
   double checkNoiseFloor( const std::string& label, const NC::VectD& a1,
                           const NC::VectD& a2, double dt, double safetyFactor )
   {
@@ -119,6 +141,7 @@ namespace {
     const double noiseFloor = NCV::estimateFFTConvolutionNoiseFloor(
       peak, y_fft.size(), safetyFactor );
     const double ratio = maxErr / NC::ncmax( noiseFloor, 1e-300 );
+    REQUIRE( ratio <= 1.0 );//the actual property under test
 
     constexpr double prodThreshold = 1e-13;
     const double prodCutoff = prodThreshold * peak;
@@ -138,17 +161,20 @@ namespace {
 
     std::cout << "  " << label << ": n=" << y_fft.size()
               << " peak=" << NC::fmt(peak,"%.6g")
-              << " maxErr=" << NC::fmt(maxErr,"%.3e")
               << " noiseFloor=" << NC::fmt(noiseFloor,"%.3e")
-              << " maxErr/noiseFloor=" << NC::fmt(ratio,"%.3g")
-              << ( ratio <= 1.0 ? "  OK" : "  ***EXCEEDS BOUND***" )
-              << std::endl;
+              << "  OK" << std::endl;
     std::cout << "      at prod. truncation edge (val=" << NC::fmt(edgeVal,"%.3e")
               << ", =" << NC::fmt(edgeVal/NC::ncmax(peak,1e-300),"%.3g") << "*peak): "
-              << "edgeErr=" << NC::fmt(edgeErr,"%.3e")
-              << " edgeRelErr=" << NC::fmt(edgeRelErr,"%.3g")
-              << " noiseFloor/edgeVal=" << NC::fmt(noiseFloor/NC::ncmax(edgeVal,1e-300),"%.3g")
+              << "noiseFloor/edgeVal=" << NC::fmt(noiseFloor/NC::ncmax(edgeVal,1e-300),"%.3g")
               << std::endl;
+    if ( s_verbose ) {
+      std::cout << "      [verbose, not cross-platform-stable] maxErr="
+                << NC::fmt(maxErr,"%.3e")
+                << " maxErr/noiseFloor=" << NC::fmt(ratio,"%.3g")
+                << " edgeErr=" << NC::fmt(edgeErr,"%.3e")
+                << " edgeRelErr=" << NC::fmt(edgeRelErr,"%.3g")
+                << std::endl;
+    }
     return ratio;
   }
 
@@ -189,8 +215,11 @@ namespace {
       oss << "gaussian(n=2000,peak=" << NC::fmtg(peak) << ")";
       worst = NC::ncmax( worst, checkNoiseFloor( oss.str(), a, a, 1.0, safetyFactor ) );
     }
-    std::cout << "worst maxErr/noiseFloor over synthetic sweep: "
-              << NC::fmt(worst,"%.3g") << std::endl << std::endl;
+    if ( s_verbose )
+      std::cout << "      [verbose, not cross-platform-stable] worst"
+                   " maxErr/noiseFloor over synthetic sweep: "
+                << NC::fmt(worst,"%.3g") << std::endl;
+    std::cout << std::endl;
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -253,8 +282,11 @@ namespace {
           << di->atomData().elementName();
       realDataCase( oss.str().c_str(), di_vdos->vdosData(), safetyFactor, worst );
     }
-    std::cout << "worst maxErr/noiseFloor over real-data sweep: "
-              << NC::fmt(worst,"%.3g") << std::endl << std::endl;
+    if ( s_verbose )
+      std::cout << "      [verbose, not cross-platform-stable] worst"
+                   " maxErr/noiseFloor over real-data sweep: "
+                << NC::fmt(worst,"%.3g") << std::endl;
+    std::cout << std::endl;
   }
 }
 
