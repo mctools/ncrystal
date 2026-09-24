@@ -430,6 +430,13 @@ NC::VDOS::setupE0ABGrid( const GnExpansion& gnexpn, unsigned npts )
     f.f = Gn.getRawSpectrum(n);
     //Discard non-positive values:
     f = pwlNarrowToPos(f);
+    if ( f.f.empty() ) {
+      //Did not actually extend enough into positive values to have 2 grid
+      //pts. Assume this will be true from now on.
+      fcts.pop_back();
+      break;
+    }
+
     nc_assert_always( f.x0 > 0.0 && f.f.size() >= 2 );
     auto f_fmut = f.f_mutable();
 

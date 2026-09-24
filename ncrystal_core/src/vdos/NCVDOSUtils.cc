@@ -501,11 +501,28 @@ NC::VDOS::coverEquidistantGrids( const EquidistantGrid& g1,
 
 NC::VDOS::PWLFct NC::VDOS::pwlNarrowToPos( const PWLFct& p, double tol )
 {
+  if ( p.f.size() < 2 ) {
+    nc_assert( p.f.size() == 0 );
+    return {};
+  }
   nc_assert( p.binWidth > 0.0 );
   const double t = tol * p.binWidth;//threshold
   std::size_t i = ( p.x0 < t ? static_cast<std::size_t>
                     (std::ceil((t - p.x0) / p.binWidth)) : 0u );
   i = std::min<std::size_t>(i, p.f.size());
+
+  // Correct possible floating-point rounding in the index calculation, and
+  // ensure that results are consistent with what p.xAt(..) provides.
+  while ( i > 0 && p.xAt(i - 1) >= t )
+    --i;
+  while ( i < p.f.size() && p.xAt(i) < t )
+    ++i;
+
+  if ( i >= p.f.size() || p.f.size() - i < 2 ) {
+    // There are not two grid points at or above t:
+    return {};
+  }
+
   PWLFct res;
   res.x0 = p.xAt(i);
   res.binWidth = p.binWidth;
