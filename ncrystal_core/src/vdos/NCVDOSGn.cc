@@ -670,6 +670,40 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
       if (phonon_spe.at(iback)>spec_cutoff)
         break;
     }
+    //Refine the two edges with a windowed quadratic-log-fit crossing
+    //estimate (same tool as VDOSGn::eRange's estimateGnErange), so a single
+    //point which only clears spec_cutoff by chance round-off does not by
+    //itself decide the truncation edge. Only attempted where FastConvolve's
+    //own (size-dependent) noise floor is not safely below spec_cutoff --
+    //for most orders (thinned to a few hundred/thousand points) the plain
+    //crossing is already far more reliable than that floor, and refining
+    //those too was found to relocate near-ties into orders that never
+    //needed it, without reducing the total count. Skipped for legacyConvolve
+    //(must reproduce NCrystal 2.x-4.x bit-for-bit) and directConvolve
+    //(VDOSGn::Cfg::MaxLux; convolveDirect has no FFT noise floor for this
+    //estimate to describe). See docs/claude_session_vdos_fma_reprod.md.
+    if ( iback > ifront && !m_cfg.legacyConvolve && !m_cfg.directConvolve ) {
+      constexpr std::size_t crossingNExtra = 6;
+      constexpr double noiseFloorSafetyFactor = 8.0;
+      constexpr double noiseFloorGateFactor = 2.0;
+      const double noiseFloorGate = VDOS::estimateFFTConvolutionNoiseFloor(
+        spec_max, phonon_spe.size(), noiseFloorSafetyFactor );
+      if ( noiseFloorGate > noiseFloorGateFactor*spec_cutoff ) {
+        if ( ifront > 0 ) {
+          const double x = VDOS::estimateSpectrumCrossing( 0.0, 1.0, phonon_spe,
+                                                           ifront-1, ifront,
+                                                           spec_cutoff, crossingNExtra );
+          ifront = static_cast<std::size_t>( ncclamp( std::round(x), 0.0, double(iback) ) );
+        }
+        if ( iback+1 < phonon_spe.size() ) {
+          const double x = VDOS::estimateSpectrumCrossing( 0.0, 1.0, phonon_spe,
+                                                           iback, iback+1,
+                                                           spec_cutoff, crossingNExtra );
+          iback = static_cast<std::size_t>( ncclamp( std::round(x), double(ifront),
+                                                      double(phonon_spe.size()-1) ) );
+        }
+      }
+    }
     if (iback>ifront) {
       VectD truncated_spec(phonon_spe.begin()+ifront,phonon_spe.begin()+iback+1);
       truncated_spec.swap(phonon_spe);
