@@ -12,6 +12,21 @@ testFastConvolve start...
 [0, 0, 0, 0]
 [0, 0, 0, 0]
 testFastConvolve done.
+testConvolveDirect start...
+[-2]
+[-2]
+[3, -2, -8]
+[3, -2, -8]
+[4, 13, 22, 15]
+[4, 13, 22, 15]
+[0.75, 2.5, 2]
+[0.75, 2.5, 2]
+[2, 3, 4.5, 6, -2.5, 2]
+[2, 3, 4.5, 6, -2.5, 2]
+[0, 0, 0, 0]
+[0, 0, 0, 0]
+convolveDirect vs convolve max reldiff on smooth-bump case: 2.85415e-08
+testConvolveDirect done.
 testCalcPhase start...
 Number of k values tested for n=0: 1 [ALL] (worst reldiff < 0: yes)
 Number of k values tested for n=1: 2 [ALL] (worst reldiff < 0: yes)

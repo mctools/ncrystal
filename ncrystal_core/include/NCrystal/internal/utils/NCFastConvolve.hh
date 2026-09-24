@@ -54,6 +54,15 @@ namespace NCRYSTAL_NAMESPACE {
     //Legacy version actually use |y| instead if y.real() for output production:
     void convolveLegacy( const VectD& a1, const VectD& a2, VectD& y, double dt);
 
+    //Direct (non-FFT) O(a1.size()*a2.size()) linear convolution, with each
+    //output point accumulated via Neumaier-corrected summation (StableSum).
+    //Unlike convolve/convolveLegacy, this has no FFT round-off floor at all
+    //(accurate to ~1ULP regardless of size), at the cost of being far slower
+    //for large inputs. Intended for use where that noise floor itself is the
+    //problem, rather than raw speed -- see VDOSGn::Cfg::MaxLux and
+    //docs/claude_session_vdos_fma_reprod.md.
+    void convolveDirect( const VectD& a1, const VectD& a2, VectD& y, double dt );
+
     //Internal function for calculating exp(i*2pi*k/2^n), exposed for unit
     //testing:
     static PairDD calcPhase(unsigned long k, unsigned long n);
