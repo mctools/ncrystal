@@ -399,15 +399,41 @@ namespace NCRYSTAL_NAMESPACE {
             sumCoveredCells.add(fullCellIntegral);
           } else {
             double contrib;
-            if ( fullCellIntegral < (sumFullCells.sumUncorrected()+prev_contrib)*threshold ) {
-              contrib = 0.0;//don't waste time on irrelevant cell
+            const double cutoffref = (sumFullCells.sumUncorrected()+prev_contrib)*threshold;
+            //Taper the "don't waste time on irrelevant cell" shortcut over a
+            //factor-of-taperBand log-band around the threshold, rather than
+            //a hard cut exactly at it: confirmed on real production data
+            //(Li2O, vdoslux=2004) that hundreds of cells sit within 10% of
+            //this threshold for a given E_div_kT, some within 0.01%, so
+            //ordinary cross-platform noise in fullCellIntegral (itself a
+            //numerically integrated quantity) can readily flip which side
+            //of a hard cut such a cell falls on -- a real, not just
+            //last-digit, difference, since the skipped branch contributes
+            //exactly 0 while the other contributes the cell's actual
+            //integral. Cells safely below the band still take the cheap
+            //shortcut (untouched performance-wise); only the comparatively
+            //few cells within the band pay for the real per-cell
+            //integration, tapered smoothly to 0 as they approach the lower
+            //edge of the band. See docs/claude_session_vdos_fma_reprod.md.
+            constexpr double taperBand = 10.0;
+            if ( fullCellIntegral < cutoffref/taperBand ) {
+              contrib = 0.0;//safely below threshold, don't waste time
             } else {
               CellData cellData = mgr.lookupCellInfo( it->cellidx );
               StableSumKahan crossedRes;
               StdLogLinCellIntegrator::integrateWithinKB( cellData, E_div_kT,
                                                           scheme, crossedRes );
-              sum.add( crossedRes );
               contrib = crossedRes.sum();
+              if ( fullCellIntegral < cutoffref*taperBand ) {
+                const double t = ncclamp( ( std::log(fullCellIntegral/cutoffref)
+                                            + std::log(taperBand) )
+                                          / ( 2.0*std::log(taperBand) ), 0.0, 1.0 );
+                //Quintic smootherstep (Ken Perlin): 0 and 1 derivatives
+                //vanish at both ends, so no kink at the band edges either:
+                const double s = t*t*t*(t*(t*6.0-15.0)+10.0);
+                contrib *= s;
+              }
+              sum.add( contrib );
             }
             if ( do_sample ) {
               result.crossedIntegrals.emplace_back( contrib, it->cellidx );
