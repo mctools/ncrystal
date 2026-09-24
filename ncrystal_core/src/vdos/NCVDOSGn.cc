@@ -356,7 +356,7 @@ NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
   if ( itFirst >= itLast || std::distance(itFirst,itLast) < 3 )
     NCRYSTAL_THROW(CalcError,"Too few non-zero pts in G1 spectrum.");
   //Index of first point, in units of binwidth (point 'nbins' is at energy 0):
-  nc_assert( std::distance( itB, itFirst ) > 0 );
+  nc_assert( std::distance( itB, itFirst ) >= 0 );
   const auto distBF = std::distance( itB, itFirst );
 #ifndef NDEBUG
   nc_assert( static_cast<std::size_t>(nbins)+1
