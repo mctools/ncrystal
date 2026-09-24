@@ -57,6 +57,11 @@ def main():
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux2_temp10K.ncmat' : 4000000,
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux3_temp10K.ncmat' : 4000000,
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux4_temp10K.ncmat' : 4000000,
+        #Living session log for the ongoing VDOS/FMA cross-platform
+        #reproducibility investigation (tk_volatile branch); deliberately
+        #kept as a single growing file rather than split, so it stays a
+        #single coherent narrative:
+        'docs/claude_session_vdos_fma_reprod.md' : 200,
     }
     for f in all_files_iter():
         lim = max_size_kb_log if f.suffix == '.log' else max_size_kb_other
