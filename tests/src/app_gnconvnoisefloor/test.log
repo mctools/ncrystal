@@ -1,0 +1,48 @@
+--- Synthetic self-convolved Gaussian bumps: varying n ---
+  gaussian(n=200,peak=1): n=399 peak=44.0898 maxErr=2.132e-14 noiseFloor=1.564e-12 maxErr/noiseFloor=0.0136  OK
+      at prod. truncation edge (val=1.125e-07, =2.55e-09*peak): edgeErr=1.539e-15 edgeRelErr=1.37e-08 noiseFloor/edgeVal=1.39e-05
+  gaussian(n=500,peak=1): n=999 peak=110.557 maxErr=5.684e-14 noiseFloor=6.207e-12 maxErr/noiseFloor=0.00916  OK
+      at prod. truncation edge (val=1.125e-07, =1.02e-09*peak): edgeErr=1.309e-14 edgeRelErr=1.16e-07 noiseFloor/edgeVal=5.52e-05
+  gaussian(n=1000,peak=1): n=1999 peak=221.335 maxErr=1.137e-13 noiseFloor=1.758e-11 maxErr/noiseFloor=0.00647  OK
+      at prod. truncation edge (val=1.125e-07, =5.08e-10*peak): edgeErr=1.125e-15 edgeRelErr=1e-08 noiseFloor/edgeVal=0.000156
+  gaussian(n=2000,peak=1): n=3999 peak=442.892 maxErr=1.705e-13 noiseFloor=4.975e-11 maxErr/noiseFloor=0.00343  OK
+      at prod. truncation edge (val=1.125e-07, =2.54e-10*peak): edgeErr=4.151e-14 edgeRelErr=3.69e-07 noiseFloor/edgeVal=0.000442
+  gaussian(n=4000,peak=1): n=7999 peak=886.005 maxErr=5.684e-13 noiseFloor=1.408e-10 maxErr/noiseFloor=0.00404  OK
+      at prod. truncation edge (val=1.125e-07, =1.27e-10*peak): edgeErr=9.835e-14 edgeRelErr=8.74e-07 noiseFloor/edgeVal=0.00125
+--- Synthetic self-convolved Gaussian bumps: varying overall scale (n=2000 fixed) ---
+  gaussian(n=2000,peak=1e-08): n=3999 peak=4.42892e-14 maxErr=1.893e-29 noiseFloor=4.975e-27 maxErr/noiseFloor=0.00381  OK
+      at prod. truncation edge (val=1.125e-23, =2.54e-10*peak): edgeErr=3.296e-30 edgeRelErr=2.93e-07 noiseFloor/edgeVal=0.000442
+  gaussian(n=2000,peak=0.001): n=3999 peak=0.000442892 maxErr=2.168e-19 noiseFloor=4.975e-17 maxErr/noiseFloor=0.00436  OK
+      at prod. truncation edge (val=1.125e-13, =2.54e-10*peak): edgeErr=2.345e-20 edgeRelErr=2.08e-07 noiseFloor/edgeVal=0.000442
+  gaussian(n=2000,peak=1): n=3999 peak=442.892 maxErr=1.705e-13 noiseFloor=4.975e-11 maxErr/noiseFloor=0.00343  OK
+      at prod. truncation edge (val=1.125e-07, =2.54e-10*peak): edgeErr=4.151e-14 edgeRelErr=3.69e-07 noiseFloor/edgeVal=0.000442
+  gaussian(n=2000,peak=100000): n=3999 peak=4.42892e+12 maxErr=2.930e-03 noiseFloor=4.975e-01 maxErr/noiseFloor=0.00589  OK
+      at prod. truncation edge (val=1.125e+03, =2.54e-10*peak): edgeErr=3.036e-04 edgeRelErr=2.7e-07 noiseFloor/edgeVal=0.000442
+  gaussian(n=2000,peak=1e+12): n=3999 peak=4.42892e+26 maxErr=3.436e+11 noiseFloor=4.975e+13 maxErr/noiseFloor=0.00691  OK
+      at prod. truncation edge (val=1.125e+17, =2.54e-10*peak): edgeErr=5.654e+10 edgeRelErr=5.02e-07 noiseFloor/edgeVal=0.000442
+worst maxErr/noiseFloor over synthetic sweep: 0.0136
+
+--- Real data: live Debye-model G1, self-convolved (orders 2,3) ---
+  Debye T=80K,temp=10K (narrow/steep, cold), order2=G1(*)G1: n=1673 peak=134.053 maxErr=8.527e-14 noiseFloor=9.740e-12 maxErr/noiseFloor=0.00875  OK
+      at prod. truncation edge (val=1.142e+00, =0.00852*peak): edgeErr=1.688e-14 edgeRelErr=1.48e-14 noiseFloor/edgeVal=8.53e-12
+  Debye T=80K,temp=10K (narrow/steep, cold), order3=G1(*)order2raw: n=2509 peak=109.605 maxErr=5.684e-14 noiseFloor=9.752e-12 maxErr/noiseFloor=0.00583  OK
+      at prod. truncation edge (val=4.955e-03, =4.52e-05*peak): edgeErr=5.967e-15 edgeRelErr=1.2e-12 noiseFloor/edgeVal=1.97e-09
+  Debye T=410K,temp=293.15K (Al-like), order2=G1(*)G1: n=1673 peak=13.0632 maxErr=8.882e-15 noiseFloor=9.491e-13 maxErr/noiseFloor=0.00936  OK
+      at prod. truncation edge (val=5.263e-02, =0.00403*peak): edgeErr=5.759e-16 edgeRelErr=1.09e-14 noiseFloor/edgeVal=1.8e-11
+  Debye T=410K,temp=293.15K (Al-like), order3=G1(*)order2raw: n=2509 peak=11.581 maxErr=7.105e-15 noiseFloor=1.030e-12 maxErr/noiseFloor=0.0069  OK
+      at prod. truncation edge (val=1.110e-04, =9.58e-06*peak): edgeErr=4.396e-16 edgeRelErr=3.96e-12 noiseFloor/edgeVal=9.28e-09
+  Debye T=2000K,temp=293.15K (wide), order2=G1(*)G1: n=1673 peak=5.0887 maxErr=2.665e-15 noiseFloor=3.697e-13 maxErr/noiseFloor=0.00721  OK
+      at prod. truncation edge (val=4.274e-02, =0.0084*peak): edgeErr=2.220e-16 edgeRelErr=5.2e-15 noiseFloor/edgeVal=8.65e-12
+  Debye T=2000K,temp=293.15K (wide), order3=G1(*)order2raw: n=2509 peak=4.13289 maxErr=2.665e-15 noiseFloor=3.677e-13 maxErr/noiseFloor=0.00725  OK
+      at prod. truncation edge (val=1.794e-04, =4.34e-05*peak): edgeErr=2.641e-16 edgeRelErr=1.47e-12 noiseFloor/edgeVal=2.05e-09
+--- Real data: live Li2O (Li,O) material G1, self-convolved (orders 2,3) ---
+  Li2O (real material, temp=10K), element=Li, order2=G1(*)G1: n=40905 peak=14.5209 maxErr=1.421e-14 noiseFloor=5.217e-12 maxErr/noiseFloor=0.00272  OK
+      at prod. truncation edge (val=8.464e-08, =5.83e-09*peak): edgeErr=2.456e-15 edgeRelErr=2.9e-08 noiseFloor/edgeVal=6.16e-05
+  Li2O (real material, temp=10K), element=Li, order3=G1(*)order2raw: n=61357 peak=11.3456 maxErr=1.243e-14 noiseFloor=4.992e-12 maxErr/noiseFloor=0.00249  OK
+      at prod. truncation edge (val=1.299e-12, =1.15e-13*peak): edgeErr=1.748e-15 edgeRelErr=0.00135 noiseFloor/edgeVal=3.84
+  Li2O (real material, temp=10K), element=O, order2=G1(*)G1: n=40905 peak=19.8977 maxErr=1.776e-14 noiseFloor=7.149e-12 maxErr/noiseFloor=0.00248  OK
+      at prod. truncation edge (val=1.185e-08, =5.96e-10*peak): edgeErr=2.735e-15 edgeRelErr=2.31e-07 noiseFloor/edgeVal=0.000603
+  Li2O (real material, temp=10K), element=O, order3=G1(*)order2raw: n=61357 peak=15.2892 maxErr=1.421e-14 noiseFloor=6.727e-12 maxErr/noiseFloor=0.00211  OK
+      at prod. truncation edge (val=1.707e-12, =1.12e-13*peak): edgeErr=1.007e-16 edgeRelErr=5.9e-05 noiseFloor/edgeVal=3.94
+worst maxErr/noiseFloor over real-data sweep: 0.00936
+

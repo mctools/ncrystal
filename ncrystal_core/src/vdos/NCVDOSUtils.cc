@@ -937,3 +937,15 @@ NC::PairDD NC::VDOS::estimateGnErange( double egrid_lower, double egrid_binwidth
   nc_assert( erange.second >= erange.first );
   return erange;
 }
+
+double NC::VDOS::estimateFFTConvolutionNoiseFloor( double peak, std::size_t n,
+                                                   double safetyFactor )
+{
+#ifndef NDEBUG
+  nc_assert_always( peak >= 0.0 );
+  nc_assert_always( n >= 1 );
+  nc_assert_always( safetyFactor >= 0.0 );
+#endif
+  return ( safetyFactor * peak * std::numeric_limits<double>::epsilon()
+          * std::sqrt( static_cast<double>(n) ) );
+}
