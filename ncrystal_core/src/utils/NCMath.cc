@@ -953,7 +953,17 @@ NC::reducePtsByEquidistribution(Span<const double> x,
     std::size_t hi = static_cast<std::size_t>
       (std::lower_bound(cum.begin(), cum.end(), q) - cum.begin());
     std::size_t idx = hi;
-    if (hi > 0 && (q - vectAt(cum, hi - 1)) <= (vectAt(cum, hi) - q))
+    //Bias the "which neighbour is closer" tie-break by a fixed tolerance well
+    //above the ~1e-15 relative noise that cum[] can carry from the
+    //std::log/std::exp calls further upstream (whose last-bit result can
+    //differ across libm implementations/dispatch): without this, a genuine
+    //near-tie here flips which discrete input point is kept between
+    //platforms, which then means a genuinely different (not just
+    //last-bit-perturbed) SAB grid point downstream -- observed in practice as
+    //a cross-platform sabxs mismatch traced to a different alpha/beta cell.
+    constexpr double tieBreakRelTol = 1e-9;
+    if (hi > 0 && (q - vectAt(cum, hi - 1))
+        <= (vectAt(cum, hi) - q) + tieBreakRelTol*mtot)
       idx = hi - 1;
     const std::size_t lo_allowed = sel.back() + 1;
     const std::size_t hi_allowed = n - targetN + k;

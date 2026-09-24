@@ -1,4 +1,28 @@
 v4.4.7 (work in progress)
+     * Harden a discrete grid-point selection tie-break in
+       reducePtsByEquidistribution (NCMath.cc), used when building the
+       alpha/beta grid for next-gen (vdoslux>=2000) SAB data
+       (VDOS::determineAlphaBetaGridFromGn). For each target quantile along
+       a cumulative point-density curve, the function picks whichever
+       candidate input point is closest; that density is itself built from
+       std::exp/std::log evaluations of the Gn phonon expansion, so a
+       last-few-ULP difference in those (e.g. from differing libm
+       implementations/dispatch across platforms) can flip a near-tie in
+       the raw floating-point "closest neighbour" comparison, causing a
+       genuinely different discrete grid point (not just a perturbed value
+       of the same point) to be selected between builds. Traced this way
+       (via glibc's own runtime FMA-hwcap IFUNC dispatch for log/exp,
+       toggled locally while holding compiler/flags/binary fixed) on real
+       production data (Li2O, vdoslux=2004): a downstream SAB integration
+       cell was found to differ by ~0.4% (not last-ULP) between builds at
+       the same position in a per-cell survey. Now biases the tie-break by
+       a fixed tolerance well above realistic cross-platform noise, so
+       only a clearly-closer neighbour can win. Verified locally (full
+       test suite unaffected, no reference-log changes, bit-identical vs.
+       an -mfma-forced rebuild); whether this resolves the specific
+       still-open two-platform sabxs CI failure it was found investigating
+       can only be confirmed by a real CI re-run (see
+       docs/claude_session_vdos_fma_reprod.md).
      * Harden a discrete-cutoff instability in the next-gen (vdoslux>=2000)
        SAB machinery: sIntegralAtE (called on every energy point evaluated
        while building a material's cross-section table and while searching
