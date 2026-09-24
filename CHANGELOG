@@ -1,4 +1,25 @@
 v4.4.7 (work in progress)
+     * Fix cross-platform (plain vs -mfma-forced) instability in the next-gen
+       (vdoslux>=2000) SAB cross-section table's Emin determination
+       (NCSABProcessor.cc's determineEMinDivKTminRange): the upper reference
+       point used there was found via a discrete search for where a
+       cumulative per-cell integral first crosses 10% of its total range.
+       That crossing index could differ by several tens of positions between
+       builds, because two cells with near-degenerate kinematic "touch"
+       energies can swap relative processing order under ordinary
+       FMA-contraction noise. Since that reference point still sat within
+       the visibly-rising part of the underlying curve (unlike the already-
+       robust lower reference point, which sits in the flat low-E "1/v law"
+       region), the index tie propagated into a ~2% shift of the returned
+       Emin, and hence of the entire cross-section table anchored on it.
+       Replaced with the array's own last (fully Kahan-summed, over every
+       touched cell) point, which involves no threshold crossing and is
+       therefore immune to this instability. Verified on the previously
+       failing case (Li2O, vdoslux=2004): reldiff between a plain and an
+       -mfma build dropped from ~4e-5 (just above the test's 1e-5 tolerance)
+       to ~5e-8. This changes sabxs/long_sabxsb reference data for vdoslux
+       2000-2004 Li2O materials, up to ~0.7% at the lowest tested energies
+       (where this Emin-anchored region of the table matters most).
      * Bug fix: Python API functions accepting numpy arrays now work correctly
        for non-float64 or non-contiguous arrays.
      * Cmdline script errors in case of invalid choices now always gives output

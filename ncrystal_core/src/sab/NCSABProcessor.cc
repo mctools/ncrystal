@@ -584,14 +584,24 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert_always( i1+8 < ns );
         }
 
-        std::size_t i2 = i1+1;
-        {
-          constexpr double eps_emin2 = 0.1;
-          const double tgt_s2 = (s1?s1*std::pow(s2/s1,eps_emin2):s2*eps_emin2);
-          while ( i2<ns && vectAt(s,i2)<tgt_s2 )
-            ++i2;
-          nc_assert_always( i2+4 < ns );
-        }
+        //Use the array's own last (fully Kahan-summed, over all touched
+        //cells) point directly as the upper reference, rather than searching
+        //for where the cumulative integral first crosses some intermediate
+        //(here: 10%-of-range) threshold: that threshold-crossing index was
+        //found to differ by several tens of index positions between an
+        //-mfma and a plain build on real production data (Li2O sabxs),
+        //because near-degenerate cell "touch" energies can swap relative
+        //order under ordinary FMA-contraction noise. Unlike the (already
+        //robust) i1 endpoint below, which lands in the flat 1/v-law region
+        //where f(e) barely depends on the exact e chosen, the old
+        //intermediate point sat in the middle of the transition region
+        //where f(e) is still visibly rising, so that index tie directly
+        //perturbed the Emin found downstream by determineEMinDivKT (which
+        //uses f at this endpoint to help define its own target criterion,
+        //not merely as a search-bracket bound). The last touched-cell point
+        //does not depend on any threshold crossing at all, so it cannot
+        //exhibit this instability. See docs/claude_session_vdos_fma_reprod.md.
+        const std::size_t i2 = ns-1;
 
         constexpr double safety1 = 0.001;
         PairDD res( vectAt(e,i1)*safety1, ncmin(vectAt(e,i2)*10,0.5*EMax_div_kT) );
