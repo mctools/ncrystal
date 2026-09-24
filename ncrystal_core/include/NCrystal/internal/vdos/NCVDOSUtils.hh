@@ -144,7 +144,9 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     // Narrow a PWL function to its part at positive x (new x0 will be above
-    // tol*binWidth to zero). The returned function owns its data.
+    // tol*binWidth to zero). Returns an empty (PwlFct{}) function in case there
+    // are not two grid points above the threshold. Otherwise the returned
+    // function owns its data (in its dataHolder).
     PWLFct pwlNarrowToPos( const PWLFct&, double tol = 1e-3 );
 
     // Evaluates the weighted sum of functions on the supplied grid. Optionally
