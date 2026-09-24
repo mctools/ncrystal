@@ -532,9 +532,37 @@ namespace NCRYSTAL_NAMESPACE {
           }
         }
 
+        //Crude narrowing before the fine root refinement below: the root is
+        //not expected to sit centrally within [loge1,loge2] (which spans
+        //e1, deep in the low-E "1/v law" plateau, to e2=EMax_div_kT, the
+        //material's overall energy scale -- often a dozen or more decades
+        //wide) but rather at some comparatively small fraction of e2.
+        //Rather than guessing a fixed fraction (which was found not to
+        //generalise well: for one real material the root sits at ~55% of
+        //the way from loge1 to loge2 in natural-log terms, i.e. not
+        //dramatically skewed either way), do a cheap exponential/"galloping"
+        //walk up from the already-known-below e1, narrowing the bracket to
+        //wherever froot's sign actually flips before handing off to the
+        //(for a still-wide bracket, more f_of_e-call-expensive) general
+        //root finder below:
+        double bracket_lo = loge1, bracket_hi = loge2;
+        {
+          constexpr double stepFactor = 100.0;//~2 decades per step
+          const double logStep = std::log(stepFactor);
+          double cand = bracket_lo;
+          while ( cand + logStep < bracket_hi ) {
+            cand += logStep;
+            if ( froot(cand) >= 0.0 ) {
+              bracket_hi = cand;
+              break;
+            }
+            bracket_lo = cand;
+          }
+        }
+
         double logemin;
         try {
-          logemin = findRoot2(froot,loge1,loge2, root_acc);
+          logemin = findRoot2(froot,bracket_lo,bracket_hi, root_acc);
         } catch ( NC::Error::CalcError& e ) {
           logemin = -1.0;
           //Write fct to file for debugging:
