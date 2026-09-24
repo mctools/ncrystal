@@ -892,6 +892,31 @@ double NC::VDOS::estimateSpectrumCrossing( double x0, double binwidth,
   return ncclamp( result, xAt(wlo), xAt(whi) );
 }
 
+void NC::VDOS::applyCrossingTaper( Span<double> spec, double xcross,
+                                   bool risingEdge, double halfwidth )
+{
+#ifndef NDEBUG
+  nc_assert_always( std::isfinite(xcross) );
+  nc_assert_always( halfwidth > 0.0 );
+#endif
+  const double lo = xcross - halfwidth;
+  const double hi = xcross + halfwidth;
+  const double ilo_d = ncmax( 0.0, std::floor(lo) );
+  const double ihi_d = ncmin( double(spec.size()-1), std::ceil(hi) );
+  if ( ihi_d < ilo_d )
+    return;
+  const std::size_t ilo = static_cast<std::size_t>(ilo_d);
+  const std::size_t ihi = static_cast<std::size_t>(ihi_d);
+  const double invWidth = 1.0/(hi-lo);
+  for ( auto i : ncrange(ilo,ihi+1) ) {
+    const double t = ncclamp( ( double(i) - lo ) * invWidth, 0.0, 1.0 );
+    //Quintic smootherstep (Ken Perlin): 0 and 1 derivatives vanish at both
+    //ends, so the taper introduces no kink at the window edges either:
+    const double s = t*t*t*(t*(t*6.0-15.0)+10.0);
+    spec[i] *= ( risingEdge ? s : 1.0-s );
+  }
+}
+
 NC::PairDD NC::VDOS::estimateGnErange( double egrid_lower, double egrid_binwidth,
                                        Span<const double> spec,
                                        double relcontriblvl )

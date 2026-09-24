@@ -47,6 +47,24 @@ v4.4.7 (work in progress)
        convolution (which must keep reproducing NCrystal 2.x-4.x bit-for-bit)
        or to VDOSGn::Cfg::MaxLux (whose convolveDirect has no FFT noise
        floor for this to describe).
+     * VDOSGn's per-order truncation edge (see previous entry) is now also
+       smoothly tapered (applyCrossingTaper) rather than hard-cut exactly at
+       the estimated crossing: the crossing estimate itself can still land
+       close enough to a half-integer grid index that ordinary FMA-contraction
+       noise flips which neighbouring index gets chosen (confirmed on real
+       production data, near an array edge where the estimator's own fit
+       window is asymmetric), and a hard cut there discarded/kept a bin whose
+       value was still of order the truncation threshold itself -- a real,
+       whole-bin-sized discrepancy, not just last-digit noise. The taper
+       ramps the spectrum smoothly to zero around the crossing before
+       truncating a safe margin beyond it, so both plausible choices near
+       such a tie now hold an equally negligible value. This changes VDOS/
+       scattering-kernel-derived numerical results at the next-gen
+       (vdoslux>=2000) levels by more than the previous entry (sabxs
+       reference shifts up to ~1%, again concentrated in the Li2O test
+       material), without any expected impact on physical accuracy -- the
+       truncation threshold is itself just a relative-to-peak cutoff below
+       which contributions were already considered negligible.
      * Fix BoundedCellSampler's edge-envelope calculation (used when sampling
        S(alpha,beta) cells whose kinematically accessible region touches
        beta=0) evaluating beta_minus(alpha) as the naive alpha-2*sqrt(E*alpha)
