@@ -51,6 +51,8 @@ namespace NCRYSTAL_NAMESPACE {
         double truncationThreshold = 1e-13;//trim ranges to remove negligible
         //noise at edges (0 disables)
         bool legacyConvolve = false;
+        bool directConvolve = false;//use FastConvolve::convolveDirect
+        //instead of convolve, for every order (see VDOSGn::Cfg::MaxLux).
       };
       CfgDecoded decodeCfg( VDOSGn::Cfg choice ) {
         CfgDecoded res;
@@ -61,6 +63,8 @@ namespace NCRYSTAL_NAMESPACE {
           res.minThinAgressiveOrder = 50000;
           res.truncationThreshold = 1e-14;
           res.legacyConvolve = true;
+        } else if (choice == VDOSGn::Cfg::MaxLux) {
+          res.directConvolve = true;
         } else {
           nc_assert( choice == VDOSGn::Cfg::Default );
         }
@@ -390,6 +394,7 @@ NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
                  <<", truncation with minOrder="<<m_cfg.minTruncOrder
                  <<" and truncationThreshold="<<m_cfg.truncationThreshold
                  <<(m_cfg.legacyConvolve?", mode=legacy":"")
+                 <<(m_cfg.directConvolve?", mode=directConvolve":"")
                  <<")");
 }
 
@@ -644,6 +649,8 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
   long startIdx = startIdx1 + startIdx2;//(only used when anchored)
   if ( m_cfg.legacyConvolve )
     fastConvolve.convolveLegacy( *input1_spec, *input2_spec, phonon_spe, dt );
+  else if ( m_cfg.directConvolve )
+    fastConvolve.convolveDirect( *input1_spec, *input2_spec, phonon_spe, dt );
   else
     fastConvolve.convolve( *input1_spec, *input2_spec, phonon_spe, dt );
   auto orig_npts_result = phonon_spe.size();

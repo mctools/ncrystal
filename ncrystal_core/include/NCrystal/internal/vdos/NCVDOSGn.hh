@@ -78,7 +78,14 @@ namespace NCRYSTAL_NAMESPACE {
       // Cfg options and Constructor: //
       //////////////////////////////////
 
-      enum class Cfg { Default, Legacy };
+      //MaxLux: like Default, but uses FastConvolve::convolveDirect (a slow,
+      //O(n1*n2) direct convolution, immune to FFT round-off) instead of the
+      //FFT-based convolve for every order. Not currently reachable from any
+      //cfg-string/vdoslux level; for now purely an investigative tool for
+      //isolating whether a given cross-platform reproducibility issue stems
+      //from FastConvolve's own numerical noise floor. See
+      //docs/claude_session_vdos_fma_reprod.md.
+      enum class Cfg { Default, Legacy, MaxLux };
 
       //Initialise based on VDOS and cfg:
       VDOSGn( const VDOSEval&, Cfg = Cfg::Default );
