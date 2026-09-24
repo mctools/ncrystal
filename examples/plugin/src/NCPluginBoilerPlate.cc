@@ -37,4 +37,4 @@ void NCP::registerPlugin()
   NC::FactImpl::registerFactory(NC::ncmake_unique<NCP::PluginFactory>());
   NC::Plugins::registerPluginTestFunction( std::string("test_") + pluginName(),
                                            customPluginTest );
-};
+}
