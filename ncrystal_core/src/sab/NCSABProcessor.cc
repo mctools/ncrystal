@@ -584,27 +584,28 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert_always( i1+8 < ns );
         }
 
-        //Use the array's own last (fully Kahan-summed, over all touched
-        //cells) point directly as the upper reference, rather than searching
-        //for where the cumulative integral first crosses some intermediate
-        //(here: 10%-of-range) threshold: that threshold-crossing index was
-        //found to differ by several tens of index positions between an
-        //-mfma and a plain build on real production data (Li2O sabxs),
-        //because near-degenerate cell "touch" energies can swap relative
-        //order under ordinary FMA-contraction noise. Unlike the (already
-        //robust) i1 endpoint below, which lands in the flat 1/v-law region
-        //where f(e) barely depends on the exact e chosen, the old
-        //intermediate point sat in the middle of the transition region
-        //where f(e) is still visibly rising, so that index tie directly
-        //perturbed the Emin found downstream by determineEMinDivKT (which
-        //uses f at this endpoint to help define its own target criterion,
-        //not merely as a search-bracket bound). The last touched-cell point
-        //does not depend on any threshold crossing at all, so it cannot
-        //exhibit this instability. See docs/claude_session_vdos_fma_reprod.md.
-        const std::size_t i2 = ns-1;
-
+        //Upper reference point: use EMax_div_kT directly, rather than
+        //searching the touched-cell array for where the cumulative integral
+        //first crosses some intermediate (here: 10%-of-range) threshold.
+        //That threshold-crossing index was found to differ by several tens
+        //of index positions between an -mfma and a plain build on real
+        //production data (Li2O sabxs), because near-degenerate cell "touch"
+        //energies can swap relative order under ordinary FMA-contraction
+        //noise. Unlike the (already robust) i1 endpoint below, which lands
+        //in the flat 1/v-law region where f(e) barely depends on the exact
+        //e chosen, the old intermediate point sat in the middle of the
+        //transition region where f(e) is still visibly rising, so that
+        //index tie directly perturbed the Emin found downstream by
+        //determineEMinDivKT (which uses f at this endpoint to help define
+        //its own target criterion, not merely as a search-bracket bound).
+        //EMax_div_kT is already a single, well-defined energy -- often an
+        //explicit, non-fluctuating value from the VDOS expansion rather
+        //than one derived from this touched-cell machinery at all -- and
+        //determineEMinDivKT already evaluates the real S-integral there via
+        //f_of_e to define its search target, so no touched-cell-derived
+        //proxy is needed. See docs/claude_session_vdos_fma_reprod.md.
         constexpr double safety1 = 0.001;
-        PairDD res( vectAt(e,i1)*safety1, ncmin(vectAt(e,i2)*10,0.5*EMax_div_kT) );
+        PairDD res( vectAt(e,i1)*safety1, EMax_div_kT );
         nc_assert_always( std::isfinite(res.first) );
         nc_assert_always( std::isfinite(res.second) );
         nc_assert_always( std::isfinite(res.first) );

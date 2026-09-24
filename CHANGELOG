@@ -12,12 +12,16 @@ v4.4.7 (work in progress)
        robust lower reference point, which sits in the flat low-E "1/v law"
        region), the index tie propagated into a ~2% shift of the returned
        Emin, and hence of the entire cross-section table anchored on it.
-       Replaced with the array's own last (fully Kahan-summed, over every
-       touched cell) point, which involves no threshold crossing and is
-       therefore immune to this instability. Verified on the previously
+       Replaced with the material's own EMax (in E/kT units), already
+       computed before this search runs and, for most SABData (including
+       that produced by our VDOS expansion), an explicit, non-fluctuating
+       input value rather than one derived from any per-cell touched-cell
+       machinery at all; the real S-integral is evaluated there via the same
+       function used everywhere else in this search, so no separate
+       touched-cell-derived proxy is needed. Verified on the previously
        failing case (Li2O, vdoslux=2004): reldiff between a plain and an
        -mfma build dropped from ~4e-5 (just above the test's 1e-5 tolerance)
-       to ~5e-8. This changes sabxs/long_sabxsb reference data for vdoslux
+       to ~5e-9. This changes sabxs/long_sabxsb reference data for vdoslux
        2000-2004 Li2O materials, up to ~0.7% at the lowest tested energies
        (where this Emin-anchored region of the table matters most).
      * Bug fix: Python API functions accepting numpy arrays now work correctly
