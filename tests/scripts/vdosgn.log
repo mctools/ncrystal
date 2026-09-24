@@ -560,7 +560,7 @@ Distribution "G5" with:
   kurtosis         : 18.35609
   5th moment (std) : -117.2025
   6th moment (std) : 903.8996
-  7th moment (std) : -7634.643
+  7th moment (std) : -7634.644
 Distribution "G8" with:
   integral         : 1
   mean             : -0.02375263
@@ -678,7 +678,7 @@ Distribution "G5" with:
   kurtosis         : 18.35609
   5th moment (std) : -117.2025
   6th moment (std) : 903.8996
-  7th moment (std) : -7634.643
+  7th moment (std) : -7634.644
 Distribution "G8" with:
   integral         : 1
   mean             : -0.02375263
@@ -725,9 +725,9 @@ Distribution "G2" with:
   mean             : -0.200463
   rms              : 0.03727781
   skewness         : -14.76863
-  kurtosis         : -24.29577
+  kurtosis         : -24.29576
   5th moment (std) : -121.1909
-  6th moment (std) : -412.037
+  6th moment (std) : -412.0369
   7th moment (std) : -1815.949
 Distribution "G5" with:
   integral         : 1
@@ -843,9 +843,9 @@ Distribution "G2" with:
   mean             : -0.200463
   rms              : 0.03727781
   skewness         : -14.76863
-  kurtosis         : -24.29577
+  kurtosis         : -24.29576
   5th moment (std) : -121.1909
-  6th moment (std) : -412.037
+  6th moment (std) : -412.0369
   7th moment (std) : -1815.949
 Distribution "G5" with:
   integral         : 1
@@ -961,7 +961,7 @@ Distribution "G2" with:
   mean             : -0.1094824
   rms              : 0.09586668
   skewness         : -2.804285
-  kurtosis         : 0.06835895
+  kurtosis         : 0.06835896
   5th moment (std) : -11.54668
   6th moment (std) : -18.70994
   7th moment (std) : -86.16037
@@ -1079,7 +1079,7 @@ Distribution "G2" with:
   mean             : -0.1094824
   rms              : 0.09586668
   skewness         : -2.804285
-  kurtosis         : 0.06835895
+  kurtosis         : 0.06835896
   5th moment (std) : -11.54668
   6th moment (std) : -18.70994
   7th moment (std) : -86.16037
@@ -1433,9 +1433,9 @@ Distribution "G2" with:
   mean             : -0.09964816
   rms              : 0.02736552
   skewness         : -10.90621
-  kurtosis         : 2.334512
+  kurtosis         : 2.334513
   5th moment (std) : -47.04372
-  6th moment (std) : 5.310479
+  6th moment (std) : 5.310487
   7th moment (std) : -251.2321
 Distribution "G5" with:
   integral         : 1
@@ -1492,9 +1492,9 @@ Distribution "G2" with:
   mean             : -0.09964816
   rms              : 0.02736552
   skewness         : -10.90621
-  kurtosis         : 2.334512
+  kurtosis         : 2.334513
   5th moment (std) : -47.04372
-  6th moment (std) : 5.310479
+  6th moment (std) : 5.310487
   7th moment (std) : -251.2321
 Distribution "G5" with:
   integral         : 1

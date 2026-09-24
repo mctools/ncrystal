@@ -23,6 +23,30 @@ v4.4.7 (work in progress)
        self-convolution) and uses several points symmetrically rather than
        trusting a single point as ground truth, substantially reducing this
        last-ULP sensitivity (see tests/src/app_gnerange).
+     * VDOSGn's internal per-phonon-order truncation (which trims a
+       self-convolved order's spectrum to where it exceeds a small relative
+       threshold of its own peak) now refines that edge with the same
+       windowed quadratic-log-fit crossing estimate used by VDOSGn::eRange
+       (estimateSpectrumCrossing, generalised from estimateGnErange's
+       gnErangeCrossing), rather than trusting whichever single point
+       happens to be first to clear the threshold. Applied only for the
+       handful of large, un-thinned orders where FastConvolve's own
+       (size-dependent) numerical noise floor is not already safely below
+       that threshold (estimateFFTConvolutionNoiseFloor), since refining
+       every order was found to relocate near-ties into orders that never
+       needed it without reducing their number. Fixes a genuine
+       cross-platform (plain vs -mfma-forced) truncation-edge disagreement
+       for large un-thinned orders and its downstream cascade into later
+       orders that convolve from them; see
+       docs/claude_session_vdos_fma_reprod.md. This changes the exact bit
+       pattern of some VDOS/scattering-kernel-derived numerical results at
+       the next-gen (vdoslux>=2000) levels, typically at the level of the
+       last few significant digits (sabxs reference shifts up to ~0.006%,
+       concentrated in the Li2O test material at vdoslux 2000-2004), without
+       any expected impact on physical accuracy. Not applied to legacy-mode
+       convolution (which must keep reproducing NCrystal 2.x-4.x bit-for-bit)
+       or to VDOSGn::Cfg::MaxLux (whose convolveDirect has no FFT noise
+       floor for this to describe).
      * Fix BoundedCellSampler's edge-envelope calculation (used when sampling
        S(alpha,beta) cells whose kinematically accessible region touches
        beta=0) evaluating beta_minus(alpha) as the naive alpha-2*sqrt(E*alpha)
