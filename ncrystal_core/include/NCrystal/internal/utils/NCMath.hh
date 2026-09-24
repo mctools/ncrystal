@@ -340,11 +340,15 @@ namespace NCRYSTAL_NAMESPACE {
   //large gaps.
   //
   //The tail_floor parameter should reflect the smallest meaningful or
-  //numerically reliable function value relative to its maximum. The
-  //equidistant_fraction parameter sets aside a fraction of the final points in
-  //order to prevent too large gaps along x between points - even where the
-  //y-values might be constant. This prevents gaps when there are a few peaks
-  //over a constant background.
+  //numerically reliable function value relative to its maximum. It acts as a
+  //smooth floor on f before taking log(f) in the log-space curvature term
+  //((f^4+tail_floor^4)^(1/4), approaching f for f>>tail_floor and tail_floor
+  //for f<<tail_floor) rather than a hard clamp (max(tail_floor,f)), so a
+  //value crossing tail_floor does not introduce an artificial, single-point
+  //curvature spike right at the crossing. The equidistant_fraction parameter
+  //sets aside a fraction of the final points in order to prevent too large
+  //gaps along x between points - even where the y-values might be constant.
+  //This prevents gaps when there are a few peaks over a constant background.
   struct PtReduceCfg {
     double equidistant_fraction = 0.15;
     double tail_floor = 1e-50;
