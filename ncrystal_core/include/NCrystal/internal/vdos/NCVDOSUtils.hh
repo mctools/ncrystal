@@ -35,6 +35,33 @@ namespace NCRYSTAL_NAMESPACE {
     //Interval where f(x) = x^n*exp(-x) is above eps*fpeak.
     PairDD rangeXNexpMX(unsigned n, double eps, double accuracy = 1e-13 );
 
+    // Estimate where a tabulated, locally-Gaussian-like spectrum on the
+    // equidistant grid x0+i*binwidth crosses yval, given the immediate
+    // bracket (idxLo,idxHi=idxLo+1) with min(spec[idxLo],spec[idxHi]) <
+    // yval <= max(...). Fits a quadratic (ordinary least squares) to
+    // ln(spec) vs x over a window extending nExtra points beyond the
+    // bracket on each side (clipped to the array bounds and to spec>0
+    // points), solved for the root nearest the bracket, so the estimate
+    // depends on several neighbouring points rather than trusting only the
+    // single point on each side of the bracket -- much less sensitive to a
+    // last-ULP-level fluctuation landing on any one of those points than a
+    // plain two-point interpolation (confirmed empirically in app_gnerange:
+    // injecting a 1e-3 relative perturbation at the bracket points moves
+    // the estimate by only ~1e-6 relative on a synthetic Gaussian case).
+    // The result is always clamped to the window's own x-extent, and falls
+    // back to a plain two-point (log-linear, or linear) interpolation
+    // whenever the windowed fit is degenerate (fewer than 5 usable points,
+    // a non-finite/non-positive discriminant, or a fit that is not really
+    // quadratic). Used by estimateGnErange below (with nExtra=2), and by
+    // NCVDOSGn.cc's produceNewOrderByConvolutionImpl (with a larger nExtra)
+    // to make the per-order truncation edge itself far less sensitive to
+    // which side of a threshold a single noisy point happens to fall on --
+    // see docs/claude_session_vdos_fma_reprod.md.
+    double estimateSpectrumCrossing( double x0, double binwidth,
+                                     Span<const double> spec,
+                                     std::size_t idxLo, std::size_t idxHi,
+                                     double yval, std::size_t nExtra );
+
     // Estimate the interval [x0,x1] outside of which a tabulated Gn spectrum
     // (density values at the equidistant grid points egrid_lower+i*
     // egrid_binwidth, i=0..spec.size()-1) is everywhere below
