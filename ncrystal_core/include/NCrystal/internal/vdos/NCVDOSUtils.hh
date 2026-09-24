@@ -50,6 +50,24 @@ namespace NCRYSTAL_NAMESPACE {
                              Span<const double> spec,
                              double relcontriblvl );
 
+    // Estimate a numerical noise floor for a spectrum of length n and peak
+    // magnitude peak, as produced by FastConvolve's FFT-based linear
+    // convolution (NCFastConvolve.hh). FFT round-off accumulates roughly as
+    // peak*eps*sqrt(n) (a standard bound for a length-n discrete Fourier
+    // transform); safetyFactor scales this into a value comfortably above
+    // where convolution round-off is actually observed in practice
+    // (calibrated in app_gnconvnoisefloor against a Neumaier-summed O(n^2)
+    // reference convolution, both on synthetic spectra and on real Gn
+    // spectra generated live from production VDOSEval/FastConvolve). NOT
+    // YET wired into production: intended for raising the truncation
+    // cutoff in NCVDOSGn.cc's produceNewOrderByConvolutionImpl above the
+    // convolution's own noise floor, so the truncation edge there is not
+    // decided by an isolated point that only clears a bare relative-to-peak
+    // threshold by chance round-off. See
+    // docs/claude_session_vdos_fma_reprod.md.
+    double estimateFFTConvolutionNoiseFloor( double peak, std::size_t n,
+                                             double safetyFactor = 8.0 );
+
     // Returns the intersection between the provided Rectangle in the alpha-beta
     // plane, and the kinematically available phasespace for a neutron of a
     // given E/kT (i.e. the set of points satisfying (alpha-beta)^2 <
