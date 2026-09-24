@@ -704,65 +704,65 @@
   logLinear2pt    : [-0.09451, 0.09451]
   estimateGnErange: [-0.09451, 0.09451]
 
-=== Li2O (real material), element=Li, order=2 (npts=40903, relcontriblvl=0.001) ===
+=== Li2O (real material), element=Li, order=2 (npts=40905, relcontriblvl=0.001) ===
   snapToGrid      : [-0.1819, 0.1412]
   linear2pt       : [-0.1819, 0.1412]
   logLinear2pt    : [-0.1819, 0.1412]
   estimateGnErange: [-0.1819, 0.1412]
 
-=== Li2O (real material), element=Li, order=2 (npts=40903, relcontriblvl=1e-06) ===
+=== Li2O (real material), element=Li, order=2 (npts=40905, relcontriblvl=1e-06) ===
   snapToGrid      : [-0.1884, 0.1812]
   linear2pt       : [-0.1884, 0.1812]
   logLinear2pt    : [-0.1884, 0.1812]
   estimateGnErange: [-0.1884, 0.1812]
 
-=== Li2O (real material), element=Li, order=2 (npts=40903, relcontriblvl=1e-09) ===
+=== Li2O (real material), element=Li, order=2 (npts=40905, relcontriblvl=1e-09) ===
   snapToGrid      : [-0.189, 0.1882]
   linear2pt       : [-0.189, 0.1883]
   logLinear2pt    : [-0.189, 0.1883]
   estimateGnErange: [-0.189, 0.1883]
 
-=== Li2O (real material), element=Li, order=2 (npts=40903, relcontriblvl=1e-12) ===
+=== Li2O (real material), element=Li, order=2 (npts=40905, relcontriblvl=1e-12) ===
   snapToGrid      : [-0.189, 0.189]
   linear2pt       : [-0.189, 0.189]
   logLinear2pt    : [-0.189, 0.189]
   estimateGnErange: [-0.189, 0.189]
 
-=== Li2O (real material), element=Li, order=2 (npts=40903, relcontriblvl=1e-13) ===
+=== Li2O (real material), element=Li, order=2 (npts=40905, relcontriblvl=1e-13) ===
   snapToGrid      : [-0.189, 0.189]
   linear2pt       : [-0.189, 0.189]
   logLinear2pt    : [-0.189, 0.189]
   estimateGnErange: [-0.189, 0.189]
 
-=== Li2O (real material), element=Li, order=3 (npts=61084, relcontriblvl=0.001) ===
+=== Li2O (real material), element=Li, order=3 (npts=61100, relcontriblvl=0.001) ===
   snapToGrid      : [-0.255, 0.1637]
   linear2pt       : [-0.255, 0.1637]
   logLinear2pt    : [-0.255, 0.1637]
   estimateGnErange: [-0.255, 0.1637]
 
-=== Li2O (real material), element=Li, order=3 (npts=61084, relcontriblvl=1e-06) ===
+=== Li2O (real material), element=Li, order=3 (npts=61100, relcontriblvl=1e-06) ===
   snapToGrid      : [-0.2768, 0.2376]
   linear2pt       : [-0.2768, 0.2377]
   logLinear2pt    : [-0.2768, 0.2377]
   estimateGnErange: [-0.2768, 0.2377]
 
-=== Li2O (real material), element=Li, order=3 (npts=61084, relcontriblvl=1e-09) ===
+=== Li2O (real material), element=Li, order=3 (npts=61100, relcontriblvl=1e-09) ===
   snapToGrid      : [-0.2819, 0.2689]
   linear2pt       : [-0.2819, 0.2689]
   logLinear2pt    : [-0.2819, 0.2689]
   estimateGnErange: [-0.2819, 0.2689]
 
-=== Li2O (real material), element=Li, order=3 (npts=61084, relcontriblvl=1e-12) ===
+=== Li2O (real material), element=Li, order=3 (npts=61100, relcontriblvl=1e-12) ===
   snapToGrid      : [-0.2833, 0.2796]
   linear2pt       : [-0.2833, 0.2796]
   logLinear2pt    : [-0.2833, 0.2796]
   estimateGnErange: [-0.2833, 0.2796]
 
-=== Li2O (real material), element=Li, order=3 (npts=61084, relcontriblvl=1e-13) ===
-  snapToGrid      : [-0.2834, 0.2811]
-  linear2pt       : [-0.2834, 0.2811]
-  logLinear2pt    : [-0.2834, 0.2811]
-  estimateGnErange: [-0.2834, 0.2811]
+=== Li2O (real material), element=Li, order=3 (npts=61100, relcontriblvl=1e-13) ===
+  snapToGrid      : [-0.2834, 0.281]
+  linear2pt       : [-0.2834, 0.281]
+  logLinear2pt    : [-0.2834, 0.281]
+  estimateGnErange: [-0.2834, 0.281]
 
 === Li2O (real material), element=Li, order=5 (npts=1510, relcontriblvl=0.001) ===
   snapToGrid      : [-0.3839, 0.1739]
@@ -884,61 +884,61 @@
   logLinear2pt    : [-0.09451, 0.09451]
   estimateGnErange: [-0.09451, 0.09451]
 
-=== Li2O (real material), element=O, order=2 (npts=40901, relcontriblvl=0.001) ===
+=== Li2O (real material), element=O, order=2 (npts=40905, relcontriblvl=0.001) ===
   snapToGrid      : [-0.1661, 0.1176]
   linear2pt       : [-0.1662, 0.1176]
   logLinear2pt    : [-0.1662, 0.1176]
   estimateGnErange: [-0.1662, 0.1176]
 
-=== Li2O (real material), element=O, order=2 (npts=40901, relcontriblvl=1e-06) ===
+=== Li2O (real material), element=O, order=2 (npts=40905, relcontriblvl=1e-06) ===
   snapToGrid      : [-0.1874, 0.1683]
   linear2pt       : [-0.1874, 0.1683]
   logLinear2pt    : [-0.1874, 0.1683]
   estimateGnErange: [-0.1874, 0.1683]
 
-=== Li2O (real material), element=O, order=2 (npts=40901, relcontriblvl=1e-09) ===
+=== Li2O (real material), element=O, order=2 (npts=40905, relcontriblvl=1e-09) ===
   snapToGrid      : [-0.189, 0.1871]
   linear2pt       : [-0.189, 0.1871]
   logLinear2pt    : [-0.189, 0.1871]
   estimateGnErange: [-0.189, 0.1871]
 
-=== Li2O (real material), element=O, order=2 (npts=40901, relcontriblvl=1e-12) ===
+=== Li2O (real material), element=O, order=2 (npts=40905, relcontriblvl=1e-12) ===
   snapToGrid      : [-0.189, 0.189]
   linear2pt       : [-0.189, 0.189]
   logLinear2pt    : [-0.189, 0.189]
   estimateGnErange: [-0.189, 0.189]
 
-=== Li2O (real material), element=O, order=2 (npts=40901, relcontriblvl=1e-13) ===
+=== Li2O (real material), element=O, order=2 (npts=40905, relcontriblvl=1e-13) ===
   snapToGrid      : [-0.189, 0.189]
   linear2pt       : [-0.189, 0.189]
   logLinear2pt    : [-0.189, 0.189]
   estimateGnErange: [-0.189, 0.189]
 
-=== Li2O (real material), element=O, order=3 (npts=60753, relcontriblvl=0.001) ===
+=== Li2O (real material), element=O, order=3 (npts=60769, relcontriblvl=0.001) ===
   snapToGrid      : [-0.2192, 0.1482]
   linear2pt       : [-0.2192, 0.1482]
   logLinear2pt    : [-0.2192, 0.1482]
   estimateGnErange: [-0.2192, 0.1482]
 
-=== Li2O (real material), element=O, order=3 (npts=60753, relcontriblvl=1e-06) ===
+=== Li2O (real material), element=O, order=3 (npts=60769, relcontriblvl=1e-06) ===
   snapToGrid      : [-0.2656, 0.2052]
   linear2pt       : [-0.2656, 0.2052]
   logLinear2pt    : [-0.2656, 0.2052]
   estimateGnErange: [-0.2656, 0.2052]
 
-=== Li2O (real material), element=O, order=3 (npts=60753, relcontriblvl=1e-09) ===
+=== Li2O (real material), element=O, order=3 (npts=60769, relcontriblvl=1e-09) ===
   snapToGrid      : [-0.28, 0.2482]
   linear2pt       : [-0.28, 0.2482]
   logLinear2pt    : [-0.28, 0.2482]
   estimateGnErange: [-0.28, 0.2482]
 
-=== Li2O (real material), element=O, order=3 (npts=60753, relcontriblvl=1e-12) ===
+=== Li2O (real material), element=O, order=3 (npts=60769, relcontriblvl=1e-12) ===
   snapToGrid      : [-0.2829, 0.2747]
   linear2pt       : [-0.2829, 0.2747]
   logLinear2pt    : [-0.2829, 0.2747]
   estimateGnErange: [-0.2829, 0.2747]
 
-=== Li2O (real material), element=O, order=3 (npts=60753, relcontriblvl=1e-13) ===
+=== Li2O (real material), element=O, order=3 (npts=60769, relcontriblvl=1e-13) ===
   snapToGrid      : [-0.2832, 0.2782]
   linear2pt       : [-0.2832, 0.2782]
   logLinear2pt    : [-0.2832, 0.2782]

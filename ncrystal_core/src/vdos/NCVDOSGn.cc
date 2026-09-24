@@ -671,17 +671,24 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
         break;
     }
     //Refine the two edges with a windowed quadratic-log-fit crossing
-    //estimate (same tool as VDOSGn::eRange's estimateGnErange), so a single
-    //point which only clears spec_cutoff by chance round-off does not by
-    //itself decide the truncation edge. Only attempted where FastConvolve's
-    //own (size-dependent) noise floor is not safely below spec_cutoff --
-    //for most orders (thinned to a few hundred/thousand points) the plain
-    //crossing is already far more reliable than that floor, and refining
-    //those too was found to relocate near-ties into orders that never
-    //needed it, without reducing the total count. Skipped for legacyConvolve
-    //(must reproduce NCrystal 2.x-4.x bit-for-bit) and directConvolve
-    //(VDOSGn::Cfg::MaxLux; convolveDirect has no FFT noise floor for this
-    //estimate to describe). See docs/claude_session_vdos_fma_reprod.md.
+    //estimate (same tool as VDOSGn::eRange's estimateGnErange), then smoothly
+    //taper the spectrum around that estimate (applyCrossingTaper) before
+    //truncating a safe margin beyond it: this way, neither a single point
+    //which only clears spec_cutoff by chance round-off, nor a genuine
+    //near-tie in the continuous crossing estimate itself (confirmed on real
+    //production data: the estimate can shift by several tenths of an index
+    //unit between an -mfma and a plain build, near an array edge where the
+    //fit window is asymmetric), can flip a discrete array-length/content
+    //decision by more than a numerically negligible, already-tapered-near-
+    //zero amount. Only attempted where FastConvolve's own (size-dependent)
+    //noise floor is not safely below spec_cutoff -- for most orders (thinned
+    //to a few hundred/thousand points) the plain crossing is already far
+    //more reliable than that floor, and refining those too was found to
+    //relocate near-ties into orders that never needed it, without reducing
+    //the total count. Skipped for legacyConvolve (must reproduce NCrystal
+    //2.x-4.x bit-for-bit) and directConvolve (VDOSGn::Cfg::MaxLux;
+    //convolveDirect has no FFT noise floor for this estimate to describe).
+    //See docs/claude_session_vdos_fma_reprod.md.
     if ( iback > ifront && !m_cfg.legacyConvolve && !m_cfg.directConvolve ) {
       constexpr std::size_t crossingNExtra = 6;
       constexpr double noiseFloorSafetyFactor = 8.0;
@@ -689,18 +696,36 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
       const double noiseFloorGate = VDOS::estimateFFTConvolutionNoiseFloor(
         spec_max, phonon_spe.size(), noiseFloorSafetyFactor );
       if ( noiseFloorGate > noiseFloorGateFactor*spec_cutoff ) {
+        //Taper half-width matches the crossing estimate's own fit window,
+        //comfortably covering the largest xcross shift observed between an
+        //-mfma and a plain build in production data (~0.75 index units, at
+        //an array edge where the fit window is asymmetric/less averaged --
+        //see applyCrossingTaper's doc comment):
+        constexpr double taperHalfWidth = double(crossingNExtra);
         if ( ifront > 0 ) {
           const double x = VDOS::estimateSpectrumCrossing( 0.0, 1.0, phonon_spe,
                                                            ifront-1, ifront,
                                                            spec_cutoff, crossingNExtra );
-          ifront = static_cast<std::size_t>( ncclamp( std::round(x), 0.0, double(iback) ) );
+          VDOS::applyCrossingTaper( phonon_spe, x, true, taperHalfWidth );
+          //Truncate well past the taper's own zero-plateau (floor, not
+          //round), so a residual last-ULP-level shift in x cannot flip
+          //which integer gets chosen for something that still matters --
+          //both plausible choices there already hold an equally negligible,
+          //tapered value:
+          const double cut = x - taperHalfWidth - 1.0;
+          ifront = ( cut > 0.0 ? static_cast<std::size_t>(std::floor(cut)) : 0 );
+          ifront = ncmin( ifront, iback );
         }
         if ( iback+1 < phonon_spe.size() ) {
           const double x = VDOS::estimateSpectrumCrossing( 0.0, 1.0, phonon_spe,
                                                            iback, iback+1,
                                                            spec_cutoff, crossingNExtra );
-          iback = static_cast<std::size_t>( ncclamp( std::round(x), double(ifront),
-                                                      double(phonon_spe.size()-1) ) );
+          VDOS::applyCrossingTaper( phonon_spe, x, false, taperHalfWidth );
+          const double cut = x + taperHalfWidth + 1.0;
+          iback = ( cut < double(phonon_spe.size()-1)
+                    ? static_cast<std::size_t>(std::ceil(cut))
+                    : phonon_spe.size()-1 );
+          iback = ncmax( iback, ifront );
         }
       }
     }
