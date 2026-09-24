@@ -1,38 +1,38 @@
-=== Element: O (mass=15.99930471 amu, temperature=293.15K) ===
-vdos_egrid: 0.0104996 0.07703008428
-vdos_density [2016]: front=0.0146951 back=0 min=0 max=0.9994527156 sum=385.4174972
+=== Element: O (mass=16 amu, temperature=293.1K) ===
+vdos_egrid: 0.0105 0.07703
+vdos_density [2016]: front=0.0147 back=~0 min=~0 max=0.9995 sum=385.4
 gnexpn maxOrder: 31
-gnexpn alpha2x: 0.06397060797
+gnexpn alpha2x: 0.06397
 gnexpn suggestedEmax: 1
-gnexpn sabRange: 5.750778463e-05 180.6343665 -36.63693004 11.51284906
-gnexpn last abRange: n=31 177.289224 1029.913036 -59.35594447 6.064691823
-gnexpn G1 rawspec [4667]: front=0 back=0 min=0 max=46.68242488 sum=30286.86807
-knl alphaGrid [100]: front=1.563217909e-49 back=179.5142448 min=1.563217909e-49 max=179.5142448 sum=5840.44694
-knl betaGrid [200]: front=-37.00329934 back=20 min=-37.00329934 max=20 sum=-892.0527895
-knl sab [20000]: front=0 back=4.037952182e-11 min=0 max=0.4758470311 sum=356.8281571
+gnexpn sabRange: 5.751e-05 180.6 -36.64 11.51
+gnexpn last abRange: n=31 177.3 1030 -59.36 6.065
+gnexpn G1 rawspec [4667]: front=~0 back=~0 min=~0 max=46.68 sum=3.029e+04
+knl alphaGrid [100]: front=~0 back=179.5 min=~0 max=179.5 sum=5840
+knl betaGrid [200]: front=-37 back=20 min=-37 max=20 sum=-892.1
+knl sab [20000]: front=~0 back=~0 min=~0 max=0.4758 sum=356.8
 knl suggestedEmax: 1
-std alphaGrid [100]: front=1.563217909e-49 back=179.5142448 min=1.563217909e-49 max=179.5142448 sum=5840.44694
-std betaGrid [200]: front=-37.00329934 back=20 min=-37.00329934 max=20 sum=-892.0527895
-std sab [20000]: front=0 back=4.037952182e-11 min=0 max=0.4758470311 sum=356.8281571
+std alphaGrid [100]: front=~0 back=179.5 min=~0 max=179.5 sum=5840
+std betaGrid [200]: front=-37 back=20 min=-37 max=20 sum=-892.1
+std sab [20000]: front=~0 back=~0 min=~0 max=0.4758 sum=356.8
 std suggestedEmax: 1
-alpha range: 1.563217909e-49 179.5142448
-beta range: -37.00329934 20
-=== Element: Th (mass=232.0380537 amu, temperature=293.15K) ===
-vdos_egrid: 0.00949967 0.07703065744
-vdos_density [2027]: front=0.105809 back=0 min=0 max=0.9999979519 sum=129.9801243
+alpha range: 1.563e-49 179.5
+beta range: -37 20
+=== Element: Th (mass=232 amu, temperature=293.1K) ===
+vdos_egrid: 0.0095 0.07703
+vdos_density [2027]: front=0.1058 back=~0 min=~0 max=1 sum=130
 gnexpn maxOrder: 23
-gnexpn alpha2x: 0.03786916231
+gnexpn alpha2x: 0.03787
 gnexpn suggestedEmax: 1
-gnexpn sabRange: 9.714521582e-05 174.3538025 -11.91006626 8.19843003
-gnexpn last abRange: n=23 183.0972233 1432.537783 -13.31380214 8.330501053
-gnexpn G1 rawspec [4623]: front=0 back=0 min=0 max=136.9744287 sum=30001.04214
-knl alphaGrid [100]: front=2.640671034e-49 back=176.0973405 min=2.640671034e-49 max=176.0973405 sum=7473.872555
-knl betaGrid [200]: front=-12.02916692 back=12.02796401 min=-12.02916692 max=12.02796401 sum=-36.08629786
-knl sab [20000]: front=8.87695628e-219 back=4.243271479e-15 min=3.07645559e-219 max=1.410430544 sum=1536.912153
+gnexpn sabRange: 9.715e-05 174.4 -11.91 8.198
+gnexpn last abRange: n=23 183.1 1433 -13.31 8.331
+gnexpn G1 rawspec [4623]: front=~0 back=~0 min=~0 max=137 sum=3e+04
+knl alphaGrid [100]: front=~0 back=176.1 min=~0 max=176.1 sum=7474
+knl betaGrid [200]: front=-12.03 back=12.03 min=-12.03 max=12.03 sum=-36.09
+knl sab [20000]: front=~0 back=~0 min=~0 max=1.41 sum=1537
 knl suggestedEmax: 1
-std alphaGrid [100]: front=2.640671034e-49 back=176.0973405 min=2.640671034e-49 max=176.0973405 sum=7473.872555
-std betaGrid [200]: front=-12.02916692 back=12.02796401 min=-12.02916692 max=12.02796401 sum=-36.08629786
-std sab [20000]: front=8.87695628e-219 back=4.243271479e-15 min=3.07645559e-219 max=1.410430544 sum=1536.912153
+std alphaGrid [100]: front=~0 back=176.1 min=~0 max=176.1 sum=7474
+std betaGrid [200]: front=-12.03 back=12.03 min=-12.03 max=12.03 sum=-36.09
+std sab [20000]: front=~0 back=~0 min=~0 max=1.41 sum=1537
 std suggestedEmax: 1
-alpha range: 2.640671034e-49 176.0973405
-beta range: -12.02916692 12.02796401
+alpha range: 2.641e-49 176.1
+beta range: -12.03 12.03

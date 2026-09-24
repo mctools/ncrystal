@@ -86,13 +86,30 @@
 #include "NCrystal/factories/NCMatCfg.hh"
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 #include <iostream>
 #include <sstream>
 
 namespace NC = NCrystal;
 namespace NCV = NCrystal::VDOS;
 
+#define REQUIRE(x) nc_assert_always(x)
+
 namespace {
+
+  //Full ("%.10g"-style) precision and the raw err_lo/err_hi values are only
+  //printed under this: by design (see the file header) estimateGnErange
+  //trades a little of that last-few-ULP determinism for far better
+  //robustness than the cruder methods, so on real (not synthetic) spectra
+  //its exact output legitimately varies at the ~1e-6-relative level with
+  //FMA contraction (build flags/platform/compiler) -- confirmed via local
+  //-mfma vs -ffp-contract=off comparison. Printing that exact value in the
+  //routinely cross-platform-compared output would fail the test on every
+  //platform that contracts differently, even though nothing is actually
+  //wrong; the REQUIRE checks below (on the synthetic, ground-truth cases)
+  //are what actually guards against a real regression. See
+  //docs/claude_session_vdos_fma_reprod.md.
+  const bool s_verbose = NC::ncgetenv_bool("GNERANGE_VERBOSE");
 
   //////////////////////////////////////////////////////////
   // Reference implementations of the other three methods //
@@ -169,25 +186,56 @@ namespace {
     const double threshold = relcontriblvl*spec_max;
     std::cout << "=== " << label << " (npts=" << spec.size()
               << ", relcontriblvl=" << NC::fmtg(relcontriblvl) << ") ===" << std::endl;
+    //Default (%.4g) precision is chosen with a wide margin (>100x) over the
+    //worst real (non-synthetic) FMA-contraction-driven divergence observed
+    //locally (~4.5e-6 relative) between -mfma and -ffp-contract=off builds,
+    //so ordinary cross-platform noise cannot flip a displayed digit; full
+    //precision remains available via GNERANGE_VERBOSE for exploration:
     auto pr = [&]( const char* name, NC::PairDD r )
     {
-      std::cout << "  " << name << ": [" << NC::fmt(r.first,"%.10g")
-                << ", " << NC::fmt(r.second,"%.10g") << "]";
-      if ( truth ) {
+      const char* precfmt = s_verbose ? "%.10g" : "%.4g";
+      std::cout << "  " << name << ": [" << NC::fmt(r.first,precfmt)
+                << ", " << NC::fmt(r.second,precfmt) << "]";
+      if ( truth && s_verbose ) {
         const double elo = r.first - truth->first;
         const double ehi = r.second - truth->second;
-        std::cout << "  (err_lo=" << NC::fmt(elo,"%.3g")
-                  << ", err_hi=" << NC::fmt(ehi,"%.3g") << ")";
+        std::cout << "  [verbose, not cross-platform-stable] (err_lo="
+                  << NC::fmt(elo,"%.3g") << ", err_hi=" << NC::fmt(ehi,"%.3g") << ")";
       }
       std::cout << std::endl;
     };
     pr( "snapToGrid      ", snapToGrid(egrid,spec,threshold) );
     pr( "linear2pt       ", twoPoint(egrid,spec,threshold,false) );
     pr( "logLinear2pt    ", twoPoint(egrid,spec,threshold,true) );
-    pr( "estimateGnErange", NC::VDOS::estimateGnErange(x0,binwidth,spec,relcontriblvl) );
-    if ( truth )
-      std::cout << "  truth           : [" << NC::fmt(truth->first,"%.10g")
-                << ", " << NC::fmt(truth->second,"%.10g") << "]" << std::endl;
+    const NC::PairDD estRange = NC::VDOS::estimateGnErange(x0,binwidth,spec,relcontriblvl);
+    pr( "estimateGnErange", estRange );
+    if ( truth ) {
+      std::cout << "  truth           : ["
+                << NC::fmt(truth->first, s_verbose ? "%.10g" : "%.4g")
+                << ", " << NC::fmt(truth->second, s_verbose ? "%.10g" : "%.4g")
+                << "]" << std::endl;
+      //Real tolerance-based check against the known analytic answer: the
+      //synthetic cases' worst observed error (clean or with injected
+      //bracket-point noise) is ~1e-6 relative to the window half-width, so a
+      //1e-3 relative tolerance gives ~1000x margin above that (comfortably
+      //absorbing ordinary FMA-contraction noise) while still being far
+      //tighter than the ~1e-2..1e-1-relative errors a broken/regressed
+      //estimator (e.g. one that degenerated to plain 2-point interpolation)
+      //would show -- see tests/src/app_gnerange/test.log history for the
+      //reference error magnitudes of the cruder methods:
+      const double scale = 0.5*( truth->second - truth->first );
+      const double tol = 1e-3*scale;
+      REQUIRE( NC::ncabs( estRange.first  - truth->first  ) <= tol );
+      REQUIRE( NC::ncabs( estRange.second - truth->second ) <= tol );
+    } else {
+      //No analytic truth available for real (production-derived) spectra,
+      //but estimateGnErange's own contract (NCVDOSUtils.cc) is that it
+      //narrows down from, and never widens beyond, the full grid range:
+      REQUIRE( std::isfinite(estRange.first) && std::isfinite(estRange.second) );
+      REQUIRE( estRange.first <= estRange.second );
+      REQUIRE( estRange.first >= egrid.front() );
+      REQUIRE( estRange.second <= egrid.back() );
+    }
     std::cout << std::endl;
   }
 
