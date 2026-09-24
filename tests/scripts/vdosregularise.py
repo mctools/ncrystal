@@ -23,6 +23,7 @@
 # NEEDS: numpy
 
 import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.enable_testdatapath # noqa F401
 import NCrystalDev as NC
 
 def validate_cfgstr(cfgstr):
@@ -50,5 +51,8 @@ def main():
     cfgstrs = [f.fullKey for f in NC.browseFiles(factory='stdlib')]
     for i,f in enumerate(sorted(cfgstrs)):
         validate_cfgstr(f)
+    #Also exercise a VDOS with an unusual shape: a huge central region of
+    #exact zeroes, followed by a narrow, very sharp late peak:
+    validate_cfgstr('tsl-para-H_14K_OnlyVDOS.ncmat')
 
 main()

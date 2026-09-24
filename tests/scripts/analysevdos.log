@@ -33,3 +33,9 @@
 ==> NaF_sg225_SodiumFlouride.ncmat;temp=1000000.0;vdoslux=3//Na => debye_temp=393.764864924; gamma0=19315.4780366; integral=0.00901666212448; msd=40.8256216992; teff=1000000.00807
 ==> Tm2O3_sg206_ThuliumOxide.ncmat;temp=1000000.0;vdoslux=3//O => debye_temp=794.961951503; gamma0=8704.80605958; integral=0.0217934125971; msd=14.3928750138; teff=1000000.03231
 ==> Tm2O3_sg206_ThuliumOxide.ncmat;temp=1000000.0;vdoslux=3//Tm => debye_temp=265.084751389; gamma0=78285.6724008; integral=0.0118694841051; msd=12.2589768132; teff=1000000.00445
+==> tsl-para-H_14K_OnlyVDOS.ncmat;temp=0.001;vdoslux=0//H => debye_temp=129.269865347; gamma0=73.6414282052; integral=0.556191011628; msd=0.279211868501; teff=981.838882285
+==> tsl-para-H_14K_OnlyVDOS.ncmat;temp=300;vdoslux=0//H => debye_temp=84.4126063968; gamma0=1606.71716279; integral=0.556191011628; msd=6.0918767073; teff=1161.73299095
+==> tsl-para-H_14K_OnlyVDOS.ncmat;temp=1000000.0;vdoslux=0//H => debye_temp=84.391884214; gamma0=5346605.27525; integral=0.556191011628; msd=20271.6824676; teff=1000001.00319
+==> tsl-para-H_14K_OnlyVDOS.ncmat;temp=0.001;vdoslux=3//H => debye_temp=129.269865347; gamma0=73.6414282052; integral=0.556191011628; msd=0.279211868501; teff=981.838882285
+==> tsl-para-H_14K_OnlyVDOS.ncmat;temp=300;vdoslux=3//H => debye_temp=84.4126063968; gamma0=1606.71716279; integral=0.556191011628; msd=6.0918767073; teff=1161.73299095
+==> tsl-para-H_14K_OnlyVDOS.ncmat;temp=1000000.0;vdoslux=3//H => debye_temp=84.391884214; gamma0=5346605.27525; integral=0.556191011628; msd=20271.6824676; teff=1000001.00319

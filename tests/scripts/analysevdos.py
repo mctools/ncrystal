@@ -28,6 +28,7 @@ import NCrystalDev as NC
 # More robust testing:
 NC.removeAllDataSources()
 NC.enableStandardDataLibrary()
+import NCTestUtils.enable_testdatapath # noqa F401,E402
 
 itest = 0
 for vdoslux in (0,3):
@@ -45,3 +46,15 @@ for vdoslux in (0,3):
           print(f'==> {cfgstr}//{di.atomData.displayLabel()} => ',end='')
           print('; '.join('%s=%.12g'%(k,v)
                           for k,v in sorted(di.analyseVDOS().items())))
+
+#Also exercise a VDOS with an unusual shape: a huge central region of exact
+#zeroes, followed by a narrow, very sharp late peak:
+for vdoslux in (0,3):
+  for temp in (0.001,300,1e6):
+    cfgstr = f'tsl-para-H_14K_OnlyVDOS.ncmat;temp={temp};vdoslux={vdoslux}'
+    info = NC.createInfo(cfgstr)
+    for di in info.dyninfos:
+      if hasattr(di,'analyseVDOS'):
+        print(f'==> {cfgstr}//{di.atomData.displayLabel()} => ',end='')
+        print('; '.join('%s=%.12g'%(k,v)
+                        for k,v in sorted(di.analyseVDOS().items())))

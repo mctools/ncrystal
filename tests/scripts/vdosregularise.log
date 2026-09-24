@@ -745,3 +745,6 @@ Validating VDOS regularisation of stdlib::ZrO2_sg14_Zirconia.ncmat / Zr:
 Validating VDOS regularisation of stdlib::Zr_sg194.ncmat / Zr:
   egrid [meV]: 1.8888421345886 .. 22.902210881887 (357 points)
   density: [0.00580803, 0.00699617, 0.00673608, .., 0.00277092, 0.000477786, 0]
+Validating VDOS regularisation of tsl-para-H_14K_OnlyVDOS.ncmat / H:
+  egrid [meV]: 0.13786016 .. 546.89125472 (3967 points)
+  density: [0.3235771, 1.066718, 2.099773, .., 0.0226284, 0.0001579349, 4.055158e-07]
