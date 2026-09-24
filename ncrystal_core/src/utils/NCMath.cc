@@ -567,6 +567,33 @@ double NC::erfc_rescaled(double x, double b)
   return kInvSqrtPi*std::exp(bxx)*(y+y2*(c3+y2*(c5+y2*(c7+y2*(c9+y2*c11)))));
 }
 
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+    //Smooth replacement for max(tail_floor,f): (f^4+tail_floor^4)^(1/4)
+    //approaches f for f>>tail_floor and tail_floor for f<<tail_floor, like
+    //max(), but with a continuous derivative everywhere instead of a kink
+    //exactly at f==tail_floor. Used before taking log(f) in
+    //reducePtsInDistribution/reducePtsByEquidistribution's log-space
+    //curvature term, so that curve doesn't acquire an artificial,
+    //single-point curvature spike right where the input happens to cross
+    //tail_floor. The quartic power (rather than the more obvious quadratic
+    //combination, sqrt(f^2+tail_floor^2)) was needed to suppress sub-floor
+    //values quickly enough: a quadratic floor's correction term for f far
+    //below tail_floor falls off like (f/tail_floor)^2, which for realistic
+    //vdos/sab tail data turned out to still let enough sub-floor noise leak
+    //into the curvature to shift point selections; a quartic floor's
+    //(f/tail_floor)^4 correction is small enough to be negligible at the
+    //same relative depth below the floor. See
+    //docs/claude_session_vdos_fma_reprod.md.
+    double tailFloorSmooth( double f, double tail_floor )
+    {
+      const double f2 = f*f;
+      const double t2 = tail_floor*tail_floor;
+      return std::sqrt( std::sqrt( f2*f2 + t2*t2 ) );
+    }
+  }
+}
+
 std::pair<NC::VectD, NC::VectD>
 NC::reducePtsInDistribution(Span<const double> x,
                             Span<const double> y,
@@ -625,8 +652,8 @@ NC::reducePtsInDistribution(Span<const double> x,
 
     for (std::size_t i = 0; i < ncur; ++i) {
       vectAt(plny, i) =
-        std::log(ncmax(cfg.tail_floor,
-                       vectAt(py, i) * invYmax));
+        std::log(tailFloorSmooth(vectAt(py, i) * invYmax,
+                                 cfg.tail_floor));
     }
   };
 
@@ -879,7 +906,7 @@ NC::reducePtsByEquidistribution(Span<const double> x,
       vectAt(f, i) = y[i] * invymax;
     dlin = sqrtCurvatureDensity(f);
     for (std::size_t i = 0; i < n; ++i)
-      vectAt(f, i) = std::log(ncmax(cfg.tail_floor, vectAt(f, i)));
+      vectAt(f, i) = std::log(tailFloorSmooth(vectAt(f, i), cfg.tail_floor));
     dlog = sqrtCurvatureDensity(f);
   }
 

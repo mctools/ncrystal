@@ -485,9 +485,18 @@ namespace {
   void testTailFloorMakesSmallValuesIrrelevant()
   {
     //Values far below the tail_floor (relative to the maximum) have no
-    //influence on the density. The two inputs here are identical where the
-    //function is above 1e-6, and differ only below 1e-11 with different
-    //patterns, so the result must be the same.
+    //influence on the density. tail_floor now acts as a smooth floor
+    //((f^4+tail_floor^4)^(1/4), continuous derivative) rather than a hard
+    //clamp (max(tail_floor,f)) -- see docs/claude_session_vdos_fma_reprod.md
+    //for why a hard clamp was replaced (it gave sub-floor noise an
+    //artificial single-point curvature spike right at the clamp boundary).
+    //The quartic (rather than quadratic, i.e. sqrt(f^2+tail_floor^2))
+    //combination was needed to keep this test's exact-irrelevance guarantee:
+    //a quadratic smooth floor let oscillating sub-floor patterns leak
+    //through with just enough amplitude to shift several selected points.
+    //The two inputs here are identical where the function is above 1e-6,
+    //and differ only below 1e-11 with different patterns, so the result
+    //must be the same.
     VectD x = linspaceN( 0.0, 100.0, 4001 );
     NC::PtReduceCfg cfg;
     cfg.tail_floor = 1e-8;
