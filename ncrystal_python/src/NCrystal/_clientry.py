@@ -50,6 +50,7 @@ def progname():
     return 'ncrystal'
 
 def usage():
+    from ._common import print
     print(generate_usage(return_list=False))
 
 def collect_usage_data( mode_list = None ):
@@ -128,6 +129,7 @@ def main( argv = None ):
         usage()
         return
     if len(argv)==2 and argv[1] in ('-l','--l','--li','--lis','--list'):
+        from ._common import print
         print( ' '.join(get_mode_list()) )
         return
 

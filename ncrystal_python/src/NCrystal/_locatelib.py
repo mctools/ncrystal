@@ -19,8 +19,8 @@
 ##                                                                            ##
 ################################################################################
 
-"""Internal module providing ctypes-based hooks into the compiled NCrystal
-shared library"""
+"""Internal module for locating the compiled NCrystal shared library and
+determining its namespace"""
 
 import pathlib
 

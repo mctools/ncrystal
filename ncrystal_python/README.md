@@ -27,7 +27,7 @@ addition to what is found in the `ncrystal-core` package):
     `ncrystal-core` package, _not_ the `ncrystal-python` package.
 - Note that the `ncrystal-python` package can only be installed via Python
   installation tools like pip.
-- For convenience, the `ncrystal-core` package has a dependency on `numpy`.
+- For convenience, the `ncrystal-python` package has a dependency on `numpy`.
 
 # Referencing NCrystal in scientific work
 

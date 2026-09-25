@@ -22,7 +22,7 @@
 """Internal utilities needed by command-line scripts in _cli_*.py and the
 utilities in cli.py. This is in particular needed to ensure that command-line
 tools can be invoked both on the command line itself, but also from a
-subprocess-free Python API via the
+subprocess-free Python API via the run function in the cli.py module.
 
 Of course, features should as far as possible be available via a dedicated
 pythonic API. For instance, the hfg2ncmat.py module provides a pythonic API for

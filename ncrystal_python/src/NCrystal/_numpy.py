@@ -20,8 +20,8 @@
 ################################################################################
 
 
-"""Internal module providing ctypes-based hooks into the compiled NCrystal
-shared library"""
+"""Internal module providing optional access to numpy (as _np, which is None
+if numpy is unavailable) along with a few numpy-related helper functions"""
 
 __all__ = [
     '_ensure_numpy',

@@ -21,9 +21,8 @@
 
 """
 
-Utilities for accessing NCrystal's database of atomic data, with information
-about atomic masses, scattering lengths, etc. Also contains a few other related
-utilities, like a list of all element names.
+Utilities for NCrystal cfg-strings, like normalising or decoding them, and
+generating documentation about the available cfg-string parameters.
 
 """
 
