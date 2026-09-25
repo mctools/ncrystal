@@ -1095,18 +1095,19 @@ namespace NCRYSTAL_NAMESPACE {
           //nonzero (many leading cells straddle the alpha=beta diagonal and
           //have e_touch exactly 0.0 -- the interesting, noise-sensitive
           //region is right where it starts rising from 0):
-          std::size_t firstNonZero = surv.data().size();
-          for ( auto i : ncrange(surv.data().size()) ) {
-            if ( surv.data()[i].e_touch > 0.0 ) { firstNonZero = i; break; }
+          const auto survCellsDiag = surv.data();
+          std::size_t firstNonZero = survCellsDiag.size();
+          for ( auto i : ncrange(survCellsDiag.size()) ) {
+            if ( survCellsDiag[i].e_touch > 0.0 ) { firstNonZero = i; break; }
           }
           std::size_t dumpBegin = ( firstNonZero > 50 ? firstNonZero-50 : 0 );
           std::size_t dumpEnd = std::min<std::size_t>( firstNonZero+300,
-                                                       surv.data().size() );
-          NCRYSTAL_MSG( "SABXSDIAG survCells total=" << surv.data().size()
+                                                       survCellsDiag.size() );
+          NCRYSTAL_MSG( "SABXSDIAG survCells total=" << survCellsDiag.size()
                        << " firstNonZeroEtouch=" << firstNonZero
                        << " dumping [" << dumpBegin << "," << dumpEnd << ")" );
           for ( auto i : ncrange(dumpBegin,dumpEnd) ) {
-            const auto& ci = surv.data()[i];
+            const auto& ci = survCellsDiag[i];
             NCRYSTAL_MSG( "SABXSDIAG cell[" << i << "] e_touch="
                          << std::setprecision(17) << ci.e_touch
                          << " e_cover=" << std::setprecision(17) << ci.e_cover
