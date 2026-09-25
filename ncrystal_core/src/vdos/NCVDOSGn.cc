@@ -661,6 +661,23 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
     // => do truncation
     const double spec_max = *std::max_element(phonon_spe.begin(),phonon_spe.end());
     const double spec_cutoff = m_cfg.truncationThreshold * spec_max;
+    //FastConvolve's own (size-dependent) FFT round-off noise floor can, for
+    //large/high-order spectra, exceed the fixed spec_cutoff above (already
+    //used below to gate whether the edge-crossing itself needs the more
+    //careful taper treatment). Values kept above spec_cutoff but still below
+    //this floor are not reliable signal -- they are FFT round-off, which
+    //genuinely differs (not just last-ULP) across platforms/compilers, and
+    //were observed doing so on real production data (Li2O, vdoslux=2004)
+    //feeding into VDOS::determineAlphaBetaGridFromGn's grid-point selection.
+    //Computed once here and reused both for that existing gate and for the
+    //final value-cleanup below, so the same criterion decides both whether
+    //the discrete edge needs refining and which retained values are trusted
+    //enough to keep as-is rather than snapped to exactly 0.0. See
+    //docs/claude_session_vdos_fma_reprod.md.
+    constexpr double noiseFloorSafetyFactor = 8.0;
+    const double noiseFloorGate = VDOS::estimateFFTConvolutionNoiseFloor(
+      spec_max, phonon_spe.size(), noiseFloorSafetyFactor );
+    const double cleanupThreshold = ncmax( spec_cutoff, noiseFloorGate );
     std::size_t ifront(0), iback(phonon_spe.size()-1);
     for (;ifront<iback;++ifront) {
       if (phonon_spe.at(ifront)>spec_cutoff)
@@ -691,10 +708,7 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
     //See docs/claude_session_vdos_fma_reprod.md.
     if ( iback > ifront && !m_cfg.legacyConvolve && !m_cfg.directConvolve ) {
       constexpr std::size_t crossingNExtra = 6;
-      constexpr double noiseFloorSafetyFactor = 8.0;
       constexpr double noiseFloorGateFactor = 2.0;
-      const double noiseFloorGate = VDOS::estimateFFTConvolutionNoiseFloor(
-        spec_max, phonon_spe.size(), noiseFloorSafetyFactor );
       if ( noiseFloorGate > noiseFloorGateFactor*spec_cutoff ) {
         //Taper half-width matches the crossing estimate's own fit window,
         //comfortably covering the largest xcross shift observed between an
@@ -734,11 +748,14 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
       truncated_spec.swap(phonon_spe);
     }
     //Remove non-cross-platform-reproducible noise from the FFT alg by snapping
-    //tiny noise to 0.0 (also internally, not just at the edges):
+    //tiny noise to 0.0 (also internally, not just at the edges). Uses
+    //cleanupThreshold (not the bare spec_cutoff) so that values which only
+    //cleared the fixed spec_cutoff by virtue of FastConvolve's own
+    //size-dependent round-off floor (see above) are cleaned up too:
     //fixme: with non-legacy convolve we MUST do this, or we can get negative values in the spectra
     if ( !m_cfg.legacyConvolve ) {
       for ( auto&e : phonon_spe) {
-        if ( e < spec_cutoff ) {
+        if ( e < cleanupThreshold ) {
           nc_assert( e > -1e-12*spec_max );
           e = 0.0;
         }
