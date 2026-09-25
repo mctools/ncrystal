@@ -196,8 +196,14 @@ NCV::detail::fillSABFromVDOS( const VDOSGn& Gn_asym,
       if (!fact)
         continue;//nothing can contribute at this order (should not happen?)
       const double logn = std::log(n);
+      const double nAsDbl = static_cast<double>(n);
       for (auto x : enumerate(x_vals) ) {
-        const double exparg = n * ( vectAt(logx_vals,x.idx) - logn + 1.0 ) - x.val;
+        //Explicit std::fma for the final combination: "n*X-x.val" is
+        //exactly the a*b-c shape a compiler may silently fuse under -mfma,
+        //feeding straight into exp() below (see docs/devel_fma_attribute.md):
+        const double exparg = std::fma( nAsDbl,
+                                        vectAt(logx_vals,x.idx) - logn + 1.0,
+                                        -x.val );
         nc_assert_always(exparg <= 708.0);
         vectAt(alpha_factors,x.idx) = fact * std::exp(exparg);
         //fixme: break if the alpha_factor just calculated is below

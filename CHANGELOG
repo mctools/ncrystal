@@ -1,4 +1,12 @@
 v4.4.7 (work in progress)
+     * Fix another unaudited a*b-c shape found while continuing the
+       performance/reproducibility pass into the VDOS side of the pipeline:
+       NCVDOSToScatKnl.cc's fillSABFromVDOS computed the high-phonon-order
+       (n>=stirling_threshold) alpha factor's exponent as "n*(...)-x.val",
+       feeding straight into std::exp() -- same class of hazard as
+       setupE0ABGrid's logarg fixed earlier this session, just not caught
+       at the time since this is a different function. Fixed with explicit
+       std::fma. Full sb -t --long green, zero reference-log changes.
      * Hoist a loop-invariant std::log(taperBand) call (taperBand is a
        compile-time constant) out of sIntegralAtE's per-cell loop --
        unrelated to fma, just plain redundant recomputation on every cell
