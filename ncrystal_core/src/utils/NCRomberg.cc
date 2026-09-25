@@ -259,18 +259,27 @@ void NCrystal::Romberg::fixedOrderIntegration129pts( const double* fvals,
     tgt.add( coeffs129[i]*fvals[i] );
 }
 
+//Every R(i,j) below combines two products (a trapezoidal-rule update, or a
+//Richardson-extrapolation step) into a single sum: a plain "a*b+c*d" is
+//exactly the shape a compiler may or may not silently fuse the *second*
+//product into (giving fma(c,d,a*b)), and since either fusion choice is a
+//valid reading of the same source expression, different platforms/flags
+//can legitimately pick different ones -- not just contract-or-not, but
+//*which* product gets fused. Made unambiguous throughout with an explicit
+//std::fma that always fuses the *first* product (the second is computed
+//separately first, then used as fma's addend), so every platform performs
+//the identical sequence of roundings. NCRYSTAL_FMADISPATCH_ATTR gets those
+//std::fma calls hardware speed on a portable (non--mfma) x86 build too, via
+//runtime dispatch: every remaining plain expression in this function is
+//either a bare subtraction/exact-power-of-2-multiply (no a*b+c shape for a
+//"fma" clone to silently misfuse) or already explicit std::fma, so the
+//whole function is safe to decorate per doc/devel_fma_attribute.md rule 1.
+//evalFuncMany/evalFuncManySum (called below) are virtual and so cannot be
+//decorated themselves (rule: never on a virtual member function); their own
+//std::fma calls remain an ordinary (undispatched) call on such a build:
+NCRYSTAL_FMADISPATCH_ATTR
 double NCrystal::Romberg::integrate(double a, double b) const
 {
-  //Every R(i,j) below combines two products (a trapezoidal-rule update, or a
-  //Richardson-extrapolation step) into a single sum: a plain "a*b+c*d" is
-  //exactly the shape a compiler may or may not silently fuse the *second*
-  //product into (giving fma(c,d,a*b)), and since either fusion choice is a
-  //valid reading of the same source expression, different platforms/flags
-  //can legitimately pick different ones -- not just contract-or-not, but
-  //*which* product gets fused. Made unambiguous throughout with an explicit
-  //std::fma that always fuses the *first* product (the second is computed
-  //separately first, then used as fma's addend), so every platform performs
-  //the identical sequence of roundings:
   double h = (b-a);
   double fvals[17];//R(4,4) needs 17 equally spaced evaluations, we do them in one go:
   evalFuncMany(&fvals[0], 17, a, h*0.0625);

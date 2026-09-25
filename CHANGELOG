@@ -1,4 +1,26 @@
 v4.4.7 (work in progress)
+     * Decorate Romberg::integrate() (NCRomberg.cc) with
+       NCRYSTAL_FMADISPATCH_ATTR, so its now-fully-explicit-std::fma
+       Richardson-extrapolation arithmetic (see the Romberg fix above) gets
+       hardware FMA speed on a portable (non--mfma) x86 build too, via
+       runtime dispatch, rather than paying for a real (undispatched)
+       std::fma library call on hardware that actually has the instruction.
+       Confirmed real multiversioning occurred (nm shows [clone .default]/
+       [clone .fma]/[clone .resolver] symbols) and the full sb -t --long
+       suite stays green. evalFuncMany/evalFuncManySum (called from
+       integrate(), themselves also now using explicit std::fma per the fix
+       above) are virtual and so cannot be decorated (the attribute is
+       rejected outright on virtual member functions); their std::fma calls
+       remain an ordinary library call. Investigated whether NCRomberg.cc's
+       fixed-order integration helpers (used from NCSABCellInteg.cc) needed
+       similar treatment: empirically confirmed (via disassembly, zero
+       vfmadd instructions under -mfma) that the compiler does not fuse
+       across StableSum::add's inlined call boundary, so unlike the
+       Richardson-extrapolation code there is no latent reproducibility
+       hazard there to fix -- left unchanged pending a decision on whether
+       to trade StableSum's Neumaier compensation for raw std::fma-based
+       accumulation speed there, which is a real accuracy/speed tradeoff
+       rather than a mechanical audit fix.
      * Remove the SABXSDIAG-TEMPORARY diagnostic instrumentation (added in
        5d4ce340/d5fcb4e2 to get ground truth from the actually-diverging CI
        legs while chasing the sabxs residual fixed above): the env-var-gated
