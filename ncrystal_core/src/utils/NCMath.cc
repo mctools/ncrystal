@@ -997,6 +997,167 @@ NC::reducePtsByEquidistribution(Span<const double> x,
   return { std::move(nx), std::move(ny) };
 }
 
+std::pair<NC::VectD, NC::VectD>
+NC::reducePtsByEquidistributionRobust(Span<const double> x,
+                                      Span<const double> y,
+                                      std::size_t targetN,
+                                      std::size_t curvatureStencilHalfWidth,
+                                      const PtReduceCfg& cfg)
+{
+  //Same algorithm as reducePtsByEquidistribution (kept as an independent
+  //implementation rather than sharing code, so the two stay simple to reason
+  //about and to diff against each other); the only difference is marked
+  //below. See that function's doc comment for the general design, and this
+  //function's own doc comment (NCMath.hh) for why a wider stencil helps.
+
+#ifndef NDEBUG
+  {
+    nc_assert(x.size() == y.size());
+    nc_assert(x.size() >= 2);
+    nc_assert(targetN >= 2);
+    nc_assert(curvatureStencilHalfWidth >= 1);
+    nc_assert(std::isfinite(cfg.equidistant_fraction));
+    nc_assert(cfg.equidistant_fraction >= 0.0);
+    nc_assert(cfg.equidistant_fraction <= 1.0);
+    nc_assert(std::isfinite(cfg.tail_floor));
+    nc_assert(cfg.tail_floor > 0.0);
+    nc_assert(nc_is_grid(x));
+    for (std::size_t i = 0; i < y.size(); ++i) {
+      nc_assert(std::isfinite(y[i]));
+      nc_assert(y[i] >= 0.0);
+    }
+  }
+#endif
+
+  const std::size_t n = x.size();
+  if (targetN >= n)
+    return { VectD{x.begin(), x.end()}, VectD{y.begin(), y.end()} };
+
+  const double ymax = *std::max_element(y.begin(), y.end());
+
+  VectD width(n - 1);
+  StableSumKahan xrange;
+  for (std::size_t i = 0; i + 1 < n; ++i) {
+    vectAt(width, i) = x[i + 1] - x[i];
+    xrange.add(vectAt(width, i));
+  }
+  const double invL = 1.0 / xrange.sum();
+
+  constexpr double relative_noise_level = 1e-12;
+  const std::size_t hw = curvatureStencilHalfWidth;
+  VectD kappa(n), dens(n - 1);
+  auto sqrtCurvatureDensity = [&](const VectD& f) -> VectD
+  {
+    for (std::size_t i = 1; i + 1 < n; ++i) {
+      //CHANGE vs. reducePtsByEquidistribution: look hw points away on either
+      //side (clamped to the array ends) instead of always just 1, both for
+      //the slopes s0/s1 themselves and for the x-distances they are divided
+      //by (a plain, consistent generalisation of the 3-point formula, which
+      //is exactly reproduced by hw=1: ilo=i-1, ihi=i+1):
+      const std::size_t ilo = ( i >= hw ) ? i - hw : 0;
+      const std::size_t ihi = ncmin( i + hw, n - 1 );
+      const double s0 = (vectAt(f, i) - vectAt(f, ilo)) / ( x[i] - x[ilo] );
+      const double s1 = (vectAt(f, ihi) - vectAt(f, i)) / ( x[ihi] - x[i] );
+      //Local spacing kept at the original (immediate-neighbour) resolution
+      //regardless of the wider stencil above, so the noise-floor comparison
+      //below keeps its original interpretation (an estimate of how much
+      //curvature a point spaced this closely could resolve at all):
+      const double wmean = 0.5 * (vectAt(width, i - 1) + vectAt(width, i));
+      const double k = ncabs(s1 - s0) / wmean;
+      const double noise = relative_noise_level / (wmean * wmean);
+      vectAt(kappa, i) = ( k > noise ? k - noise : 0.0 );
+    }
+    kappa.front() = vectAt(kappa, 1);
+    kappa.back() = vectAt(kappa, n - 2);
+    StableSumKahan total;
+    for (std::size_t i = 0; i + 1 < n; ++i) {
+      vectAt(dens, i) = std::sqrt(0.5 * (vectAt(kappa, i)
+                                         + vectAt(kappa, i + 1)));
+      total.add(vectAt(dens, i) * vectAt(width, i));
+    }
+    const double t = total.sum();
+    if (!(t > 0.0) || !std::isfinite(t))
+      return {};
+    const double invt = 1.0 / t;
+    VectD res(n - 1);
+    for (std::size_t i = 0; i + 1 < n; ++i)
+      vectAt(res, i) = vectAt(dens, i) * invt;
+    return res;
+  };
+
+  VectD dlin, dlog;
+  if (ymax > 0.0) {
+    VectD f(n);
+    const double invymax = 1.0 / ymax;
+    for (std::size_t i = 0; i < n; ++i)
+      vectAt(f, i) = y[i] * invymax;
+    dlin = sqrtCurvatureDensity(f);
+    for (std::size_t i = 0; i < n; ++i)
+      vectAt(f, i) = std::log(tailFloorSmooth(vectAt(f, i), cfg.tail_floor));
+    dlog = sqrtCurvatureDensity(f);
+  }
+
+  double w_uniform = cfg.equidistant_fraction;
+  double w_lin = 0.5 * (1.0 - cfg.equidistant_fraction);
+  double w_log = w_lin;
+  if (dlin.empty()) {
+    w_uniform += w_lin;
+    w_lin = 0.0;
+  }
+  if (dlog.empty()) {
+    w_uniform += w_log;
+    w_log = 0.0;
+  }
+
+  VectD cum(n);
+  cum.front() = 0.0;
+  StableSumKahan csum;
+  for (std::size_t i = 0; i + 1 < n; ++i) {
+    double d = w_uniform * invL;
+    if (w_lin > 0.0)
+      d += w_lin * vectAt(dlin, i);
+    if (w_log > 0.0)
+      d += w_log * vectAt(dlog, i);
+    csum.add(d * vectAt(width, i));
+    vectAt(cum, i + 1) = csum.sum();
+  }
+  const double mtot = cum.back();
+  nc_assert(mtot > 0.0);
+
+  std::vector<std::size_t> sel;
+  sel.reserve(targetN);
+  sel.push_back(0);
+  for (std::size_t k = 1; k + 1 < targetN; ++k) {
+    const double q = mtot * (static_cast<double>(k)
+                             / static_cast<double>(targetN - 1));
+    std::size_t hi = static_cast<std::size_t>
+      (std::lower_bound(cum.begin(), cum.end(), q) - cum.begin());
+    std::size_t idx = hi;
+    //Same noise-floor-scaled tie-break bias as reducePtsByEquidistribution
+    //(see there for the rationale); still useful here since a wider stencil
+    //reduces but does not eliminate near-ties:
+    constexpr double tieBreakRelTol = 1e-9;
+    if (hi > 0 && (q - vectAt(cum, hi - 1))
+        <= (vectAt(cum, hi) - q) + tieBreakRelTol*mtot)
+      idx = hi - 1;
+    const std::size_t lo_allowed = sel.back() + 1;
+    const std::size_t hi_allowed = n - targetN + k;
+    idx = ncmax(lo_allowed, ncmin(hi_allowed, idx));
+    sel.push_back(idx);
+  }
+  sel.push_back(n - 1);
+  nc_assert(sel.size() == targetN);
+
+  VectD nx, ny;
+  nx.reserve(targetN);
+  ny.reserve(targetN);
+  for (auto i : sel) {
+    nx.push_back(x[i]);
+    ny.push_back(y[i]);
+  }
+  return { std::move(nx), std::move(ny) };
+}
+
 NC::VectD::const_iterator NC::findClosestValInSortedVector(const VectD& v, double value)
 {
   nc_assert(!v.empty());

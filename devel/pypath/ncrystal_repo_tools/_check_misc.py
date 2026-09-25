@@ -40,7 +40,7 @@ def main():
         'data/LiquidWaterH2O_T293.6K.ncmat' : 600,
         'data/LiquidHeavyWaterD2O_T293.6K.ncmat' : 1600,
         'tests/data/refnc2d5/LiquidWaterH2O_T293.6K.ncmat' : 530,
-        'CHANGELOG' : 150,
+        'CHANGELOG' : 200,
         'ncrystal_core/include/NCrystal/cinterface/ncrystal.h' : 100,
         'ncrystal_core/src/cinterface/ncrystal.cc' : 100,
         'ncrystal_core/src/sab/NCSABProcessor.cc' : 100,#fixme
@@ -62,6 +62,16 @@ def main():
         #kept as a single growing file rather than split, so it stays a
         #single coherent narrative:
         'docs/claude_session_vdos_fma_reprod.md' : 200,
+        #Real (VDOS/SAB-derived) point-selection input data used by
+        #app_ptreduceequi to test reducePtsByEquidistribution /
+        #reducePtsByEquidistributionRobust against the actual data that
+        #exposed the cross-platform selection instability investigated in
+        #docs/claude_session_vdos_fma_reprod.md, plus similar data from
+        #several other materials so a fix for one cannot silently regress
+        #another. Real-world array sizes (a few thousand points at %.10g)
+        #don't fit under the generic 60kb limit:
+        'tests/data/ptreduce/li_from_li2o_e0grid.txt' : 100,
+        'tests/data/ptreduce/al_e0grid.txt' : 100,
     }
     for f in all_files_iter():
         lim = max_size_kb_log if f.suffix == '.log' else max_size_kb_other
