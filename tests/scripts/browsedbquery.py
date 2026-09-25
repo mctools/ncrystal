@@ -82,6 +82,34 @@ def show( title, data ):
     print(f'==> {title}:')
     pprint.pp( rounded(data), width = 78 )
 
+def test_factorythreads():
+    ft = q('factorythreads')
+    assert set(ft) == set(['threads_available','nthreads'])
+    avail = ft['threads_available']
+    assert ft['nthreads'] == 1
+    NC.enableFactoryThreads(4)
+    assert q('factorythreads')['nthreads'] == ( 4 if avail else 1 )
+    NC.enableFactoryThreads(1)
+    assert q('factorythreads')['nthreads'] == 1
+    #A pending NCRYSTAL_FACTORY_THREADS setting is applied by the query
+    #(the env var is only processed once per process, hence subprocess):
+    import subprocess
+    import sys
+
+    from NCTestUtils.env import ncsetenv
+    ncsetenv('FACTORY_THREADS','3')
+    try:
+        code = ( 'import NCrystalDev.misc as m;'
+                 'print(m.evaluate_query(["util",'
+                 '"factorythreads"])["nthreads"])' )
+        rv = subprocess.run( [ sys.executable, '-c', code ],
+                             capture_output = True, text = True,
+                             check = True )
+    finally:
+        ncsetenv('FACTORY_THREADS',None)
+    assert int(rv.stdout.strip()) == ( 3 if avail else 1 )
+    print('Factory thread queries OK')
+
 def main():
     NC.removeAllDataSources()
     NC.enableStandardDataLibrary()
@@ -139,6 +167,8 @@ def main():
     finally:
         NC.enableFactoryThreads(1)
     print('Loading with factory threads OK')
+
+    test_factorythreads()
 
     def bad( msg, *args ):
         with ensure_error(NC.NCBadInput,msg):

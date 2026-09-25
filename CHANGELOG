@@ -89,7 +89,8 @@ v4.4.7 (work in progress)
        colored highlighting of hits (controlled by --color=WHEN).
      * New JSON queries ["util","browsedb",...] and ["util","browsefactories"]
        providing data file listings with NCMAT header comments and physics
-       properties (loaded in parallel if factory threads are enabled).
+       properties (loaded in parallel if factory threads are enabled), and
+       ["util","factorythreads"] providing the factory thread-pool state.
      * C API: error state (ncrystal_error, ncrystal_lasterror, ...) is now
        kept per thread, so errors are no longer reported in the wrong thread
        when the C API (or the Python API) is used from several threads.

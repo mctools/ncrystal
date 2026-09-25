@@ -821,6 +821,11 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
+void NCF::processFactoryThreadsEnvVar()
+{
+  ::NC::detail::factThreads_checkEnvVar();
+}
+
 NC::shared_obj<const NC::Info> NCF::createInfo( const InfoRequest& cfg )
 {
   ::NC::detail::factThreads_checkEnvVar();

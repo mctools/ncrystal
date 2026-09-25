@@ -188,6 +188,11 @@ namespace NCRYSTAL_NAMESPACE {
     //already. Therefore they should NOT be used when registering factories in
     //plugins (use the currentlyHasFactory function below instead if needed):
     NCRYSTAL_API bool hasFactory( FactoryType, const std::string& name );
+
+    //Process the NCRYSTAL_FACTORY_THREADS env var (otherwise only
+    //done on the first call to one of the standard factory methods).
+    //Only the first call has any effect:
+    NCRYSTAL_API void processFactoryThreadsEnvVar();
     NCRYSTAL_API bool hasTextDataFactory( const std::string& name );
     NCRYSTAL_API bool hasInfoFactory( const std::string& name );
     NCRYSTAL_API bool hasScatterFactory( const std::string& name );

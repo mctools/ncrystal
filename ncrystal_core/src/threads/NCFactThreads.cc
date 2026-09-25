@@ -24,6 +24,11 @@ namespace NC = NCrystal;
 #ifdef NCRYSTAL_DISABLE_THREADS
 
 void NC::FactoryThreadPool::enable( ThreadCount ) {}
+NC::ThreadCount NC::FactoryThreadPool::currentThreadCount()
+{
+  return ThreadCount{ 1 };
+}
+bool NC::FactoryThreadPool::threadsAvailable() { return false; }
 void NC::FactoryThreadPool::queue( voidfct_t job ) { job(); }
 NC::FactoryThreadPool::detail::FactoryJobsHandler
 NC::FactoryThreadPool::detail::getFactoryJobsHandler() { return {}; }
@@ -52,6 +57,12 @@ namespace NCRYSTAL_NAMESPACE {
           auto& db = getFJH();
           NCRYSTAL_LOCK_GUARD(db.mtx);
           db.fjh = std::move(fjh);
+        }
+
+        std::atomic<unsigned>& getNThreadsTotal()
+        {
+          static std::atomic<unsigned> n(1);
+          return n;
         }
 
         std::atomic<bool>& getFactThreadsCalledAB()
@@ -100,8 +111,16 @@ void NC::FactoryThreadPool::enable( ThreadCount nthreads )
           ::NC::FactoryThreadPool::queue,
           ::NC::FactoryThreadPool::detail::detail_get_pending_job
         } );
+    detail::getNThreadsTotal().store( n_extra_threads + 1 );
   }
 }
+
+NC::ThreadCount NC::FactoryThreadPool::currentThreadCount()
+{
+  return ThreadCount{ detail::getNThreadsTotal().load() };
+}
+
+bool NC::FactoryThreadPool::threadsAvailable() { return true; }
 
 void NC::FactoryThreadPool::queue( voidfct_t job )
 {

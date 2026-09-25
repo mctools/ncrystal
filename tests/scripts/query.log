@@ -98,7 +98,8 @@ Caught expected NCBadInput('Invalid JSON query key: "foo"')
  'fmadiagnose',
  'kinutils',
  'browsedb',
- 'browsefactories']
+ 'browsefactories',
+ 'factorythreads']
 ===========================================
 ============= CLI >>util wl2ekin 1.8<< ====================
 0.025248212841

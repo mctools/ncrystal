@@ -62,6 +62,17 @@ namespace NCRYSTAL_NAMESPACE {
     //simply be run immediately in the current thread.
     NCRYSTAL_API void queue( voidfct_t );
 
+    //Current total number of threads used (including the user
+    //thread), so 1 means that the thread-pool is disabled. Note that
+    //the NCRYSTAL_FACTORY_THREADS env var is only processed on the
+    //first call to a standard factory method (cf.
+    //FactImpl::processFactoryThreadsEnvVar).
+    NCRYSTAL_API ThreadCount currentThreadCount();
+
+    //Whether NCrystal was built with thread support (if not, enable(..)
+    //has no effect and currentThreadCount() always returns 1):
+    NCRYSTAL_API bool threadsAvailable();
+
   }
 }
 

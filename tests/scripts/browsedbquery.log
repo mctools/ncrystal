@@ -144,6 +144,7 @@ Overview queries OK
           'nphases': 1}}
 Chunked queries OK
 Loading with factory threads OK
+Factory thread queries OK
 Caught expected NCBadInput('Unknown TextData factory in browsedb query: "nonexistent"')
 Caught expected NCBadInput('Invalid chunk specification in browsedb query (must have 0<=I<N): I=2, N=2')
 Caught expected NCBadInput('Invalid chunk specification in browsedb query (must have 0<=I<N): I=0, N=0')
