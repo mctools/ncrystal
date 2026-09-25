@@ -21,6 +21,7 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCRotMatrix.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
+#include "NCrystal/internal/utils/NCFastSearch.hh"
 #include <sstream>
 #include <list>
 #include <queue>
@@ -1063,8 +1064,7 @@ NC::reducePtsByEquidistribution(Span<const double> x,
     const double q = mtot * (static_cast<double>(k)
                              / static_cast<double>(targetN - 1));
     //first input point with cum >= q:
-    std::size_t hi = static_cast<std::size_t>
-      (std::lower_bound(cum.begin(), cum.end(), q) - cum.begin());
+    std::size_t hi = fastLowerBoundIdx(cum.data(), cum.size(), q);
     std::size_t idx = hi;
     //Bias the "which neighbour is closer" tie-break by a fixed tolerance well
     //above the ~1e-15 relative noise that cum[] can carry from the
@@ -1230,8 +1230,7 @@ NC::reducePtsByEquidistributionRobust(Span<const double> x,
   for (std::size_t k = 1; k + 1 < targetN; ++k) {
     const double q = mtot * (static_cast<double>(k)
                              / static_cast<double>(targetN - 1));
-    std::size_t hi = static_cast<std::size_t>
-      (std::lower_bound(cum.begin(), cum.end(), q) - cum.begin());
+    std::size_t hi = fastLowerBoundIdx(cum.data(), cum.size(), q);
     std::size_t idx = hi;
     //Same noise-floor-scaled tie-break bias as reducePtsByEquidistribution
     //(see there for the rationale); still useful here since a wider stencil
@@ -1262,14 +1261,15 @@ NC::VectD::const_iterator NC::findClosestValInSortedVector(const VectD& v, doubl
 {
   nc_assert(!v.empty());
   nc_assert(!ncisnan(value));
-  auto it = std::lower_bound(v.begin(),v.end(),value);
-  //it is the first element with *it >= value.
-  if (it == v.begin())
-    return it;
-  if (it == v.end())
+  const std::size_t idx = fastLowerBoundIdx(v.data(),v.size(),value);
+  //idx is the index of the first element with v[idx] >= value.
+  if (idx == 0)
+    return v.begin();
+  if (idx == v.size())
     return std::prev(v.end());
-  //either it or std::prev(it), depending on which is closer:
-  return ncabs(*it-value) < ncabs(*std::prev(it)-value) ? it : std::prev(it);
+  //either v[idx] or v[idx-1], depending on which is closer:
+  return ( ncabs(v[idx]-value) < ncabs(v[idx-1]-value)
+           ? std::next(v.begin(),idx) : std::next(v.begin(),idx-1) );
 }
 
 double NC::integrate01_kpowx( double k, const Optional<double>& opt_lnk )

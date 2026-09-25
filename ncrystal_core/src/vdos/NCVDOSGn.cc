@@ -23,6 +23,7 @@
 #include "NCrystal/internal/vdos/NCVDOSUtils.hh"
 #include "NCrystal/internal/utils/NCFastConvolve.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCFastSearch.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/fact_utils/NCFactoryJobs.hh"
@@ -236,15 +237,9 @@ void NCV::VDOSGnData::interpolateDensityMany( Span<const double> energy,
   double* ncrestrict buf_f = workbuf.data();
   double* ncrestrict buf_ix = buf_f + n;
 
-  const auto first = std::lower_bound(
-                                      energy.begin(), energy.end(), m_egrid_lower);
-  const auto last = std::upper_bound(
-                                     first, energy.end(), m_egrid_upper);
-
-  const std::size_t beg =
-    static_cast<std::size_t>(first - energy.begin());
-  const std::size_t end =
-    static_cast<std::size_t>(last - energy.begin());
+  const std::size_t beg = fastLowerBoundIdx( energy.data(), n, m_egrid_lower );
+  const std::size_t end = beg + fastUpperBoundIdx( energy.data()+beg, n-beg,
+                                                    m_egrid_upper );
 
   for (std::size_t i = beg; i < end; ++i) {
     const double a =
