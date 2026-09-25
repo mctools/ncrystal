@@ -173,7 +173,7 @@ namespace NCRYSTAL_NAMESPACE {
           res.a2 = vectAt(alpha,ia+1);
           res.b1 = vectAt(beta,ib);
           res.b2 = vectAt(beta,ib+1);
-          SABIdx::NAlpha na(m_sab->alphaGrid());//fixme cache?
+          SABIdx::NAlpha na(m_nalpham1+1);//== alphaGrid().size(), cached
           SABIdx::SABIdx idx_sab( na, ia, ib );
           //const auto na = alpha.size();
           //auto idx_sab = ib*na + ia;
@@ -1259,7 +1259,12 @@ namespace NCRYSTAL_NAMESPACE {
         Span<const double> cumulContrib( m_cumulFCInt.data(),
                                          m_cumulFCInt.data()+nCellsTouched );
         //fixme: possible optimisation: cache last few (idx,FullCellSampler)
-        //objects, in case a few cells are hit often?
+        //objects, in case a few cells are hit often? (Tried caching just the
+        //immediately-preceding one: measured no wall-clock benefit on
+        //sb_ncdev_benchsabsample -- a same-cell repeat on the very next
+        //rejection is apparently not common enough here to pay for the
+        //extra bookkeeping, so reverted. Left as a fixme rather than
+        //silently dropped.)
         while ( true ) {
           std::size_t randidx = pickRandIdxByWeight( rng, cumulContrib );
           auto cellidx = vectAt(m_cumulFCInt_cellidx,randidx);
