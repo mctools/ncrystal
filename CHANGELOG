@@ -1,4 +1,14 @@
 v4.4.7 (work in progress)
+     * Fix a cluster of unaudited Horner-chain a*b-c/a*b+c shapes in
+       randKPowX's near-k=1 Taylor branch (NCRandUtils.cc): the c2/c3
+       coefficient polynomials and the final Horner evaluation in u were
+       all plain (non-fma) expressions. This function samples alpha
+       within a cell under the usual (non-degenerate) log-linear
+       interpolation scheme -- i.e. it runs on essentially every SAB
+       scatter sample, found while profiling sb_ncdev_benchsabsample's
+       pure-sampling path (LogLinDistSampler::sample -> randKPowX).
+       Fixed with explicit std::fma throughout. Full sb -t --long green,
+       zero reference-log changes.
      * Resolve a small flagged "fixme cache?" in CellMgr::lookupCellInfo
        (NCSABProcessor.cc): construct SABIdx::NAlpha from the already-
        cached m_nalpham1+1 instead of reconstructing it from the full
