@@ -27,7 +27,7 @@ void NCrystal::Romberg::evalFuncMany(double* fvals, unsigned n, double offset, d
   double * it = &fvals[0];
   double nn = n;//only cast once
   for ( double i = 0; i < nn; ++i )
-    *(it++) = evalFunc( offset + delta * i );
+    *(it++) = evalFunc( std::fma( delta, i, offset ) );
 }
 
 double NCrystal::Romberg::evalFuncManySum(unsigned n, double offset, double delta) const
@@ -35,7 +35,7 @@ double NCrystal::Romberg::evalFuncManySum(unsigned n, double offset, double delt
   double sum = 0.0;
   double nn = n;//only cast once
   for ( double i = 0; i < nn; ++i )
-    sum += evalFunc( offset + delta * i );
+    sum += evalFunc( std::fma( delta, i, offset ) );
   return sum;
 }
 
@@ -261,6 +261,16 @@ void NCrystal::Romberg::fixedOrderIntegration129pts( const double* fvals,
 
 double NCrystal::Romberg::integrate(double a, double b) const
 {
+  //Every R(i,j) below combines two products (a trapezoidal-rule update, or a
+  //Richardson-extrapolation step) into a single sum: a plain "a*b+c*d" is
+  //exactly the shape a compiler may or may not silently fuse the *second*
+  //product into (giving fma(c,d,a*b)), and since either fusion choice is a
+  //valid reading of the same source expression, different platforms/flags
+  //can legitimately pick different ones -- not just contract-or-not, but
+  //*which* product gets fused. Made unambiguous throughout with an explicit
+  //std::fma that always fuses the *first* product (the second is computed
+  //separately first, then used as fma's addend), so every platform performs
+  //the identical sequence of roundings:
   double h = (b-a);
   double fvals[17];//R(4,4) needs 17 equally spaced evaluations, we do them in one go:
   evalFuncMany(&fvals[0], 17, a, h*0.0625);
@@ -271,23 +281,23 @@ double NCrystal::Romberg::integrate(double a, double b) const
 
   h *= 0.5;
   const double R00 = (fvals[0] + fvals[16])*h;
-  const double R10 = h*fvals[8] + 0.5*R00;
-  const double R11 = (4./3.)*R10 + (-1./3.)*R00;
+  const double R10 = std::fma( h, fvals[8], 0.5*R00 );
+  const double R11 = std::fma( (4./3.), R10, (-1./3.)*R00 );
   h *= 0.5;
-  const double R20 = h*(fvals[4]+fvals[12]) + 0.5*R10;
-  const double R21 = (4./3.) * R20 + (-1./3.)* R10;
-  const double R22 = (16./15.) * R21 + (-1./15.) * R11;
+  const double R20 = std::fma( h, fvals[4]+fvals[12], 0.5*R10 );
+  const double R21 = std::fma( (4./3.), R20, (-1./3.)*R10 );
+  const double R22 = std::fma( (16./15.), R21, (-1./15.)*R11 );
   h *= 0.5;
-  const double R30 = h*((fvals[2]+fvals[6])+(fvals[10]+fvals[14])) + 0.5*R20;
-  const double R31 = (4./3.) * R30 + (-1./3.)* R20;
-  const double R32 = (16./15.) * R31 + (-1./15.) * R21;
-  const double R33 = (64./63.) * R32 + (-1./63.) * R22;
+  const double R30 = std::fma( h, (fvals[2]+fvals[6])+(fvals[10]+fvals[14]), 0.5*R20 );
+  const double R31 = std::fma( (4./3.), R30, (-1./3.)*R20 );
+  const double R32 = std::fma( (16./15.), R31, (-1./15.)*R21 );
+  const double R33 = std::fma( (64./63.), R32, (-1./63.)*R22 );
   h *= 0.5;
-  const double R40 = h*(((fvals[1]+fvals[3])+(fvals[5]+fvals[7]))+((fvals[9]+fvals[11])+(fvals[13]+fvals[15]))) + 0.5*R30;
-  const double R41 = (4./3.) * R40 + (-1./3.)* R30;
-  const double R42 = (16./15.) * R41 + (-1./15.) * R31;
-  const double R43 = (64./63.) * R42 + (-1./63.) * R32;
-  const double R44 = (256./255.) * R43 + (-1./255.) * R33;
+  const double R40 = std::fma( h, ((fvals[1]+fvals[3])+(fvals[5]+fvals[7]))+((fvals[9]+fvals[11])+(fvals[13]+fvals[15])), 0.5*R30 );
+  const double R41 = std::fma( (4./3.), R40, (-1./3.)*R30 );
+  const double R42 = std::fma( (16./15.), R41, (-1./15.)*R31 );
+  const double R43 = std::fma( (64./63.), R42, (-1./63.)*R32 );
+  const double R44 = std::fma( (256./255.), R43, (-1./255.)*R33 );
 
   if (accept(4,R33,R44,a,b))
     return R44;
@@ -295,12 +305,12 @@ double NCrystal::Romberg::integrate(double a, double b) const
   //R(4,4) was not enough, try R(5,5):
   const double c5 = evalFuncManySum(16, a+h*0.5, h);
   h *= 0.5;
-  const double R50 = h*c5 + 0.5*R40;
-  const double R51 = (4./3.) * R50 + (-1./3.)* R40;
-  const double R52 = (16./15.) * R51 + (-1./15.) * R41;
-  const double R53 = (64./63.) * R52 + (-1./63.) * R42;
-  const double R54 = (256./255.) * R53 + (-1./255.) * R43;
-  const double R55 = (1024./1023.) * R54 + (-1./1023.) * R44;
+  const double R50 = std::fma( h, c5, 0.5*R40 );
+  const double R51 = std::fma( (4./3.), R50, (-1./3.)*R40 );
+  const double R52 = std::fma( (16./15.), R51, (-1./15.)*R41 );
+  const double R53 = std::fma( (64./63.), R52, (-1./63.)*R42 );
+  const double R54 = std::fma( (256./255.), R53, (-1./255.)*R43 );
+  const double R55 = std::fma( (1024./1023.), R54, (-1./1023.)*R44 );
 
   if (accept(5,R44,R55,a,b))
     return R55;
@@ -326,12 +336,13 @@ double NCrystal::Romberg::integrate(double a, double b) const
     nj *= 2;
     double c = evalFuncManySum(nj, a+h, hh);
 
-    row[0] = h*c + 0.5*row_prev[0]; //R(i,0)
+    row[0] = std::fma( h, c, 0.5*row_prev[0] ); //R(i,0)
 
     double n_k = 1.;
     for(unsigned j = 0; j < i; ++j) {
       n_k *= 4.0;
-      row[j+1] = ( n_k * row[j] - row_prev[j] ) / (n_k-1.0); //extrapolate value for R(i,j)
+      //extrapolate value for R(i,j):
+      row[j+1] = std::fma( n_k, row[j], -row_prev[j] ) / (n_k-1.0);
     }
 
     if (accept(i,row_prev[i-1],row[i],a,b))
