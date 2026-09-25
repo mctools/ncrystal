@@ -429,8 +429,11 @@ namespace NCRYSTAL_NAMESPACE {
                                             + std::log(taperBand) )
                                           / ( 2.0*std::log(taperBand) ), 0.0, 1.0 );
                 //Quintic smootherstep (Ken Perlin): 0 and 1 derivatives
-                //vanish at both ends, so no kink at the band edges either:
-                const double s = t*t*t*(t*(t*6.0-15.0)+10.0);
+                //vanish at both ends, so no kink at the band edges either.
+                //Explicit std::fma for the inner Horner steps (unaudited
+                //a*b+c shape otherwise, evaluated per cell in this loop --
+                //see docs/devel_fma_attribute.md):
+                const double s = t*t*t*std::fma( t, std::fma(t,6.0,-15.0), 10.0 );
                 contrib *= s;
               }
               sum.add( contrib );
