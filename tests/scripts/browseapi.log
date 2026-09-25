@@ -1,0 +1,44 @@
+Properties: ['elements', 'atoms', 'nelements', 'formula', 'absxs', 'scatxs', 'density', 'numdens', 'temp', 'state', 'crystal', 'sg', 'natoms', 'dyninfo', 'nphases']
+==> Cheap browsing of virtual factory:
+  DataEntry(virtual::Al_sg225.ncmat) name='Al_sg225.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat'
+     description='Helium gas. Second line.'
+     comments=('------------------', ' Helium gas.', ' Second line.', '', ' Other paragraph.')
+  DataEntry(virtual::broken.ncmat) name='broken.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat'
+     description=''
+     comments=()
+  DataEntry(virtual::crystal.ncmat) name='crystal.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat'
+     description='A small Al crystal.'
+     comments=('', 'A small Al crystal.', '', 'Mentions Togo.')
+  DataEntry(virtual::gas.ncmat) name='gas.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat'
+     description='Helium gas. Second line.'
+     comments=('------------------', ' Helium gas.', ' Second line.', '', ' Other paragraph.')
+==> Loaded:
+  Al_sg225.ncmat: PhysicsProps(elements={'He'}, atoms={'He'}, nelements=1, formula='He', absxs=0.00747, scatxs=0.854857, density=0.0005, numdens=7.52278e-05, temp=293.15, state='gas', crystal=False, sg=None, natoms=None, dyninfo={'freegas'}, nphases=1)
+  broken.ncmat: ERROR '"broken.ncmat": invalid density value in line 3'
+  crystal.ncmat: PhysicsProps(elements={'Al'}, atoms={'Al'}, nelements=1, formula='Al', absxs=0.231, scatxs=1.39667, density=2.69865, numdens=0.0602324, temp=293.15, state='solid', crystal=True, sg=225, natoms=4, dyninfo={'vdosdebye'}, nphases=1)
+  gas.ncmat: PhysicsProps(elements={'He'}, atoms={'He'}, nelements=1, formula='He', absxs=0.00747, scatxs=0.854857, density=0.0005, numdens=7.52278e-05, temp=293.15, state='gas', crystal=False, sg=None, natoms=None, dyninfo={'freegas'}, nphases=1)
+Caught expected AttributeError('PhysicsProps has no attribute "foo"')
+Al_sg225.ncmat entries: ['Al_sg225.ncmat', 'stdlib::Al_sg225.ncmat'] [False, True]
+find('crystal',): ['crystal.ncmat']
+find('*.NCMAT',){'factory': 'virtual'}: ['Al_sg225.ncmat', 'broken.ncmat', 'crystal.ncmat', 'gas.ncmat']
+find('stdlib::Be*',): ['Be3N2_sg206_BerylliumNitride.ncmat', 'BeF2_sg152_Beryllium_Fluoride.ncmat', 'BeO_sg186.ncmat', 'Be_sg194.ncmat']
+find('^b.*_sg1[0-9]{2}',){'regex': True, 'factory': 'stdlib'}: ['B4C_sg166_BoronCarbide.ncmat', 'BeF2_sg152_Beryllium_Fluoride.ncmat', 'BeO_sg186.ncmat', 'Be_sg194.ncmat', 'Bi_sg166.ncmat']
+find{'search': 'togo', 'factory': 'virtual'}: ['crystal.ncmat']
+find{'search': ['togo', 'small'], 'factory': 'virtual'}: ['crystal.ncmat']
+find{'search': ['^ *mentions'], 'regex': True, 'factory': 'virtual'}: ['crystal.ncmat']
+find{'where': "'He' in elements", 'factory': 'virtual'}: ['Al_sg225.ncmat', 'gas.ncmat']
+find{'where': ['crystal', 'sg==225', 'natoms>3'], 'factory': 'virtual'}: ['crystal.ncmat']
+find{'where': 'sg > 200', 'factory': 'virtual'}: ['crystal.ncmat']
+find{'where': '<function>', 'factory': 'virtual'}: ['Al_sg225.ncmat', 'gas.ncmat']
+find('gas',){'where': 'absxs < 1', 'factory': 'virtual'}: ['gas.ncmat']
+matching_lines: ['A small Al crystal.', 'Mentions Togo.']
+matching_lines (regex): []
+Progress reporting OK
+Factory thread handling OK
+Caught expected NCBadInput('Unknown TextData factory: "nonexistent"')
+Caught expected NCBadInput('Invalid regular expression "(": missing ), unterminated subpattern at position 0')
+Caught expected NCBadInput('Unknown name "foo" in where expression "foo > 1"')
+Caught expected NCBadInput('Invalid where expression "elements.__class__" (private attributes are not allowed)')
+Caught expected NCBadInput('Invalid where expression "absxs >": invalid syntax')
+Caught expected NCBadInput('Error evaluating where expression "absxs/0 > 1": float division by zero')
+Caught expected NCBadInput('Where conditions require entries loaded with load=True')

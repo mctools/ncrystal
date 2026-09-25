@@ -74,7 +74,7 @@ def parseArgs( progname, arglist, return_parser = False ):
         ' above, comparison and boolean operators, set/string/number'
         ' literals, and the functions: %s. Comparisons with unavailable'
         ' (None) values are considered false.'%(
-            ', '.join(sorted(_where_funcs))), width = 79 )
+            ', '.join(sorted(_where_fct_names()))), width = 79 )
     import argparse
     parser = create_ArgumentParser( prog = progname,
                                     description = descr,
@@ -155,164 +155,54 @@ def parseArgs( progname, arglist, return_parser = False ):
     if args.names and ( args.comments or args.props ):
         parser.error('Do not specify --names together with --comments'
                      ' or --props.')
+    #Validate patterns, search words and --where expressions up front, so
+    #problems are reported as usage errors:
+    from . import browse as nb
+    from .exceptions import NCBadInput
     try:
-        args.where_code = [ _compile_where( w ) for w in args.where ]
-    except _WhereError as e:
-        parser.error(str(e))
-    import re
-    def compile_re( s ):
-        try:
-            #MULTILINE: ^ and $ match at line boundaries, like for grep:
-            return re.compile( s if args.regex else re.escape(s),
-                               re.IGNORECASE | re.MULTILINE )
-        except re.error as e:
-            parser.error(f'Invalid regular expression "{s}": {e}')
-    args.search_re = [ compile_re(w) for w in args.search ]
-    args.pattern_re = ( [ compile_re(p) for p in args.pattern ]
-                        if args.regex else None )
+        nb.filter_entries( [], patterns = args.pattern, search = args.search,
+                           regex = args.regex, where = args.where )
+    except NCBadInput as e:
+        parser.error( _cli_msg( str(e) ) )
+    args.search_re = nb._compile_words( args.search, args.regex )
     return args
 
-#Physics properties of materials, available in --where expressions:
-_propdocs = [
-    ('elements', 'set of element names, e.g. {"Al","O"}'),
-    ('atoms', 'set of atom labels, including isotopes, e.g. {"D","O"}'),
-    ('nelements', 'number of different elements'),
-    ('formula', 'chemical formula, e.g. "Al2O3"'),
-    ('absxs', 'absorption cross section per atom at 2200m/s [barn]'),
-    ('scatxs', 'free scattering cross section per atom [barn]'),
-    ('density', 'density [g/cm3]'),
-    ('numdens', 'number density [atoms/Aa3]'),
-    ('temp', 'temperature [K]'),
-    ('state', 'state of matter: "solid", "liquid", "gas", or "unknown"'),
-    ('crystal', 'True if crystalline (for multiphase: any phase)'),
-    ('sg', 'space group number (None if not available)'),
-    ('natoms', 'number of atoms in unit cell (None if not available)'),
-    ('dyninfo', ('set of dynamic info types present, among "vdos",'
-                 ' "vdosdebye", "scatknl" (a full scattering kernel),'
-                 ' "freegas", and "sterile"')),
-    ('nphases', 'number of phases (1 for single-phase materials)'),
-]
+def _where_fct_names():
+    from .browse import _where_funcs
+    return list( _where_funcs )
+
+def _cli_msg( msg ):
+    #Adapt error messages from the NCrystal.browse module to CLI usage:
+    msg = msg.replace('where expression','--where expression')
+    if msg.startswith('Unknown name '):
+        msg += ' (see --help for available properties)'
+    return msg
 
 def _propdocs_str():
     import textwrap
-    w = max( len(n) for n,d in _propdocs )
+
+    from .browse import physics_props_doc
+    pd = physics_props_doc()
+    w = max( len(n) for n,d in pd )
     out = []
-    for n,d in _propdocs:
+    for n,d in pd:
         ll = textwrap.wrap( d, width = 76 - w - 5 )
         out.append( f'  {n.ljust(w)} : {ll[0]}' )
         out += [ ' '*(w+5)+e for e in ll[1:] ]
     return '\n'.join(out)
 
-_where_funcs = dict( len = len, min = min, max = max, any = any, all = all,
-                     abs = abs, round = round, set = set, sorted = sorted )
-
-class _WhereError(Exception):
-    pass
-
-def _compile_where( expr ):
-    #Compile --where expression, only allowing known names and no private
-    #attributes (as a basic safety measure and to catch typos early).
-    import ast
-    try:
-        tree = ast.parse( expr, mode = 'eval' )
-    except SyntaxError as e:
-        raise _WhereError(f'Invalid --where expression "{expr}": {e.msg}')
-    allowed = set( n for n,d in _propdocs ) | set( _where_funcs )
-    for node in ast.walk( tree ):
-        if isinstance( node, ast.Name ) and node.id not in allowed:
-            raise _WhereError(f'Unknown name "{node.id}" in --where'
-                              f' expression "{expr}" (see --help for'
-                              ' available properties)')
-        if isinstance( node, ast.Attribute ) and node.attr.startswith('_'):
-            raise _WhereError(f'Invalid --where expression "{expr}"'
-                              ' (private attributes are not allowed)')
-    return expr, compile( tree, '<where>', 'eval' )
-
-def _eval_where( where_code, props ):
-    ns = dict( _where_funcs )
-    ns['__builtins__'] = {}
-    for expr, code in where_code:
-        try:
-            ok = eval( code, ns, dict(props) )
-        except TypeError:
-            ok = False#e.g. comparison with None
-        except Exception as e:
-            from .exceptions import NCBadInput
-            raise NCBadInput(f'Error evaluating --where expression'
-                             f' "{expr}": {e}') from e
-        if not ok:
-            return False
-    return True
-
-def _physics_props( info ):
-    #Physics properties of loaded Info object (see _propdocs).
-    from ._common import format_chemform
-    from .atomdata import elementZToName
-    phases = ( [ ph for fr,ph in info.phases ] if info.isMultiPhase()
-               else [ info ] )
-    leaves = []
-    def add_leaves( i ):
-        if not i.isMultiPhase():
-            leaves.append( i )
-        for fr,ph in ( i.phases if i.isMultiPhase() else [] ):
-            add_leaves( ph )
-    add_leaves( info )
-    fc = info.getFlattenedComposition()
-    elements = frozenset( elementZToName(Z) for Z,_ in fc )
-    atomfracs = {}
-    for Z, isotopes in fc:
-        en = elementZToName(Z)
-        for A, fr in isotopes:
-            lbl = en if A == 0 else { (1,2):'D', (1,3):'T' }.get( (Z,A),
-                                                                  f'{en}{A}' )
-            atomfracs[lbl] = atomfracs.get(lbl,0.0) + fr
-    ditypes = { 'DI_VDOS' : 'vdos', 'DI_VDOSDebye' : 'vdosdebye',
-                'DI_ScatKnlDirect' : 'scatknl', 'DI_FreeGas' : 'freegas',
-                'DI_Sterile' : 'sterile' }
-    dyninfo = frozenset( ditypes.get( type(di).__name__, 'other' )
-                         for i in leaves for di in i.dyninfos )
-    struct = ( info.getStructureInfo() if ( not info.isMultiPhase()
-                                            and info.hasStructureInfo() )
-               else None )
-    return dict(
-        elements = elements,
-        atoms = frozenset( atomfracs ),
-        nelements = len( elements ),
-        formula = format_chemform( sorted( atomfracs.items() ) ),
-        absxs = info.getXSectAbsorption(),
-        scatxs = info.getXSectFree(),
-        density = info.getDensity(),
-        numdens = info.getNumberDensity(),
-        temp = info.getTemperature() if info.hasTemperature() else None,
-        state = info.stateOfMatter().name.lower(),
-        crystal = any( i.isCrystalline() for i in leaves ),
-        sg = struct['spacegroup'] if struct else None,
-        natoms = struct['n_atoms'] if struct else None,
-        dyninfo = dyninfo,
-        nphases = max( 1, len( phases ) ),
-    )
-
-def _fmt_prop( v ):
-    if v is None:
-        return 'None'
-    if isinstance( v, frozenset ):
-        return '{' + ','.join( repr(e) for e in sorted(v) ) + '}'
-    if isinstance( v, float ):
-        return '%g'%v
-    return repr(v)
-
 class _Progress:
     #Progress indicator on stderr, only shown on a terminal and only if the
     #work takes more than a second.
-    def __init__( self, total, what ):
+    def __init__( self, what ):
         import sys
         import time
         self.__t0 = time.time()
-        self.__total, self.__what = total, what
+        self.__what = what
         self.__shown = False
         self.__enabled = ( hasattr(sys.stderr,'isatty')
                            and sys.stderr.isatty() )
-    def update( self, n ):
+    def update( self, n, ntotal ):
         if not self.__enabled:
             return
         import sys
@@ -323,7 +213,7 @@ class _Progress:
         if self.__shown and t - self.__tlast < 0.1:
             return#limit update rate
         self.__shown, self.__tlast = True, t
-        sys.stderr.write(f'\r{self.__what}: {n}/{self.__total}')
+        sys.stderr.write(f'\r{self.__what}: {n}/{ntotal}')
         sys.stderr.flush()
     def done( self ):
         if self.__shown:
@@ -407,147 +297,34 @@ def _linewidth():
         return max( 80, shutil.get_terminal_size().columns )
     return 80
 
-def _is_glob( pattern ):
-    return any( c in pattern for c in '*?[' )
-
-def _name_matches( entry, pattern, pattern_re = None ):
-    #Patterns with '::' are matched against the full key (e.g. stdlib::Al..):
-    s = entry.fullKey if '::' in pattern else entry.name
-    if pattern_re is not None:
-        return bool( pattern_re.search( s ) )
-    import fnmatch
-    p, s = pattern.lower(), s.lower()
-    return fnmatch.fnmatchcase( s, p ) if _is_glob( p ) else ( p in s )
-
-def _header_comments( entry ):
-    #Header comments of NCMAT data as list of lines (None if not NCMAT).
-    if not entry.name.lower().endswith('.ncmat'):
-        return None
-    from ._ncmatimpl import _extractInitialHeaderCommentsFromNCMATData as f
-    from .core import createTextData
-    try:
-        data = createTextData( entry.fullKey ).rawData
-        #Only the part before the first section is needed:
-        idx = data.find('\n@')
-        return f( data if idx == -1 else data[:idx+1] )
-    except Exception: # noqa BLE001
-        #Unreadable data should not prevent browsing other files:
-        return None
-
-def _short_descr( comments ):
-    #First paragraph of the header comments, as a single line.
-    words = []
-    for line in ( comments or [] ):
-        if not line.strip():
-            if words:
-                break
-            continue
-        #Skip ascii-art rulers like "----" or "=====":
-        if not any( c.isalnum() for c in line ):
-            if words:
-                break
-            continue
-        words += line.split()
-    return ' '.join(words)
-
 def _truncate( s, n ):
     return s if len(s) <= n else s[:max(0,n-3)].rstrip() + '...'
 
-class _Item:
-    def __init__( self, entry, hidden ):
-        self.entry = entry
-        self.hidden = hidden
-        self.__comments = False
-    @property
-    def comments( self ):
-        if self.__comments is False:
-            self.__comments = _header_comments( self.entry )
-        return self.__comments
-    @property
-    def display_name( self ):
-        e = self.entry
-        return ( e.fullKey if ( e.priority == 'OnlyOnExplicitRequest'
-                                or self.hidden ) else e.name )
-
 def _collect( args ):
-    from .datasrc import browseFiles
-    items, seen = [], set()
-    for e in browseFiles():
-        #NB: browseFiles returns entries sorted by priority, so entries with
-        #names seen previously are hidden by higher priority entries.
-        items.append( _Item( e, hidden = ( e.name in seen ) ) )
-        seen.add( e.name )
-    if args.factory is not None:
-        items = [ i for i in items if i.entry.factName == args.factory ]
-    if args.pattern:
-        prs = args.pattern_re or [ None ]*len(args.pattern)
-        items = [ i for i in items
-                  if any( _name_matches( i.entry, p, pr )
-                          for p, pr in zip( args.pattern, prs ) ) ]
-    regexes = args.search_re
-    for i in items:
-        i.matching_lines = []
-    if regexes:
-        selected = []
-        for i in items:
-            lines = i.comments or []
-            text = '\n'.join( [ i.entry.name ] + lines )
-            if all( r.search( text ) for r in regexes ):
-                i.matching_lines = [ ll.strip() for ll in lines
-                                     if any( r.search(ll) for r in regexes ) ]
-                selected.append( i )
-        items = selected
-    if args.where or args.props:
-        _load_props( items )
-    if args.where:
-        items = [ i for i in items if i.props is not None
-                  and _eval_where( args.where_code, i.props ) ]
-    return items
-
-def _load_one( key ):
-    #Returns (props, None) or (None, errmsg).
-    from .core import createInfo
+    from . import browse as nb
+    from .exceptions import NCBadInput
+    load = bool( args.where or args.props )
+    progress = _Progress( 'Loading materials' ) if load else None
+    entries = nb.browse( args.factory, load = load,
+                         progress = progress.update if progress else None )
+    if progress:
+        progress.done()
     try:
-        return _physics_props( createInfo( key ) ), None
-    except Exception as e: # noqa BLE001
-        #Files which can not be loaded are simply not selected:
-        return None, ( str(e) or e.__class__.__name__ )
+        return nb.filter_entries( entries, patterns = args.pattern,
+                                  search = args.search, regex = args.regex,
+                                  where = args.where )
+    except NCBadInput as e:
+        raise NCBadInput( _cli_msg( str(e) ) ) from e
 
-def _nthreads_default():
-    #Gains saturate around 8 threads (remaining Python work holds the GIL):
-    import os
-    return max( 1, min( 8, os.cpu_count() or 1 ) )
-
-def _load_props( items, nthreads = None ):
-    #Load all items in parallel. Threads are efficient here, since ctypes
-    #releases the GIL while the (thread-safe) C++ factories do the work.
-    from ._msg import _suppress_msgs_ctx
-    progress = _Progress( len(items), 'Loading materials' )
-    nthreads = min( len(items), nthreads or _nthreads_default() )
-    #Loading might emit warnings (e.g. about @CUSTOM_ sections) which are not
-    #relevant here:
-    with _suppress_msgs_ctx():
-        if nthreads <= 1:
-            for n, i in enumerate( items ):
-                progress.update( n )
-                i.props, i.load_error = _load_one( i.entry.fullKey )
-        else:
-            from concurrent.futures import ThreadPoolExecutor, as_completed
-            with ThreadPoolExecutor( max_workers = nthreads ) as pool:
-                futs = dict( ( pool.submit( _load_one, i.entry.fullKey ), i )
-                             for i in items )
-                for n, f in enumerate( as_completed( futs ) ):
-                    progress.update( n )
-                    futs[f].props, futs[f].load_error = f.result()
-    progress.done()
-
-def _print_props( item, linewidth ):
-    if item.props is None:
-        print(_truncate(f'        [could not load: {item.load_error}]',
+def _print_props( entry, linewidth ):
+    if entry.props is None:
+        print(_truncate(f'        [could not load: {entry.error}]',
                         linewidth))
         return
     import textwrap
-    parts = [ f'{k}={_fmt_prop(v)}' for k,v in item.props.items() ]
+
+    from .browse import _fmt_prop
+    parts = [ f'{k}={_fmt_prop(v)}' for k,v in entry.props.as_dict().items() ]
     for line in textwrap.wrap( '  '.join(parts), width = linewidth - 8,
                                break_long_words = False,
                                break_on_hyphens = False ):
@@ -566,8 +343,7 @@ def _print_listing( items, args ):
     hl = _Highlighter( args.search_re, _use_color( args.color ) )
     groups = []
     for i in items:
-        e = i.entry
-        key = ( e.factName, e.source, e.priority )
+        key = ( i.factory, i.source, i.priority )
         if not groups or groups[-1][0] != key:
             groups.append( ( key, [] ) )
         groups[-1][1].append( i )
@@ -582,7 +358,7 @@ def _print_listing( items, args ):
             extra = ''
             if i.hidden:
                 extra = ' (hidden)'
-            descr = _short_descr( i.comments )
+            descr = i.description
             #NB: Truncate before highlighting, so color codes do not count:
             padding = ' '*( max(0,namew-len(name)) )
             if descr and not args.comments:
@@ -592,7 +368,9 @@ def _print_listing( items, args ):
             else:
                 line = f'    {hl(name)}{extra}'
             print(line.rstrip())
-            for ll in getattr(i,'matching_lines',[]):
+            matching = ( i.matching_lines( args.search, regex = args.regex )
+                         if args.search else [] )
+            for ll in matching:
                 if not args.comments:
                     print('        | '+hl(_truncate(ll,linewidth-10)))
             if args.props:
