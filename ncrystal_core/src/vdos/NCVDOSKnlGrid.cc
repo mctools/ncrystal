@@ -494,8 +494,14 @@ NC::VDOS::setupE0ABGrid( const GnExpansion& gnexpn, unsigned npts )
       double factor = std::sqrt(beta);
       //Add also alpha factor: exp(-x)*x^n/n!:
       const double x = alpha2x*beta;//alpha = beta in the E->0 limit
-      const double logarg = -x + static_cast<double>(n)*std::log(x)
-        + minus_log_nfactorial;//SABXSDIAG-TEMPORARY: named for diagnostic below
+      //Explicit fma for n*log(x)+minus_log_nfactorial: a plain "a*b+c" here
+      //is exactly the shape a compiler may or may not silently contract
+      //into a fused multiply-add depending on platform/flags, and since the
+      //whole expression is fed straight into exp() any such last-bit
+      //difference gets exponentiated. Using std::fma explicitly makes every
+      //platform perform the same, single-rounded operation.
+      const double logarg = std::fma( static_cast<double>(n), std::log(x),
+                                      minus_log_nfactorial ) - x;
       factor *= std::exp( logarg );
       //SABXSDIAG-TEMPORARY: bound to a handful of points per order to keep
       //output size manageable, but always include the first/last few (edge

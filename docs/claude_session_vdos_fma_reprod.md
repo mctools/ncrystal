@@ -221,3 +221,66 @@ of a genuinely fragile discrete decision, but whether it resolves the
 still-open two-platform CI failure can only be confirmed by an actual CI
 re-run.
 
+### Root cause found: FastConvolve's own noise floor was under-cleaned
+
+CI came back with the reducePtsByEquidistribution fix having zero effect,
+and a real regression: `NCSABProcessor.cc`'s new diagnostic instrumentation
+(added to actually see what the two/three diverging legs compute, rather
+than keep guessing locally) had a `-Werror=dangling-reference` bug of its
+own on the newest GCC leg (`surv.data()[i]` indexing a temporary `Span`
+returned by value -- fixed by binding it to a named local first) and,
+worse, revealed a *third* diverging leg (`ubuntu-24.04-arm`) that the
+coarser sabxs tolerance check hadn't caught.
+
+The real CI logs (six legs, three diverging) were decisive in a way no
+local diagnostic had managed: `Gn.getRawSpectrum(n)`'s raw phonon-order
+spectrum values -- feeding both `reducePtsByEquidistribution` calls in
+`NCVDOSKnlGrid.cc` -- agreed to ~1e-16 relative in their bulk (`rawSum`,
+dominated by the physically-real part of each spectrum) but differed by
+1e-4 to 1e-3 relative in their tail-edge values (`rawFirst`/`rawLast`,
+individually ~1e-15 relative to the spectrum's own peak) on the diverging
+legs specifically, and matched exactly (bit-for-bit) on gcc-10 and the
+passing legs.
+
+This traced straight to `VDOSGn::Impl::produceNewOrderByConvolutionImpl`
+(`NCVDOSGn.cc`): it already snaps spectrum values below
+`truncationThreshold*spec_max` (a fixed fraction, 1e-13/1e-14) to exactly
+0.0, specifically because FFT round-off is known to be
+non-cross-platform-reproducible -- but this fixed cutoff can sit *below*
+the convolution's own already-calibrated, size-dependent noise floor
+(`estimateFFTConvolutionNoiseFloor`, `peak*eps*sqrt(n)`, already used
+elsewhere in the same function to gate a related edge-refinement decision)
+for large/high-order spectra. Values that cleared the fixed cutoff but
+were still within that noise floor were kept as "real" data, and their
+exact magnitude -- genuine FFT round-off -- differs across platforms.
+Fixed by using `max(fixed cutoff, calibrated noise floor)` for the
+cleanup, reusing the existing, already-validated formula rather than
+inventing a new one.
+
+Also hardened, while chasing a much smaller residual `-mfma`-vs-plain
+difference found via the same diagnostic instrumentation:
+`setupE0ABGrid`'s `factor *= std::exp(-x + n*std::log(x) +
+minus_log_nfactorial)` -- an until-now-unaudited `a*b+c` shape feeding
+straight into `exp()` -- rewritten with an explicit `std::fma` for the
+multiply-add. Verified via the diagnostic (logarg/factor now bit-identical
+between plain and `-mfma`) but had zero measurable effect on the residual
+itself, meaning it was real hardening but not *the* cause of that specific
+residual.
+
+**A smaller residual remains.** Even after both fixes, a `-mfma`-vs-plain
+divergence of ~2.3e-05 relative in xsect is still locally reproducible for
+the original failing case (Li2O, vdoslux=2004) -- comparable in magnitude
+to the smallest of the originally-reported CI failures (gcc-10's
+1.29e-05). Traced (again via the diagnostic) to `Gn.getRawSpectrum`
+values now differing by only ~1e-14 relative (genuinely tiny, unlike the
+1e-4/1e-3 fixed above) still being enough to flip a `reducePtsByEquidistribution`
+selection at one index (a 37.5% relative jump in the resulting betaGrid
+value there) -- the point-selection algorithm's `lower_bound`-based search
+lands on a different index outright, not just a "which neighbour is
+closer" tie the existing bias (`tieBreakRelTol`) can address. Tried
+widening that tolerance from 1e-9 to 1e-4 to see if it also covered this
+case: made things markedly worse (up to 5.6e-4 relative on other
+materials/temperatures, versus 2.3e-5 before), by flipping decisions that
+were previously correct. Reverted; this residual is left open rather than
+papered over with a tolerance that actively regresses other cases.
+

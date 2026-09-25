@@ -1,4 +1,45 @@
 v4.4.7 (work in progress)
+     * Fix the actual root cause of the long-standing cross-platform sabxs
+       instability for high-order VDOS phonon expansions (real production
+       case: Li2O, vdoslux=2004): VDOSGn's convolution
+       (produceNewOrderByConvolutionImpl, NCVDOSGn.cc) already snapped
+       spectrum values below a fixed truncationThreshold*peak cutoff to
+       exactly 0.0, specifically to remove non-cross-platform-reproducible
+       FFT round-off noise. But FastConvolve's own (already-calibrated,
+       already used elsewhere to gate a related edge-refinement decision)
+       size-dependent noise floor -- peak*eps*sqrt(n) -- can exceed that
+       fixed cutoff for large/high-order spectra, so values kept "because
+       they cleared the cutoff" could still be pure FFT round-off, which
+       genuinely differs (not just last-ULP) between platforms/compilers:
+       confirmed via a real CI-log comparison (an intermediate diagnostic
+       app, since reverted) across six legs that the spectrum's own tail
+       values differed by 1e-4 to 1e-3 relative on the two/three legs known
+       to fail sabxs, while agreeing to ~1e-16 elsewhere -- feeding directly
+       into VDOS::determineAlphaBetaGridFromGn's grid-point selection
+       (reducePtsByEquidistribution) and cascading into a genuinely
+       different alpha/beta grid point (not last-bit noise) being chosen.
+       Now uses max(that fixed cutoff, the calibrated noise floor) for the
+       cleanup, so values within the known-unreliable range are zeroed
+       everywhere. Also hardens setupE0ABGrid's low-beta-limit
+       `factor *= exp(-x+n*log(x)+minus_log_nfactorial)` with an explicit
+       std::fma for the multiply-add feeding the exponent (found while
+       chasing a much smaller residual -mfma-vs-plain difference; had no
+       measurable effect on that residual, but is a real, independently
+       justified hardening of an until-now-unaudited expression of exactly
+       the shape this project's standing FMA policy targets).
+       A smaller residual (~2e-5 relative, matching the magnitude of one
+       of the originally-reported CI failures) remains locally reproducible
+       under -mfma even after both fixes, rooted in the same grid-point
+       selection algorithm's inherent sensitivity to near-ties in an
+       accumulated cumulative sum -- widening the existing tie-break bias
+       tolerance to cover it was tried and made things markedly worse (up
+       to 5.6e-4 relative, versus 2.3e-5 before) by flipping decisions that
+       were previously correct, so was reverted; this residual is left
+       for a follow-up. Regenerated affected reference data
+       (tests/data/sabxs_A, tests/data/sabxs_B, tests/scripts/vdosgn.log,
+       tests/src/app_gnerange/test.log), all shifting by an amount
+       consistent with the noise being cleaned up (see
+       docs/claude_session_vdos_fma_reprod.md for the full trace).
      * Harden a discrete grid-point selection tie-break in
        reducePtsByEquidistribution (NCMath.cc), used when building the
        alpha/beta grid for next-gen (vdoslux>=2000) SAB data
