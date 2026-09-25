@@ -29,7 +29,7 @@ def run_check( name ):
     print(f">>>>> Running check: {name}")
     print()
     import importlib
-    pymodname = '_check_%s'%name
+    pymodname = f'_check_{name}'
     mod = importlib.import_module(f'..{pymodname}', __name__)
     assert hasattr(mod,'main')
     mod.main()

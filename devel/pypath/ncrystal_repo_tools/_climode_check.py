@@ -54,7 +54,7 @@ def main( parser ):
             candidates = [e for e in all_checks if ( c in e ) or ( e in c ) ]
             advice=''
             if len(candidates)==1:
-                advice = ' (perhaps you meant "%s"?)'%candidates[0]
+                advice = f' (perhaps you meant "{candidates[0]}"?)'
             raise SystemExit(f'Unknown check "{c}"{advice}. Run with --list '
                              'to see available checks.')
 
@@ -70,4 +70,4 @@ def main( parser ):
     print()
     print("DONE: Ran %s checks succesfully"%( len(check_list)
                                               if args.CHECK
-                                              else '%i (all)'%len(check_list)))
+                                              else f'{len(check_list)} (all)'))

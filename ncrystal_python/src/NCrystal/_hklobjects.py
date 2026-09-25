@@ -89,7 +89,7 @@ class HKLEntry:
         return self.__k
 
     @property
-    def l( self ):
+    def l( self ): # noqa: E743 (h,k,l are standard names)
         """
         An array of l values. Note that this has half the length of
         .multiplicity, since we exclude entries that can be generated from each

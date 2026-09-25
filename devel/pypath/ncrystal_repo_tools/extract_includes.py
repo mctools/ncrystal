@@ -77,7 +77,6 @@ def get_nccomp_include_statements( f, *, ignore_list = None ):
     #Iterate over (incstatement,compname_of_inc_statement)
     incs = get_include_staments_from_file( f )
     res = set()
-    ignore_list
     for i in incs:
         comp = None
         if i.startswith('NCrystal/internal/'):

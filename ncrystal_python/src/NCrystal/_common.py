@@ -153,7 +153,7 @@ def warn(msg):
     m = str(msg)
     if _add_warn_counts_to_msgs[0]:
         _add_warn_counts_to_msgs[1] += 1
-        m = '%s [warn#%i]'%(m,_add_warn_counts_to_msgs[1])
+        m = f'{m} [warn#{_add_warn_counts_to_msgs[1]}]'
     warnings.warn( NCrystalUserWarning(m), stacklevel = 2 )
 
 #Hook to avoid repeated warnings to be silenced during unit tests, by appending
@@ -255,7 +255,7 @@ def prettyFmtValue(x):
         return '1/2'
     def stripleading0(s):
         return ( s[1:] if (len(s) > 2 and s.startswith('0.')) else s )
-    xfmt = stripleading0('%.13g'%x)#.14g leads to irreproducibility issues in
+    xfmt = stripleading0(f'{x:.13g}')#.14g leads to irreproducibility issues in
     #our tests but there are sooo many numbers ending with 3333.... or
     #666667.... that we can safely "snap" these to their correct values:
     if xfmt[0]=='.' and xfmt.endswith('33333') and len(xfmt)<18:
@@ -278,7 +278,7 @@ def prettyFmtValue(x):
     if xfmt.isdigit() and float( xfmt ) != x:
         #abort, we don't want 0.99999999999 to print as '1' (which would then be
         #mapped to 0 in a unit cell):
-        return stripleading0('%.19g'%x)
+        return stripleading0(f'{x:.19g}')
     return xfmt
 
 def _split_trailing_digit( s ):
@@ -311,7 +311,7 @@ def check_elem_or_isotope_marker( s ):
     from .atomdata import isElementName
 
     if isElementName( elem_name) and ( isotope_val is None or ( 0 <= isotope_val < 999 ) ):
-        return elem_name if not isotope_val else '%s%i'%(elem_name,isotope_val)
+        return elem_name if not isotope_val else f'{elem_name}{isotope_val}'
 
 
 def _hill_sort( chemform ):
@@ -319,7 +319,7 @@ def _hill_sort( chemform ):
 
     #Remap H2/H3 and remove duplicates:
     remap = {'H2':'D','H3':'T'}
-    if any(k in remap for k,v in chemform) or len(set(k for k,v in chemform))!=len(chemform):
+    if any(k in remap for k,v in chemform) or len({k for k,v in chemform})!=len(chemform):
         d={}
         for k,v in chemform:
             k = remap.get(k,k)
@@ -394,9 +394,12 @@ def format_chemform( chemform, *, allow_rescaling = True ):
         gcd = _gcd( *ll ) if ( ll and allow_rescaling ) else 1
         def wrapiso( x ):
             #nb: these curly braces are not great for filenames...:
-            return x if not x[-1].isdigit() else '{%s}'%x
+            return x if not x[-1].isdigit() else f'{{{x}}}'
         the_cf = [ (wrapiso(en),(count//gcd if is_near_int(count) else count/gcd)) for en,count in the_cf ]
-        return ''.join( (en if count==1 else '%s%g'%(en,int(count) if count==int(count) else count)) for en,count in the_cf )
+        def fmtcount( c ):
+            return f'{int(c) if c==int(c) else c:g}'
+        return ''.join( ( en if count==1 else en+fmtcount(count) )
+                        for en,count in the_cf )
 
     f1 = final_format(cf)
     f2 = final_format(cf_alt) if cf_alt else f1
@@ -414,15 +417,15 @@ def _classifySG(sgno):
 
 #colors inspired by http://www.mulinblog.com/a-color-palette-optimized-for-data-visualization/
 #supposedly from Stephen Few's book, "Show Me the Numbers":
-_palette_Few = dict(red = "#F15854",
-                    blue="#5DA5DA",
-                    orange="#FAA43A",
-                    green="#60BD68",
-                    brown="#B2912F",
-                    purple="#B276B2",
-                    yellow="#DECF3F",
-                    pink="#F17CB0",
-                    gray="#4D4D4D")
+_palette_Few = {'red': "#F15854",
+                'blue': "#5DA5DA",
+                'orange': "#FAA43A",
+                'green': "#60BD68",
+                'brown': "#B2912F",
+                'purple': "#B276B2",
+                'yellow': "#DECF3F",
+                'pink': "#F17CB0",
+                'gray': "#4D4D4D"}
 
 def _grid_is_linspace( grid, tol = 1e-6 ):
     if len(grid)<=2:
@@ -606,8 +609,7 @@ def copy_and_deobjectify_data( data ):
         if isinstance(d,tuple):
             return tuple([o(e) for e in d])
         if isinstance(d,dict):
-            return dict( (copy.deepcopy(k),o(v))
-                         for k,v in d.items() )
+            return { copy.deepcopy(k): o(v) for k,v in d.items() }
         #something else, just pass through:
         return copy.deepcopy( d )
     return o( data )
@@ -618,8 +620,8 @@ def _frexp10(x):
     return x / 10**exp, exp
 
 def _latex_format(x):
-    if len('%f'%x)<6:
-        return '%f'%x
+    if len(f'{x:f}')<6:
+        return f'{x:f}'
     b,e = _frexp10(x)
     e=f'10^{e}'
     if b==1:
@@ -632,9 +634,9 @@ def create_read_only_view(data):
     if isinstance(data, dict):
         from types import MappingProxyType
         return MappingProxyType(
-            dict( (k,create_read_only_view(v)) for k,v in data.items())
+            { k: create_read_only_view(v) for k,v in data.items() }
         )
-    elif isinstance(data, list) or isinstance(data, tuple):
+    elif isinstance(data, (list, tuple)):
         return tuple(create_read_only_view(v) for v in data)
     else:
         return data

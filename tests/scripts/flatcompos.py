@@ -27,7 +27,7 @@ def test(cfgstr,bad=False,**fcargs):
     print(f'CFGSTR: >>>{cfgstr}<<<')
     def name(v):
         return f'FCT::{v.__name__}' if '__name__' in dir(v) else str(v)
-    print(f'ARGS: >>>{", ".join(["%s=%s"%(k,name(v)) for k,v in sorted(fcargs.items())])}<<<')
+    print(f'ARGS: >>>{", ".join([f"{k}={name(v)}" for k,v in sorted(fcargs.items())])}<<<')
     info = NC.createInfo( cfgstr )
     try:
         fc = info.getFlattenedComposition( **fcargs )

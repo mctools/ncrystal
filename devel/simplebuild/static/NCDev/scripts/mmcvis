@@ -74,7 +74,7 @@ def reorder_neutron_data( n ):
 def plot_xz( *, geom_r, neutrons, colmode, do_pdf ):
     assert colmode in ('track','step')
     import matplotlib.pyplot as plt
-    fig,ax = plt.subplots()
+    _fig,ax = plt.subplots()
     #ax.set_facecolor('grey')
     from matplotlib import patches
     geom = patches.Circle((0.0, 0.0),
@@ -130,9 +130,9 @@ def plot_xz( *, geom_r, neutrons, colmode, do_pdf ):
     sglseed = None
     if len(neutrons_reordered)==1:
         sglseed = neutrons_reordered[0][0]
-        print("Showing a single neutron from seed: %i"%sglseed)
+        print(f"Showing a single neutron from seed: {int(sglseed)}")
 
-    common=dict(lw=1.5)
+    common={'lw': 1.5}
     for ineutron, (seed, stepin, tally) in enumerate(neutrons_reordered):
         s0 = stepin[0]
         assert (s0['ux'],s0['uy'],s0['uz'])==(0,0,1)

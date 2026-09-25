@@ -94,7 +94,7 @@ def main(do_lux, do_plot):
     if not do_plot:
         ncsetenv('FAKEPYPLOT','1')
     dsp, scatterproc = load_sglbragg_scatter()
-    print("Loaded material with single dspacing %g Aa"%dsp)
+    print(f"Loaded material with single dspacing {dsp:g} Aa")
     indirs = [ (0,0,1),(1,0,0),(1,1,1) ]
     if do_lux:
         indirs+= [(0,1,0),(1,1,0)]
@@ -107,8 +107,8 @@ def main(do_lux, do_plot):
     nrepeat=int(1e8) if do_lux else int(4e6)
     nbins=200 if do_lux else 100
     for sinthetabragg, indir in zip([ 0.05, 0.5, 0.95 ],indirs):
-        print("Checking sinthetabragg=%g indir=(%g,%g,%g)"
-              %(sinthetabragg,*indir))
+        print("Checking sinthetabragg={:g} indir=({:g},{:g},{:g})"
+              .format(sinthetabragg,*indir))
         wl = 2*dsp*sinthetabragg
         mu_expected = 1.0 - 2.0 * sinthetabragg**2
 

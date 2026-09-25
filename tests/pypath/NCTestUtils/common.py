@@ -70,7 +70,7 @@ class ensure_error:
             raise SystemExit('Did not emit exception as required!')
         val = exc_value.args
         if exc_type != self.__et:
-            print('Message was: "%s"'%val)
+            print(f'Message was: "{exc_value}"')
             raise SystemExit(f'Emitted {exc_type.__name__}({exc_value}) instead of the'
                              f' required {self.__et.__name__}!')
         if isinstance(val,tuple) and len(val)==1:
@@ -143,7 +143,7 @@ def _resolve_print_fct(printfct):
 
 def explicit_unicode_char(c):
     #32 is space, <32 are control chars, 127 is DEL.
-    return c if 32<=ord(c)<=126 else r'\u{%s}'%(hex(ord(c))[2:])
+    return c if 32<=ord(c)<=126 else rf'\u{{{hex(ord(c))[2:]}}}'
 def explicit_unicode_str(s):
     return ''.join( explicit_unicode_char(c) for c in s)
 
@@ -152,7 +152,7 @@ def fix_ncrystal_version_printouts( filtermap = None ):
     import NCrystalDev._common as nc_common
     orig = nc_common.get_ncrystal_print_fct()
     if filtermap is None:
-        filtermap = ( 'NCrystal v%s'%NC.__version__,
+        filtermap = ( f'NCrystal v{NC.__version__}',
                       'NCrystal v<current>' )
     def version_filter( s ):
         return s.replace(*filtermap) if isinstance(s,str) else s

@@ -23,11 +23,11 @@ from ._cliimpl import cli_entry_point, create_ArgumentParser, print
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'conv',
-        displayorder = 10,
-        descr = "Create NCMAT data based on CIF input."
-    )
+    return {
+        'displaygroup': 'conv',
+        'displayorder': 10,
+        'descr': "Create NCMAT data based on CIF input."
+    }
 
 def parseArgs( progname, arglist, return_parser=False ):
     import textwrap
@@ -142,7 +142,7 @@ present script.  """,descrw)+f"""\n\nExample invocations:
     for c in args.remap:
         p=c.replace(':',' ').split()
         if not len(p)>=3 or p[1]!='is':
-            parser.error('invalid --remap syntax in "%s"'%c)
+            parser.error(f'invalid --remap syntax in "{c}"')
         ll.append( (p[0],' '.join(p[2:]) ) )
     args.remap = ll
 
@@ -150,7 +150,7 @@ present script.  """,descrw)+f"""\n\nExample invocations:
     for c in args.atomdata:
         p = c.replace(':',' ').split()
         if len(p)!=5 or not p[1].endswith('u') or not p[2].endswith('fm') or not p[3].endswith('b') or not p[4].endswith('b'):
-            parser.error('invalid --atomdata syntax in "%s"'%c)
+            parser.error(f'invalid --atomdata syntax in "{c}"')
         ll.append( (p[0],' '.join(p[1:]) ) )
     args.atomdata = ll
 

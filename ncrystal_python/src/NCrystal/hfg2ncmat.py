@@ -83,7 +83,8 @@ def _parseHydrogenBindingSpecification(spec):
     if not is_ascii(spec) or not spec.replace('+','').isalnum():
         err()
 
-    fg2nH=dict(CHali=1,CHaro=1,CH2=2,CH3=3,NH=1,NH2=2,NH3=3,OH=1,SH=1)
+    fg2nH={'CHali': 1,'CHaro': 1,'CH2': 2,'CH3': 3,'NH': 1,
+           'NH2': 2,'NH3': 3,'OH': 1,'SH': 1}
     d={}
     for part in spec.split('+'):
         p=part.strip().split('x')
@@ -204,7 +205,7 @@ contribution from hydrogen atoms (unless verbose=False).
                  f'--formula={formula}',
                  f'--density={density}' ]
     if _default_debye_temp() != debyetemp:
-        recordargs.append('--debyetemp=%.14g'%debyetemp)
+        recordargs.append(f'--debyetemp={debyetemp:.14g}')
     if notrim:
         recordargs.append('--notrim')
     recordargs='\n#  '.join(recordargs)
@@ -260,13 +261,14 @@ contribution from hydrogen atoms (unless verbose=False).
     breakdown = []
     for di in loaded_mat.info.dyninfos:
         for cohtype in 'incoherent','coherent':
-            key='%s (%s)'%(di.atomData.displayLabel(),cohtype)
+            key=f'{di.atomData.displayLabel()} ({cohtype})'
             sigma = di.atomData.coherentXS() if cohtype=='coherent' else di.atomData.incoherentXS()
             breakdown+=[(di.fraction*sigma,key)]
     sigma_tot = sum(s for s,k in breakdown)
     print("Contribution breakdown based on composition:")
     for s,key in sorted(breakdown,reverse=True):
-        print ("  Contribution to bound scattering XS from %s is %5.2f %%"%(key.ljust(14),s*100.0/sigma_tot))
+        print (f"  Contribution to bound scattering XS from {key.ljust(14)}"
+               f" is {s*100.0/sigma_tot:5.2f} %")
         if key=='H (incoherent)':
             contrib_incH = s/sigma_tot
 

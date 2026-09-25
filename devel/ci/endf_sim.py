@@ -210,7 +210,7 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
         temp = temperatures[0]
     else:
         assert temp in temperatures, f'{temp} K not found in ENDF-6 file'
-    has_elastic = (2 in endf_dic[7].keys())
+    has_elastic = (2 in endf_dic[7])
     za = int(endf_dic[1][451]['ZA'])
     endf_tsl_mat = endf_dic[1][451]['MAT']
     natom = int(endf_dic[7][4]['B'][6])
@@ -226,7 +226,7 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
         ielas = lthr - 1
         icoh = 1 if lthr == 1 or lthr == 3 else 0
     if zaids is None:
-        if (451 in endf_dic[7].keys()):
+        if (451 in endf_dic[7]):
             # If MF=7/MT=451 is present, use the isotopic decomposition
             isotope_list = [ str(int(v2))
                              for k1,v1 in endf_dic[7][451]['ZAI'].items()
@@ -443,11 +443,11 @@ def convert_openmc_ncrystal_to_ace(cfg, matname, elastic_mode):
         ace_fn = name+f'-{m.temperature:.1f}K.ace'
         print(f'Converting {endf_fn} to {ace_fn}')
         # Process ENDF-6 file into ACE file
-        ace_fn, xsdir_fn = convert_endf_tsl_to_ace(endf_fn, ace_filename=ace_fn)
+        ace_fn, _ = convert_endf_tsl_to_ace(endf_fn, ace_filename=ace_fn)
         f_ace = Path(ace_fn)
         # Convert to HDF5 and register data file
         print(f'Adding {name} to the library...')
-        f_h5 = h5outdir.joinpath( '%s.h5'%f_ace.stem )
+        f_h5 = h5outdir.joinpath( f'{f_ace.stem}.h5' )
         try:
             os.remove(f_h5)
         except OSError:

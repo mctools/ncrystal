@@ -55,22 +55,22 @@ def print_comp_stats( comp,
         return fmtpath(p)
 
     from .extract_includes import get_nccomp_include_statements as getncinc
-    ignore_list = set([comp.name])
+    ignore_list = {comp.name}
     if not withcore:
         ignore_list.add('core')
     def getinc_comps( f ):
-        return set( c for i,c in getncinc(f, ignore_list = ignore_list) )
+        return { c for i,c in getncinc(f, ignore_list = ignore_list) }
     def fmtinc_comps( f ):
         c = ' '.join(getinc_comps( f ))
-        return ' (includes %s)'%c if c else ''
+        return f' (includes {c})' if c else ''
 
 
     print(f'Component "{comp.name}"')
     print()
     print('  Part of public API : %s'%('no' if comp.is_internal else 'yes'))
-    print('  Include dir        : %s'%fmtpath(comp.hdrdir))
-    print('  Source dir         : %s'%fmtpath(comp.srcdir))
-    print('  Dependency file    : %s'%fmtpath(comp.depfile))
+    print(f'  Include dir        : {fmtpath(comp.hdrdir)}')
+    print(f'  Source dir         : {fmtpath(comp.srcdir)}')
+    print(f'  Dependency file    : {fmtpath(comp.depfile)}')
     print()
     def show_extra_incs( f ):
         if not showincs_to_comp:
@@ -82,13 +82,13 @@ def print_comp_stats( comp,
     if comp.hdrfiles:
         print("Header files:")
         for f in comp.hdrfiles:
-            print('   %s%s'%(fmtpath_name(f),fmtinc_comps(f)))
+            print(f'   {fmtpath_name(f)}{fmtinc_comps(f)}')
             show_extra_incs(f)
     if comp.srcfiles:
         print("Source files:")
         import itertools
         for f in itertools.chain(comp.local_hdrs,comp.srcfiles):
-            print('   %s%s'%(fmtpath_name(f),fmtinc_comps(f)))
+            print(f'   {fmtpath_name(f)}{fmtinc_comps(f)}')
             show_extra_incs(f)
 
 def main( parser ):

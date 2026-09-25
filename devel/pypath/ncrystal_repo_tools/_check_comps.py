@@ -23,12 +23,12 @@ def load_comps():
     from .core_components import load_components
     name2comp = load_components()#This tests against cyclic deps
     def fmt( n ):
-        return '%s*'%n if name2comp[n].is_internal else n
+        return f'{n}*' if name2comp[n].is_internal else n
     w = max(len(n) for n in name2comp)
     def sort_order( a ):
         return ( len(a[1].deps), a[0] )
     for n,c in sorted(name2comp.items(),key=sort_order):
-        print('%s DEPENDS %s'%(fmt(n).ljust(w+1),
+        print('{} DEPENDS {}'.format(fmt(n).ljust(w+1),
                                ' '.join(fmt(e) for e in sorted(c.depnames))))
 
     print()

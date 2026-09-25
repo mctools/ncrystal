@@ -116,10 +116,10 @@ def testcomments(s):
     f = n._extractInitialHeaderCommentsFromNCMATData
     print("Comments raw:")
     for c in f(s,dedent=False):
-        print('  >>%s'%repr(c))
+        print(f'  >>{c!r}')
     print("Comments dedent:")
     for c in f(s,dedent=True):
-        print('  >>%s'%repr(c))
+        print(f'  >>{c!r}')
 
 testcomments("""NCMAT v5
 #   bla bla NCRYSTALMATCFG[temp=300

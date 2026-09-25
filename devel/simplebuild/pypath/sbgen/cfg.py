@@ -32,7 +32,7 @@ class Cfg:
                 NCLCBragg NCPubUtils NCSAB NCSCBragg NCUtils NCAtomDB
                 NCCInterface NCDynInfoUtils NCExtdUtils NCFactory_NCMAT
                 NCInfoBld NCMiniMC NCQuickFact NCSABScatter NCThreads NCVDOS"""
-        guess = dict( (e[2:].lower(),e) for e in orig.split() )
+        guess = { e[2:].lower(): e for e in orig.split() }
         if compname not in guess:
             e = {'extd_utils':'NCExtdUtils',
                  'misc':'NCPubUtils',

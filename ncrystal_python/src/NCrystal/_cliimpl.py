@@ -109,9 +109,9 @@ def create_ArgumentParser( *args, **kwargs ):
             if action.nargs == ZERO_OR_MORE:
                 metavar = get_metavar(1)
                 if len(metavar) == 2:
-                    result = '[%s [%s ...]]' % metavar
+                    result = '[{} [{} ...]]'.format(*metavar)
                 else:
-                    result = '[%s ...]' % metavar
+                    result = '[{} ...]'.format(*metavar)
                 return result
             return orig_format_args(self,action,default_metavar)
         parser.formatter_class._format_args = _format_args
@@ -195,8 +195,7 @@ class ctxmgr_modify_argparse_creation:
         _argparse_postinitfct[0] = f
         self.__orig_extra_kwargs = _argparse_extra_kwargs[0]
         orig_extra_kwargs = self.__orig_extra_kwargs
-        new_extra_kwargs = dict( (k,v)
-                                 for k,v in (orig_extra_kwargs or {}).items() )
+        new_extra_kwargs = dict( orig_extra_kwargs or {} )
         #exit_on_error only added in python 3.9:
         if _pyversion() >= (3,9):
             new_extra_kwargs['exit_on_error'] = self.__exit_on_error
@@ -243,7 +242,7 @@ def cli_entry_point(func):
             warn_escape=True
         def block_warnings(msg_str, cat_str):
             if cat_str == 'NCrystalUserWarning':
-                print('WARNING: %s'%msg_str)
+                print(f'WARNING: {msg_str}')
                 return True
             return False
         with WarningSpy(blockfct=block_warnings):
@@ -255,8 +254,7 @@ def cli_entry_point(func):
                 n=e.__class__.__name__
                 if n.startswith('NC'):
                     n = n[2:]
-                raise SystemExit('%s ERROR: %s'%(n,
-                                                 str(e) or '<unknown>')) from e
+                raise SystemExit(f'{n} ERROR: {str(e) or "<unknown>"}') from e
             except Exception as e:
                 if warn_escape:
                     raise
@@ -272,7 +270,7 @@ def _resolve_cmd_and_import_climod( cmdname, arguments ):
     if resolved_cmd['short_name']=='config':
         clipymodname = '_cliwrap_config'
     else:
-        clipymodname = '_cli_%s'%resolved_cmd['short_name']
+        clipymodname = '_cli_' + resolved_cmd['short_name']
     import importlib
     climod = importlib.import_module(f'..{clipymodname}', __name__)
     assert hasattr(climod,'main')
@@ -304,10 +302,9 @@ def cli_tool_lookup_impl( name ):
         short_name = name
     if short_name not in cli_tool_list_impl( canonical_names=False ):
         return None
-    return dict( short_name = short_name,
-                 canonical_name = _map_shortname_2_canonical_name(short_name),
-                 shellcmd = _map_shortname_2_shellcmd(short_name)
-                )
+    return { 'short_name': short_name,
+             'canonical_name': _map_shortname_2_canonical_name(short_name),
+             'shellcmd': _map_shortname_2_shellcmd(short_name) }
 
 def _map_shortname_2_shellcmd( short_name ):
     import pathlib

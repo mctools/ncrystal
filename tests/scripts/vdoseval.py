@@ -72,10 +72,10 @@ def extract_from_cfgstr(cfgstr, element = None):
         di = info.dyninfos[0]
     egrid,densities = di.vdosData()
     assert len(egrid)==2
-    d = dict( emin = egrid[0],
-              emax = egrid[1],
-              densities = densities,
-              ncvdoseval_integral = di.analyseVDOS()['integral'] )
+    d = { 'emin': egrid[0],
+          'emax': egrid[1],
+          'densities': densities,
+          'ncvdoseval_integral': di.analyseVDOS()['integral'] }
     def calc_ref_integral(**kwargs):
         return integrate_vdos_mpmath(emin=d['emin'],
                                      emax=d['emax'],
@@ -112,9 +112,9 @@ def main():
     cfgstrs = [ f.fullKey for f in NC.browseFiles(factory='stdlib') ]
     saw_errors = False
     for i,f in enumerate(sorted(cfgstrs)):
-        if i%5 == 0:#skip some for speedup
-            if not validate_cfgstr(f):
-                saw_errors = True
+        #skip some for speedup:
+        if i%5 == 0 and not validate_cfgstr(f):
+            saw_errors = True
     if saw_errors:
         print("Errors detected!")
         raise SystemExit(1)

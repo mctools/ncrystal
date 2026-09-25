@@ -87,9 +87,9 @@ class RefCell:
         if cv is not None:
             return cv
         ranges = self.phasespace_integral_ranges(e)
-        data = dict( alpha = self.__alpha,
-                     beta = self.__beta,
-                     S = self.__s )
+        data = { 'alpha': self.__alpha,
+                 'beta': self.__beta,
+                 'S': self.__s }
         v = _ref_integral( data, ranges, self.__mp, do_sample = False )
         self.__psint[e] = v
         return v
@@ -101,9 +101,9 @@ class RefCell:
         if len(ranges)==0:
             #no contribution!
             return []
-        data = dict( alpha = self.__alpha,
-                     beta = self.__beta,
-                     S = self.__s )
+        data = { 'alpha': self.__alpha,
+                 'beta': self.__beta,
+                 'S': self.__s }
         #fixme: cache this _ref_integral(..) result?
         ri = _ref_integral( data, ranges, self.__mp, do_sample = True )
         from .common import change_random_seed
@@ -156,8 +156,8 @@ def plot_celleval( data, do_title=True, **kw_plot ):
               ( data['surveyor']['E_div_kT_cover'], 'cover', 'blue',
                 data_ci['full_integral'] ),
               ( data_ci['phasespace_E_div_kT'], 'chosen', 'red',
-                list( v for k,v in data_ci['phasespace_integral']
-                      if k=='Romberg33' )[0] ) ]
+                next( v for k,v in data_ci['phasespace_integral']
+                      if k=='Romberg33' ) ) ]
     for e, lbl, col, integral in elist:
         assert blim[1]>=-e#revisit this if it fails
         brangeplot = [max(blim[0],-e),blim[1]]
@@ -204,7 +204,7 @@ def plot_celleval( data, do_title=True, **kw_plot ):
                 color=_[0].get_color()
 
     if do_title:
-        title='s11=%g, s12=%g, s21=%g, s22=%g'%tuple(data['S'])
+        title='s11={:g}, s12={:g}, s21={:g}, s22={:g}'.format(*data['S'])
         pctx.axis.set_title(title)
     return pctx.finalise( do_grid = False, do_legend='draggable' )
 
@@ -341,8 +341,8 @@ def _ref_integral( data, cellranges, mp, do_sample ):
 
     totsum = mpf(0)
     if do_sample:
-        sampleinfo = dict( e=e, a1=a1, a2=a2, b1=b1, b2=b2,
-                           s11=s11, s12=s12, s21=s21, s22=s22)
+        sampleinfo = { 'e': e, 'a1': a1, 'a2': a2, 'b1': b1, 'b2': b2,
+                       's11': s11, 's12': s12, 's21': s21, 's22': s22}
         sampleregions = []
         sampleinfo['regions'] = sampleregions
 
@@ -354,9 +354,9 @@ def _ref_integral( data, cellranges, mp, do_sample ):
             aint_at_b2 = _alphaintegral1d(a1,a2,s21,s22,r_a1,r_a2,mp)
         if do_sample:
             rangeinfo = ( r_a1, r_a2, (clip_betaminus,clip_betaplus) )
-            sampleregions.append( dict( rangeinfo = rangeinfo,
-                                        aint_at_b1 = aint_at_b1,
-                                        aint_at_b2 = aint_at_b2 ) )
+            sampleregions.append( { 'rangeinfo': rangeinfo,
+                                    'aint_at_b1': aint_at_b1,
+                                    'aint_at_b2': aint_at_b2 } )
 
         if not (clip_betaminus or clip_betaplus):
             #Full box integral of region => no need for numerical quadrature:
@@ -470,7 +470,7 @@ def _find_integration_ranges( E_div_kT, alpha, beta ):
         res.append( (al,au,flags) )
         au = al
     assert len(intervals_upper)==1
-    return dict( ranges = res, E_div_kT = E_div_kT )
+    return { 'ranges': res, 'E_div_kT': E_div_kT }
 
 def _brute_force_integral_impl( E_div_kT, alpha, beta, svals, n ):
     import numpy as np
@@ -513,10 +513,10 @@ def _brute_force_integral_impl( E_div_kT, alpha, beta, svals, n ):
 
 def _brute_force_integral( E_div_kT, alpha, beta, svals, n ):
     e = float(E_div_kT)
-    bfargs = dict( E_div_kT = e,
-                   alpha = ( float(alpha[0]), float(alpha[1]) ),
-                   beta = ( float(beta[0]), float(beta[1]) ),
-                   svals = tuple( float(e) for e in svals ) )
+    bfargs = { 'E_div_kT': e,
+               'alpha': ( float(alpha[0]), float(alpha[1]) ),
+               'beta': ( float(beta[0]), float(beta[1]) ),
+               'svals': tuple( float(e) for e in svals ) }
     full, pb = _brute_force_integral_impl(**bfargs, n = n)
     return { 'full_integral': full,
              'phasespace_integral': pb,

@@ -92,40 +92,40 @@ class PhysicsProps:
         def per_atom( key ):
             if ai is None:
                 return None
-            return dict( (e['label'],e[key]) for e in ai
-                         if e[key] is not None )
-        self.__d = dict(
-            elements = elements,
-            atoms = frozenset( atomfracs ),
-            nelements = len( elements ),
-            formula = format_chemform( sorted( atomfracs.items() ) ),
-            mass = info['mass'],
-            absxs = info['xsect_absorption'],
-            scatxs = info['xsect_free'],
-            cohxs = info['xsect_coh'],
-            incohxs = info['xsect_incoh'],
-            density = info['density'],
-            numdens = info['numberdensity'],
-            temp = info['temperature'],
-            state = info['stateofmatter'].lower(),
-            crystal = info['crystalline'],
-            crystalsystem = _crystal_system( info['spacegroup'] ),
-            sg = info['spacegroup'],
-            natoms = info['natoms_unitcell'],
-            a = cell.get('a'),
-            b = cell.get('b'),
-            c = cell.get('c'),
-            alpha = cell.get('alpha'),
-            beta = cell.get('beta'),
-            gamma = cell.get('gamma'),
-            volume = cell.get('volume'),
-            braggthreshold = info['braggthreshold'],
-            debyetemps = per_atom('debyetemp'),
-            msds = per_atom('msd'),
-            dyninfo = frozenset( info['dyninfo_types'] ),
-            customsections = frozenset( info['customsections'] ),
-            nphases = info['nphases'],
-        )
+            return { e['label']: e[key] for e in ai
+                     if e[key] is not None }
+        self.__d = {
+            'elements': elements,
+            'atoms': frozenset( atomfracs ),
+            'nelements': len( elements ),
+            'formula': format_chemform( sorted( atomfracs.items() ) ),
+            'mass': info['mass'],
+            'absxs': info['xsect_absorption'],
+            'scatxs': info['xsect_free'],
+            'cohxs': info['xsect_coh'],
+            'incohxs': info['xsect_incoh'],
+            'density': info['density'],
+            'numdens': info['numberdensity'],
+            'temp': info['temperature'],
+            'state': info['stateofmatter'].lower(),
+            'crystal': info['crystalline'],
+            'crystalsystem': _crystal_system( info['spacegroup'] ),
+            'sg': info['spacegroup'],
+            'natoms': info['natoms_unitcell'],
+            'a': cell.get('a'),
+            'b': cell.get('b'),
+            'c': cell.get('c'),
+            'alpha': cell.get('alpha'),
+            'beta': cell.get('beta'),
+            'gamma': cell.get('gamma'),
+            'volume': cell.get('volume'),
+            'braggthreshold': info['braggthreshold'],
+            'debyetemps': per_atom('debyetemp'),
+            'msds': per_atom('msd'),
+            'dyninfo': frozenset( info['dyninfo_types'] ),
+            'customsections': frozenset( info['customsections'] ),
+            'nphases': info['nphases'],
+        }
         self.__compos = compos
 
     def as_dict( self, json_compatible = False ):
@@ -133,9 +133,9 @@ class PhysicsProps:
         sets are replaced with sorted lists."""
         if not json_compatible:
             return dict( self.__d )
-        return dict( ( k, sorted(v) if isinstance(v,frozenset) else
-                       ( dict(v) if isinstance(v,dict) else v ) )
-                     for k,v in self.__d.items() )
+        return { k: ( sorted(v) if isinstance(v,frozenset) else
+                      ( dict(v) if isinstance(v,dict) else v ) )
+                 for k,v in self.__d.items() }
 
     @property
     def composition( self ):
@@ -150,8 +150,8 @@ class PhysicsProps:
         raise AttributeError(f'PhysicsProps has no attribute "{name}"')
 
     def __str__( self ):
-        return 'PhysicsProps(%s)'%( ', '.join( f'{k}={_fmt_prop(v)}'
-                                               for k,v in self.__d.items() ) )
+        s = ', '.join( f'{k}={_fmt_prop(v)}' for k,v in self.__d.items() )
+        return f'PhysicsProps({s})'
 
     def __repr__( self ):
         return str(self)
@@ -268,16 +268,16 @@ class DataEntry:
         """JSON-compatible dictionary with all information about the
         entry (props is None if not loaded)."""
         p = self.__props
-        return dict( name = self.name, fullkey = self.fullkey,
-                     factory = self.factory, source = self.source,
-                     priority = self.priority, hidden = self.hidden,
-                     datatype = self.datatype, path = self.path,
-                     description = self.description,
-                     comments = ( list(self.__comments)
-                                  if self.__comments is not None else None ),
-                     props = ( p.as_dict( json_compatible = True )
-                               if p is not None else None ),
-                     error = self.error )
+        return { 'name': self.name, 'fullkey': self.fullkey,
+                 'factory': self.factory, 'source': self.source,
+                 'priority': self.priority, 'hidden': self.hidden,
+                 'datatype': self.datatype, 'path': self.path,
+                 'description': self.description,
+                 'comments': ( list(self.__comments)
+                               if self.__comments is not None else None ),
+                 'props': ( p.as_dict( json_compatible = True )
+                            if p is not None else None ),
+                 'error': self.error }
 
     def textdata( self ):
         """Returns the NCrystal.TextData object of the entry."""
@@ -622,7 +622,7 @@ class AtomDBBrowser:
     def __init__( self, *patterns, where = () ):
         """Browse all entries (or those selected by patterns and where
         conditions, as with the corresponding methods)."""
-        rows = [ dict( ( k, d[k] ) for k,_ in _atomdb_docs )
+        rows = [ { k: d[k] for k,_ in _atomdb_docs }
                  for d in _atomdb_data() ]
         self._rows = tuple( rows )
         b = self.match( *patterns ).where( *_aslist( where ) )
@@ -714,16 +714,16 @@ class AtomDBBrowser:
         header = [ 'label' ] + cols
         if fmt == 'json':
             import json
-            return json.dumps( [ dict( (c,d[c]) for c in header )
+            return json.dumps( [ { c: d[c] for c in header }
                                  for d in self._rows ], indent = 1 ) + '\n'
         def val( v ):
             if isinstance( v, float ):
-                return repr(v) if fmt == 'csv' else '%g'%v
+                return repr(v) if fmt == 'csv' else f'{v:g}'
             return str(v)
         rows = [ [ val( d[c] ) for c in header ] for d in self._rows ]
         if fmt == 'text':
             return _fmt_text_table( [ h.upper() for h in header ], rows,
-                                    leftcols = set([0]), desccol = None,
+                                    leftcols = {0}, desccol = None,
                                     truncate = False, linewidth = 80 )
         if fmt == 'csv':
             return _fmt_csv( header, rows )
@@ -824,8 +824,8 @@ _atomdb_docs = [
     ('absxs', 'absorption cross section at 2200m/s [barn]'),
 ]
 
-_where_funcs = dict( len = len, min = min, max = max, any = any, all = all,
-                     abs = abs, round = round, set = set, sorted = sorted )
+_where_funcs = { 'len': len, 'min': min, 'max': max, 'any': any, 'all': all,
+                 'abs': abs, 'round': round, 'set': set, 'sorted': sorted }
 
 def _q( *args ):
     from .misc import evaluate_query
@@ -1005,11 +1005,11 @@ def _table_value( entry, col ):
     if isinstance( v, dict ):
         return ','.join( f'{k}:{x:g}' for k,x in v.items() ) if v else '-'
     if isinstance( v, float ):
-        return '%g'%v
+        return f'{v:g}'
     return str(v)
 
 def _table_json( entry, cols ):
-    d = dict( name = entry.display_name )
+    d = { 'name': entry.display_name }
     props = ( entry.props.as_dict( json_compatible = True )
               if entry.props is not None else None )
     for c in cols:
@@ -1204,7 +1204,7 @@ def _fmt_prop( v ):
         return '{' + ','.join( f'{k!r}:{_fmt_prop(x)}'
                                for k,x in v.items() ) + '}'
     if isinstance( v, float ):
-        return '%g'%v
+        return f'{v:g}'
     return repr(v)
 
 class _WhereExpr:

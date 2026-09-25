@@ -62,13 +62,13 @@ def main(do_plot):
 
     #Summarise and plot:
     def stats(key):
-        return ( res.output_metadata[key]['count'],
-                 res.output_metadata[key]['weight'] )
+        d = res.output_metadata[key]
+        return f"{int(d['count'])} (flux={d['weight']:.8g})"
     print('Neutron counts:')
-    print("   Produced by source:  %i (flux=%.8g)"%stats('provided'))
-    print("   Missing geometry:    %i (flux=%.8g)"%stats('miss'))
-    print("   Available for tally: %i (flux=%.8g)"%stats('tallied'))
-    print('   Considered "useful": %i'%n_useful_tot[0])
+    print("   Produced by source: ",stats('provided'))
+    print("   Missing geometry:   ",stats('miss'))
+    print("   Available for tally:",stats('tallied'))
+    print('   Considered "useful":',int(n_useful_tot[0]))
     if do_plot:
         hist_lambda.to_hist1d().plot(logy=True)
 

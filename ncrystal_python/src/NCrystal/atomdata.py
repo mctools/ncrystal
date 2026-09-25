@@ -65,14 +65,14 @@ def atomDB(Z,A=None,throwOnErrors=True):
         if not throwOnErrors:
             return None
         if strkey:
-            s='key="%s"'%key
+            s=f'key="{key}"'
         else:
             if key[1]==0:
-                s='Z=%i'%key[0]
+                s=f'Z={int(key[0])}'
             else:
-                s='Z=%i,A=%i'%key
+                s=f'Z={int(key[0])},A={int(key[1])}'
         from .exceptions import NCBadInput
-        raise NCBadInput('atomDB: Could not find entry for key (%s)'%s)
+        raise NCBadInput(f'atomDB: Could not find entry for key ({s})')
     from .core import AtomData
     ad = AtomData(rawatomdata)
     assert ad.isElement()
@@ -128,7 +128,7 @@ def elementNameToZValue( element_name, allow_isotopes = False ):
         while element_name and element_name[-1].isdigit():
             element_name = element_name[:-1]
     if __elem2z[0] is None:
-        __elem2z[0] = dict( ( e, i+1 ) for i,e in enumerate(__all_element_names) )
+        __elem2z[0] = { e: i+1 for i,e in enumerate(__all_element_names) }
     return __elem2z[0].get(element_name, None )
 
 def elementZToName( Z ):

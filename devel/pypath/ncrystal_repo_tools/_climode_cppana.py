@@ -92,7 +92,7 @@ def main( parser ):
 
     def expand_includes( includes ):
         done = set()
-        pending = set( i for i in includes )
+        pending = set(includes)
         while pending:
             i = pending.pop()
             for i2 in motherincs[i]:

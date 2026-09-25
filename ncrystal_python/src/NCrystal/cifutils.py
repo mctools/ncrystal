@@ -102,7 +102,7 @@ class CIFSource:
             if not allow_fail and self.__fp is None:
                 raise _nc_core.NCBadInput('Could not detect CIF source type'
                                           ' (tried to load from path, but'
-                                          ' could not locate "%s")'%pth)
+                                          f' could not locate "{pth}")')
 
         if hasattr(data,'__fspath__'):
             _setfp(data)
@@ -174,9 +174,9 @@ class CIFSource:
         if self.__name_override:
             return self.__name_override
         if self.__mpid:
-            return 'mpid::%i'%self.__mpid
+            return f'mpid::{self.__mpid}'
         if self.__codid:
-            return 'codid::%i'%self.__codid
+            return f'codid::{self.__codid}'
         if self.__fp:
             return self.__fp.name
 
@@ -485,7 +485,7 @@ def produce_validation_plots( files, verbose_lbls = True, pdf_target = None,
 
     if pdf and not already_pdfpages:
         pdf.close()
-        _nc_common.print("created %s"%pdf_target)
+        _nc_common.print(f"created {pdf_target}")
 
 def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale = 1,
                              quiet = False, xlabel = None, legend_args = None, do_newfig = True,
@@ -532,7 +532,7 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
         mc = multcreate( data_or_file )
         contentiterable = data_or_file
         fn = data_or_file.dataSourceName
-    elif isinstance( data_or_file, bytes ) or isinstance( data_or_file, str ):
+    elif isinstance(data_or_file, (bytes, str)):
         _ = data_or_file.decode() if isinstance( data_or_file, bytes ) else data_or_file
         if '\n' in _ or _.startswith('NCMAT'):
             contentiterable = _.splitlines()
@@ -577,15 +577,15 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
         if '->' not in s:
             return
         m = _re_atomdbspecs.search(s)
-        return ' '.join(('%s is %s'%m.groups()).split()) if m else None
+        return ' '.join('{} is {}'.format(*m.groups()).split()) if m else None
 
     ids = []
     for ll in contentiterable:
         atomdb = _extractAtomDBSpec(ll)
         for e in _extractID(ll,'materialsproject.org/materials/mp-'):
-            ids.append( dict(dbtype='mp',entryid=e,atomdb=atomdb))
+            ids.append( {'dbtype': 'mp','entryid': e,'atomdb': atomdb})
         for e in _extractID(ll,'crystallography.net/cod/'):
-            ids.append( dict(dbtype='cod',entryid=e,atomdb=atomdb))
+            ids.append( {'dbtype': 'cod','entryid': e,'atomdb': atomdb})
 
     #order-preserving remove duplicates:
     _seen = set()
@@ -599,14 +599,14 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
     ids = newids
 
     def _atomdb_to_remap( atomdb):
-        _atomdb = list( ' '.join(e.strip().split())
-                        for e in (atomdb or '').replace(':',' ').split('@') )
-        _atomdb = list( e for e in _atomdb if e )
+        _atomdb = [ ' '.join(e.strip().split())
+                    for e in (atomdb or '').replace(':',' ').split('@') ]
+        _atomdb = [ e for e in _atomdb if e ]
         ll = []
         for c in _atomdb:
             p=c.replace(':',' ').split()
             if not len(p)>=3 or p[1]!='is':
-                raise _nc_core.NCBadInput('invalid atomdb remap syntax in "%s"'%c)
+                raise _nc_core.NCBadInput(f'invalid atomdb remap syntax in "{c}"')
             ll.append( (p[0],' '.join(p[2:]) ) )
         return ll
 
@@ -616,12 +616,12 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
         dbname = _['dbtype']
         entryid = _['entryid']
         atomdb = _['atomdb']
-        lpargs=dict(remap=_atomdb_to_remap(atomdb),dynamics=dynamics)
+        lpargs={'remap': _atomdb_to_remap(atomdb),'dynamics': dynamics}
         if dbname=='mp':
-            lpargs['cifsrc']='mpid::%i'%entryid
+            lpargs['cifsrc']=f'mpid::{int(entryid)}'
         else:
             assert dbname=='cod'
-            lpargs['cifsrc']='codid::%i'%entryid
+            lpargs['cifsrc']=f'codid::{int(entryid)}'
         out = lookupAndProduce( **lpargs )
         lbl=f'{dbname}-{entryid}'
         if atomdb:
@@ -666,10 +666,11 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
 
         si = mc.info.structure_info if mc.info.hasStructureInfo() else None
         if not quiet:
-            _nc_common.print('Structure[%s]:'%lbl,si)
+            _nc_common.print(f'Structure[{lbl}]:',si)
         if si and verbose_lbls:
             sgno=si.get('spacegroup',None)
-            lbl += ' (SG-%s, %i atoms/cell, Vcell=%g)'%(sgno or 'unspecified',si['n_atoms'],si['volume'])
+            lbl += ( f' (SG-{sgno or "unspecified"}, {si["n_atoms"]} atoms/cell,'
+                     f' Vcell={si["volume"]:g})' )
             sgno_all.add(sgno)
             natoms_all.add(si['n_atoms'])
 
@@ -687,7 +688,7 @@ def produce_validation_plot( data_or_file, verbose_lbls = True, line_width_scale
     plt.xlim(0.0)
     plt.ylim(0.0)
     plt.title('NB: This compares the crystal structure (space group, lattice, atom positions). Phonons/dynamics always taken from .ncmat file',fontsize=6)
-    plt.xlabel(xlabel or 'Neutron wavelength (%s)'%(b'\xc3\x85'.decode()))
+    plt.xlabel(xlabel or 'Neutron wavelength ({})'.format(b'\xc3\x85'.decode()))
     plt.ylabel('Coherent elastic cross section (barn)')
     if do_legend:
         plt.legend(loc='best',handlelength=5,**(legend_args or {}))
@@ -728,8 +729,8 @@ def _extract_descr_from_cif( raw_cif_dict, cifsrc, ciftextdata ):
             s=str(s).strip()
             return '' if s in ('?','.') else s
         else:
-            _l=list( ('' if (e is None or (hasattr(e,'strip') and e.strip()=='?')) else str(e).strip()) for e in s )
-            return list( e for e in _l if e )
+            _l=[ ('' if (e is None or (hasattr(e,'strip') and e.strip()=='?')) else str(e).strip()) for e in s ]
+            return [ e for e in _l if e ]
 
     title = extract('_publ_section_title','_citation_title')
     authors = extract('_publ_author_name','_citation_author_name',expectlist=True)
@@ -843,15 +844,15 @@ def _impl_create_ncmat_composer( cifloader, *,
                 if ncount > 1:
                     wleft = [e for e in wleft if e!=w]
                 wmsg,wcat = w
-                wmsg = list(e.strip() for e in wmsg.splitlines() if e.strip())
-                s0 = '  %s :'%wcat if ncount==1 else '  (%ix) %s : '%(ncount,wcat)
+                wmsg = [e.strip() for e in wmsg.splitlines() if e.strip()]
+                s0 = f'  {wcat} :' if ncount==1 else f'  ({ncount}x) {wcat} : '
                 for i,m in enumerate(wmsg):
                     if i==nwmax:
                         break
                     pref=s0 if i==0 else ' '*(len(s0))
                     if i+1==nwmax and len(wmsg)>nwmax:
-                        m='<%i lines of output hidden>'%(len(wmsg)-nwmax)
-                    ll.append('%s %s'%(pref,m))
+                        m=f'<{len(wmsg)-nwmax} lines of output hidden>'
+                    ll.append(f'{pref} {m}')
             return ll
 
         composer.add_comments( fmtwarnings( list(cifloader.warnings) + extra_ana_warnings,
@@ -897,7 +898,7 @@ def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_d
                 else:
                     for remap_fr, remap_elem in remap_compos:
                         newcompos.append( ( fr*remap_fr, remap_elem ) )
-                d = dict( (k,v) for k,v in atom.items() if k!='composition' )
+                d = { k: v for k,v in atom.items() if k!='composition' }
                 d['composition'] = newcompos
                 new_src_atoms.append( d )
         src_atoms = tuple( new_src_atoms )
@@ -931,7 +932,7 @@ def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_d
             _aniso = a.get('aniso',None)
 
             if _aniso_nontrivial(_aniso):
-                _nc_common.warn('Anisotropic displacement for %s ignored (%s)'%(composstr,', '.join (f'{k}={v:g}' for k,v in sorted(_aniso.items()))))
+                _nc_common.warn('Anisotropic displacement for {} ignored ({})'.format(composstr,', '.join (f'{k}={v:g}' for k,v in sorted(_aniso.items()))))
 
         occu = a.get('occupancy',1.0)
         for c in a['equivalent_positions']:
@@ -1041,8 +1042,8 @@ def _impl_create_ncmat_composer_internal( cifloader, *, uiso_temperature, skip_d
                 return False
             #map D,T,H2,H3 -> H to ensure fewer false positives:
             def _tmp(d):
-                return dict( (('H' if k in ('D','T','H2','H3') else k),v)
-                             for k,v in d.items() )
+                return { ('H' if k in ('D','T','H2','H3') else k): v
+                         for k,v in d.items() }
             f1,f2 = _tmp(f1),_tmp(f2)
             if f1 == f2:
                 return False
@@ -1105,7 +1106,7 @@ def _impl_merge_atoms( atoms ):
             ll.append( (other_metadata,[list(pos),list(cif_labels)]) )
     res = []
     for other_metadata, ( pos, cif_labels ) in ll:
-        d = dict( (k,v) for k,v in sorted(other_metadata) )
+        d = { k: v for k,v in sorted(other_metadata) }
         d['equivalent_positions'] = sorted( pos )
         d['cif_labels'] = sorted( cif_labels )
         res.append( d )
@@ -1116,11 +1117,11 @@ def _suggest_filename( ncmat_metadata, cifloader ):
     ll.append( ncmat_metadata['chemform'] )
     sgnum = ncmat_metadata.get('cellsg',{}).get('spacegroup',None)
     if sgnum:
-        ll.append( 'sg%i'%sgnum )
+        ll.append( f'sg{int(sgnum)}' )
     if cifloader.actual_codid:
-        ll.append( 'cod%i'%cifloader.actual_codid )
+        ll.append( f'cod{cifloader.actual_codid}' )
     if cifloader.actual_mpid:
-        ll.append( 'mp%i'%cifloader.actual_mpid )
+        ll.append( f'mp{cifloader.actual_mpid}' )
     return '_'.join(ll) + '.ncmat'
 
 def _format_spglib_cell( cellsg, atoms ):
@@ -1140,22 +1141,22 @@ def _impl_refine_cell( cellsg, atoms ):
     assert len(d)==7
 
     refined_cell = d['refined_cell']
-    new_atom_pos = dict( (i,[]) for i in range(max(refined_cell[2])+1) )
+    new_atom_pos = { i: [] for i in range(max(refined_cell[2])+1) }
     for pos, atomidx in zip(refined_cell[1],refined_cell[2]):
         new_atom_pos[ atomidx ] += [ (pos[0],pos[1],pos[2]) ]
 
-    new_atoms = [ dict( (k,v if k!='equivalent_positions' else new_atom_pos[idx])
-                        for k,v in e.items()) for idx,e in enumerate(atoms) ]
+    new_atoms = [ { k: v if k!='equivalent_positions' else new_atom_pos[idx]
+                    for k,v in e.items() } for idx,e in enumerate(atoms) ]
     if not d['can_keep_anisotropic_properties']:
-        new_atoms = [ dict( (k,v if k!='aniso' else None)
-                            for k,v in e.items()) for idx,e in enumerate(new_atoms) ]
+        new_atoms = [ { k: v if k!='aniso' else None
+                        for k,v in e.items() } for e in new_atoms ]
 
 
 
 
     new_cellsg = dict( d['cellparams_snapped'].items() )
-    new_cellsg['spacegroup'] = dict( number = d['sgno'],
-                                     hm = d['sgsymb_hm'] )
+    new_cellsg['spacegroup'] = { 'number': d['sgno'],
+                                 'hm': d['sgsymb_hm'] }
 
     return new_cellsg, new_atoms, d['warnings'], d['msgs']
 
@@ -1239,7 +1240,7 @@ def _cod_get_cifdata( codid, quiet = False ):
             if not quiet:
                 _nc_common.print(f"Using cached Crystallography Open Database result for entry {codid}")
             return _result
-    cache_fn = 'cod_%i.cif'%codid
+    cache_fn = f'cod_{int(codid)}.cif'
     #check file cache:
     c = _use_local_cif_cache( cache_fn, quiet = quiet )
     if c:
@@ -1287,7 +1288,7 @@ def _mp_get_cifdata( mpid, quiet = False, apikey = None ):
                 _nc_common.print(f"Using cached materialsproject.org result for entry mp-{mpid}")
             return _result
     #check file cache:
-    cache_fn = 'mp_%i.cif'%mpid
+    cache_fn = f'mp_{mpid}.cif'
     c = _use_local_cif_cache( cache_fn, quiet = quiet )
     if c:
         return c
@@ -1379,7 +1380,7 @@ def _guess_spacegroup_name( gemmi, s ):
         guess = {}
         def _ag( i, s ):
             if s not in guess:
-                guess[s] = set([i])
+                guess[s] = {i}
             else:
                 guess[s].add(i)
         def add_guess( i, s ):
@@ -1404,7 +1405,7 @@ def _guess_spacegroup_name( gemmi, s ):
 def _load_with_gemmi( cifblock, allow_fixup = True ):
     #Load cifblock into gemmi struct. We might perform in-place editing of the
     #cifblock, if gemmi does not immediately recognise the space group.
-    gemmi, gemmi_cif = _import_gemmi()
+    gemmi, _gemmi_cif = _import_gemmi()
 
     struct = gemmi.make_small_structure_from_block( cifblock )
 
@@ -1463,7 +1464,7 @@ def _load_with_gemmi( cifblock, allow_fixup = True ):
             sg = gemmi.find_spacegroup_by_number(sgnum)
             _nc_common.warn(f'Had to interpret spacegroup "{sg_hm}" as "{sg.hm}" before Gemmi could recognise it.')
         elif len(possible) > 1:
-            poshm = list( (sgnum,gemmi.find_spacegroup_by_number(sgnum).hm) for sgnum in possible )
+            poshm = [ (sgnum,gemmi.find_spacegroup_by_number(sgnum).hm) for sgnum in possible ]
             poshm = ', '.join( '"%s"(number %i)'  for sgnum,sgstr in poshm )
             _nc_common.warn(f'Failed to interpret spacegroup interpret spacegroup "{sg_hm}". Could be any of: {poshm}.')
     if not sg:
@@ -1514,7 +1515,7 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
     try:
         cif_doc = gemmi_cif.read_string( _cifdata )
     except ValueError as e:
-        errmsg = 'CIF parsing error (from Gemmi): "%s"'%e
+        errmsg = f'CIF parsing error (from Gemmi): "{e}"'
         cif_doc = None
     if cif_doc is None:
         raise _nc_core.NCBadInput(errmsg or 'Unknown CIF parsing error from Gemmi')
@@ -1525,7 +1526,7 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
         cif_doc_as_dict = json.loads( cif_doc_as_json )
     except json.decoder.JSONDecodeError as e:
         cif_doc_as_dict = None
-        _nc_common.warn('Could not decode raw CIF data to dictionary (Gemmi bug?): JSONDecodeError("%s")'%e)
+        _nc_common.warn(f'Could not decode raw CIF data to dictionary (Gemmi bug?): JSONDecodeError("{e}")')
 
     result['cif_raw'] = cif_doc_as_dict
     if len(cif_doc) == 0:
@@ -1597,19 +1598,18 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
     if not struct.cell.is_compatible_with_spacegroup( sg ):
         raise _nc_core.NCBadInput('Loaded unit cell is not compatible with deduced space group (according to Gemmi).')
 
-    cellsg = dict ( a = struct.cell.a, b = struct.cell.b, c = struct.cell.c,
-                    alpha = struct.cell.alpha,
-                    beta = struct.cell.beta,
-                    gamma = struct.cell.gamma )
+    cellsg = { 'a': struct.cell.a, 'b': struct.cell.b, 'c': struct.cell.c,
+               'alpha': struct.cell.alpha,
+               'beta': struct.cell.beta,
+               'gamma': struct.cell.gamma }
 
     fractcoord_approx_1angstrom = 1.0 / ( (struct.cell.a+struct.cell.b+struct.cell.c)/3.0 )
 
 
     #Although the sg object also provides sg.ccp4 and sg.hall, we record here
     #just sgnumber and xhm, since that is what spglib refinement also provides:
-    cellsg['spacegroup'] = dict_ro( dict( number = sgnumber,
-                                          hm = sg.xhm(),
-                                         ) )
+    cellsg['spacegroup'] = dict_ro( { 'number': sgnumber,
+                                      'hm': sg.xhm() } )
 
     collected_atoms = []
 
@@ -1656,7 +1656,7 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
                 pos0_new[i] = 0.0
         def fmt( c ):
             return f'({c[0]:.15g},{c[1]:.15g},{c[2]:.15g})'
-        _nc_common.warn('Fractional coordinate %s interpreted as special position %s to avoid numerical precision issues'%(fmt(coord),fmt(pos0_new)))
+        _nc_common.warn(f'Fractional coordinate {fmt(coord)} interpreted as special position {fmt(pos0_new)} to avoid numerical precision issues')
         return _expand_coord_to_all_other_images( gemmi.Fractional(pos0_new[0],pos0_new[1],pos0_new[2]), allow_finetune = (allow_finetune-1) )
 
 
@@ -1668,7 +1668,7 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
 
         aniso = None
         if site.aniso.nonzero:
-            aniso = dict( (k, float(getattr(site.aniso,k))) for k in ('u11','u22','u33','u12','u13','u23') )
+            aniso = { k: float(getattr(site.aniso,k)) for k in ('u11','u22','u33','u12','u13','u23') }
             if all( v==0.0 for v in aniso.values() ):
                 aniso = None
         u_iso = float( site.u_iso )
@@ -1734,14 +1734,15 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
         if elem_Z is None:
             elem_Z = z2name
         if elem_Z != z2name:
-            raise _nc_core.NCBadInput('Wrong atomic number (%i) provided for element "%s"'%(elem_Z,elem_name))
+            raise _nc_core.NCBadInput(f'Wrong atomic number ({elem_Z}) provided'
+                                      f' for element "{elem_name}"')
 
-        collected_atoms.append( dict( expanded_coords = expanded_coords,
-                                      element_marker = elem_marker,
-                                      occupancy = float(site.occ),
-                                      cif_label = str(site.label),
-                                      uiso = u_iso,
-                                      aniso = aniso ) )
+        collected_atoms.append( { 'expanded_coords': expanded_coords,
+                                  'element_marker': elem_marker,
+                                  'occupancy': float(site.occ),
+                                  'cif_label': str(site.label),
+                                  'uiso': u_iso,
+                                  'aniso': aniso } )
 
     #Now merge collected atoms which occupy the same sites:
     def has_same_sites( atom1, atom2 ):
@@ -1757,20 +1758,20 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
         for atom2 in atoms_to_process[1:]:
             if has_same_sites(atom1,atom2):
                 if atom1['uiso'] != atom2['uiso'] or atom1['aniso'] != atom2['aniso']:
-                    raise _nc_core.NCBadInput('atoms labelled "%s" and "%s" have same cell '%(atom1['cif_label'],atom2['cif_label'])
+                    raise _nc_core.NCBadInput('atoms labelled "{}" and "{}" have same cell '.format(atom1['cif_label'],atom2['cif_label'])
                                               +'positions but different uiso information. This is not supported.')
                 atoms_with_same_pos.append( atom2 )
             else:
                 atoms_with_different_pos.append( atom2 )
 
-        cif_labels = list( a['cif_label'] for a in atoms_with_same_pos )
-        cif_labels_str = '"%s"'%('", "'.join(cl for cl in cif_labels))
+        cif_labels = [ a['cif_label'] for a in atoms_with_same_pos ]
+        cif_labels_str = '"{}"'.format('", "'.join(cif_labels))
 
-        composition = list( ( a['occupancy'], a['element_marker'] ) for a in atoms_with_same_pos )
+        composition = [ ( a['occupancy'], a['element_marker'] ) for a in atoms_with_same_pos ]
         occupancy = _math_fsum( fr for fr, elem in composition )
         assert occupancy > 0.0
         if occupancy != 1.0:
-            composition = list( (fr/occupancy, elem) for fr, elem in composition )
+            composition = [ (fr/occupancy, elem) for fr, elem in composition ]
             if occupancy > (1.0 + 1e-6) :
                 m=f'Error: Too high total occupancy ({occupancy} which is >1) for atoms with CIF labels: {cif_labels_str}'
                 if abs(int(occupancy+0.5)-occupancy)<1e-10:
@@ -1778,12 +1779,12 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
                 raise _nc_core.NCBadInput(m)
             occupancy = min( 1.0, occupancy )
 
-        final_atom_info = dict( cif_labels = list_ro( cif_labels ),
-                                equivalent_positions = list_ro( (c.x,c.y,c.z) for c in atoms_with_same_pos[0]['expanded_coords'] ),
-                                composition = list_ro( sorted( composition ) ),
-                                occupancy = occupancy,
-                                uiso = atoms_with_same_pos[0]['uiso'],
-                                aniso = atoms_with_same_pos[0]['aniso'] )
+        final_atom_info = { 'cif_labels': list_ro( cif_labels ),
+                            'equivalent_positions': list_ro( (c.x,c.y,c.z) for c in atoms_with_same_pos[0]['expanded_coords'] ),
+                            'composition': list_ro( sorted( composition ) ),
+                            'occupancy': occupancy,
+                            'uiso': atoms_with_same_pos[0]['uiso'],
+                            'aniso': atoms_with_same_pos[0]['aniso'] }
         final_atoms.append( dict_ro( final_atom_info )  )
         atoms_to_process = atoms_with_different_pos
 

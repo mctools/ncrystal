@@ -64,7 +64,7 @@ def main():
         raise RuntimeError('cmake command not found')
     cmake_extra_args = shlex.split(os.environ.get('CMAKE_ARGS',''))
 
-    print('Using cmake command: %s'%cmakecmd)
+    print(f'Using cmake command: {cmakecmd}')
     ncrystal_libdir = get_ncrystal_shlibdir()
 
     def prepend_to_path( envdict, pathvar, entry, sep = ':' ):
@@ -97,7 +97,7 @@ def main():
         cmd = ( [cmakecmd]
                 + cmake_extra_args
                 + ['-B', str(blddir),'-S',str(srcdir),
-                   '-DCMAKE_INSTALL_PREFIX=%s'%instdir] )
+                   f'-DCMAKE_INSTALL_PREFIX={instdir}'] )
         subprocess.run( cmd, check=True )
         subprocess.run( [cmakecmd,
                          '--build',str(blddir),

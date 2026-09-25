@@ -112,12 +112,12 @@ def main( parser ):
 
     needs_tmpdir = (not args.install_dir) or ( not args.build_dir )
 
-    runner_args = dict( force = args.force,
-                        mode = args.mode,
-                        cmake_flags = args.cmake_args,
-                        build_types = ['rel'],
-                        nprocs_bld = nprocs,
-                        nprocs_ctest = nprocs )
+    runner_args = { 'force': args.force,
+                    'mode': args.mode,
+                    'cmake_flags': args.cmake_args,
+                    'build_types': ['rel'],
+                    'nprocs_bld': nprocs,
+                    'nprocs_ctest': nprocs }
     if args.multi:
         runner_args['generator'] = 'multi'
     if args.dbg:

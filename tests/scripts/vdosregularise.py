@@ -43,9 +43,9 @@ def validate_cfgstr(cfgstr):
         #run, and still retain as much as possible robustness, we vary the
         #output precisions accordingly:
         if lbl=='H':
-            print("  density: [%.13g, %.13g, %.13g, .., %.9g, %.9g, %.14g]"%vals )
+            print("  density: [{:.13g}, {:.13g}, {:.13g}, .., {:.9g}, {:.9g}, {:.14g}]".format(*vals) )
         else:
-            print("  density: [%.13g, %.13g, %.13g, .., %.11g, %.11g, %.14g]"%vals )
+            print("  density: [{:.13g}, {:.13g}, {:.13g}, .., {:.11g}, {:.11g}, {:.14g}]".format(*vals) )
 
 def main():
     cfgstrs = [f.fullKey for f in NC.browseFiles(factory='stdlib')]

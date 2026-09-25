@@ -30,7 +30,7 @@ import pprint
 
 def test(*query):
     print()
-    print(">>> Sending query: %s"%repr(list(e for e in query)))
+    print(f">>> Sending query: {list(query)!r}")
     r = ncquery(query)
     pprint.pp(r)
 

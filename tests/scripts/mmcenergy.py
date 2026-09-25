@@ -25,13 +25,13 @@
 def main():
     from NCTestUtils.minimc_ref import main_minimc_unittest as m
     def test( key, srccfg_energypart, hist_elow, hist_emax ):
-        kwargs = dict( cfgstr = 'void.ncmat',
-                       srccfg = f'constant;z=-0.001;{srccfg_energypart};n=1e6',
-                       geomcfg = 'slab;dz=0.001',
-                       key=f'<auto>_{key}',
-                       tally='e',
-                       tallybins=f'e:100:{hist_elow}:{hist_emax}',
-                       extra_enginecfg='nscatlimit=0;absorption=0' )
+        kwargs = { 'cfgstr': 'void.ncmat',
+                   'srccfg': f'constant;z=-0.001;{srccfg_energypart};n=1e6',
+                   'geomcfg': 'slab;dz=0.001',
+                   'key': f'<auto>_{key}',
+                   'tally': 'e',
+                   'tallybins': f'e:100:{hist_elow}:{hist_emax}',
+                   'extra_enginecfg': 'nscatlimit=0;absorption=0' }
         m(**kwargs)
         #Again, with auto-binning
         kwargs['srccfg'] += ';n=1e4'

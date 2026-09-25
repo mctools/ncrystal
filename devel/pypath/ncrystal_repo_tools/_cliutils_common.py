@@ -37,7 +37,7 @@ def main_grep( parser ):
     else:
         for f in files:
             for line in grep(f,pos,neg):
-                print('%s:%s'%(f,line))
+                print(f'{f}:{line}')
 
 def main_grepl( parser ):
     parser.init(
@@ -176,7 +176,7 @@ def grep( f, pos_needles, neg_needles ):
                          and not any( n.do_match(line) for n in neg_needles ) ):
                         yield line
     except UnicodeDecodeError:
-        print('WARNING: Ignoring non-utf8 file %s'%f)
+        print(f'WARNING: Ignoring non-utf8 file {f}')
 
 def iter_nonempty( iterable ):
     return next(iterable, None) is not None
@@ -205,10 +205,10 @@ def iter_repo_files( types = None, pathfilter = None ):
         def fmt(k):
             #shell quote, but include at least quotes for pedagogical reasons
             f = shlex.quote(k)
-            return "'%s'"%k if f==k else f
+            return f"'{k}'" if f==k else f
         n = max(len(fmt(k)) for k in special_patterns_db )
         for k,v in special_patterns_db.items():
-            print("   %s expands to: %s"%( fmt(k).ljust(n),
+            print("   {} expands to: {}".format( fmt(k).ljust(n),
                                            ' '.join(fmt(e) for e in v) ) )
         print()
         print("Additionally, add '!' in front of any pattern to exclude files")

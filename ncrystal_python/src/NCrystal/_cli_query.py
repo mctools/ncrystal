@@ -25,11 +25,11 @@ from ._cliimpl import cli_entry_point, create_ArgumentParser, print
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'misc',
-        displayorder = 15,
-        descr = "Send low-level queries for JSON data to NCrystal."
-    )
+    return {
+        'displaygroup': 'misc',
+        'displayorder': 15,
+        'descr': "Send low-level queries for JSON data to NCrystal."
+    }
 
 def parseArgs( progname, args, return_parser=False ):
     descr="""Send low level queries for JSON data to the NCrystal C++ library.

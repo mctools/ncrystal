@@ -139,8 +139,8 @@ class Hist1D:
                 if d.get('datatype')=='NCrystalHist1D_v1':
                     return cls(d)
                 else:
-                    return dict( (copy.deepcopy(k),o(v))
-                                 for k,v in d.items() )
+                    return { copy.deepcopy(k): o(v)
+                             for k,v in d.items() }
             #something else, just pass through:
             return copy.deepcopy( d )
         return o( data )
@@ -153,10 +153,10 @@ class Hist1D:
         initialise a Hist1D object again. If json_compat is True, the returned
         dictionary will contain lists rather than numpy arrays.
         """
-        return dict( datatype = 'NCrystalHist1D_v1',
-                     stats = self.stats,
-                     title = self.__title,
-                     bindata = self.bindata( json_compat = json_compat ) )
+        return { 'datatype': 'NCrystalHist1D_v1',
+                 'stats': self.stats,
+                 'title': self.__title,
+                 'bindata': self.bindata( json_compat = json_compat ) }
 
     def to_json( self ):
         """Serialise as JSON string. The returned string can be used to
@@ -395,8 +395,10 @@ class Hist1D:
         assert isinstance(other_hist,Hist1D)
         o = other_hist
         if self.binning != o.binning:
-            raise NCBadInput("incompatible binning (%i,%g,%g) vs. (%i,%g,%g)."
-                             %( *self.binning, *o.binning))
+            def fb( b ):
+                return f'({int(b[0])},{b[1]:g},{b[2]:g})'
+            raise NCBadInput(f"incompatible binning {fb(self.binning)} vs."
+                             f" {fb(o.binning)}.")
 
         def flow_sig( obj ):
             return ( obj.__flow_under is None,
@@ -486,11 +488,11 @@ class Hist1D:
     def stats( self ):
         """Return statistics of unbinned filled values as array. This include
         integral, rms, mean, as well as the range of filled values."""
-        return dict ( integral = self.__stat_integral,
-                      rms = self.__stat_rms,
-                      mean = self.__stat_mean,
-                      minfilled = self.__stat_minfilled,
-                      maxfilled = self.__stat_maxfilled )
+        return { 'integral': self.__stat_integral,
+                 'rms': self.__stat_rms,
+                 'mean': self.__stat_mean,
+                 'minfilled': self.__stat_minfilled,
+                 'maxfilled': self.__stat_maxfilled }
 
     def bindata( self, json_compat = False ):
         """Return bindata as dictionary. This include binnings, contents,
@@ -500,10 +502,10 @@ class Hist1D:
             return ( a.tolist()
                      if (json_compat and hasattr(a,'tolist')) else a.copy() )
 
-        d = dict( xmin = self.xmin,
-                  xmax = self.xmax,
-                  nbins = self.nbins,
-                  content = export_array(self.__y) )
+        d = { 'xmin': self.xmin,
+              'xmax': self.xmax,
+              'nbins': self.nbins,
+              'content': export_array(self.__y) }
         if self.__yerrsq is not None:
             d['errorsq'] = export_array( self.__yerrsq )
         def add_if_not_None( key, val ):
@@ -614,44 +616,41 @@ class Hist1D:
 
         p = prefix
         def fmt_highres( x ):
-            s = '%.14g'%x
-            return s if float(s)==x else '%.19g'%x
+            s = f'{x:.14g}'
+            return s if float(s)==x else f'{x:.19g}'
         def fmt( x ):
-            return '%.6g'%x
+            return f'{x:.6g}'
         if highres:
             if isinstance(highres,str):
                 def fmt_highres( x ):
                     return highres % x
             fmt = fmt_highres
 
-        pr("%sHist1D(nbins=%i,xmin=%s,xmax=%s):"%( p,
-                                                   self.nbins,
-                                                   fmt_highres(self.xmin),
-                                                   fmt_highres(self.xmax)))
-        pr("%s  title     : %s"%(p, self.title or "<none>"))
-        pr("%s  integral  : %s"%(p,fmt(self.integral)))
+        pr(f"{p}Hist1D(nbins={int(self.nbins)},"
+           f"xmin={fmt_highres(self.xmin)},xmax={fmt_highres(self.xmax)}):")
+        pr(f"{p}  title     : {self.title or '<none>'}")
+        pr(f"{p}  integral  : {fmt(self.integral)}")
         if self.has_stats:
-            pr("%s  mean      : %s"%(p,fmt(self.mean)))
-            pr("%s  rms       : %s"%(p,fmt(self.rms)))
-            pr("%s  minfilled : %s"%(p,fmt_highres(self.minfilled)))
-            pr("%s  maxfilled : %s"%(p,fmt_highres(self.maxfilled)))
+            pr(f"{p}  mean      : {fmt(self.mean)}")
+            pr(f"{p}  rms       : {fmt(self.rms)}")
+            pr(f"{p}  minfilled : {fmt_highres(self.minfilled)}")
+            pr(f"{p}  maxfilled : {fmt_highres(self.maxfilled)}")
         else:
-            pr("%s  mean      : <n/a>"%p)
-            pr("%s  rms       : <n/a>"%p)
-            pr("%s  minfilled : <n/a>"%p)
-            pr("%s  maxfilled : <n/a>"%p)
+            pr(f"{p}  mean      : <n/a>")
+            pr(f"{p}  rms       : <n/a>")
+            pr(f"{p}  minfilled : <n/a>")
+            pr(f"{p}  maxfilled : <n/a>")
         if self.has_flow:
-            pr("%s  underflow : %s +- %s"%(p,fmt(self.underflow),
-                                           fmt(self.underflow_error)))
-            pr("%s  overflow  : %s +- %s"%(p,fmt(self.overflow),
-                                           fmt(self.overflow_error)))
+            pr(f"{p}  underflow : {fmt(self.underflow)}"
+               f" +- {fmt(self.underflow_error)}")
+            pr(f"{p}  overflow  : {fmt(self.overflow)}"
+               f" +- {fmt(self.overflow_error)}")
 
         if contents:
             c,e = self.contents, self.errors
             for ibin in range(self.nbins):
-                pr("%s  content[ibin=%i] : %s +- %s"%(p,ibin,
-                                                      fmt(c[ibin]),
-                                                      fmt(e[ibin])))
+                pr(f"{p}  content[ibin={ibin}] : {fmt(c[ibin])}"
+                   f" +- {fmt(e[ibin])}")
 
         result.append('')
         result = '\n'.join(result)
@@ -733,8 +732,8 @@ class Hist1D:
                                                          dtype=x.dtype ) ) )
             cc = repeat_last(self.contents)
             ee = repeat_last(self.errors)*error_bands
-            fill_between_args = dict( x = self.binedges, step = 'post',
-                                      y1 = cc - ee, y2 = cc + ee )
+            fill_between_args = { 'x': self.binedges, 'step': 'post',
+                                  'y1': cc - ee, 'y2': cc + ee }
             pctx.axis.fill_between(**fill_between_args,alpha=alpha,color=color,
                                    label=label)
         else:
@@ -837,7 +836,7 @@ class Hist1D:
         ok = ( p_value >= threshold )
         if check and not ok:
             #fmt for unit test reproducibility
-            fmt='p-value=%g'%p_value if p_value>=1e-6 else 'p-value'
+            fmt=f'p-value={p_value:g}' if p_value>=1e-6 else 'p-value'
             raise NCCalcError(f'check_compat failed: {fmt}'
                              f' is not greater than {threshold}.')
         if return_pval:
@@ -857,7 +856,7 @@ class Hist1D:
 
         if self.binning != other.binning:
             raise NCBadInput('chisquare_dist: incompatible binnings '
-                             '(%s vs %s).'%(self.binning,other.binning))
+                             f'({self.binning} vs {other.binning}).')
         if self.has_flow != other.has_flow:
             raise NCBadInput('chisquare_dist: '
                              'incompatible overflow settings.')
@@ -1059,19 +1058,19 @@ class HistFiller1D:
             return ( a.tolist()
                      if (json_compat and hasattr(a,'tolist'))
                      else a.copy() )
-        return dict( xmin = self.__xmin,
-                     xmax = self.__xmax,
-                     nbins = self.__nbins,
-                     content = export_array(self.__sumw),
-                     errorsq = export_array(self.__sumw2) )
+        return { 'xmin': self.__xmin,
+                 'xmax': self.__xmax,
+                 'nbins': self.__nbins,
+                 'content': export_array(self.__sumw),
+                 'errorsq': export_array(self.__sumw2) }
 
     def to_dict(self, json_compat = False ):
         """Serialise as dictionary. If json_compat is True, the returned
         dictionary will contain lists rather than numpy arrays.
         """
-        return dict ( title = self.__title,
-                      bindata = self.bindata(json_compat=json_compat),
-                      count = self.__count )
+        return { 'title': self.__title,
+                 'bindata': self.bindata(json_compat=json_compat),
+                 'count': self.__count }
 
     def to_hist1d(self):
         """Initialise and return a Hist1D object representing this one."""

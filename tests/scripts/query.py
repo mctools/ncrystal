@@ -37,7 +37,7 @@ def safefmt(s):
 def test(*query):
     print()
 
-    print(">>> Sending query: %s"%repr(list(safefmt(e) for e in query)))
+    print(f">>> Sending query: {[safefmt(e) for e in query]!r}")
     r = ncquery(query)
     import pprint
     pprint.pprint(r)

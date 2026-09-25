@@ -47,11 +47,11 @@ if __name__ == '__main__':
         do_std = True
         do_cmdline = True
 
-    unknown = args - set(['cmdline','all','std','verbose','quiet'])
+    unknown = args - {'cmdline','all','std','verbose','quiet'}
     for u in unknown:
-        raise SystemExit('Unknown keyword: %s'%u)
+        raise SystemExit(f'Unknown keyword: {u}')
 
-    test_kwargs = dict( verbose = ('quiet' if do_quiet else do_verbose) )
+    test_kwargs = { 'verbose': ('quiet' if do_quiet else do_verbose) }
 
     if do_std:
         _tests.test( **test_kwargs )

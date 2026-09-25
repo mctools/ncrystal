@@ -36,7 +36,7 @@ def matsrc_detect_fmt( class_MaterialSource, data ):
             return f'NCrystal.{c}'
     if hasattr(data,'__fspath__'):
         return 'filepath'
-    if isinstance(data,bytes) or isinstance(data,str):
+    if isinstance(data, (bytes, str)):
         compat_str = (lambda s : s.encode()) if isinstance(data,bytes) else (lambda s : s)
         if compat_str('\n') in data and data.startswith(compat_str('NCMAT')):
             return 'ncmat'
@@ -51,7 +51,7 @@ def matsrc_allfmts( as_str = False ):
     _= ('cfgstr','filepath','ncmat','NCrystal.TextData','NCrystal.NCMATComposer',
         'NCrystal.Info','NCrystal.Scatter','NCrystal.Absorption',
         'NCrystal.LoadedMaterial','NCrystal.MaterialSource')
-    return _ if not as_str else '"%s"'%('", "'.join(_))
+    return _ if not as_str else '"{}"'.format('", "'.join(_))
 
 def matsrc_initfmt( data, fmt, cfg_params ):
     from .exceptions import NCBadInput
@@ -60,9 +60,9 @@ def matsrc_initfmt( data, fmt, cfg_params ):
     def to_str(s):
         return s.decode() if hasattr(s,'decode') else s
     def cfgcombine( cfgstr, extra_params ):
-        ll = list( e.strip()
-                   for e in (to_str(cfgstr),to_str(extra_params))
-                   if (e or '').strip() )
+        ll = [ e.strip()
+               for e in (to_str(cfgstr),to_str(extra_params))
+               if (e or '').strip() ]
         return ';'.join(ll) if ll else None
     if fmt == 'NCrystal.MaterialSource':
         if not cfg_params:
@@ -77,9 +77,9 @@ def matsrc_initfmt( data, fmt, cfg_params ):
         plotlabel = data.get('plotlabel')
         if plotlabel:
             plotlabel+=f'+ ";{cfg_params}"'
-        return dict( description = f'{descr} + ";{cfg_params}"',
-                     plotlabel = plotlabel,
-                     loadfct = loadfct )
+        return { 'description': f'{descr} + ";{cfg_params}"',
+                 'plotlabel': plotlabel,
+                 'loadfct': loadfct }
     if fmt == 'filepath':
         import pathlib
         p = pathlib.Path(data)
@@ -108,7 +108,7 @@ def matsrc_initfmt( data, fmt, cfg_params ):
                                                doInfo = doInfo,
                                                doScatter = doScatter,
                                                doAbsorption = doAbsorption )
-        return dict( description = descr, loadfct = loadfct )
+        return { 'description': descr, 'loadfct': loadfct }
     if fmt=='cfgstr':
         cfgstr = to_str(data)
         if cfg_params:
@@ -121,7 +121,7 @@ def matsrc_initfmt( data, fmt, cfg_params ):
             s = _nc_core.createScatter(cs) if doScatter else None
             a = _nc_core.createAbsorption(cs) if doAbsorption else None
             return _nc_core.LoadedMaterial.fromExistingObjects(info=i,scatter=s,absorption=a)
-        return dict( description = cfgstr, loadfct = loadfct )
+        return { 'description': cfgstr, 'loadfct': loadfct }
     if fmt=='NCrystal.TextData':
         descr = data.dataSourceName or 'Anonymous TextData'
         if cfg_params:
@@ -132,7 +132,7 @@ def matsrc_initfmt( data, fmt, cfg_params ):
                                                doInfo = doInfo,
                                                doScatter = doScatter,
                                                doAbsorption = doAbsorption )
-        return dict( description = descr, loadfct = loadfct )
+        return { 'description': descr, 'loadfct': loadfct }
     if fmt=='ncmat':
         data = to_str(data)
         def loadfct( extra_cfg, doInfo, doScatter, doAbsorption ):
@@ -142,7 +142,7 @@ def matsrc_initfmt( data, fmt, cfg_params ):
                                                doInfo = doInfo,
                                                doScatter = doScatter,
                                                doAbsorption = doAbsorption )
-        return dict( description = 'Anonymous NCMAT data', loadfct = loadfct )
+        return { 'description': 'Anonymous NCMAT data', 'loadfct': loadfct }
     if fmt=='NCrystal.NCMATComposer':
         txtdata = data.create_ncmat()# NCMATComposer is not immutable so we simply
                                      # capture the state by invoking create_ncmat
@@ -155,19 +155,19 @@ def matsrc_initfmt( data, fmt, cfg_params ):
                                                doInfo = doInfo,
                                                doScatter = doScatter,
                                                doAbsorption = doAbsorption )
-        return dict( description = 'NCMATComposer object', loadfct = loadfct, plotlabel = plotlabel )
+        return { 'description': 'NCMATComposer object', 'loadfct': loadfct, 'plotlabel': plotlabel }
     if fmt=='NCrystal.LoadedMaterial':
-        return dict( description = 'NCrystal.LoadedMaterial object',
-                     preloaded = data )
+        return { 'description': 'NCrystal.LoadedMaterial object',
+                 'preloaded': data }
     if fmt=='NCrystal.Info':
-        return dict( description = 'NCrystal.Info object',
-                     preloaded = _nc_core.LoadedMaterial.fromExistingObjects( info = data ) )
+        return { 'description': 'NCrystal.Info object',
+                 'preloaded': _nc_core.LoadedMaterial.fromExistingObjects( info = data ) }
     if fmt=='NCrystal.Scatter':
-        return dict( description = 'NCrystal.Scatter object',
-                     preloaded = _nc_core.LoadedMaterial.fromExistingObjects( scatter = data ) )
+        return { 'description': 'NCrystal.Scatter object',
+                 'preloaded': _nc_core.LoadedMaterial.fromExistingObjects( scatter = data ) }
     if fmt=='NCrystal.Absorption':
-        return dict( description = 'NCrystal.Absorption object',
-                     preloaded = _nc_core.LoadedMaterial.fromExistingObjects( absorption = data ) )
+        return { 'description': 'NCrystal.Absorption object',
+                 'preloaded': _nc_core.LoadedMaterial.fromExistingObjects( absorption = data ) }
     raise _nc_core.NCLogicError(f'unhandled fmt option: {fmt}')
 
 def matsrc_init( class_MaterialSource, matsrc_extract_d_fct, data, fmt, cfg_params ):
@@ -181,7 +181,7 @@ def matsrc_init( class_MaterialSource, matsrc_extract_d_fct, data, fmt, cfg_para
             raise NCBadInput('Could not detect format of MaterialSource.'
                              ' If this is merely a detection problem, set'
                              ' the fmt parameter to an accepted value (one of:'
-                             ' %s)'%matsrc_allfmts(as_str=True))
+                             f' {matsrc_allfmts(as_str=True)})')
     if fmt not in matsrc_allfmts():
         raise NCBadInput( f'Unknown format "{fmt}" (must be one of:'
                           ' %s)'%matsrc_allfmts(as_str=True) )
@@ -216,7 +216,7 @@ def anytextdata_init( data, *, is_path, name ):
     if isinstance(data,bytes):
         data = data.decode()
     if not isinstance(data,str):
-        raise NCBadInput('Invalid text data / text file data (got type %s)'%type(data))
+        raise NCBadInput(f'Invalid text data / text file data (got type {type(data)})')
     is_path = is_path if ( is_path is not None ) else ( '\n' not in data )
     if is_path:
         from ._common import _lookup_existing_file
@@ -255,16 +255,16 @@ def _anyvdos_preinit( data, fmt ):
     _ensure_numpy()
 
     if fmt =='NCrystal.Info.DI_VDOS':
-        return dict( dos_orig = ( data.vdosOrigEgrid(), data.vdosOrigDensity() ),
-                     dos = data.vdosData() )
+        return { 'dos_orig': ( data.vdosOrigEgrid(), data.vdosOrigDensity() ),
+                 'dos': data.vdosData() }
     if fmt =='NCrystal.Info.DI_VDOSDebye':
-        return dict( dos = data.vdosData(),
-                     debyetemp = data.debyeTemperature() )
+        return { 'dos': data.vdosData(),
+                 'debyetemp': data.debyeTemperature() }
     if fmt =='debyetemperature':
         debyetemp = float(data)
         from .vdos import createVDOSDebye
-        return dict( dos = createVDOSDebye( debyetemp ),
-                     debyetemp = debyetemp )
+        return { 'dos': createVDOSDebye( debyetemp ),
+                 'debyetemp': debyetemp }
     if fmt =='arrays':
         eg, dens = data
         dens = _np.asarray( dens, dtype = float )
@@ -272,15 +272,15 @@ def _anyvdos_preinit( data, fmt ):
             eg = (float(eg[0]),float(eg[1]))
         else:
             eg = _np.asarray( eg, dtype = float )
-        return dict( dos = ( eg, dens ) )
+        return { 'dos': ( eg, dens ) }
     assert fmt != 'NCrystal.AnyVDOS'#should have been handled in calling code
     if fmt not in allfmts:
         from .exceptions import NCBadInput
-        s='"%s"'%('", "'.join(allfmts))
+        s='"{}"'.format('", "'.join(allfmts))
         if fmt is None:
-            raise NCBadInput('Could not detect fmt of VDOS specification, consider specifying it explictly (must be one of %s)'%(s))
-        raise NCBadInput('Invalid VDOS fmt "%s". Possible options are %s'%(fmt,s))
-    assert False, "unhandled fmt case: %s"%fmt
+            raise NCBadInput(f'Could not detect fmt of VDOS specification, consider specifying it explictly (must be one of {s})')
+        raise NCBadInput(f'Invalid VDOS fmt "{fmt}". Possible options are {s}')
+    assert False, f"unhandled fmt case: {fmt}"
 
 def _anyvdos_initfmt( data, fmt ):
     p = _anyvdos_preinit( data, fmt )
@@ -330,12 +330,12 @@ def _anyvdos_init( class_AnyVDOS, anyvdos_extract_d, data, fmt, label ):
             return d
         else:
             import copy
-            d = dict( (k,copy.deepcopy(v)) for k,v in d.items() if k != 'label' )
+            d = { k: copy.deepcopy(v) for k,v in d.items() if k != 'label' }
     else:
         d = _anyvdos_initfmt( data, fmt )
-    d['label'] = label or 'anonymous VDOS curve from "%s"'%fmt
+    d['label'] = label or f'anonymous VDOS curve from "{fmt}"'
     if d.get('debyetemp'):
-        _='TDebye=%gK'%d['debyetemp']
+        _='TDebye={:g}K'.format(d['debyetemp'])
         if not d['label'].endswith(')'):
             d['label'] += f' ({_})'
         else:
@@ -390,9 +390,9 @@ def _eqnp(f,data):
     #Create read-only view of data, assuming only dict/list/tuple + basic
     #immutable types are used.
     if isinstance(data, dict):
-        return dict( (k,_eqnp(f,v)) for k,v in data.items())
-    elif isinstance(data, list) or isinstance(data, tuple):
-        return list(_eqnp(f,v) for v in data)
+        return { k: _eqnp(f,v) for k,v in data.items() }
+    elif isinstance(data, (list, tuple)):
+        return [_eqnp(f,v) for v in data]
     elif isinstance(data, str) and data.startswith('__ncrystal__dblarray::'):
         return f(data)
     else:
@@ -412,7 +412,7 @@ def evalquery( query, unpack, readonly, huge_arrays ):
     if not all( isinstance(a,str) for a in query ):
         from .exceptions import NCBadInput
         raise NCBadInput('Invalid query (not all entries are strings):'
-                         ' %s'%repr(query))
+                         f' {query!r}')
     res = _rawfct['jsonquery']( query )
     if unpack:
         import json

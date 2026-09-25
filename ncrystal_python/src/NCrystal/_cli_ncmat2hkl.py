@@ -23,11 +23,11 @@ from ._cliimpl import cli_entry_point, create_ArgumentParser, print, warn
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'conv',
-        displayorder = 30,
-        descr = "Export crystal reflection lists to .laz/.lau formats."
-    )
+    return {
+        'displaygroup': 'conv',
+        'displayorder': 30,
+        'descr': "Export crystal reflection lists to .laz/.lau formats."
+    }
 
 def parseArgs( progname, arglist, return_parser=False ):
 
@@ -165,9 +165,9 @@ def _main_impl( args, do_quiet, override_prec ):
 
     from . import mcstasutils
     full_info = True
-    kwargs = dict(cfgstr = args.CFGSTR,
-                  tgtformat = args.format,
-                  verbose = full_info)
+    kwargs = {'cfgstr': args.CFGSTR,
+              'tgtformat': args.format,
+              'verbose': full_info}
     if override_prec:
         kwargs['fp_format'] = f'%.{override_prec}g'
 

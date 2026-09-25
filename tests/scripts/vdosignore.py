@@ -72,7 +72,7 @@ def main(do_plot):
         xs = sc.xsect(wl=wls)
         xs_ref = sc.xsect(wl=ref_wl)
         label = ( 'Gn: ignore G1+G2' if Gnmax=='ignore1+2'
-                  else ( 'Gn: up to %i'%Gnmax
+                  else ( f'Gn: up to {Gnmax}'
                          if Gnmax is not None else 'Gn: all') )
         if not ( exp_xsmin <= xs_ref <= exp_xsmax ):
             failures.append(f'FAIL at "{label}": xs({ref_wl}\u00C5)={xs_ref}'

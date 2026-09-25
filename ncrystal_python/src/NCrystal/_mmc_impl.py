@@ -168,9 +168,9 @@ def results_check_compat_impl( _self, other, threshold, errfct ):
 
     def prep_tally_dict( data_tally ):
         fake_mother=None
-        return dict( (tn,MMCTallyView._internal_create( fake_mother,
-                                                        data_tally[tn] ))
-                     for tn in tally_names )
+        return { tn: MMCTallyView._internal_create( fake_mother,
+                                                    data_tally[tn] )
+                 for tn in tally_names }
     tallies_s = prep_tally_dict( data_s_tally )
     tallies_o = prep_tally_dict( data_o_tally )
 
@@ -200,7 +200,7 @@ def _validate_mmcresults_dict(data):
     #Very brief high-level validation:
     if data.get('datatype') != 'NCrystalMiniMCResults_v1':
         return False
-    return set(data.keys()) == set(['datatype','input','output'])
+    return set(data.keys()) == {'datatype','input','output'}
 
 def _determine_rebin_factor( current_nbins,
                              max_nbins = None,
@@ -248,7 +248,7 @@ def _plot_tally( minimcresults_dict, tallyname,
         title = 0
 
     if tallyname not in avail_tallies:
-        raise NCBadInput('Requested tally "%s" not available.'%tallyname)
+        raise NCBadInput(f'Requested tally "{tallyname}" not available.')
 
 
     tally_dict = minimcresults_dict['output']['tally'][tallyname]
@@ -268,8 +268,8 @@ def _plot_tally( minimcresults_dict, tallyname,
             raise NCBadInput('Invalid input data: not a histogram')
         return e
     if breakdown:
-        breakdown =  dict( (k,ensure_hist(v))
-                           for k,v in breakdown_dict.items() )
+        breakdown =  { k: ensure_hist(v)
+                       for k,v in breakdown_dict.items() }
     else:
         breakdown = None
     mainhist = ensure_hist(tally_dict['total'])
@@ -285,7 +285,7 @@ def _plot_tally( minimcresults_dict, tallyname,
         nbins = nbins[0]
         _ = set(breakdown.keys()) - set(_breakdown_colors.keys())
         if _:
-            raise NCBadInput('Unexpected breakdown histogram key: %s'%_.pop())
+            raise NCBadInput(f'Unexpected breakdown histogram key: {_.pop()}')
     else:
         nbins = mainhist.nbins
     rebin_factor = _determine_rebin_factor( nbins,
@@ -294,8 +294,8 @@ def _plot_tally( minimcresults_dict, tallyname,
     if rebin_factor != 1:
         mainhist = mainhist.clone(rebin_factor=rebin_factor)
         if breakdown:
-            breakdown = dict( (k,v.clone(rebin_factor=rebin_factor))
-                              for k,v in breakdown.items() )
+            breakdown = { k: v.clone(rebin_factor=rebin_factor)
+                          for k,v in breakdown.items() }
 
     pctx = PlotContext(**kw_plot).check_unused()
     if not mainhist.integral:
@@ -385,7 +385,7 @@ def _plot_tally( minimcresults_dict, tallyname,
         pctx.axis.errorbar(**mainhist.errorbar_args())
         pctx.axis.set_xlim(mainhist.xmin,mainhist.xmax)
     else:
-        lbl = 'All outgoing %s'%_fractionval_fmt(nonabsfrac)
+        lbl = f'All outgoing {_fractionval_fmt(nonabsfrac)}'
         label_order.append(lbl)
         mainhist.plot( label=lbl,
                        do_grid=False,
@@ -400,7 +400,7 @@ def _plot_tally( minimcresults_dict, tallyname,
     t_info = tally_info()['hists'][tallyname]
     xlbl = t_info['short_descr'].capitalize()
     if t_info['unit']:
-        xlbl += ' (%s)'%t_info['unit']
+        xlbl += ' ({})'.format(t_info['unit'])
     pctx.axis.set_xlabel(xlbl)
 
     if tallyname=='theta' and mainhist.xmin==0 and mainhist.xmax==180:
@@ -411,7 +411,7 @@ def _plot_tally( minimcresults_dict, tallyname,
         pctx.axis.set_title(title)
 
     if absfrac > 0.0:
-        lbl="Absorbed %s"%_fractionval_fmt(absfrac)
+        lbl=f"Absorbed {_fractionval_fmt(absfrac)}"
         label_order.append(lbl)
         pctx.axis.plot([], [], ' ', label=lbl)
 

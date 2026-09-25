@@ -80,11 +80,10 @@ def run( app_file, reflogfile = None ):
     assert not newout.exists()
     newout.write_bytes(output_raw.encode(ENCODING,errors='backslashreplace'))
 
-    if r.returncode == 3221225781:
-        if is_windows:
-            raise SystemExit('Error: Command ended with exit'
-                             f' code {r.returncode} (usually'
-                             ' indicates "DLL not found")')
+    if r.returncode == 3221225781 and is_windows:
+        raise SystemExit('Error: Command ended with exit'
+                         f' code {r.returncode} (usually'
+                         ' indicates "DLL not found")')
     if r.returncode != 0:
         raise SystemExit(f'Error: Command ended with exit code {r.returncode}')
     if reflogfile is None:
@@ -113,7 +112,7 @@ def run( app_file, reflogfile = None ):
 
     def explicit_unicode_char(c):
         #32 is space, <32 are control chars, 127 is DEL.
-        return c if 32<=ord(c)<=126 else r'\u{%s}'%(hex(ord(c))[2:])
+        return c if 32<=ord(c)<=126 else rf'\u{{{hex(ord(c))[2:]}}}'
 
     def explicit_unicode_str(s):
         return ''.join( explicit_unicode_char(c) for c in s)
@@ -124,7 +123,7 @@ def run( app_file, reflogfile = None ):
                                      fromfile='BEFORE',
                                      tofile='AFTER',
                                      lineterm=''):
-        print('DIFF> %s'%explicit_unicode_str(line))
+        print(f'DIFF> {explicit_unicode_str(line)}')
 
     raise SystemExit(f"""
 ERROR: Output does not match that of the reference log.

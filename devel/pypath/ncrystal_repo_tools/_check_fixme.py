@@ -59,7 +59,7 @@ def main():
         hitlist.sort()
         wn = max( len(str(n)) for n,f in hitlist )
         for n,f in hitlist:
-            print( '     %s %s'%( str(n).rjust(wn), f ) )
+            print( f'     {str(n).rjust(wn)} {f}' )
         return ntot
 
     print(f"Whitelisted {search_str}'s:")

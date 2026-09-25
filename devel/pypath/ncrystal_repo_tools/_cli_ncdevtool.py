@@ -58,12 +58,12 @@ available for a given mode. For example:
 
 def import_sibling_module( mode = None, module_name = None ):
     assert int(mode is None)+int(module_name is None) == 1
-    module_name = module_name or '_climode_%s'%mode
+    module_name = module_name or f'_climode_{mode}'
     import importlib
     pkgarg = __name__
     if pkgarg == '__main__':
         #Make running as python -m <packagename>.<thismodule> work:
-        pkgarg = '%s.foo'%__package__
+        pkgarg = f'{__package__}.foo'
     return importlib.import_module(f'..{module_name}',pkgarg)
 
 def get_module_short_description( mode ):

@@ -23,11 +23,11 @@ from ._cliimpl import cli_entry_point, create_ArgumentParser, print
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'conv',
-        displayorder = 20,
-        descr = "Create NCMAT data for amorphous hydrogen-rich materials."
-    )
+    return {
+        'displaygroup': 'conv',
+        'displayorder': 20,
+        'descr': "Create NCMAT data for amorphous hydrogen-rich materials."
+    }
 
 def _parseArgs( default_debye_temp, progname, arglist, return_parser=False ):
     from argparse import RawTextHelpFormatter
@@ -136,7 +136,7 @@ def main( progname, arglist ):
                             verbose = not do_stdout,
                             notrim = args.notrim )
     except RuntimeError as e:
-        raise SystemExit('Error: %s'%str(e))
+        raise SystemExit(f'Error: {e!s}')
     if do_stdout:
         print(ncmat)
         return

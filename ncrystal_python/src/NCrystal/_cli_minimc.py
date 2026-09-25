@@ -23,12 +23,12 @@ from ._cliimpl import cli_entry_point, create_ArgumentParser, print
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'main',
-        displayorder = 30,
-        descr=("Investigate multiple scattering and geometry effects via "
+    return {
+        'displaygroup': 'main',
+        'displayorder': 30,
+        'descr': ("Investigate multiple scattering and geometry effects via "
                "NCrystal's own Monte Carlo simulation framework.")
-    )
+    }
 
 
 def parseArgs( progname, arglist, return_parser=False ):
@@ -69,8 +69,8 @@ def parseArgs( progname, arglist, return_parser=False ):
     descr_examples = ''
     for i,(descr, cfgstr, scenario,key) in enumerate(_scenariocfg_examples):
         assert descr.endswith('.')
-        sstr = ' %s'%quote( scenario ) if scenario else ''
-        cmd = '%s %s%s'%( progname, quote( cfgstr ), sstr )
+        sstr = f' {quote( scenario )}' if scenario else ''
+        cmd = f'{progname} {quote( cfgstr )}{sstr}'
         if is_fullhelp:
             descr = descr[:-1]
             descr_examples += textwrap.fill( f'{i+1}. {descr}:',
@@ -106,13 +106,13 @@ Run with --full-help for full list of options and more detailed instructions.
         tally_hists = set(tallylists['ALLHISTS'])
         tally_defaults = set(tallylists['DEFAULT'])
         for i,h in enumerate(sorted(tally_hists)):
-            tallyflags_hists += '%s%s%s'%( ',' if i else '',
+            tallyflags_hists += '{}{}{}'.format( ',' if i else '',
                                            h,
                                            '*' if h in tally_defaults else '')
         i=0
         for f in sorted(tallylists['ALL']):
             if f not in tally_hists:
-                tallyflags_other += '%s%s'%( ',' if i else '', f )
+                tallyflags_other += '{}{}'.format( ',' if i else '', f )
                 i += 1
         descr=f"""
 
@@ -201,8 +201,8 @@ format.
         ag.add_argument('--quiet','-q',default=False,action='store_true',
                         help=wrap('Silence non-error output (automatic if'
                                   ' --output=stdout).'))
-        assert ( set(doc_subjects) == set(['engine','src','geom',
-                                           'scenario']) ),"update --doc text"
+        assert ( set(doc_subjects) == {'engine','src','geom',
+                                        'scenario'} ),"update --doc text"
         ag.add_argument('--doc',choices=doc_subjects,
                         help=hwrap("""Show documentation for the configuration
                         strings available for geometry, source, engine, or
@@ -342,13 +342,13 @@ format.
         t = {e.strip() for e in args.tally.split(',')}
         a = set(tallylists['ALL'])
         if t-a:
-            parser.error('Unsupported tally flag: %s'%((t-a).pop()))
+            parser.error(f'Unsupported tally flag: {(t-a).pop()}')
         args.tally=sorted(t)
 
-    if args.tally and args.enginecfg and 'tally' in args.enginecfg:
-        if ';tally=' in (';'+''.join(args.enginecfg.split())):
-            parser.error('Can not use --tally when the --enginecfg'
-                         ' also contains "tally=..."')
+    if ( args.tally and args.enginecfg and 'tally' in args.enginecfg
+         and ';tally=' in (';'+''.join(args.enginecfg.split())) ):
+        parser.error('Can not use --tally when the --enginecfg'
+                     ' also contains "tally=..."')
 
     return args
 
@@ -402,7 +402,7 @@ def _main_impl( progname, args ):
         args.srccfg = _['srccfg']
 
     if args.tally and not args.inputfile:
-        args.enginecfg += '%stally=%s'%( ';' if args.enginecfg else '',
+        args.enginecfg += '{}tally={}'.format( ';' if args.enginecfg else '',
                                          ','.join(args.tally) )
 
     res = None
@@ -428,10 +428,10 @@ def _main_impl( progname, args ):
         _e = ncmmc.decode_cfgstr(_e,'engine')['cfgstr']
         from .cfgstr import normaliseCfg
         _c = normaliseCfg(_c)
-        print('  material cfgstr: "%s"'%_c)
-        print('          geomcfg: "%s"'%_g)
-        print('           srccfg: "%s"'%_s)
-        print('        enginecfg: "%s"'%_e)
+        print(f'  material cfgstr: "{_c}"')
+        print(f'          geomcfg: "{_g}"')
+        print(f'           srccfg: "{_s}"')
+        print(f'        enginecfg: "{_e}"')
         print('Command to reproduce:')
         _exargs = [progname,_c,'-g',_g,'-s',_s,'-e',_e]
         cmdquoted = shlex.join(_exargs)
@@ -439,7 +439,7 @@ def _main_impl( progname, args ):
         assert '"' not in ''.join(_exargs)
         assert "'" not in ''.join(_exargs)
         cmdquoted = cmdquoted.replace("'",'"')
-        print('  %s'%cmdquoted)
+        print(f'  {cmdquoted}')
         return
 
     if res is None and any( e is not None
@@ -458,7 +458,7 @@ def _main_impl( progname, args ):
         if _missing:
             from ._common import warn as ncwarn
             ncwarn('Indicated tallies missing in input:'
-                   ' %s'%(' '.join(sorted(_missing))))
+                   ' {}'.format(' '.join(sorted(_missing))))
         def tally_show_filter( tname ):
             return tname in _select
 
@@ -501,4 +501,4 @@ def _main_impl( progname, args ):
                                          f' {args.outputfile}')
             assert args.outputfile.parent.is_dir()
             args.outputfile.write_bytes(data)
-            print("Wrote: %s"%args.outputfile.name)
+            print(f"Wrote: {args.outputfile.name}")

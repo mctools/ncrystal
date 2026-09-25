@@ -44,13 +44,13 @@ def load_part2deplist_from_pyproject_toml( tomlfile ):
 def _handle_ADD( pkgname, part2deplist ):
     def has_add( deplist ):
         return any( d.startswith('ADD') for d in deplist )
-    ready = dict( (k,v) for k,v in part2deplist.items() if not has_add(v) )
-    pending = dict( (k,v) for k,v in part2deplist.items() if has_add(v) )
+    ready = { k: v for k,v in part2deplist.items() if not has_add(v) }
+    pending = { k: v for k,v in part2deplist.items() if has_add(v) }
     i = 0
     while pending:
         i+=1
         if i==1000:
-            return 'recursive ADD statements involving %s'%pending.keys()
+            return f'recursive ADD statements involving {pending.keys()}'
         for partname,deplist in pending.items():
             for i in range(len(deplist)):
                 if deplist[i].startswith('ADD'):
@@ -96,7 +96,7 @@ def _handle_CMD( pkgname, part2deplist ):
                 rv = subprocess.run(cmd,capture_output=True,check=False)
                 if rv.stderr or rv.returncode != 0:
                     import shlex
-                    raise SystemExit('CMD failed: %s'%shlex.join(cmd))
+                    raise SystemExit(f'CMD failed: {shlex.join(cmd)}')
                 _cmdcache[0][cmd] = json.loads(rv.stdout.decode())
             deplist[i]=''#clear previous
             deplist += _cmdcache[0][cmd]
@@ -131,7 +131,7 @@ def _prepare_data_and_check_errors( rawdata ):
     from .dirs import reporoot
     #version = reporoot.joinpath('VERSION').read_text().strip()
 
-    assert set(rawdata.keys())==set(['packages','dependencies'])
+    assert set(rawdata.keys())=={'packages','dependencies'}
     #First pkg_deps:
 
     pkgdata = rawdata['packages']
@@ -140,7 +140,7 @@ def _prepare_data_and_check_errors( rawdata ):
             info['deps'] = {}
         if not info['deps'].get('BASE'):
             info['deps']['BASE'] = []
-        assert set(info.keys())==set(['tomlfiles','deps'])
+        assert set(info.keys())=={'tomlfiles','deps'}
         assert len(info['tomlfiles'])>=1
         part2deplist = info['deps']
         errmsg = ( _handle_CMD(pkgname,part2deplist)
@@ -165,7 +165,7 @@ def _prepare_data_and_check_errors( rawdata ):
         for part in list(part2deplist.keys()):
             check_name_ok(part)
             assert part.isidentifier()
-            part2deplist[part] = sorted(set(e for e in part2deplist[part] if e))
+            part2deplist[part] = sorted({e for e in part2deplist[part] if e})
             for dep in part2deplist[part]:
                 all_deps_used.add(dep)
                 check_name_ok(dep)
@@ -221,8 +221,8 @@ def produce_expected_requirements_txt_files(db):
             lines.append( depinfo['py_spec'] )
         return '\n'.join(sorted(lines)+[''])
     name2deplist = _produce_expected_deplists_for_env_files(db)
-    return dict( (f'requirements_{n}.txt', content(d) )
-                 for n,d in name2deplist.items() )
+    return { f'requirements_{n}.txt': content(d)
+             for n,d in name2deplist.items() }
 
 _conda_yml_init = """name: ncrystal_<<NAME>>
 channels:
@@ -234,8 +234,8 @@ dependencies:
 def produce_expected_conda_yml_files(db):
     #For conda we always add whatever is needed for a development environment,
     #since people might wish to pip install plugins, or whatnot:
-    deplist_extra = set(['python','pip','c-compiler',
-                         'cxx-compiler','cmake','make'])
+    deplist_extra = {'python','pip','c-compiler',
+                      'cxx-compiler','cmake','make'}
     def content( name, deplist ):
         lines = sorted(deplist_extra)[:]
         for dep in sorted(set( deplist )-deplist_extra ):
@@ -245,9 +245,9 @@ def produce_expected_conda_yml_files(db):
             lines.append(depinfo['conda_spec'])
         res = _conda_yml_init.replace('<<NAME>>',name)
         for line in lines:
-            res += '  - %s\n'%line
+            res += f'  - {line}\n'
         return res
 
     name2deplist = _produce_expected_deplists_for_env_files(db)
-    return dict( (f'conda_{n}.yml', content(n,d) )
-                 for n,d in name2deplist.items() )
+    return { f'conda_{n}.yml': content(n,d)
+             for n,d in name2deplist.items() }

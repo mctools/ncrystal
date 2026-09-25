@@ -22,6 +22,9 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev as NC
+import contextlib
+import io
+from NCrystalDev._common import capture_print_ctxmgr
 
 #Testing presence of data "files", as well as their sorting.
 
@@ -63,11 +66,6 @@ else:
     raise SystemExit("ERROR: Inconsistent sorting order observed!!")
 
 #browseFiles(dump=True) must use the (redirectable) NCrystal print:
-import contextlib
-import io
-
-from NCrystalDev._common import capture_print_ctxmgr
-
 _leaked = io.StringIO()
 with contextlib.redirect_stdout(_leaked), capture_print_ctxmgr() as _cap:
     NC.browseFiles(dump=True,factory='stdlib')

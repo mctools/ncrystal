@@ -99,7 +99,7 @@ def run_scenario( name, code, envval = None ):
 
 def test_factorythreads():
     ft = q('factorythreads')
-    assert set(ft) == set(['threads_available','nthreads','user_configured'])
+    assert set(ft) == {'threads_available','nthreads','user_configured'}
     avail = ft['threads_available']
     def n( nthreads ):
         return str( nthreads if avail else 1 )
@@ -134,7 +134,7 @@ def main():
     counts = q('browsedb')
     assert counts['virtual'] == 5 and counts['stdlib'] > 100
     facts = q('browsefactories')
-    assert set(facts) == set(['textdata','info','scatter','absorption'])
+    assert set(facts) == {'textdata','info','scatter','absorption'}
     assert 'virtual' in facts['textdata'] and 'stdlib' in facts['textdata']
     assert 'stdncmat' in facts['info']
     print('Overview queries OK')
@@ -145,8 +145,8 @@ def main():
     show('browsedb virtual cheap',cheap)
     #Cheap mode is the same, minus info and load errors:
     for e_full, e_cheap in zip(full,cheap):
-        e = dict( (k,v) for k,v in e_full.items()
-                  if k not in ('info','error') )
+        e = { k: v for k,v in e_full.items()
+              if k not in ('info','error') }
         assert e == e_cheap
 
     al = [ e for e in q('browsedb','stdlib') if e['name']=='Al_sg225.ncmat' ]
@@ -181,10 +181,10 @@ def main():
 
     #Atom database:
     adb = q('atomdb')
-    assert len(adb) > 300 and all( set(e) == set(['z','a','label','element',
-                                                  'natural',
-                                                  'mass','cohsl','cohxs',
-                                                  'incohxs','scatxs','absxs'])
+    assert len(adb) > 300 and all( set(e) == {'z','a','label','element',
+                                              'natural',
+                                              'mass','cohsl','cohxs',
+                                              'incohxs','scatxs','absxs'}
                                    for e in adb )
     #All entries (natural elements and isotopes) are elements:
     assert all( e['element'] and e['label'].startswith(e['element'])

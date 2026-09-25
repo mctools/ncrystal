@@ -44,7 +44,7 @@ MONTHS = ('jan', 'feb', 'mar', 'apr', 'may', 'jun',
           'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
 
 if metadata.edate[:3].lower() not in MONTHS:
-    raise RuntimeError('Bad edate: "%s"'%metadata.edate[:3])
+    raise RuntimeError(f'Bad edate: "{metadata.edate[:3]}"')
 
 assert metadata.edate[:3].lower() in MONTHS
 assert int(metadata.edate[3:].lower()) >= 00
@@ -137,7 +137,7 @@ test_cfg_fail( 'Al_sg225.ncmat;vdoslux=1',
 try:
     metadata.get_value('WRONGPARAM')
 except NCBadInput as e:
-    print("FAILED (as expected): %s"%e)
+    print(f"FAILED (as expected): {e}")
 else:
     raise SystemExit('Did not fail as expected')
 # Incompatible arguments in CLI

@@ -217,7 +217,7 @@ class NCMATComposerImpl:
     def _ase_io_read( obj, quiet, fmt = None ):
         if not quiet:
             _nc_common.print('Trying to load object via ase.io.read')
-        ase, ase_io = _import_ase()
+        _ase, ase_io = _import_ase()
         return ase_io.read( obj, format = fmt )
 
     @staticmethod
@@ -279,7 +279,7 @@ class NCMATComposerImpl:
                     'Comments found in NCMAT data from which the NCMATComposer',
                     'was initialised. Subsequent updates to the NCMATComposer',
                     'object might have invalidated some or all of these:'
-                ]+ list('>>> '+e for e in comments) + ['<'*70]
+                ]+ ['>>> '+e for e in comments] + ['<'*70]
         if comments:
             c.add_comments( comments, add_empty_line_divider = True )
         return c
@@ -382,7 +382,7 @@ class NCMATComposerImpl:
     def remap_atom( self,  element_or_isotope, *composition ):
         elem = _nc_common.check_elem_or_isotope_marker( element_or_isotope )
         if not elem:
-            raise _nc_core.NCBadInput('Invalid element/isotope marker: "%s"'%element_or_isotope)
+            raise _nc_core.NCBadInput(f'Invalid element/isotope marker: "{element_or_isotope}"')
 
         elem, composition = _decode_composition(elem,*composition)
         compos = self.__params.get('compositions',{})
@@ -444,7 +444,9 @@ class NCMATComposerImpl:
     def set_cellsg( self, *, a,b,c, alpha,beta,gamma, spacegroup ):
         #TODO: input validation! Also ensure high precision in numbers below
         self.__dirty()
-        self.__params['cellsg'] = dict(a=a,b=b,c=c,alpha=alpha,beta=beta,gamma=gamma,spacegroup=spacegroup)
+        self.__params['cellsg'] = { 'a': a, 'b': b, 'c': c, 'alpha': alpha,
+                                    'beta': beta, 'gamma': gamma,
+                                    'spacegroup': spacegroup }
 
     def set_cellsg_cubic( self, a, *, spacegroup ):
         if not (spacegroup is None or 195<=int(spacegroup)<=230):
@@ -527,31 +529,31 @@ class NCMATComposerImpl:
 
     def set_dyninfo_vdosdebye( self, label, debye_temp, *, comment, fraction ):
         self.__add_dyninfo( label, fraction,
-                            dict( ditype='vdosdebye',
-                                  debye_temp = float(debye_temp),
-                                  comment = ( None if not comment
-                                              else self.__prunecomment(comment) ) ) )
+                            { 'ditype': 'vdosdebye',
+                              'debye_temp': float(debye_temp),
+                              'comment': ( None if not comment
+                                          else self.__prunecomment(comment) ) } )
 
     def set_dyninfo_freegas( self, label, *, comment, fraction ):
         self.__add_dyninfo( label, fraction,
-                            dict( ditype='freegas',
-                                  comment = ( None
-                                              if not comment
-                                              else self.__prunecomment(comment) ) ) )
+                            { 'ditype': 'freegas',
+                              'comment': ( None
+                                          if not comment
+                                          else self.__prunecomment(comment) ) } )
 
     def set_dyninfo_sterile( self, label, *, comment, fraction ):
         self.__add_dyninfo( label, fraction,
-                            dict( ditype='sterile',
-                                  comment = ( None if not comment
-                                              else self.__prunecomment(comment) ) ) )
+                            { 'ditype': 'sterile',
+                              'comment': ( None if not comment
+                                          else self.__prunecomment(comment) ) } )
 
     def set_dyninfo_vdos( self, label, vdos_egrid, vdos, *, comment, fraction ):
         self.__add_dyninfo( label, fraction,
-                            dict( ditype='vdos',
-                                  vdos_egrid = _copyarray_or_None(vdos_egrid),
-                                  vdos = _copyarray_or_None(vdos),
-                                  comment = ( None if not comment
-                                              else self.__prunecomment(comment) ) ) )
+                            { 'ditype': 'vdos',
+                              'vdos_egrid': _copyarray_or_None(vdos_egrid),
+                              'vdos': _copyarray_or_None(vdos),
+                              'comment': ( None if not comment
+                                          else self.__prunecomment(comment) ) } )
 
     def set_dyninfo_scatknl( self, label, *, alphagrid, betagrid, temperature,
                              sab = None, sab_scaled = None, egrid = None,
@@ -579,20 +581,20 @@ class NCMATComposerImpl:
             else:
                 assert sab_scaled is not None
                 sab_scaled = s
-        self.__add_dyninfo( label, fraction, dict( ditype='scatknl',
-                                                   temperature = float(temperature),
-                                                   egrid = _copyarray_or_None(egrid),
-                                                   sab = _copyarray_or_None(sab),
-                                                   sab_scaled = _copyarray_or_None(sab_scaled),
-                                                   alphagrid = _copyarray_or_None(alphagrid),
-                                                   betagrid = _copyarray_or_None(betagrid),
-                                                   comment = None if not comment else self.__prunecomment(comment) ) )
+        self.__add_dyninfo( label, fraction, { 'ditype': 'scatknl',
+                                               'temperature': float(temperature),
+                                               'egrid': _copyarray_or_None(egrid),
+                                               'sab': _copyarray_or_None(sab),
+                                               'sab_scaled': _copyarray_or_None(sab_scaled),
+                                               'alphagrid': _copyarray_or_None(alphagrid),
+                                               'betagrid': _copyarray_or_None(betagrid),
+                                               'comment': None if not comment else self.__prunecomment(comment) } )
 
     def set_dyninfo_msd( self, label, *, msd, temperature, comment, fraction ):
-        self.__add_dyninfo( label, fraction, dict( ditype='msd',
-                                                       msd_value = float(msd),
-                                                       msd_temperature = float(temperature),
-                                                       comment = None if not comment else self.__prunecomment(comment) ) )
+        self.__add_dyninfo( label, fraction, { 'ditype': 'msd',
+                                                   'msd_value': float(msd),
+                                                   'msd_temperature': float(temperature),
+                                                   'comment': None if not comment else self.__prunecomment(comment) } )
 
     def set_dyninfo_from_object( self, label, source_dyninfo, comment = None, fraction = None ):
         di = source_dyninfo
@@ -650,7 +652,7 @@ class NCMATComposerImpl:
 
         from .exceptions import nc_assert
         nc_assert(False,'set_dyninfo_from_object not implemented yet'
-                  ' for %s type DynamicInfo'%di.__class__.__name__ )
+                  f' for {di.__class__.__name__} type DynamicInfo' )
 
     def transfer_dyninfo_objects( self, source, mapping, allow_none ):
         lbls = set(mapping.keys()) if mapping else self.get_labels()
@@ -678,7 +680,7 @@ class NCMATComposerImpl:
             #idx = lbl2atomidx[lbl]
             atomic_points.append( (x,y,z) )
             atomic_types.append( lbl2atomidx[lbl] )
-        return ( lattice, atomic_points, atomic_types ), dict( (v,k) for k,v in lbl2atomidx.items())
+        return ( lattice, atomic_points, atomic_types ), { v: k for k,v in lbl2atomidx.items() }
 
     def refine_crystal_structure( self, symprec, quiet ):
         self._impl_refine( mode_refine = True, symprec = symprec, quiet=quiet )
@@ -706,12 +708,11 @@ class NCMATComposerImpl:
         if not d:
             raise _nc_core.NCBadInput(f'Failed to {"refine" if mode_refine else "verify"} crystal structure with spglib.')
         assert len(d)==7
-        if mode_refine:
-            if not quiet:
-                for m in d['msgs']:
-                    _nc_common.print(m)
-                for w in d['warnings']:
-                    _nc_common.warn(w)
+        if mode_refine and not quiet:
+            for m in d['msgs']:
+                _nc_common.print(m)
+            for w in d['warnings']:
+                _nc_common.warn(w)
         if mode_refine:
             #NB: We do not (yet) have anisotropic atomic properties (like
             #anisotropic displacements), so we can simply update just the
@@ -730,9 +731,9 @@ class NCMATComposerImpl:
                            _remap_fract_pos(pos[1]),
                            _remap_fract_pos(pos[2]) ) )
             ll.sort()
-            new_atompos = dict( (k,copy.deepcopy(v))
-                                for k,v in atompos.items()
-                                if k!='pos' )
+            new_atompos = { k: copy.deepcopy(v)
+                            for k,v in atompos.items()
+                            if k!='pos' }
             new_atompos['pos'] = ll
             self.__dirty()
             self.__params['cellsg'] = new_cellsg
@@ -760,7 +761,7 @@ class NCMATComposerImpl:
                 occumap[lbl]=occu
             else:
                 if not occumap[lbl] == occu:
-                    raise _nc_core.NCBadInput('All site occupancies for label "%s" are not identical'%lbl)
+                    raise _nc_core.NCBadInput(f'All site occupancies for label "{lbl}" are not identical')
 
         #remove occu==1.0 entries from map (and sort):
         occumap = dict( sorted( (k,v) for k,v in occumap.items() if v!=1.0 ) )
@@ -768,19 +769,19 @@ class NCMATComposerImpl:
             _nc_common.warn('Support for site_occupancy is highly experimental. Do *not* attempt to directly override'
                             +' value with the "density" cfg-parameter for this material (unless it is to simply scale it)')
         self.__dirty()
-        self.__params['atompos'] = dict( pos=pos, occumap=occumap )
+        self.__params['atompos'] = { 'pos': pos, 'occumap': occumap }
     def get_labels( self ):
         #from positions:
         atompos = self.__params.get('atompos',None)
-        s = set( lbl for lbl,x,y,z in atompos['pos'] ) if atompos else set()
+        s = { lbl for lbl,x,y,z in atompos['pos'] } if atompos else set()
         #from dyninfo:
-        for lbl in self.__params.get('dyninfos',{}).keys():
+        for lbl in self.__params.get('dyninfos',{}):
             s.add(lbl)
         #from composition:
-        for lbl in self.__params.get('compositions',{}).keys():
+        for lbl in self.__params.get('compositions',{}):
             s.add(lbl)
         #from fractions:
-        for lbl in self.__params.get('fractions',{}).keys():
+        for lbl in self.__params.get('fractions',{}):
             s.add(lbl)
         return s
 
@@ -856,9 +857,9 @@ class NCMATComposerImpl:
                 fbdt = self.__params.get('fallback_debye_temp',None)
                 if fbdt is not None:
                     natoms_with_fallback_dyninfo += 1
-                    dyninfo = dict( ditype='vdosdebye',
-                                    debye_temp = fbdt,
-                                    comment = 'WARNING: Using fallback Debye temperature value!' )
+                    dyninfo = { 'ditype': 'vdosdebye',
+                                'debye_temp': fbdt,
+                                'comment': 'WARNING: Using fallback Debye temperature value!' }
             if not dyninfo:
                 raise _nc_core.NCMissingInfo(f'Missing dyninfo for atom label "{lbl}" (add via call to set_dyninfo_...)')
             comment = dyninfo['comment']
@@ -968,11 +969,11 @@ class NCMATComposerImpl:
             return
         out = {}
         from collections import Counter as _collections_Counter
-        counts = _collections_Counter(list(e[0] for e in atompos['pos']))
+        counts = _collections_Counter([e[0] for e in atompos['pos']])
         for lbl,count in counts.items():
             frac = float(count) / natoms
             gcd = math.gcd(count,natoms)
-            out[ lbl ] = ( frac, ( '1' if count==natoms else '%i/%i'%( count // gcd, natoms // gcd ) ), count )
+            out[ lbl ] = ( frac, ( '1' if count==natoms else f'{count//gcd}/{natoms//gcd}' ), count )
         return out
 
     def get_chemical_composition( self, as_str ):
@@ -980,7 +981,7 @@ class NCMATComposerImpl:
         _lbl_counts = None
         if atompos:
             _afr = self.__determine_atompos_fractions( atompos )
-            _lbl_counts = list( (lbl,count) for lbl,(_,_,count) in _afr.items() )
+            _lbl_counts = [ (lbl,count) for lbl,(_,_,count) in _afr.items() ]
         elif self.__params.get('cellsg'):
             #We could in principle proceed below, but for crystals, we promise that the
             #return value is always numbers per unit cell!
@@ -1103,7 +1104,7 @@ class NCMATComposerImpl:
                 raise _nc_core.NCBadInput('Density must be set explicitly for non-crystalline materials (add via call to set_density)')
             if not dyninfos:
                 raise _nc_core.NCBadInput('Material incompletely specified.')
-            if set(dyninfos.keys()) != set(lbl for lbl,fv in (fractions or {}).items() if fv is not None):
+            if set(dyninfos.keys()) != {lbl for lbl,fv in (fractions or {}).items() if fv is not None}:
                 raise _nc_core.NCBadInput('For non-crystalline materials with more than one component, all components must have fractions specified.')
             _fracsum = math.fsum(val for lbl,val in sorted((fractions or {}).items()))
             if abs( 1.0 - _fracsum ) > 1e-10:
@@ -1126,7 +1127,7 @@ class NCMATComposerImpl:
             ll += f'@STATEOFMATTER\n{som}\n'
 
         _t = self.__params.get('temperature',None)
-        _v = '%.14g'%_t['value'] if _t else None
+        _v = f"{_t['value']:.14g}" if _t else None
         if _t and ( _t['lock'] or _v != '293.15' ):
             ll += '@TEMPERATURE\n'
             if not _t['lock']:
@@ -1180,10 +1181,9 @@ class NCMATComposerImpl:
             _ = 'values were' if natoms_with_fallback_dyninfo>1 else 'value was'
             if comments and comments[-1]:
                 comments.append('')
-            comments += ['WARNING: Fallback (dummy) Debye temperature %s used for '%_
-                         +'%i atom%s!'%(
-                             natoms_with_fallback_dyninfo,
-                             's' if natoms_with_fallback_dyninfo>1 else ''),'']
+            _n = natoms_with_fallback_dyninfo
+            comments += [ ( f'WARNING: Fallback (dummy) Debye temperature {_}'
+                            f' used for {_n} atom{"s" if _n>1 else ""}!' ), '' ]
 
         if did_verify_xtal_struct:
             comments += ['NOTICE: crystal structure was verified with spglib to be self-consistent.']
@@ -1193,7 +1193,7 @@ class NCMATComposerImpl:
 
         #determine chemical formula
         if atompos_fractions is not None:
-            _lbl_counts = list( (lbl,count) for lbl,(_,_,count) in atompos_fractions.items() )
+            _lbl_counts = [ (lbl,count) for lbl,(_,_,count) in atompos_fractions.items() ]
         else:
             assert fractions
             _lbl_counts = sorted( fractions.items())
@@ -1225,7 +1225,7 @@ class NCMATComposerImpl:
             _ = self.__class__.__name__
             if _.endswith('Impl') and len(_)>4:
                 _ = _[:-4]
-            out.append('# Autogenerated by %s'%_)
+            out.append(f'# Autogenerated by {_}')
 
         if not disable_autotitle:
             out += [ '#',f'# {_title}','#' ]
@@ -1234,7 +1234,7 @@ class NCMATComposerImpl:
                 out += [ f'# Atoms per unit cell: {_}','#' ]
 
         for tc in comments:
-            out.append(('# %s'%tc).rstrip())
+            out.append(f'# {tc}'.rstrip())
 
         if cfg_params:
             if out and out[-1] != '#':
@@ -1278,7 +1278,7 @@ def _determine_dyninfo_mapping( labels, composition, dilist ):
                     z2lbl[z] = [ lbl ]
         if allow_multi:
             return z2lbl
-        return dict( (k,v[0]) for k,v in z2lbl.items() if len(v)==1 )
+        return { k: v[0] for k,v in z2lbl.items() if len(v)==1 }
 
     def lookup_zval_for_label(lbl):
         c = composition.get(lbl,None)
@@ -1310,7 +1310,7 @@ def extract_dyninfo_objects( labels, compositions, source, mapping ):
          and not hasattr(source,'keys') #NB: '__len__' but not 'keys': list-like but not dict-like.
          and ( len(source)==0 or all(isinstance(e, _nc_core.Info.DynamicInfo) for e in source ) ) ):
         #sequence of dyninfo objects
-        description, dilist = 'list of DynamicInfo objects', list( e for e in source )
+        description, dilist = 'list of DynamicInfo objects', list(source)
     else:
         from .misc import MaterialSource
         ms = MaterialSource(source)
@@ -1327,7 +1327,7 @@ def extract_dyninfo_objects( labels, compositions, source, mapping ):
         mapping = _determine_dyninfo_mapping( labels, compositions, dilist )
 
     out = {}
-    dilbl_2_di = dict( (di.atomData.displayLabel(),di) for di in dilist )
+    dilbl_2_di = { di.atomData.displayLabel(): di for di in dilist }
     for lbl in labels:
         target_dilbl = mapping.get(lbl,None)
         if not target_dilbl:
@@ -1337,7 +1337,7 @@ def extract_dyninfo_objects( labels, compositions, source, mapping ):
             _='", "'.join(sorted(dilbl_2_di.keys()))
             raise _nc_core.NCBadInput(f'No display label "{target_dilbl}" found in source (source has display labels "{_}").')
         comment = f'Transferred from "{target_dilbl}" in "{description}"'
-        out[lbl] = dict( obj=di, comment=comment )
+        out[lbl] = { 'obj': di, 'comment': comment }
 
     return keepalive, out
 
@@ -1454,7 +1454,7 @@ def _composerimpl_from_info( infoobj ):
         _seenstr = _seen.get(key,None)
         if _seenstr is not None:
             if _adstr != _seenstr:
-                raise _nc_core.NCBadInput('Atom with (Z,A)=(%i,%i) appears in multiple roles with different data values in material. Such materials are not supported by the NCMATComposer.'%key)
+                raise _nc_core.NCBadInput('Atom with (Z,A)=({},{}) appears in multiple roles with different data values in material. Such materials are not supported by the NCMATComposer.'.format(*key))
             continue
         _seen[ key ] = _adstr
         from .atomdata import atomDB
@@ -1522,7 +1522,7 @@ def _decode_composition(label,*composition):
             #single element form like: 'Al'
             norm_ident = _nc_common.check_elem_or_isotope_marker( p[0] )
             if not norm_ident:
-                raise _nc_core.NCBadInput(errmsg+': invalid element/isotope marker "%s"'%p[0])
+                raise _nc_core.NCBadInput(errmsg+f': invalid element/isotope marker "{p[0]}"')
             return label, [(1.0,norm_ident)]
         elif ( hasattr(single_arg,'__len__')
                and len(single_arg)>=2 and len(single_arg)%2==0
@@ -1553,12 +1553,12 @@ def _decode_composition(label,*composition):
     for frac_orig, ident in composition:
         frac_val = _decodeflt( frac_orig )
         if frac_val is None:
-            raise _nc_core.NCBadInput(errmsg+': invalid fraction specification "%s"'%frac_orig)
+            raise _nc_core.NCBadInput(errmsg+f': invalid fraction specification "{frac_orig}"')
         if not (0<frac_val<=1.0):
-            raise _nc_core.NCBadInput(errmsg+': fraction specification "%s" is not in (0,1]'%frac_orig)
+            raise _nc_core.NCBadInput(errmsg+f': fraction specification "{frac_orig}" is not in (0,1]')
         norm_ident = _nc_common.check_elem_or_isotope_marker( ident )
         if not norm_ident:
-            raise _nc_core.NCBadInput(errmsg+': invalid element or isotope identifier "%s"'%ident)
+            raise _nc_core.NCBadInput(errmsg+f': invalid element or isotope identifier "{ident}"')
         ll.append( ( frac_val, norm_ident ) )
     fractot = math.fsum(f for f,lbl in ll)
     if abs(fractot-1.0)>1e-5:
@@ -1588,7 +1588,7 @@ def determine_labels_and_atomdb( _self_params, *, fractions, allow_siteoccu_ncma
 
     #labels:
     dyninfo_lbls = set( dyninfos.keys() )
-    atompos_lbls = set( lbl for lbl,x,y,z in atompos['pos'] ) if atompos else set()
+    atompos_lbls = { lbl for lbl,x,y,z in atompos['pos'] } if atompos else set()
     fractions_lbls = set( (fractions or {}).keys() )
     direct_lbls = dyninfo_lbls.union( atompos_lbls ).union( fractions_lbls )
 
@@ -1596,7 +1596,7 @@ def determine_labels_and_atomdb( _self_params, *, fractions, allow_siteoccu_ncma
     def _expand_implicit_compositions( direct_lbls, compositions ):
         for lbl,_ in compositions.items():
             if lbl not in direct_lbls:
-                raise _nc_core.NCBadInput('Label "%s" was given a composition but is not actually used in the material'%lbl)
+                raise _nc_core.NCBadInput(f'Label "{lbl}" was given a composition but is not actually used in the material')
 
         compositions = copy.deepcopy(compositions)#retain immutability
         for lbl in direct_lbls:
@@ -1612,14 +1612,14 @@ def determine_labels_and_atomdb( _self_params, *, fractions, allow_siteoccu_ncma
     #check completeness of labels in other sections:
     if atompos:
         if (dyninfo_lbls - atompos_lbls):
-            raise _nc_core.NCBadInput('Some atoms with dynamic information are missing atomic positions: "%s"'%('", "'.join(dyninfo_lbls - atompos_lbls)))
+            raise _nc_core.NCBadInput('Some atoms with dynamic information are missing atomic positions: "{}"'.format('", "'.join(dyninfo_lbls - atompos_lbls)))
         if not param_fallback_debye_temp and (atompos_lbls-dyninfo_lbls):
-            raise _nc_core.NCBadInput('Missing dynamic information for some atoms: "%s"'%('", "'.join(atompos_lbls-dyninfo_lbls)))
+            raise _nc_core.NCBadInput('Missing dynamic information for some atoms: "{}"'.format('", "'.join(atompos_lbls-dyninfo_lbls)))
     else:
         if (dyninfo_lbls-fractions_lbls):
-            raise _nc_core.NCBadInput('Some atoms with dynamic information are missing fractions: "%s"'%('", "'.join(dyninfo_lbls - fractions_lbls)))
+            raise _nc_core.NCBadInput('Some atoms with dynamic information are missing fractions: "{}"'.format('", "'.join(dyninfo_lbls - fractions_lbls)))
 
-    lbls_with_nonunit_occu = set( lbl for lbl,occu in occumap.items() if occu != 1.0 ) if occumap else set()
+    lbls_with_nonunit_occu = { lbl for lbl,occu in occumap.items() if occu != 1.0 } if occumap else set()
 
     #SPECIAL HACK BEGIN
     if lbls_with_nonunit_occu and not allow_siteoccu_ncmatv5_hack:
@@ -1632,12 +1632,12 @@ def determine_labels_and_atomdb( _self_params, *, fractions, allow_siteoccu_ncma
     for i,lbl in enumerate(sorted(lbls_with_nonunit_occu)):
         origelem_mass = calc_mass(lbl,compositions[lbl])
         compos = compositions[lbl][:]
-        origelem_lbl = lbl if compos is None else _nc_common.format_chemform(list((v,k) for k,v in compos))
+        origelem_lbl = lbl if compos is None else _nc_common.format_chemform([(v,k) for k,v in compos])
         assert 0.0 < origelem_mass < 2000.0
         #In principle I should check this is not already used, but if anyone
         #actually needs Og999 or thereabouts, they are obviously just trying
         #to break our hack by being smartasses :-)
-        hijackedIsotope = 'Og%i'%(299-i)
+        hijackedIsotope = f'Og{299-i}'
         assert hijackedIsotope not in atomdb
         atomdb[hijackedIsotope] = _nc_core.AtomData.fmt_atomdb_str( origelem_mass, 0.0, 0.0, 0.0 )
         occu = occumap[lbl]
@@ -1648,7 +1648,7 @@ def determine_labels_and_atomdb( _self_params, *, fractions, allow_siteoccu_ncma
     atomdb_lines = []
     atomdb_lines += atomdb_hack_comments
     for lbl,paramstr in sorted( atomdb.items() ):
-        atomdb_lines.append('%s %s'%(lbl,paramstr))
+        atomdb_lines.append(f'{lbl} {paramstr}')
 
     #We must remap exactly those labels which are not a single element or
     #isotopes, or those single/element isotopes that have more than one
@@ -1664,17 +1664,17 @@ def determine_labels_and_atomdb( _self_params, *, fractions, allow_siteoccu_ncma
         if Xidx_next>100:
             raise _nc_core.NCBadInput('Material requires more than 100 special labels which is'
                              +' not supported by NCMAT (allowed are only X1,X2,...,X99 and X')
-        speciallbl = 'X' if Xidx_next==100 else 'X%i'%Xidx_next
+        speciallbl = 'X' if Xidx_next==100 else f'X{Xidx_next}'
         Xidx_next += 1
         lblmap[lbl] = speciallbl
         if len(compos)==1:
             assert compos[0][0]==1.0
-            atomdb_lines.append( '%s is %s'%(speciallbl,compos[0][1]))
+            atomdb_lines.append( f'{speciallbl} is {compos[0][1]}')
         else:
             s=''
             for frac,name in compos:
                 s += f' {frac:.12g} {name}'
-            atomdb_lines.append( '%s is%s'%(speciallbl,s))
+            atomdb_lines.append( f'{speciallbl} is{s}')
     return lblmap,atomdb_lines
 
 def _is_nonempty_array( x ):
@@ -1729,7 +1729,7 @@ def _lattice_params_to_vectors( a, b, c, alpha, beta, gamma ):
         if x == 120.0:
             return 0.86602540378443864676372317075293618347140262690519, -0.5
         return math.sin( x*(math.pi/180) ), math.cos( x*(math.pi/180) )
-    sa,ca = _sincos( alpha )
+    _sa,ca = _sincos( alpha )
     sb,cb = _sincos( beta )
     sg,cg = _sincos( gamma )
     assert sg > 0.0
@@ -1755,7 +1755,8 @@ def _lattice_vectors_to_params( vect_a, vect_b, vect_c, as_dict = True ):
     a,b,c = mag(vect_a), mag(vect_b), mag(vect_c)
     alpha,beta,gamma = ang(vect_b,vect_c), ang(vect_a,vect_c), ang(vect_a,vect_b)
     if as_dict:
-        return dict( a=a, b=b, c=c, alpha=alpha, beta=beta, gamma=gamma )
+        return { 'a': a, 'b': b, 'c': c,
+                 'alpha': alpha, 'beta': beta, 'gamma': gamma }
     else:
         return a, b, c, alpha, beta, gamma
 
@@ -1899,9 +1900,8 @@ def _spglib_extractsg( spglib_symdata ):
 def _check_cell_sg_consistency( sgnumber, a, b, c, alpha, beta, gamma ):
     sgclass = _nc_common._classifySG(int(sgnumber))
     if sgclass in ( 'orthorhombic', 'tetragonal', 'cubic'):
-        if sgclass=='cubic':
-            if a!=b or a!=c:
-                raise _nc_core.NCBadInput(f'Cubic space group {sgnumber} requires cell parameters a==b==c (found a={a:g}, b={b:g}, c={c:g})')
+        if sgclass=='cubic' and ( a!=b or a!=c ):
+            raise _nc_core.NCBadInput(f'Cubic space group {sgnumber} requires cell parameters a==b==c (found a={a:g}, b={b:g}, c={c:g})')
         if not all( (_ == 90) for _ in (alpha, beta, gamma) ):
             raise _nc_core.NCBadInput(f'Space group {sgnumber} requires cell parameters alpha=beta=gamma=90 '
                                 +f'(found alpha={alpha}, beta={beta}, gamma={gamma})')
@@ -1913,9 +1913,8 @@ def _check_cell_sg_consistency( sgnumber, a, b, c, alpha, beta, gamma ):
         if not all( (0<a<180) for a in ( alpha, beta, gamma ) ):
             raise _nc_core.NCBadInput('Unit cell must have all angles between 0 and 180'
                                 +f' (found alpha={alpha}, beta={beta}, gamma={gamma})')
-    if int(sgnumber) >= 75:
-        if a!=b:
-            raise _nc_core.NCBadInput(f'Space group {sgnumber} requires cell parameters a==b (found a={a:g}, b={b:g}, c={c:g})')
+    if int(sgnumber) >= 75 and a!=b:
+        raise _nc_core.NCBadInput(f'Space group {sgnumber} requires cell parameters a==b (found a={a:g}, b={b:g}, c={c:g})')
 
 def _spglib_refine_cell( spglib_cell, symprec = 0.01 ):
     assert spglib_cell
@@ -1949,13 +1948,13 @@ def _spglib_refine_cell( spglib_cell, symprec = 0.01 ):
             warnrev.append(w)
     warnings = warnrev[::-1]
 
-    return dict( refined_cell = refined_cell,
-                 cellparams_snapped = p_final,
-                 sgno = sgno,
-                 sgsymb_hm = sgsymb_hm,
-                 warnings = warnings,
-                 msgs = msgs,
-                 can_keep_anisotropic_properties = not discard_aniso )
+    return { 'refined_cell': refined_cell,
+             'cellparams_snapped': p_final,
+             'sgno': sgno,
+             'sgsymb_hm': sgsymb_hm,
+             'warnings': warnings,
+             'msgs': msgs,
+             'can_keep_anisotropic_properties': not discard_aniso }
 
 def _impl_spglib_refine_cell( spglib_cell, *, symprec, warnings, msgs, nrepeat = 0 ):
     spglib = _import_spglib()
@@ -1976,7 +1975,7 @@ def _impl_spglib_refine_cell( spglib_cell, *, symprec, warnings, msgs, nrepeat =
         #(e.g. alpha=89.99999 -> alpha=90.0). After this a second refinement
         #might find a different (higher) symmetry:
         warnings += snaplog[:]
-        refined_cell = tuple( [ _cellparams_to_spglib_lattice( p ) ] + list( e for e in refined_cell[1:] ) )
+        refined_cell = tuple( [ _cellparams_to_spglib_lattice( p ) ] + list(refined_cell[1:]) )
         if nrepeat <= 3:
             return _impl_spglib_refine_cell( refined_cell, symprec = symprec, warnings=warnings, msgs=msgs, nrepeat = nrepeat + 1 )
 
@@ -2089,7 +2088,7 @@ def _cifdata_via_ase( data_or_file, ase_format = None, quiet = False ):
 def formatVectorForNCMAT(name,values,indent):
     def provideFormattedEntries():
         def _fmtnum(num):
-            _ = '%g'%num if num else '0'#avoid 0.0, -0, etc.
+            _ = f'{num:g}' if num else '0'#avoid 0.0, -0, etc.
             if _.startswith('0.'):
                 _=_[1:]
             return _
@@ -2105,13 +2104,13 @@ def formatVectorForNCMAT(name,values,indent):
                     irepeat+=1
                 else:
                     break
-            yield '%sr%i'%(fmt_vi,1+irepeat-i) if irepeat>i else '%s'%fmt_vi
+            yield f'{fmt_vi}r{1+irepeat-i}' if irepeat>i else fmt_vi
             i=irepeat+1#advance
     out=''
-    line='  %s'%name
+    line=f'  {name}'
     collim=80
     for e in provideFormattedEntries():
-        snext=' %s'%e
+        snext=f' {e}'
         line_next=line+snext
         if len(line_next)>collim:
             out += line

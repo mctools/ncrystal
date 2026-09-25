@@ -137,7 +137,7 @@ def test2():
                 else:
                     pp = pp.replace('\\','/')
                     pobj=pathlib.PurePosixPath(pp)
-                return dict(pathlib=pobj.name)
+                return {'pathlib': pobj.name}
             for refsrc, refbasename in decode_refbn(p).items():
                 if refbasename != nc_basename:
                     raise SystemExit(f"basename({p!r}) mismatch:"
@@ -168,7 +168,7 @@ def test3():
     for fn in [ 'a.txt', 'b.txt', 'b\u2030.ncmat' ]:
         (subdir / fn).write_text('dummy')
     testtext = 'some\nmulti\nline funny \u2030 text\n'
-    print("Writing %i chars"%len(testtext))
+    print(f"Writing {len(testtext)} chars")
 
     (subdir / 'b\u2030.ncmat').write_text(testtext,encoding='utf8')#NCrystal
                                                                    #only loads
@@ -185,7 +185,8 @@ def test3():
         'unicodedir_test\u4500abc/b\u2030.ncmat'
     )
     content_newlines_norm = content.replace('\r\n','\n')
-    print("Read %i chars (after newline normalisation)"%len(content_newlines_norm))
+    print(f"Read {len(content_newlines_norm)} chars"
+          " (after newline normalisation)")
     for e in content.splitlines():
         print('READ>',repr(explicit_unicode_str(e)),flush=True)
     assert testtext == content_newlines_norm
@@ -292,18 +293,18 @@ def test5( workdir ):
     td = workdir
     files = [
         #We only test symlink to files, not directories here!
-        dict(name='asimplefile.txt',content='hello'),
-        dict(name='sd 1',is_dir=True),
-        dict(name='sd 1/lala.txt',content='bla'),
-        dict(name='sd 1/\u4500abc',is_dir=True),
-        dict(name='sd 1/\u4500abc/.\u4500',content='foobar'),
-        dict(name='sd 1/\u4500abc/.foo~',content='foobar'),
+        {'name': 'asimplefile.txt','content': 'hello'},
+        {'name': 'sd 1','is_dir': True},
+        {'name': 'sd 1/lala.txt','content': 'bla'},
+        {'name': 'sd 1/\u4500abc','is_dir': True},
+        {'name': 'sd 1/\u4500abc/.\u4500','content': 'foobar'},
+        {'name': 'sd 1/\u4500abc/.foo~','content': 'foobar'},
         #dict(name='asimplefilelinked.txt',symlink='asimplefile.txt'),
         #dict(name='sd 1/asimplefilelinked.txt',symlink='../asimplefile.txt'),
-        dict(name='sd2',is_dir=True),
+        {'name': 'sd2','is_dir': True},
         #dict(name='sd2/sl2',symlink=str(td.joinpath('sd 1').absolute()),is_dir=True),
-        dict(name='sd  __   3',is_dir=True),
-        dict(name='sd  __   3/bla.ncmat',content='NCMAT'),
+        {'name': 'sd  __   3','is_dir': True},
+        {'name': 'sd  __   3/bla.ncmat','content': 'NCMAT'},
     ]
     #Create layout:
     for finfo in files:
@@ -366,7 +367,7 @@ def test5( workdir ):
         fabs_prev = td.parent
         for is_abs, fin in [ (False,f), (True,fabs) ]:
             assert not lib.nctest_is_same_file( str(fabs_prev), str(fin) )
-            for ftest in sorted(set([t(fin) for t in transforms])):
+            for ftest in sorted({t(fin) for t in transforms}):
                 ftest_shown = ftest
                 if is_abs:
                     ftest_shown = '<hiddenabspart>'+ftest[-len(str(f)):]

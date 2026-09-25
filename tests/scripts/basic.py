@@ -61,33 +61,38 @@ def myprint(*args):
     sys.stderr.flush()
 
 
-myprint("Temperature : %s"%('%g'%info.getTemperature() if info.hasTemperature() else '<n/a>'))
+_ = f'{info.getTemperature():g}' if info.hasTemperature() else '<n/a>'
+myprint(f"Temperature : {_}")
 myprint("DebyeTemp : %s"%('yes' if info.hasDebyeTemperature() else 'no'))
-myprint("XSectAbsorp : %g"%info.getXSectAbsorption())
-myprint("XSectFree : %g"%info.getXSectFree())
-myprint("Density : %g"%info.getDensity())
-myprint("Structure : %s"%(', '.join('%s=%.12g'%(k,v) for k,v in sorted(info.getStructureInfo().items())) if info.hasStructureInfo() else '<n/a>'))
+myprint(f"XSectAbsorp : {info.getXSectAbsorption():g}")
+myprint(f"XSectFree : {info.getXSectFree():g}")
+myprint(f"Density : {info.getDensity():g}")
+_ = ( ', '.join(f'{k}={v:.12g}'
+               for k,v in sorted(info.getStructureInfo().items()))
+      if info.hasStructureInfo() else '<n/a>' )
+myprint(f"Structure : {_}")
 
 calc_powderbragg = NC.createScatter(datafile+";inelas=0;incoh_elas=0")
 xs = calc_powderbragg.crossSectionIsotropic(NC.wl2ekin(4.0))
-myprint("Aluminium %s diffraction cross-section @ 4.0Aa: %g barn"%(calc_powderbragg.name,xs))
+myprint(f"Aluminium {calc_powderbragg.name} diffraction cross-section @ 4.0Aa: {xs:g} barn")
 
 wls=np.linspace(1.0,4.0,4)
-myprint("Aluminium %s diffraction cross-section @ [%s]Aa: [%s] barn"%(calc_powderbragg.name,
-                                                                      (', '.join('%g'%e for e in wls)),
-                                                                      (', '.join('%g'%e for e in calc_powderbragg.xsect(wl=wls)))))
+_wls = ', '.join(f'{e:g}' for e in wls)
+_xs = ', '.join(f'{e:g}' for e in calc_powderbragg.xsect(wl=wls))
+myprint(f"Aluminium {calc_powderbragg.name} diffraction cross-section"
+        f" @ [{_wls}]Aa: [{_xs}] barn")
 
 
 calc_bkgd = NC.createScatter(datafile+";bragg=false")
 xs = calc_bkgd.crossSectionIsotropic(NC.wl2ekin(4.0))
-myprint("Aluminium Bkgd cross-section @ 4.0Aa: %g barn"%xs)
+myprint(f"Aluminium Bkgd cross-section @ 4.0Aa: {xs:g} barn")
 
 calc_scomp = NC.createScatter(datafile)
 xs = calc_scomp.crossSectionIsotropic(NC.wl2ekin(4.0))
-myprint("Aluminium Bkgd+PowderBragg cross-section @ 4.0Aa: %g barn"%xs)
+myprint(f"Aluminium Bkgd+PowderBragg cross-section @ 4.0Aa: {xs:g} barn")
 
 xs_abs = NC.createAbsorption(datafile).crossSectionIsotropic(NC.wl2ekin(4.0))
-myprint("Aluminium absorption cross-section @ 4.0Aa: %g barn"%xs_abs)
+myprint(f"Aluminium absorption cross-section @ 4.0Aa: {xs_abs:g} barn")
 
 #single crystal Ge (also testing using python multi-line string for complex settings):
 calc_scatfactsc = NC.createScatter("""
@@ -98,10 +103,10 @@ calc_scatfactsc = NC.createScatter("""
                                    dirtol=45deg""")
 
 xs = calc_scatfactsc.crossSection( NC.wl2ekin(4.0), (1,0.15,0.7) )
-myprint("Germanium ScatFactSC cross-section @ 4.0Aa and (1.0, 0.15, 0.7): %g barn"%xs)
-myprint("... same with xsect method: %g barn"%calc_scatfactsc.xsect( wl=4.0, direction=(1,0.15,0.7) ))
-myprint("... same with xsect method2: %g barn"%calc_scatfactsc.xsect( NC.wl2ekin(4.0), direction=(1,0.15,0.7) ))
-myprint("... same with xsect method3: %g barn"%calc_scatfactsc.xsect( direction=(1,0.15,0.7),ekin=NC.wl2ekin(4.0) ) )
+myprint(f"Germanium ScatFactSC cross-section @ 4.0Aa and (1.0, 0.15, 0.7): {xs:g} barn")
+myprint(f"... same with xsect method: {calc_scatfactsc.xsect( wl=4.0, direction=(1,0.15,0.7) ):g} barn")
+myprint(f"... same with xsect method2: {calc_scatfactsc.xsect( NC.wl2ekin(4.0), direction=(1,0.15,0.7) ):g} barn")
+myprint(f"... same with xsect method3: {calc_scatfactsc.xsect( direction=(1,0.15,0.7),ekin=NC.wl2ekin(4.0) ):g} barn" )
 
 
 
@@ -125,8 +130,8 @@ def test_genscatter(scatter,wl,indir):
     x,y,z=indir
     a,b,c=outdir
     angle = math.acos((x*a+y*b+z*c)/math.sqrt((x*x+y*y+z*z)*(a*a+b*b+c*c)))
-    indir_str = '(%g, %g, %g)'%indir#like this rather than str(indir) for python 2.6 test reproducibility
-    myprint("scattering at %g Aa from %s happens at %g deg and delta-E %g eV"%(wl,indir_str,angle*180/math.pi,delta_e))
+    indir_str = '({:g}, {:g}, {:g})'.format(*indir)#like this rather than str(indir) for python 2.6 test reproducibility
+    myprint(f"scattering at {wl:g} Aa from {indir_str} happens at {angle*180/math.pi:g} deg and delta-E {delta_e:g} eV")
 
 for i in range(20):
     test_genscatter(calc_scatfactsc,4.0, (1,0.15,0.7))
@@ -148,14 +153,14 @@ myprint(npfmt(de*1000))
 for fn in ('Be_sg194.ncmat','Al_sg225.ncmat'):
     for part in ('',";inelas=0;incoh_elas=0",';coh_elas=0'):
         cfg=fn+';dcutoff=10.0'+part
-        myprint('===> Testing potentially vanishing scatter: "%s":'%cfg)
+        myprint(f'===> Testing potentially vanishing scatter: "{cfg}":')
         sc = NC.createScatter(cfg)
-        myprint('    xs@1Aa : %g'%sc.crossSectionIsotropic(NC.wl2ekin(1.0)))
-        myprint('    xs@5Aa : %g'%sc.crossSectionIsotropic(NC.wl2ekin(5.0)))
+        myprint(f'    xs@1Aa : {sc.crossSectionIsotropic(NC.wl2ekin(1.0)):g}')
+        myprint(f'    xs@5Aa : {sc.crossSectionIsotropic(NC.wl2ekin(5.0)):g}')
         #ang,de=sc.generateScatteringNonOriented(NC.wl2ekin(1.0),repeat=10000)
         ekin_final,mu=sc.sampleScatterIsotropic(NC.wl2ekin(1.0),repeat=10000)
         ang, de = np.vectorize(math.acos)(mu), ekin_final - NC.wl2ekin(1.0)
-        myprint('    mean scat@1Aa : %.2g rad, de=%.2geV'%(ang.mean(),de.mean()))
+        myprint(f'    mean scat@1Aa : {ang.mean():.2g} rad, de={de.mean():.2g}eV')
 
 myprint('===> Testing exceptions')
 
@@ -195,12 +200,12 @@ myprint("Did not catch exception! (as expected)")
 NC.setDefaultRandomGenerator(None)
 
 myprint("wl2ekin:")
-myprint('%.12g'%NC.wl2ekin(4.0))
+myprint(f'{NC.wl2ekin(4.0):.12g}')
 myprint(NC.wl2ekin(0.0))
 myprint(NC.wl2ekin(float('inf')))
 myprint(npfmt(NC.wl2ekin(np.asarray([4.0,0.0,float('inf')]))))
 myprint("ekin2wl:")
-myprint('%.12g'%NC.ekin2wl(0.025))
+myprint(f'{NC.ekin2wl(0.025):.12g}')
 myprint(NC.ekin2wl(0.0))
 myprint(NC.ekin2wl(float('inf')))
 myprint(npfmt(NC.ekin2wl(np.asarray([0.025,0.0,float('inf')]))))
@@ -215,9 +220,9 @@ print("\n---> testing fast Bragg threshold detection:")
 sc1 = NC.createInfo('NaCl_sg225_SodiumChloride.ncmat;temp=123K')
 sc2 = NC.createInfo('NaCl_sg225_SodiumChloride.ncmat;temp=234K')
 fast_bt = sc1.braggthreshold
-print("  Fast Bragg threshold(1) %.7g"%fast_bt)
+print(f"  Fast Bragg threshold(1) {fast_bt:.7g}")
 alt_bt = 2.0 * next(sc2.hklList())[4]#twice the dspacing of the first hkl entry
-print("  Full init bragg threshold(1) %.7g"%alt_bt)
+print(f"  Full init bragg threshold(1) {alt_bt:.7g}")
 assert abs(fast_bt-alt_bt)<1e-3
 assert abs(fast_bt-alt_bt)<1e-14
 assert abs(sc2.braggthreshold-alt_bt)<1e-14
@@ -307,5 +312,5 @@ for c in ['  stdlib \t\t ::  \t \n Al_sg225.ncmat  ; temp = 30 K',
           '  stdlib \t\t ::  \t \n Al_sg225.ncmat  ; ;\t\t\n;;temp =  30.000\n',
           '  \t\t   \t \n Al_sg225.ncmat  ; ;\t\t\n;;temp =  30.000\n',
           '  phases<1.0*\t\t   \t \n Al_sg225.ncmat  ;; temp=20;\t\t\n>;;temp =  30.000\n']:
-    print('normalise(%s)=%s'%(repr(c.replace('\t','\\t').replace('\n','\\n')),
-                              repr(NC.normaliseCfg(c))))
+    _c = c.replace('\t','\\t').replace('\n','\\n')
+    print(f'normalise({_c!r})={NC.normaliseCfg(c)!r}')

@@ -84,7 +84,7 @@ def plot_xsect( material, *, mode='wl',
     logx = logxydefault if logx is None else bool(logx)
     logy = logxydefault if logy is None else bool(logy)
     x = (_np_geomspace if logx else _np_linspace)( xmin, xmax, npts )
-    xsectargs = dict(wl=x) if mode=='wl' else dict(ekin=x)
+    xsectargs = {'wl': x} if mode=='wl' else {'ekin': x}
     if xsmode=='macroscopic' and not loadedmat.info:
         from .exceptions import NCBadInput
         raise NCBadInput('Can not produce macroscopic cross section'
@@ -240,7 +240,7 @@ def plot_vdos( *vdos, unit='meV',
     col_ordered = _get_col_ordered()
 
     for ivdos,(vdos,use_orig) in enumerate(vdoslist):
-        lbl = vdos.label or 'VDOS#%i'%(ivdos+1)
+        lbl = vdos.label or f'VDOS#{ivdos+1}'
         if use_orig:
             lbl += ' (original)'
         if labelfct:
@@ -400,10 +400,10 @@ def plot_vdos_Gn( Gn, unit = 'meV', logy = False,
         _ensure_numpy()
         if len(egrid)==2 and len(gnvals)>2:
             egrid = _np_linspace(egrid[0],egrid[1],len(gnvals))
-        return dict( egrid = _np.asarray(egrid,dtype=float),
-                     gnvals = _np.asarray(gnvals,dtype=float),
-                     n = n,
-                     label = f'{label} (G{n})' if label else f'G{n}' )
+        return { 'egrid': _np.asarray(egrid,dtype=float),
+                 'gnvals': _np.asarray(gnvals,dtype=float),
+                 'n': n,
+                 'label': f'{label} (G{n})' if label else f'G{n}' }
     _ = decode_Gn( Gn )
     if _ is not None:
         gnlist = [ _ ]
@@ -634,7 +634,7 @@ class PlotContext:
     def kwargs_subcontext( self ):
         """Simply returning {'plot_context':obj.subcontext()} for convenience.
         """
-        return dict( plot_context=self.subcontext() )
+        return { 'plot_context': self.subcontext() }
 
     def check_unused( self ):
         """If there should be no .kwargs_unused to pass along to other

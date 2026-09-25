@@ -47,7 +47,7 @@ def test_fail( *args, **kwargs ):
     try:
         test(*args,**kwargs)
     except NCBadInput as e:
-        print("FAILED (as expected): %s"%e)
+        print(f"FAILED (as expected): {e}")
         return
     raise SystemExit('Did not fail as expected')
 

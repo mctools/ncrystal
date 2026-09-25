@@ -34,9 +34,7 @@ for i in range(20):
     ekin_final, mu = scAl.scatter(wl=wavelength)
     scatter_angle = math.acos(mu)
     delta_ekin = ekin_final-NCrystal.wl2ekin(wavelength)
-    print( "polycrystal random angle/delta-e at %g Aa is %g degrees and %g meV"%(wavelength,
-                                                                                 scatter_angle*57.2957795131,
-                                                                                 delta_ekin*1e3) )
+    print( f"polycrystal random angle/delta-e at {wavelength:g} Aa is {scatter_angle*57.2957795131:g} degrees and {delta_ekin*1e3:g} meV" )
 #Create and use single-crystal germanium
 
 sc = NCrystal.createScatter("""Ge_sg227.ncmat;dcutoff=0.5;mos=40arcsec;
@@ -47,7 +45,7 @@ wavelength = 1.540
 ekin = NCrystal.wl2ekin(wavelength)
 
 xsect = sc.xsect( wl=wavelength, direction = ( 0.0, 1.0, 1.0 ) )
-print( "singlecrystal Ge x-sect at  %g Aa is %g barn (orientation 1)"%(wavelength,xsect) )
+print( f"singlecrystal Ge x-sect at  {wavelength:g} Aa is {xsect:g} barn (orientation 1)" )
 
 xsect = sc.xsect( wl=wavelength, direction = ( 1.0, 1.0, 0.0 ) )
-print( "singlecrystal Ge x-sect at  %g Aa is %g barn (orientation 2)"%(wavelength,xsect) )
+print( f"singlecrystal Ge x-sect at  {wavelength:g} Aa is {xsect:g} barn (orientation 2)" )

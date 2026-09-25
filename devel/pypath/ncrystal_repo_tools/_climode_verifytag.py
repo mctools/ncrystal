@@ -103,7 +103,7 @@ def main( parser ):
         assert version_str
 
     if args.fail_if_devel:
-        major,minor,patch = (int(e) for e in version_str.split('.'))
+        _major,_minor,patch = (int(e) for e in version_str.split('.'))
         if patch % 2 == 1 or patch >= 80:
             raise SystemExit(f'Abort: Version {version_str} '
                              'indicates a development version')

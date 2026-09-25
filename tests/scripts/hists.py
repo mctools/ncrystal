@@ -89,7 +89,7 @@ def main(do_plot):
     print( 'h1.to_json: ', h1.to_json() )
 
     pval = h1.check_compat(h1,return_pval=True)
-    print("p-value: %g"%pval)
+    print(f"p-value: {pval:g}")
     assert pval==1.0
     h1.check_compat(h1,check=True)
     assert h1.check_compat(h1,return_pval=True,check=True) == 1.0
@@ -100,7 +100,7 @@ def main(do_plot):
         v_expect = math.fsum(fillws) if fillws else 0.0
         e_expect = math.sqrt(math.fsum([e**2
                                         for e in fillws])) if fillws else 0.0
-        print("Integrate (expects %g +- %g): %g +- %g"%(v_expect,e_expect,v,e))
+        print(f"Integrate (expects {v_expect:g} +- {e_expect:g}): {v:g} +- {e:g}")
         assert abs(v-v_expect) < 1e-10
         assert abs(e-e_expect) < 1e-10
 
@@ -109,7 +109,7 @@ def main(do_plot):
         v_expect = math.fsum(fillws) if fillws else 0.0
         e_expect = math.sqrt(math.fsum([e**2
                                         for e in fillws])) if fillws else 0.0
-        print("Integrate (expects %g +- %g): %g +- %g"%(v_expect,e_expect,v,e))
+        print(f"Integrate (expects {v_expect:g} +- {e_expect:g}): {v:g} +- {e:g}")
         assert abs(v-v_expect) < 1e-10
         assert abs(e-e_expect) < 1e-10
 
@@ -336,15 +336,15 @@ def main(do_plot):
         assert rms2 >= 0.0
         rms = math.sqrt(rms2)
 
-        ref = dict(integral=sumw, mean=mean, rms=rms)
-        hvals = dict( integral=hist.integral,
-                      mean=hist.mean,
-                      rms=hist.rms )
+        ref = {'integral': sumw, 'mean': mean, 'rms': rms}
+        hvals = { 'integral': hist.integral,
+                  'mean': hist.mean,
+                  'rms': hist.rms }
         okall = True
-        for k in ref:
-            v, vref = hvals[k], ref[k]
+        for k,vref in ref.items():
+            v = hvals[k]
             ok = abs(v-vref)<1e-10
-            print("  -> Stat: %s = %g (ref) %g (hist) %s"%( k, vref, v,
+            print("  -> Stat: {} = {:g} (ref) {:g} (hist) {}".format( k, vref, v,
                                                             'OK' if ok
                                                             else 'BAD' ) )
             okall = ok and okall
@@ -391,9 +391,9 @@ def main(do_plot):
 
     for clamp in [True,False]:
         for allow_weights in [True,False]:
-            histkw = dict( nbins=6,xmin=-3.0,xmax=3.0,
-                           allow_weights = allow_weights,
-                           clamp_overflows = clamp )
+            histkw = { 'nbins': 6,'xmin': -3.0,'xmax': 3.0,
+                       'allow_weights': allow_weights,
+                       'clamp_overflows': clamp }
             print()
             print('-'*80)
             print('-'*80)
@@ -446,11 +446,11 @@ def main(do_plot):
         [_.plot() for _ in (h, h_compat, h_slightcompat, h_incompat) ]
     assert h.check_compat(h_compat)
     pval = h.check_compat(h_compat,return_pval=True,check=True)
-    print("h vs. h_compat p-value: %g"%pval)
+    print(f"h vs. h_compat p-value: {pval:g}")
 
     assert h.check_compat(h_slightcompat)
     pval = h.check_compat(h_slightcompat,return_pval=True,check=True)
-    print("h vs. h_slightcompat p-value: %g"%pval)
+    print(f"h vs. h_slightcompat p-value: {pval:g}")
 
     assert not h.check_compat(h_incompat)
     with ensure_error(NCCalcError, 'check_compat failed:'
@@ -458,7 +458,7 @@ def main(do_plot):
         h.check_compat(h_incompat,check=True)
 
     pval = h.check_compat(h_incompat,return_pval=True)
-    print("h vs. h_incompat p-value: %.10f"%pval)
+    print(f"h vs. h_incompat p-value: {pval:.10f}")
     assert pval < 1e-13
 
     with ensure_error(NCBadInput,

@@ -72,7 +72,7 @@ def _actualtest( verbose ):
         return abs(a-b) <= 0.5 * rtol * (abs(a) + abs(b)) + atol
     def require_flteq(a,b):
         if not flteq(a,b):
-            raise RuntimeError('check failed (%.16g != %.16g, diff %g)'%(a,b,a-b))
+            raise RuntimeError(f'check failed ({a:.16g} != {b:.16g}, diff {a-b:g})')
         return True
     require(hasFactory('stdncmat'))
     from . import _common as nc_common
@@ -126,7 +126,7 @@ def _actualtest( verbose ):
     require( alpc.name == 'PowderBragg' )
     require( isinstance(alpc.name,str) )
     require( alpc.refCount() in (1,2) )
-    require( type(alpc.refCount()) == int )
+    require( type(alpc.refCount()) is int )
     require( alpc.isNonOriented() )
     #_nc_print(alpc.xsect(wl=4.0))
     require_flteq(1.632435821586171,alpc.crossSectionIsotropic(wl2ekin(4.0)) )
@@ -291,9 +291,9 @@ class CallInspector:
         thefmtcall = sf_kwargs.get('fmtcall') or self.__fmtcall
         def wrapper( *args, **kwargs ):
             _n = f'{self.__name}.{attrname}' if attrname!='__call__' else self.__name
-            _nc_print("CALLING %s"%thefmtcall(_n,args,kwargs))
+            _nc_print(f"CALLING {thefmtcall(_n,args,kwargs)}")
             res = getattr(self.__realobj,attrname)(*args,**kwargs) if self.__realobj else None
-            return CallInspector( name = 'ResultOf[%s(..)]'%_n,
+            return CallInspector( name = f'ResultOf[{_n}(..)]',
                                   realobj = res, **sf_kwargs ) if sf_kwargs else None
         return wrapper
 
@@ -306,7 +306,7 @@ def _fmtvalue( x, *, ndigits = _fmtvalue_default_ndigits ):
         return s+'.0' if ( s.isdigit() or s[0]=='-' and s[1:].isdigit() ) else s
     return repr(x)
 
-def _fmtcall(fctname,args=tuple(),kwargs=None):
+def _fmtcall(fctname,args=(),kwargs=None):
     import numbers
     def _fmt(a):
         if isinstance(a,numbers.Real):
@@ -318,11 +318,11 @@ def _fmtcall(fctname,args=tuple(),kwargs=None):
                     _[1] = _[1][1:]
                 s = ' object at SNIPADDR'.join(_)
             return s
-        return 'Object[%s]'%a.name if isinstance(a,CallInspector) else pruneaddr(repr(a))
+        return f'Object[{a.name}]' if isinstance(a,CallInspector) else pruneaddr(repr(a))
     ll = [ _fmt(a) for a in args ]
     if kwargs is None:
         kwargs = {}
-    ll += [ '%s=%s'%(k,_fmt(v)) for k,v in sorted(kwargs.items()) ]
+    ll += [ f'{k}={_fmt(v)}' for k,v in sorted(kwargs.items()) ]
     a=','.join(ll)
     return f'{fctname}({a})'
 
@@ -334,7 +334,7 @@ def _create_pyplot_inspector( pass_calls_to_real_plt ):
         realplt = None
     def shorten( x ):
         if hasattr(x,'shape') and len(x.shape)==2:
-            return 'Array(shape=%s,content=%s)'%(x.shape,shorten(x.flatten()))
+            return f'Array(shape={x.shape},content={shorten(x.flatten())})'
         if isinstance(x,str) or not hasattr(x,'__len__'):
             return x
         if len(x)==0:
@@ -353,9 +353,9 @@ def _create_pyplot_inspector( pass_calls_to_real_plt ):
             else:
                 return _fmtvalue( val )
         if len(x) <= 10:
-            return list(_fmtthislistval(e) for e in x)
+            return [_fmtthislistval(e) for e in x]
         else:
-            return list(_fmtthislistval(e) for e in x[0:3])+['...']+list(_fmtthislistval(e) for e in x[-3:])
+            return [_fmtthislistval(e) for e in x[0:3]]+['...']+[_fmtthislistval(e) for e in x[-3:]]
     def _create_shortening_fmtcall( nargs_to_shorten, kwargs_to_shorten = None ):
         def fmtcall_pltplot( name, args, kwargs ):
             plot_args, plot_kwargs = args, kwargs
@@ -371,12 +371,12 @@ def _create_pyplot_inspector( pass_calls_to_real_plt ):
 
     csf = _create_shortening_fmtcall
 
-    fill_between = ( 'fill_between', dict( fmtcall=csf(3)) )
-    plot = ( 'plot', dict( fmtcall=csf(2,('x','y'))) )
-    bar = ( 'bar', dict( fmtcall=csf(1,('x',))) )
-    errorbar = ( 'errorbar', dict( fmtcall=csf(3,('x','y','yerr',))) )
-    get_figure = ( 'get_figure',dict( subfcts=['suptitle','colorbar'] ) )
-    pcolormesh = ( 'pcolormesh',dict( subfcts=['set_clim'], fmtcall=csf(3)) )
+    fill_between = ( 'fill_between', { 'fmtcall': csf(3)} )
+    plot = ( 'plot', { 'fmtcall': csf(2,('x','y'))} )
+    bar = ( 'bar', { 'fmtcall': csf(1,('x',))} )
+    errorbar = ( 'errorbar', { 'fmtcall': csf(3,('x','y','yerr',))} )
+    get_figure = ( 'get_figure',{ 'subfcts': ['suptitle','colorbar'] } )
+    pcolormesh = ( 'pcolormesh',{ 'subfcts': ['set_clim'], 'fmtcall': csf(3)} )
     axisfcts = [ pcolormesh,fill_between, plot, bar, errorbar,
                  'semilogx','semilogy',get_figure,
                  'set_title','set_xticks','set_xlabel','set_ylabel',
@@ -386,12 +386,12 @@ def _create_pyplot_inspector( pass_calls_to_real_plt ):
     return CallInspector( name = 'plt', realobj = realplt,
                           subfcts = [ 'show','subplots','savefig',
                                       'suptitle','tight_layout','close',
-                                      ( 'gca',dict( subfcts=axisfcts ) ) ] )
+                                      ( 'gca',{ 'subfcts': axisfcts } ) ] )
 
 def _create_pdfpages_inspector( real_pdfpages ):
     return CallInspector( name = 'PdfPages',
                           realobj = real_pdfpages,
-                          subfcts = [ ('__call__',dict(subfcts=['savefig','close'])) ] )
+                          subfcts = [ ('__call__',{'subfcts': ['savefig','close']}) ] )
 
 def _run_cmd( cmd ):
     import subprocess
@@ -450,7 +450,7 @@ def _actual_test_cmdline( verbose ):
         cmd[0] = cli_tool_lookup( cmd[0] )['shellcmd']
         cmd = shlex.join(cmd)
         prfct('Trying to run:',cmd)
-        ok, output = _run_cmd(cmd)
+        ok, _output = _run_cmd(cmd)
         if not ok:
-            raise RuntimeError('Command failed: %s'%cmd)
+            raise RuntimeError(f'Command failed: {cmd}')
     prfct('testing of cmd-line utilities done')

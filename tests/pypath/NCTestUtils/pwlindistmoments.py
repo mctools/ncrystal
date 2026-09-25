@@ -140,7 +140,7 @@ class PWLinDistMoments:
             names_and_vals.append( ( name, self.get_moment(n) ) )
         m = max( len(e[0]) for e in names_and_vals )
         for n,v in names_and_vals:
-            print('  %s : %s'%( n.ljust(m), fp_format % v ) )
+            print(f'  {n.ljust(m)} : {fp_format % v}' )
 
     @staticmethod
     def unit_test( mp ):

@@ -32,9 +32,9 @@ for cfg in ( ('phases<0.9*stdlib::Al_sg225.ncma'
              'stdlib::Polyethylene_CH2.ncmat',
              'customdirs::Al_sg225_with_voids.ncmat' ):
     for split in (True,False):
-        args=dict( cfgstr = cfg,
-                   name = 'mymaterial',
-                   split_by_physics = split )
+        args={ 'cfgstr': cfg,
+               'name': 'mymaterial',
+               'split_by_physics': split }
         hr = '='*80
         print()
         print(hr)
@@ -42,8 +42,8 @@ for cfg in ( ('phases<0.9*stdlib::Al_sg225.ncma'
         print('===> split =',('yes' if split else 'no'))
         print(hr)
         print()
-        a,ll=ncm.cfgstr_2_unioncfg(**dict((k,v) for k,v in args.items() if k!='name'))
-        print( '%.13g'%a,ll )
+        a,ll=ncm.cfgstr_2_unioncfg(**{k: v for k,v in args.items() if k!='name'})
+        print( f'{a:.13g}',ll )
         print()
         print(hr)
         print()

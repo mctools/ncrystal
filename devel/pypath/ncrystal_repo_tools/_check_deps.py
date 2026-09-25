@@ -32,8 +32,8 @@ def check_deps_in_toml_files(db):
     def deplist_to_pyprojtoml_fmt( deplist ):
         res = []
         for e in deplist:
-            if e in db['packages'].keys():
-                res.append( '%s==%s'%(e,version) )
+            if e in db['packages']:
+                res.append( f'{e}=={version}' )
             else:
                 res.append( db['dependencies'][e]['py_spec'] )
         return res
@@ -41,8 +41,8 @@ def check_deps_in_toml_files(db):
         for frel in info['tomlfiles']:
             f = reporoot.joinpath(*frel.split('/'))
             current_part2deplist = load_part2deplist_from_pyproject_toml(f)
-            tgt_part2deplist = dict( (k,(deplist_to_pyprojtoml_fmt(v)))
-                                      for k,v in info['deps'].items() )
+            tgt_part2deplist = { k: (deplist_to_pyprojtoml_fmt(v))
+                                  for k,v in info['deps'].items() }
             cp = set(current_part2deplist.keys())
             tp = set(tgt_part2deplist.keys())
             if cp - tp:
@@ -57,8 +57,8 @@ def check_deps_in_toml_files(db):
                     print()
                     print(f'Problematic dependency list ("{part}") in {frel}')
                     print()
-                    print('Should be:\n\n%s = %s'%(n,sorted(tgt_list)))
-                    print('\n.. but is:\n\n%s = %s'%(n,sorted(current_list)))
+                    print(f'Should be:\n\n{n} = {sorted(tgt_list)}')
+                    print(f'\n.. but is:\n\n{n} = {sorted(current_list)}')
                     raise SystemExit(1)
 
 
@@ -74,7 +74,7 @@ def check_env_files(db, *, fix = False):
     reqsdir = reporoot.joinpath(*reqsdir_rel.split('/'))
     files = ( list( reqsdir.glob('requirements_*.txt'))
               + list( reqsdir.glob('conda_*.yml')) )
-    actual = set( f.name for f in files )
+    actual = { f.name for f in files }
     tgt =    set( expected.keys() )
     def error( msg ):
         print()

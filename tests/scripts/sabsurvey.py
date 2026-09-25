@@ -92,8 +92,8 @@ def plot( alphagrid, betagrid, cell_list, title, **kw_plot ):
 
 def surv(alphagrid, betagrid,do_plot=True):
     res = ncquery( [ 'sab','surveyor',
-                     '@%s'%('@'.join(str(e) for e in alphagrid)),
-                     '@%s'%('@'.join(str(e) for e in betagrid)) ] )
+                     '@{}'.format('@'.join(str(e) for e in alphagrid)),
+                     '@{}'.format('@'.join(str(e) for e in betagrid)) ] )
     ncpprint(res)
     if do_plot:
         plot( alphagrid, betagrid, res['touch_list'], 'cells touched' )

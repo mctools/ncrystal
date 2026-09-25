@@ -46,8 +46,7 @@ class MMCResults:
         if isinstance(data,MMCResults):
             needsval = False
             data = copy.deepcopy(data.__data)
-        elif ( isinstance( data, bytes )
-               or isinstance( data, str )
+        elif ( isinstance(data, (bytes, str))
                or hasattr( data, '__fspath__' ) ):
             from ._common import flex_load_json
             from .hist import Hist1D
@@ -119,7 +118,7 @@ class MMCResults:
             if not tn:
                 msg += ' (no tallies were enabled!).'
             else:
-                msg += ' (available tallies are "%s")'%('", "'.join(tn))
+                msg += ' (available tallies are "{}")'.format('", "'.join(tn))
             raise NCBadInput(msg)
         return MMCTallyView._internal_create( self, t )
 
@@ -152,7 +151,7 @@ class MMCResults:
         g = self.setup['geom']['decoded']['short_description']
         if latex:
             from ._common import _latex_format
-            n = '$%s$'%_latex_format(n)
+            n = f'${_latex_format(n)}$'
         return f'{n} {s} neutrons through {g}'
 
     def long_title( self ):
@@ -226,37 +225,37 @@ class MMCResults:
         """
 
         o = []
-        o.append('%sNCrystal MiniMC results:'%prefix)
+        o.append(f'{prefix}NCrystal MiniMC results:')
         o.append('  inputs cfg:')
-        o.append('    material : "%s"'%self.setup['material']['cfgstr'])
-        o.append('    engine   : "%s"'%self.setup['engine']['cfgstr'])
-        o.append('    source   : "%s"'%self.setup['src']['cfgstr'])
-        o.append('    geometry : "%s"'%self.setup['geom']['cfgstr'])
+        o.append('    material : "{}"'.format(self.setup['material']['cfgstr']))
+        o.append('    engine   : "{}"'.format(self.setup['engine']['cfgstr']))
+        o.append('    source   : "{}"'.format(self.setup['src']['cfgstr']))
+        o.append('    geometry : "{}"'.format(self.setup['geom']['cfgstr']))
         o.append('  output:')
         outmd = self.__data['output']['metadata']
         def fmti( x ):
-            xs = '%.2g'%x
+            xs = f'{x:.2g}'
             return xs if int(float(xs))==x else str(x)
-        o.append('    src ray count: %s particles (weight sum: %g)'%(
+        o.append('    src ray count: {} particles (weight sum: {:g})'.format(
             fmti(outmd['provided']['count']),outmd['provided']['weight']))
-        o.append('    src rays missing geometry: %s particles (weight sum: %g)'%(
+        o.append('    src rays missing geometry: {} particles (weight sum: {:g})'.format(
             fmti(outmd['miss']['count']),outmd['miss']['weight']))
         f_c = outmd['miss']['count']*100.0/outmd['provided']['count']
         f_w = outmd['miss']['weight']*100.0/outmd['provided']['weight']
         o.append('    src rays miss fraction:'
-                 ' %g%% (by count) %g%% (by weight)'%(f_c,f_w))
-        o.append('    tallied ray count: %s particles (weight sum: %g)'%(
+                 f' {f_c:g}% (by count) {f_w:g}% (by weight)')
+        o.append('    tallied ray count: {} particles (weight sum: {:g})'.format(
             fmti(outmd['tallied']['count']),outmd['tallied']['weight']))
         for t in self.tallies:
             if tally_filter_fct and not tally_filter_fct(t.name):
                 continue
-            o.append('    tally "%s":'%t.name)
+            o.append(f'    tally "{t.name}":')
             o += t.hist_total.dump( prefix = '      ',
                                     contents = False,
                                     do_print = False ).splitlines()
         #finish up:
         o.append('')
-        o = ('\n%s'%prefix).join(o)
+        o = f'\n{prefix}'.join(o)
         if do_print:
             from ._common import print as ncprint
             ncprint(o)
@@ -371,7 +370,7 @@ class MMCTallyView:
         """Returns histograms as a dictionary of (key,hist). The keys are either
         'total' or one of the breakdown component names (if available).
         """
-        d=dict(total=self.hist_total)
+        d={'total': self.hist_total}
         hd = self.hist_breakdown
         if hd is not None:
             assert 'total' not in hd
@@ -409,11 +408,11 @@ class MMCTallyView:
             return self.hist_total.clone()
         histmap = self.hist_breakdown
         if select:
-            histmap = dict( (hn,h) for hn,h in histmap.items()
-                            if hn in select )
+            histmap = { hn: h for hn,h in histmap.items()
+                        if hn in select }
         if exclude:
-            histmap = dict( (hn,h) for hn,h in histmap.items()
-                            if hn not in exclude )
+            histmap = { hn: h for hn,h in histmap.items()
+                        if hn not in exclude }
         hl = [h for hn,h in sorted(histmap.items()) ]
         if len(hl) <= 1:
             return hl[0].clone() if hl else None

@@ -42,20 +42,19 @@ for idx,e in enumerate(mat.info.hklObjects()):
     for a in e.h,e.k,e.l:
         assert a.dtype == numpy.int32
         assert isinstance(a,numpy.ndarray)
-    assert type(e.d)==float
-    assert type(e.f2)==float
-    assert type(e.mult)==int
-    assert type(e.hkl_label)==tuple
-    assert type(e.hkl_label[0])==int
-    assert type(e.hkl_label[1])==int
-    assert type(e.hkl_label[2])==int
+    assert type(e.d) is float
+    assert type(e.f2) is float
+    assert type(e.mult) is int
+    assert type(e.hkl_label) is tuple
+    assert type(e.hkl_label[0]) is int
+    assert type(e.hkl_label[1]) is int
+    assert type(e.hkl_label[2]) is int
     assert e.f2 == e.fsquared
     assert e.d == e.dspacing
     assert e.multiplicity == e.mult
 
-    if e.d < 0.5:
-        if idx%20 != 0:
-            continue
+    if e.d < 0.5 and idx%20 != 0:
+        continue
 
     print()
     print(f'{e.hkl_label=}')
@@ -75,7 +74,7 @@ for e in info.hklObjects():
     #help( e );break #<- uncomment for usage info
     print()
     print( e )#<- a quick look
-    print( e.hkl_label, e.mult, '%.14g'%e.d, '%.12g'%e.f2 )
+    print( e.hkl_label, e.mult, f'{e.d:.14g}', f'{e.f2:.12g}' )
     print( e.h, e.k, e.l )#all Miller indices as Numpy arrays.
     #Implement whatever selection logic suits you:
     if ( e.d < 1.5 ):
@@ -96,6 +95,6 @@ def test5():
     wl=[0.5,1.0,1.5,1.8,2.0,5.0]
     print(mat.xsect(wl=wl))
     print(mat.macroscopic_xsect(wl=wl))
-    print('%g'%mat.xsect(wl=1.8))
-    print('%g'%mat.macroscopic_xsect(wl=1.8))
+    print(f'{mat.xsect(wl=1.8):g}')
+    print(f'{mat.macroscopic_xsect(wl=1.8):g}')
 test5()

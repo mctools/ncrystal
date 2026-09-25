@@ -39,10 +39,10 @@ def main():
         w = data['w']
         n_tot[0] += len(w)
         if n_tot[0] < 5e4 or cb_opt[0] == 'std':
-            print("UserCB: Emitting STD after %i neutrons"%n_tot[0])
+            print(f"UserCB: Emitting STD after {n_tot[0]} neutrons")
             return False if n_tot[0]%2 else None
         elif cb_opt[0] == 'error':
-            print("UserCB: Emitting HALTERR after %i neutrons"%n_tot[0])
+            print(f"UserCB: Emitting HALTERR after {n_tot[0]} neutrons")
             ekin0 = data['ekin0']#should not be there with basket_type=basic and
                                  #tally=e, so triggers an exception
             n_tot[0] += len(ekin0)#this line should never happen
@@ -52,7 +52,7 @@ def main():
                 #It should not make a difference if we continue to emit haltsrc
                 #or not:
                 cb_opt[0]='std'
-            print("UserCB: Emitting HALTSRC after %i neutrons"%n_tot[0])
+            print(f"UserCB: Emitting HALTSRC after {n_tot[0]} neutrons")
             return True
 
     cb_opt = ['error']
@@ -62,7 +62,7 @@ def main():
                       callback = cb,
                       enginecfg = 'nthreads=2;tally=e',
                       callback_options='basket_type=basic;cachelen=1e4' )
-    print("ran callback %i times (%i neutrons)"%(n_cb[0],n_tot[0]))
+    print(f"ran callback {n_cb[0]} times ({n_tot[0]} neutrons)")
     assert 5 <= n_cb[0] <= 10 # very rough, saw 7 in tests
     assert 50e3 <= n_tot[0] <= 65e3 # very rough, saw 57k in tests
 
@@ -73,7 +73,7 @@ def main():
                   callback = cb,
                   enginecfg = 'nthreads=2;tally=e',
                   callback_options='basket_type=basic;cachelen=1e4' )
-    print("ran callback %i times (%i neutrons)"%(n_cb[0],n_tot[0]))
+    print(f"ran callback {n_cb[0]} times ({n_tot[0]} neutrons)")
     assert 14 <= n_cb[0] <= 22 # very rough, saw 17-18 in tests
     assert 58e3 <= n_tot[0] <= 92e3 # very rough, saw 73k in tests
     print(res.output_metadata['tallied']['count'],n_tot[0])
@@ -86,7 +86,7 @@ def main():
                   callback = cb,
                   enginecfg = 'nthreads=2;tally=e',
                   callback_options='basket_type=basic;cachelen=1e4' )
-    print("ran callback %i times (%i neutrons)"%(n_cb[0],n_tot[0]))
+    print(f"ran callback {n_cb[0]} times ({n_tot[0]} neutrons)")
     assert 80 <= n_cb[0] <= 120 # very rough, saw 100 in tests
     assert 550e3 <= n_tot[0] <= 900e3 # very rough, saw 656k in tests
     print(res.output_metadata['tallied']['count'],n_tot[0])

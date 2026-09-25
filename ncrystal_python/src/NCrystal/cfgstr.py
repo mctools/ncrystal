@@ -59,7 +59,7 @@ def generateCfgStrDoc( mode = "print" ):
     modeint = modemap.get(mode,None)
     if modeint is None:
         from .exceptions import NCBadInput
-        raise NCBadInput('mode must be one of %s'%sorted(modemap.keys()))
+        raise NCBadInput(f'mode must be one of {sorted(modemap.keys())}')
     from ._chooks import _get_raw_cfcts
     _=_get_raw_cfcts()['nc_gencfgdoc'](modeint)
     if mode == 'print':

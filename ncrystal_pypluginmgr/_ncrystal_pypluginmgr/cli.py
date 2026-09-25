@@ -46,7 +46,7 @@ def stdmode():
     entries = sorted(plugins)
     nmnp = len(modnameprefix)
     for n,d in sorted(datadirs):
-        entries.append( ':DATA:%s:%s'%(n[nmnp:],d) )
+        entries.append( f':DATA:{n[nmnp:]}:{d}' )
     print( ';\n'.join(entries) )
 
 def main():

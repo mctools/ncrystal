@@ -51,11 +51,10 @@ def main():
         return
     helpmode = '-h' in args or '--help' in args
     testmode = '--test' in args
-    testlist = set([a for a in args if a != '--test'])
+    testlist = {a for a in args if a != '--test'}
     argerror = False
-    if testmode:
-        if not testlist or any(a.startswith('-') for a in testlist ):
-            argerror = True
+    if testmode and (not testlist or any(a.startswith('-') for a in testlist )):
+        argerror = True
 
     if helpmode or argerror:
         assert os.path.basename( sys.argv[0] ) == 'ncrystal-pluginmanager'
@@ -78,10 +77,10 @@ def main():
     pluglist = ncp.browsePlugins(dump=False)
     #Are we still here? In that case there must have been no issues. As a sanity
     #check we verify the plugins are also in the returned pluglist:
-    missing = testlist - set(pluginname for pluginname,_,_ in pluglist)
+    missing = testlist - {pluginname for pluginname,_,_ in pluglist}
     if missing:
         raise SystemExit('ERROR: plugin missing (weird that it was'
-                         ' not detected earlier: %s'%missing)
+                         f' not detected earlier: {missing}')
 
     import NCrystal.core as nccore
     import NCrystal.datasrc as nds

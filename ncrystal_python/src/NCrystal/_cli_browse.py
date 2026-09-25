@@ -25,12 +25,12 @@ from ._cliimpl import cli_entry_point, create_ArgumentParser, print
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'main',
-        displayorder = 15,
-        descr = ( "Browse and search available data (e.g. the"
-                  " standard library of NCMAT files) and plugins." )
-    )
+    return {
+        'displaygroup': 'main',
+        'displayorder': 15,
+        'descr': ( "Browse and search available data (e.g. the"
+                   " standard library of NCMAT files) and plugins." )
+    }
 
 def parseArgs( progname, arglist, return_parser = False ):
     import textwrap
@@ -77,12 +77,12 @@ def parseArgs( progname, arglist, return_parser = False ):
                 ' (and --props):\n' + _propdocs_str() + '\n\n' )
     epilog += ( 'fields available with --atomdb (in --where, --sort, and'
                 ' --columns):\n' + _atomdbdocs_str() + '\n\n' )
+    fctnames = ', '.join(sorted(_where_fct_names()))
     epilog += textwrap.fill(
         '--where expressions are Python expressions using the properties'
         ' above, comparison and boolean operators, set/string/number'
-        ' literals, and the functions: %s. Expressions failing due to'
-        ' unavailable (None) values are considered false.'%(
-            ', '.join(sorted(_where_fct_names()))), width = 79 )
+        f' literals, and the functions: {fctnames}. Expressions failing due'
+        ' to unavailable (None) values are considered false.', width = 79 )
     import argparse
     parser = create_ArgumentParser( prog = progname,
                                     description = descr,
@@ -298,9 +298,9 @@ def _validate_atomdb_args( parser, args ):
     if args.sort and args.sort not in names:
         parser.error(f'Invalid sort key "{args.sort}" (must be one of:'
                      f' {", ".join(names)})')
-    if args.sort and args.sort != 'label' and args.sort not in args.columns:
-        if args.columns:
-            args.columns.append( args.sort )
+    if ( args.sort and args.sort != 'label' and args.columns
+         and args.sort not in args.columns ):
+        args.columns.append( args.sort )
     try:
         for w in args.where:
             nb._WhereExpr( w, names )
@@ -497,7 +497,7 @@ def _print_no_matches( args ):
               ' for regular expressions (e.g. -E -s "boron|b4c").')
     sugg = _suggestions( args )
     if sugg:
-        print('Did you mean: %s?'%( ', '.join(sugg) ))
+        print(f'Did you mean: {", ".join(sugg)}?')
 
 def _suggestions( args ):
     #Suggest similar names if (plain) name patterns alone matched nothing:

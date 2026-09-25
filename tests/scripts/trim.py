@@ -30,7 +30,7 @@ import copy
 def printknl( knl ):
     a,b,s = knl['alpha'], knl['beta'], knl['sab']
     na,nb = len(a), len(b)
-    fmt = { 'float' : lambda x : '%5g'%x }
+    fmt = { 'float' : lambda x : f'{x:5g}' }
     print(f"Kernel {na} x {nb}:")
     print(f"   alpha: {np.array2string(a,formatter=fmt)}")
     print(f"   beta : {np.array2string(b,formatter=fmt)}")
@@ -52,11 +52,11 @@ def trimknl( knl ):
 def testsimple():
     a = np.asarray( [ 0.0, 0.01, 0.2, 3.0, 40.0 ], dtype = float )
     b = np.asarray( [ -10.0, -2.0, 0.3, 4.0 ], dtype = float )
-    orig = dict(
-        alpha = a,
-        beta = b,
-        sab = np.ones( len(a) * len(b) ).reshape( ( len(b), len(a) ) )
-    )
+    orig = {
+        'alpha': a,
+        'beta': b,
+        'sab': np.ones( len(a) * len(b) ).reshape( ( len(b), len(a) ) )
+    }
     printknl(orig)
     knl2 = copy.deepcopy(orig)
     knl2['sab'][:, 1] = 0.0

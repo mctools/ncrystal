@@ -55,9 +55,9 @@ def validate(x,k):
         target_prec = 0.5
 
     if rdiff>target_prec:
-        print(("chisq_cdf(x=%g, k=%i): ncrystal->%g (=1-%g) vs "
-               "ref->%g (=1-%g) (rdiff: %.2g)")%( x, k, c, 1.0-c,
-                                                  c_ref, 1.0-c_ref, rdiff ))
+        print(f"chisq_cdf(x={x:g}, k={int(k)}): ncrystal->{c:g}"
+              f" (=1-{1.0-c:g}) vs ref->{c_ref:g} (=1-{1.0-c_ref:g})"
+              f" (rdiff: {rdiff:.2g})")
         raise SystemExit('ERROR: Not fit for purpose p-value calc.')
 
 def main():

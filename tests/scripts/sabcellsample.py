@@ -50,7 +50,7 @@ def testcell(*,E_div_kT, alpha, beta, svals = None,
 
     _seed_vals[0] += 117
     query = ( [ 'sab','sglcell']
-              +['@%s'%str(e) for e in vals]
+              +[f'@{e}' for e in vals]
               +[str(nsamples_cpp),str(_seed_vals[0])] )
     if do_plot:
         import shlex
@@ -63,8 +63,8 @@ def testcell(*,E_div_kT, alpha, beta, svals = None,
     def methodfullName(m):
         assert m in ('bc','fc')
         return 'BoundedCell' if m=='bc' else 'FullCell'
-    print("Chosen method: %s"%methodfullName(mtd))
-    print("Alternative method: %s"%methodfullName(altmtd))
+    print(f"Chosen method: {methodfullName(mtd)}")
+    print(f"Alternative method: {methodfullName(altmtd)}")
     ndig = 5 if verbose else 2
     print(f"Predicted FullCell AR: %.{ndig}g%%"%(100.0*sm['fc_predicted_AR']))
     actual_fc_ar = ( len(sm['fc_sampled_alpha'])/sm['fc_sampled_ntries']
@@ -94,9 +94,9 @@ def testcell(*,E_div_kT, alpha, beta, svals = None,
     samples_std = samples_ref.clone_empty('std')
     samples_alt = samples_ref.clone_empty('alt')
 
-    samples = dict( ref = samples_ref,
-                    std = samples_std,
-                    alt = samples_alt )
+    samples = { 'ref': samples_ref,
+                'std': samples_std,
+                'alt': samples_alt }
 
 
     samples_std.add_data( sm[f'{mtd}_sampled_alpha'],
@@ -145,7 +145,7 @@ def testcell(*,E_div_kT, alpha, beta, svals = None,
     pval_global_worst = 1.0
     npvals = 0
     def print_pvalline(k,p):
-        print("   %s : %.4g%%"%(k.rjust(3),p*100))
+        print(f"   {k.rjust(3)} : {p*100:.4g}%")
 
     for ttt, pvdict in [('std vs. ref',pvals),
                         ('std vs. alt',pvals_alt)]:
@@ -167,7 +167,7 @@ def testcell(*,E_div_kT, alpha, beta, svals = None,
         from NCTestUtils.sabcelleval import plot_celleval
         fig, axes = plt.subplots(2, 3, figsize=(12, 6))
 
-        title='s11=%g, s12=%g, s21=%g, s22=%g'%tuple(res['S'])
+        title='s11={:g}, s12={:g}, s21={:g}, s22={:g}'.format(*res['S'])
         fig.suptitle(title)
 
         def plot2dcell( ax, avals, bvals, title, nmax=50000 ):
@@ -197,8 +197,8 @@ def testcell(*,E_div_kT, alpha, beta, svals = None,
         def plothist(ax,key):
             pctx = PlotContext(axis=ax,do_show=False)
 
-            hists = dict( (k,s.create_hist(key))
-                          for k,s in samples.items() )
+            hists = { k: s.create_hist(key)
+                      for k,s in samples.items() }
             assert hists['ref'].integral>0
             href = hists['ref']
             hstd = hists['std']
@@ -251,138 +251,138 @@ def main(do_plot,luxlvl,mplvl,test_select):
         ncsetenv('FAKEPYPLOT','1')
 
     testpts = [
-        dict( E_div_kT=0.06,
-              alpha=(6.6767857524277714,6.75015702442328),
-              beta=(5.4022664171285335,5.5029404418379908) ),
-        dict(E_div_kT=1.5,alpha=(1.0,2.0),beta=(-2.0,-1.0),
-             svals=[1.0,20.0,3.0,4.0]),
-        dict(E_div_kT=0.01,alpha=(5.8,6.0),beta=(5.2,5.35),
-             svals=[1e3,1,1e3,1]),
-        dict(E_div_kT=0.505,alpha=(0.0,1.0),beta=(-1.0,-0.5),
-             svals=[1,1e10,1,1e10]),
-        dict(E_div_kT=0.505,alpha=(0.0,1.0),beta=(-1.0,-0.5),
-             svals=[1000,1,3,2000]),
-        dict(E_div_kT=0.505,alpha=(0.0,1.0),beta=(-1.0,-0.5),
-             svals=[0,1,0,1]),
-        dict(E_div_kT=0.505,alpha=(0.0,1.0),beta=(-1.0,-0.5),
-             svals=[1,0,3,0]),
-        dict(E_div_kT=0.55,alpha=(0.0,1.0),beta=(-1.0,-0.5),
-             svals=[1,0,3,0]),
-        dict(E_div_kT=0.7,alpha=(0.0,1.0),beta=(-1.0,-0.5),
-             svals=[1,0,3,0]),
-        dict(E_div_kT=0.01,alpha=(5.8,6.0),beta=(5.2,5.35),
-             svals=[1,1,0,0]),
-        dict(E_div_kT=0.01,alpha=(5.8,6.0),beta=(5.2,5.35),
-             svals=[0,0,1,1]),
-        dict(E_div_kT=0.01,alpha=(5.8,6.0),beta=(5.2,5.35),
-             svals=[1,1,1,1]),
-        dict(E_div_kT=0.01,alpha=(5.8,6.0),beta=(5.2,5.35),
-             svals=[1e3,1,1,1]),
-        dict(E_div_kT=0.01,alpha=(5.8,6.0),beta=(5.2,5.35),
-             svals=[1,1e3,1,1]),
-        dict(E_div_kT=0.01,alpha=(5.8,6.0),beta=(5.2,5.35),
-             svals=[1,1,1e3,1]),
-        dict(E_div_kT=0.01,alpha=(5.8,6.0),beta=(5.2,5.35),
-             svals=[1,1,1,1e3]),
-        dict(E_div_kT=0.0001,alpha=(5.5,6.0),beta=(5.2,6.0),
-             svals=[1,1,0,0]),
-        dict(E_div_kT=0.0001,alpha=(5.5,6.0),beta=(5.2,6.0),
-             svals=[0,0,1,1]),
-        dict(E_div_kT=0.0001,alpha=(5.5,6.0),beta=(5.2,6.0),
-             svals=[1,1,1,1]),
-        dict(E_div_kT=0.0001,alpha=(5.5,6.0),beta=(5.2,6.0),
-             svals=[1.0,1e4,0,0]),
-        dict(E_div_kT=0.0001,alpha=(5.5,6.0),beta=(5.2,6.0),
-             svals=[0,0,1e4,1.0]),
-        dict(E_div_kT=0.0001,alpha=(5.5,6.0),beta=(5.2,6.0),
-             svals=[1.0,1e4,1e4,1.0]),
-        dict(E_div_kT=0.000001,alpha=(5.5,6.0),beta=(5.2,6.0),
-             svals=[1.0,1e4,1e4,1.0]),
-        dict(E_div_kT=2.0,alpha=(0.5,12.0),beta=(-3.0,4.0),
-             svals=[0,1,0,1]),
-        dict(E_div_kT=2.0,alpha=(0.5,12.0),beta=(-3.0,4.0)),
-        dict(E_div_kT=1.0,alpha=(0.5,12.0),beta=(-3.0,4.0),
-             svals=[0.1,1000,2000,0.2]),
-        dict(E_div_kT=2.0,alpha=(0.5,12.0),beta=(-3.0,4.0),
-             svals=[0.1,1000,1000,0.1]),
-        dict(E_div_kT=2.0,alpha=(0.5,12.0),beta=(-3.0,4.0),
-             svals=[0.1,1000,0,0]),
-        dict(E_div_kT=2.0,alpha=(0.5,12.0),beta=(-3.0,4.0),
-             svals=[0,0,1000,0.1]),
-        dict(E_div_kT=2.0,alpha=(0.5,12.0),beta=(-3.0,4.0),
-             svals=[1,1000,1,1]),
-        dict(E_div_kT=2.0,alpha=(0.5,12.0),beta=(-3.0,4.0),
-             svals=[0,0,1,1]),
-        dict(E_div_kT=1e-10,alpha=(5.5,6.0),beta=(5.2,6.0),
-             svals=[1.0,1e50,0,0]),
-        dict(E_div_kT=1e-15,alpha=(5.5,6.0),beta=(5.2,6.0),
-             svals=[1.0,1e5,0,0]),
-        dict(E_div_kT=1e-15,alpha=(5.5,6.0),beta=(5.2,6.0),
-             svals=[1.0,1e250,0,0]),
-        dict(E_div_kT=1e-15,alpha=(5.5,6.0),beta=(5.2,6.0),
-             svals=[1.0,1e5,0,0]),
-        dict(E_div_kT=1,
-             alpha=(1e-50,1e-10),
-             beta=(-1,1),
-             svals=[1,1,1,1]),
-        dict(
-            E_div_kT=0.2812650004,
-            alpha=(5e-10,8e-10),
-            beta=(-3e-5,-2e-05),
-            svals=[1,1,1,1]),
-        dict(
-            E_div_kT=0.2812650005,
-            alpha=(5e-10,8e-10),
-            beta=(-3e-5,-2e-05),
-            svals=[1,1,1,1]),
-        dict(E_div_kT=0.000395856,
-             alpha=(8.36433e-50,8.36433e-10),
-             beta=(-2.78659e-05,-2.60257e-08),
-             svals=[2.09324e-51,2.09324e-11,2.09321e-51,2.09321e-11]),
-        dict(E_div_kT=1.0,alpha=(0.5,12.0),beta=(-3.0,4.0),
-             svals=[0.1,1,20000,0.2]),
-        dict(E_div_kT=2.0,alpha=(0.5,3.0),beta=(-10.0,40.5),
-             svals=[1.0,20.0,3.0,4.0]),
-        dict(E_div_kT=1e-5,alpha=(0.5,12.0),beta=(11.0,12.0)),
-        dict(E_div_kT=1e-5,alpha=(11.0,13.0),beta=(0.5,12.0)),
-        dict(E_div_kT=1e-5,alpha=(0.5,12.0),beta=(0.5,12.0)),
-        dict(E_div_kT=1e-5,alpha=(0.5,12.0),beta=(11.0,12.0),
-             svals=[1.0,20.0,3.0,4.0]),
-        dict(E_div_kT=0.01,alpha=(11.35,13),beta=(10,12.0),
-             svals=[0,1,1,0]),
-        dict(E_div_kT=1e-5,alpha=(11.0,13.0),beta=(0.5,12.0),
-             svals=[1.0,20.0,3.0,0]),
-        dict(E_div_kT=0.01,alpha=(5.5-1e-7,5.5),beta=(5,5.92),
-             svals=[1.0,1e-200,1.0,1e-200]),
-        dict(E_div_kT=0.01,alpha=(5.5-1e-10,5.5),beta=(5,5.92),
-             svals=[1.0,1e-20,1.0,1e-20]),
-        dict(E_div_kT=0.01,alpha=(5.5-1e-11,5.5),beta=(5,5.92),
-             svals=[1e-20,1.0,1.0,1e-20]),
-        dict(E_div_kT=1e-5,alpha=(11.0,13.0),beta=(0.5,12.0),
-             svals=[1.0,20.0,3.0,1e-300]),
-        dict(E_div_kT=1e-5,alpha=(0.5,12.0),beta=(0.5,12.0),
-             svals=[1.0,20.0,3.0e-4,4.0]),
-        dict(E_div_kT=0.01,alpha=(5.499,5.5),beta=(5,5.92),
-             svals=[1.0,99,1.0,99]),
-        dict(E_div_kT=0.01,alpha=(5.499,5.5),beta=(5,5.92),
-             svals=[1.0,101,1.0,101]),
-        dict(E_div_kT=0.01,alpha=(5.499,5.5),beta=(5,5.92),
-             svals=[1.0,0.011,1.0,0.011]),
-        dict(E_div_kT=0.01,alpha=(5.5-1e-11,5.5),beta=(5,5.92),
-             svals=[1.0,0.009,1.0,0.009]),
+        { 'E_div_kT': 0.06,
+          'alpha': (6.6767857524277714,6.75015702442328),
+          'beta': (5.4022664171285335,5.5029404418379908) },
+        {'E_div_kT': 1.5,'alpha': (1.0,2.0),'beta': (-2.0,-1.0),
+         'svals': [1.0,20.0,3.0,4.0]},
+        {'E_div_kT': 0.01,'alpha': (5.8,6.0),'beta': (5.2,5.35),
+         'svals': [1e3,1,1e3,1]},
+        {'E_div_kT': 0.505,'alpha': (0.0,1.0),'beta': (-1.0,-0.5),
+         'svals': [1,1e10,1,1e10]},
+        {'E_div_kT': 0.505,'alpha': (0.0,1.0),'beta': (-1.0,-0.5),
+         'svals': [1000,1,3,2000]},
+        {'E_div_kT': 0.505,'alpha': (0.0,1.0),'beta': (-1.0,-0.5),
+         'svals': [0,1,0,1]},
+        {'E_div_kT': 0.505,'alpha': (0.0,1.0),'beta': (-1.0,-0.5),
+         'svals': [1,0,3,0]},
+        {'E_div_kT': 0.55,'alpha': (0.0,1.0),'beta': (-1.0,-0.5),
+         'svals': [1,0,3,0]},
+        {'E_div_kT': 0.7,'alpha': (0.0,1.0),'beta': (-1.0,-0.5),
+         'svals': [1,0,3,0]},
+        {'E_div_kT': 0.01,'alpha': (5.8,6.0),'beta': (5.2,5.35),
+         'svals': [1,1,0,0]},
+        {'E_div_kT': 0.01,'alpha': (5.8,6.0),'beta': (5.2,5.35),
+         'svals': [0,0,1,1]},
+        {'E_div_kT': 0.01,'alpha': (5.8,6.0),'beta': (5.2,5.35),
+         'svals': [1,1,1,1]},
+        {'E_div_kT': 0.01,'alpha': (5.8,6.0),'beta': (5.2,5.35),
+         'svals': [1e3,1,1,1]},
+        {'E_div_kT': 0.01,'alpha': (5.8,6.0),'beta': (5.2,5.35),
+         'svals': [1,1e3,1,1]},
+        {'E_div_kT': 0.01,'alpha': (5.8,6.0),'beta': (5.2,5.35),
+         'svals': [1,1,1e3,1]},
+        {'E_div_kT': 0.01,'alpha': (5.8,6.0),'beta': (5.2,5.35),
+         'svals': [1,1,1,1e3]},
+        {'E_div_kT': 0.0001,'alpha': (5.5,6.0),'beta': (5.2,6.0),
+         'svals': [1,1,0,0]},
+        {'E_div_kT': 0.0001,'alpha': (5.5,6.0),'beta': (5.2,6.0),
+         'svals': [0,0,1,1]},
+        {'E_div_kT': 0.0001,'alpha': (5.5,6.0),'beta': (5.2,6.0),
+         'svals': [1,1,1,1]},
+        {'E_div_kT': 0.0001,'alpha': (5.5,6.0),'beta': (5.2,6.0),
+         'svals': [1.0,1e4,0,0]},
+        {'E_div_kT': 0.0001,'alpha': (5.5,6.0),'beta': (5.2,6.0),
+         'svals': [0,0,1e4,1.0]},
+        {'E_div_kT': 0.0001,'alpha': (5.5,6.0),'beta': (5.2,6.0),
+         'svals': [1.0,1e4,1e4,1.0]},
+        {'E_div_kT': 0.000001,'alpha': (5.5,6.0),'beta': (5.2,6.0),
+         'svals': [1.0,1e4,1e4,1.0]},
+        {'E_div_kT': 2.0,'alpha': (0.5,12.0),'beta': (-3.0,4.0),
+         'svals': [0,1,0,1]},
+        {'E_div_kT': 2.0,'alpha': (0.5,12.0),'beta': (-3.0,4.0)},
+        {'E_div_kT': 1.0,'alpha': (0.5,12.0),'beta': (-3.0,4.0),
+         'svals': [0.1,1000,2000,0.2]},
+        {'E_div_kT': 2.0,'alpha': (0.5,12.0),'beta': (-3.0,4.0),
+         'svals': [0.1,1000,1000,0.1]},
+        {'E_div_kT': 2.0,'alpha': (0.5,12.0),'beta': (-3.0,4.0),
+         'svals': [0.1,1000,0,0]},
+        {'E_div_kT': 2.0,'alpha': (0.5,12.0),'beta': (-3.0,4.0),
+         'svals': [0,0,1000,0.1]},
+        {'E_div_kT': 2.0,'alpha': (0.5,12.0),'beta': (-3.0,4.0),
+         'svals': [1,1000,1,1]},
+        {'E_div_kT': 2.0,'alpha': (0.5,12.0),'beta': (-3.0,4.0),
+         'svals': [0,0,1,1]},
+        {'E_div_kT': 1e-10,'alpha': (5.5,6.0),'beta': (5.2,6.0),
+         'svals': [1.0,1e50,0,0]},
+        {'E_div_kT': 1e-15,'alpha': (5.5,6.0),'beta': (5.2,6.0),
+         'svals': [1.0,1e5,0,0]},
+        {'E_div_kT': 1e-15,'alpha': (5.5,6.0),'beta': (5.2,6.0),
+         'svals': [1.0,1e250,0,0]},
+        {'E_div_kT': 1e-15,'alpha': (5.5,6.0),'beta': (5.2,6.0),
+         'svals': [1.0,1e5,0,0]},
+        {'E_div_kT': 1,
+         'alpha': (1e-50,1e-10),
+         'beta': (-1,1),
+         'svals': [1,1,1,1]},
+        {
+        'E_div_kT': 0.2812650004,
+        'alpha': (5e-10,8e-10),
+        'beta': (-3e-5,-2e-05),
+        'svals': [1,1,1,1]},
+        {
+        'E_div_kT': 0.2812650005,
+        'alpha': (5e-10,8e-10),
+        'beta': (-3e-5,-2e-05),
+        'svals': [1,1,1,1]},
+        {'E_div_kT': 0.000395856,
+         'alpha': (8.36433e-50,8.36433e-10),
+         'beta': (-2.78659e-05,-2.60257e-08),
+         'svals': [2.09324e-51,2.09324e-11,2.09321e-51,2.09321e-11]},
+        {'E_div_kT': 1.0,'alpha': (0.5,12.0),'beta': (-3.0,4.0),
+         'svals': [0.1,1,20000,0.2]},
+        {'E_div_kT': 2.0,'alpha': (0.5,3.0),'beta': (-10.0,40.5),
+         'svals': [1.0,20.0,3.0,4.0]},
+        {'E_div_kT': 1e-5,'alpha': (0.5,12.0),'beta': (11.0,12.0)},
+        {'E_div_kT': 1e-5,'alpha': (11.0,13.0),'beta': (0.5,12.0)},
+        {'E_div_kT': 1e-5,'alpha': (0.5,12.0),'beta': (0.5,12.0)},
+        {'E_div_kT': 1e-5,'alpha': (0.5,12.0),'beta': (11.0,12.0),
+         'svals': [1.0,20.0,3.0,4.0]},
+        {'E_div_kT': 0.01,'alpha': (11.35,13),'beta': (10,12.0),
+         'svals': [0,1,1,0]},
+        {'E_div_kT': 1e-5,'alpha': (11.0,13.0),'beta': (0.5,12.0),
+         'svals': [1.0,20.0,3.0,0]},
+        {'E_div_kT': 0.01,'alpha': (5.5-1e-7,5.5),'beta': (5,5.92),
+         'svals': [1.0,1e-200,1.0,1e-200]},
+        {'E_div_kT': 0.01,'alpha': (5.5-1e-10,5.5),'beta': (5,5.92),
+         'svals': [1.0,1e-20,1.0,1e-20]},
+        {'E_div_kT': 0.01,'alpha': (5.5-1e-11,5.5),'beta': (5,5.92),
+         'svals': [1e-20,1.0,1.0,1e-20]},
+        {'E_div_kT': 1e-5,'alpha': (11.0,13.0),'beta': (0.5,12.0),
+         'svals': [1.0,20.0,3.0,1e-300]},
+        {'E_div_kT': 1e-5,'alpha': (0.5,12.0),'beta': (0.5,12.0),
+         'svals': [1.0,20.0,3.0e-4,4.0]},
+        {'E_div_kT': 0.01,'alpha': (5.499,5.5),'beta': (5,5.92),
+         'svals': [1.0,99,1.0,99]},
+        {'E_div_kT': 0.01,'alpha': (5.499,5.5),'beta': (5,5.92),
+         'svals': [1.0,101,1.0,101]},
+        {'E_div_kT': 0.01,'alpha': (5.499,5.5),'beta': (5,5.92),
+         'svals': [1.0,0.011,1.0,0.011]},
+        {'E_div_kT': 0.01,'alpha': (5.5-1e-11,5.5),'beta': (5,5.92),
+         'svals': [1.0,0.009,1.0,0.009]},
         #This one actually fails, but with just ~3-4 digits of precision, it is
         #not so surprising. At looking at it interactively, it actually seems
         #fine:
         #dict(E_div_kT=0.01,alpha=(5.5-1e-12,5.5),beta=(5,5.92),
         #     svals=[1.0,0.009,1.0,0.009]),
 
-        dict( E_div_kT=39.58561183871582 * 0 + 40,
-              alpha=(158.28456094789,160.60010716438572),
-              beta=(-2.2701714000978403e-14,-2.1202501083299951e-17),
-              svals=[ 0.028331793397541188,
+        { 'E_div_kT': 39.58561183871582 * 0 + 40,
+          'alpha': (158.28456094789,160.60010716438572),
+          'beta': (-2.2701714000978403e-14,-2.1202501083299951e-17),
+          'svals': [ 0.028331793397541188,
                       0.027532855700519738,
                       0.027532855700519426,
-                      0.026748257342144074 ] ),
+                      0.026748257342144074 ] },
 
     ]
 
@@ -398,12 +398,12 @@ def main(do_plot,luxlvl,mplvl,test_select):
     for i,data in enumerate(testpts):
         i += 1
         if test_select and i not in test_select:
-            print("=============> SKIPPING test %i"%i)
+            print(f"=============> SKIPPING test {i}")
             continue
         nused += 1
         print()
         print("=============>")
-        print("=============> Launching test %i"%i)
+        print(f"=============> Launching test {i}")
         print("=============>")
         print()
         if do_plot:
@@ -435,9 +435,9 @@ def main(do_plot,luxlvl,mplvl,test_select):
 
     for pval, i in pvals:
         ok = pval>pval_threshold
-        okmsg = ( 'OK' if ok else 'FAILED (pval: %.4g%%, not above %.4g%%)'
-                  %(pval*100.0,pval_threshold*100.0) )
-        print("P-value for test #%i : %s"%(i,okmsg))
+        okmsg = ( 'OK' if ok else ( f'FAILED (pval: {pval*100.0:.4g}%, not'
+                                    f' above {pval_threshold*100.0:.4g}%)' ) )
+        print(f"P-value for test #{i} : {okmsg}")
         if not ok:
             test_error = True
 

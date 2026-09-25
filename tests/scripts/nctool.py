@@ -53,7 +53,7 @@ def test_cli( args, *, nstart = 30, nend = 20 ):
     print("===========================================")
 
 def main():
-    fix_ncrystal_version_printouts( ( 'NCrystal (v%s)'%NC.__version__,
+    fix_ncrystal_version_printouts( ( f'NCrystal (v{NC.__version__})',
                                       'NCrystal (v<current>)' ) )
     test_cli(['--help'])
 

@@ -63,21 +63,21 @@ def main():
     cmps = []
     for k, ncval in zip(kvals,nc_kpowx):
         refval = mp_integrate01_kpowx(k,mp)
-        cmps.append( (ncval,refval,'int_0^1(k^x)dx [k=%.15g]'%k) )
+        cmps.append( (ncval,refval,f'int_0^1(k^x)dx [k={k:.15g}]') )
 
     for k, ncval in zip(kvals,nc_xkpowx):
         refval = mp_integrate01_xkpowx(k,mp)
-        cmps.append( (ncval,refval,'int_0^1(x*k^x)dx [k=%.15g]'%k) )
+        cmps.append( (ncval,refval,f'int_0^1(x*k^x)dx [k={k:.15g}]') )
 
     worst = None
     for ncval,refval,descr in cmps:
         rd = abs(ncval/refval-mp.mpf(1))
-        precstr = 'OK' if rd<thr else '%g'%float(rd)
-        print('%s = %.14g [precision: %s]'%(descr,float(ncval),precstr))
+        precstr = 'OK' if rd<thr else f'{float(rd):g}'
+        print(f'{descr} = {float(ncval):.14g} [precision: {precstr}]')
         worst = rd if worst is None else max(worst,rd)
 
     if not worst < thr:
-        print("Worst precision: %.3g"%float(worst))
+        print(f"Worst precision: {float(worst):.3g}")
         raise SystemExit(f'ERROR: Precision not below {thr:g}!')
     else:
         print(f"Precision < {thr:g}? : YES")
@@ -90,18 +90,18 @@ def main():
     for krrefval, ncval in zip(sample_refvals,nc_kpowx_samples['samples']):
         k,R,refval=krrefval
         cmps.append( (ncval,refval,
-                      'sample k^x on [0,1] [k=%.15g,R=%.15g]'%(k,R)) )
+                      f'sample k^x on [0,1] [k={k:.15g},R={R:.15g}]') )
 
     thr = 1e-14
     worst = None
     for ncval,refval,descr in cmps:
         rd = abs(ncval/refval-mp.mpf(1))
-        precstr = 'OK' if rd<thr else '%g'%float(rd)
-        print('%s = %.13g [precision: %s]'%(descr,float(ncval),precstr))
+        precstr = 'OK' if rd<thr else f'{float(rd):g}'
+        print(f'{descr} = {float(ncval):.13g} [precision: {precstr}]')
         worst = rd if worst is None else max(worst,rd)
 
     if not worst < thr:
-        print("Worst precision (samples): %.3g"%float(worst))
+        print(f"Worst precision (samples): {float(worst):.3g}")
         raise SystemExit(f'ERROR: Sampling precision not below {thr:g}!')
     else:
         print(f"Sampling precision < {thr:g}? : YES")

@@ -49,7 +49,7 @@ def main(do_plot, do_update):
     def cb( data ):
         nscat,e,w,uz,wl0 = (data['nscat'],data['ekin'], data['w'], data['uz'],
                             ekin2wl(data['ekin0']))
-        print('Callback processing %i neutrons'%len(w))
+        print(f'Callback processing {len(w)} neutrons')
         print('    Available fields:',' '.join(data.keys()))
         assert len(data)==18, "callback should trigger extended baskets"
         ntot[0] += len( w )
@@ -77,16 +77,16 @@ def main(do_plot, do_update):
     assert tallied_stats['count'] == ntot[0]
 
     #convert to Hist1D:
-    for k in hists:
-        hists[k] = hists[k].to_hist1d()
+    for k,h in hists.items():
+        hists[k] = h.to_hist1d()
 
     print()
-    print('Total neutrons tallied (count): %i'%tallied_stats['count'])
-    print('Total neutrons tallied (sumw): %i'%tallied_stats['weight'])
-    print('Total neutrons tallied in E(fwd) hist (sumw) %i'
-          % hists['e_fwd'].contents.sum())
-    print('Total neutrons tallied in E(back) hist (sumw) %i'
-          % hists['e_back'].contents.sum())
+    print('Total neutrons tallied (count):',int(tallied_stats['count']))
+    print('Total neutrons tallied (sumw):',int(tallied_stats['weight']))
+    print('Total neutrons tallied in E(fwd) hist (sumw)',
+          int(hists['e_fwd'].contents.sum()))
+    print('Total neutrons tallied in E(back) hist (sumw)',
+          int(hists['e_back'].contents.sum()))
 
 
     #Find refs:
@@ -127,7 +127,7 @@ def main(do_plot, do_update):
     if not do_plot:
         return result()
 
-    common = dict( error_bands=2.0, alpha = 0.5)
+    common = { 'error_bands': 2.0, 'alpha': 0.5}
 
     def pl( hfwd_key, hback_key ):
         hfwd = hists[hfwd_key]

@@ -105,7 +105,7 @@ class MaterialSource:
             self.__d['plotlabel'] = lbl
 
     def __str__(self):
-        return 'MaterialSource(%s)'%self.description
+        return f'MaterialSource({self.description})'
 
     def __repr__(self):
         return str(self)
@@ -244,23 +244,23 @@ class AnyVDOS:
         under the parabola between (0,0) and the first positive grid point. Any
         non-positive grid points are ignored for the purposes of calculating the
         integral."""
-        return self.__d['derived']['dos%s_integral'%self.__choice(orig)]
+        return self.__d['derived'][f'dos{self.__choice(orig)}_integral']
 
     def egrid( self, *, orig = False, expand = True ):
         """Access the energy grid values. Unless expand=False, this is always
         the full energy grid, even if just a tuple "(emin,emax)" was used to
         construct the object."""
         choice = self.__choice(orig)
-        eg = self.__d['derived'].get('dos%s_expandedegrid'%choice) if expand else None
-        return eg if eg is not None else self.__d['dos%s'%choice][0]
+        eg = self.__d['derived'].get(f'dos{choice}_expandedegrid') if expand else None
+        return eg if eg is not None else self.__d[f'dos{choice}'][0]
 
     def dos( self, *, orig = False, norm = True ):
         """Access the tabulated DOS values. Unless norm=False, this will
         actually be the normalised DOS, i.e. the DOS values divided by the
         integral (c.f. the .integral property)."""
         choice = self.__choice(orig)
-        dos = self.__d['dos%s'%choice][1]
-        return ( dos / self.__d['derived']['dos%s_integral'%choice] ) if norm else dos
+        dos = self.__d[f'dos{choice}'][1]
+        return ( dos / self.__d['derived'][f'dos{choice}_integral'] ) if norm else dos
 
     @property
     def has_orig( self ):

@@ -29,31 +29,31 @@ def gen_wiki_cfgvarrefdoc():
     ll=['# NCrystal cfg-parameters reference documentation',
        '<!-- WARNING: PAGE AUTOMATICALLY GENERATED DO NOT EDIT DIRECTLY -->',
        ('Reference documentation of all [[cfg-string '
-       '|%s]] variables, generated with NCrystal release v%s.')
-       %(_wikicfgstrlinktarget.split('.')[0],ncversion),
+        f'|{_wikicfgstrlinktarget.split(".")[0]}]] variables, generated'
+        f' with NCrystal release v{ncversion}.'),
        '']
     data = NC.generateCfgStrDoc('python')
     for group in data:
         ll.append('')
-        ll.append('## %s'%group['group_description'])
+        ll.append('## {}'.format(group['group_description']))
         for p in group['parameters']:
             ll.append('<details>')
             title=p['name']
             if p['type']=='pseudo':
                 title+=' (pseudo parameter)'
-            ll.append('  <summary>%s</summary>'%title)
+            ll.append(f'  <summary>{title}</summary>')
             ll.append('')#important with empty line here!
-            ll.append('> **Type:** %s  '%p['type'])#Note that 2 trailing spaces
+            ll.append(f"> **Type:** {p['type']}  ")#Note that 2 trailing spaces
                                                    #indicates new line
             au=p.get('allowed_input_units',None)
             if au is not None:
-                ll.append('> **Allowed input units:** %s  '%au)
+                ll.append(f'> **Allowed input units:** {au}  ')
             defval=p.get('default_value_str',None)
             if defval is not None:
                 if p['type']=='string':
                     defval=f'"{defval}"'
-                ll.append('> **Default value:** %s  '%defval)
-            ll.append('> **Description:** %s  '%p['description'].strip())
+                ll.append(f'> **Default value:** {defval}  ')
+            ll.append(f"> **Description:** {p['description'].strip()}  ")
             ll.append('')
             ll.append('</details>')
             ll.append('')#important with empty line here!

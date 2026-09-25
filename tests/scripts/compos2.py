@@ -26,7 +26,7 @@ import NCrystalDev as NC
 def compos2str( composition ):
     def tl(atomdata):
         return ' [TopLevelAtomData]' if atomdata.isTopLevel() else ''
-    return '[ %s ]'%(',\n  '.join('%g * %s%s'%(frac,str(atomdata),tl(atomdata)) for frac,atomdata in composition))
+    return '[ {} ]'.format(',\n  '.join(f'{frac:g} * {atomdata!s}{tl(atomdata)}' for frac,atomdata in composition))
 
 def test(cfgstr):
     i=NC.createInfo(cfgstr)

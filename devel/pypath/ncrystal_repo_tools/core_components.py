@@ -72,9 +72,9 @@ class Component:
             if not self.hdrfiles:
                 raise SystemExit(f'ERROR empty dir: {hdrdir}')
         else:
-            self.hdrfiles = tuple()
+            self.hdrfiles = ()
 
-        self.hdrfiles_icc = tuple()#TODO: support?
+        self.hdrfiles_icc = ()#TODO: support?
 
         self.direct_depnames = sorted(set(self.depfile.read_text().split()))
         #To be filled later:
@@ -84,9 +84,9 @@ class Component:
         _ispref = ( f'NCrystal/internal/{self.name}/'
                     if self.is_internal
                     else f'NCrystal/{self.name}/' )
-        self.__incstatements_to_pkg = set( _ispref + h.name
+        self.__incstatements_to_pkg = { _ispref + h.name
                                            for h in
-                                           sorted( self.hdrfiles ) )
+                                           sorted( self.hdrfiles ) }
 
     def _init_deps( self, name2comp, block = None ):
         if self.deps is not None:
@@ -171,11 +171,11 @@ def file_calc_sloc_count( f ):
     return len(f.read_text().splitlines())
 
 def load_components( *, init_deps = True ):
-    name2comp = dict( (d.name, Component( d.name ))
+    name2comp = { d.name: Component( d.name )
                       for d in _srcroot.iterdir()
-                      if d.is_dir() and '.' not in d.name )
+                      if d.is_dir() and '.' not in d.name }
     if init_deps:
-        for n,c in name2comp.items():
+        for c in name2comp.values():
             c._init_deps( name2comp )
     return name2comp
 

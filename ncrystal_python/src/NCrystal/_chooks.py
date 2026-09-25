@@ -179,7 +179,9 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         raise e
 
     #helper class for exporting the functions:
-    ncrystal_namespace_prefix = 'ncrystal_' if not ncrystal_namespace_protection else 'ncrystal%s_'%ncrystal_namespace_protection
+    ncrystal_namespace_prefix = ( f'ncrystal{ncrystal_namespace_protection}_'
+                                  if ncrystal_namespace_protection
+                                  else 'ncrystal_' )
     def _wrap(fct_name,restype,argtypes,take_ref = False, hide=False, error_check=True):
         assert isinstance(argtypes,tuple)
         assert fct_name.startswith('ncrystal_')
@@ -214,19 +216,20 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             functions[fct_name] = fct
         return fct
 
-    lib_version = _cstr2str(_wrap('ncrystal_version_str',_cstr,tuple(),hide=True,error_check=False)())
+    lib_version = _cstr2str(_wrap('ncrystal_version_str',_cstr,(),hide=True,error_check=False)())
     from . import __version__ as _nc_version
     if lib_version != _nc_version:
-        raise NCException("ERROR: Version mismatch detected between NCrystal python code (v%s)"
-                          " and loaded binary"" library (v%s). Control which NCrystal library"
-                          " to load with the NCRYSTAL_LIB env var."%(_nc_version,lib_version))
+        raise NCException("ERROR: Version mismatch detected between NCrystal"
+                          f" python code (v{_nc_version}) and loaded binary"
+                          f" library (v{lib_version}). Control which NCrystal"
+                          " library to load with the NCRYSTAL_LIB env var.")
 
     _wrap('ncrystal_sethaltonerror',_int,(_int,),hide=True,error_check=False)(False)
     _wrap('ncrystal_setquietonerror',_int,(_int,),hide=True,error_check=False)(True)
-    _ncerror       = _wrap('ncrystal_error',_int,tuple(),hide=True,error_check=False)
-    _ncerror_msg   = _wrap('ncrystal_lasterror',_cstr,tuple(),hide=True,error_check=False)
-    _ncerror_type  = _wrap('ncrystal_lasterrortype',_cstr,tuple(),hide=True,error_check=False)
-    _ncerror_clear = _wrap('ncrystal_clearerror',None,tuple(),hide=True,error_check=False)
+    _ncerror       = _wrap('ncrystal_error',_int,(),hide=True,error_check=False)
+    _ncerror_msg   = _wrap('ncrystal_lasterror',_cstr,(),hide=True,error_check=False)
+    _ncerror_type  = _wrap('ncrystal_lasterrortype',_cstr,(),hide=True,error_check=False)
+    _ncerror_clear = _wrap('ncrystal_clearerror',None,(),hide=True,error_check=False)
 
     _wrap('ncrystal_refcount',_int,(_voidp,),take_ref=True)
     _wrap('ncrystal_valid',_int,(_voidp,),take_ref=True)
@@ -253,7 +256,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     _wrap('ncrystal_create_atomdata_fromdb',ncrystal_atomdata_t,(_uint,_uint))
     _wrap('ncrystal_create_atomdata_fromdbstr',ncrystal_atomdata_t,(_cstr,))
 
-    _raw_atomdb_getn = _wrap('ncrystal_atomdatadb_getnentries',_uint,tuple(), hide=True )
+    _raw_atomdb_getn = _wrap('ncrystal_atomdatadb_getnentries',_uint,(), hide=True )
     _raw_atomdb_getall = _wrap('ncrystal_atomdatadb_getallentries',_uint,(_uintp,_uintp), hide=True )
     def atomdb_getall_za():
         n = _raw_atomdb_getn()
@@ -280,7 +283,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     functions['ncrystal_info_getatompos'] = ncrystal_info_getatompos
 
     for s in ('temperature','xsectabsorption','xsectfree','density','numberdensity','sld'):
-        _wrap('ncrystal_info_get%s'%s,_dbl,(ncrystal_info_t,))
+        _wrap(f'ncrystal_info_get{s}',_dbl,(ncrystal_info_t,))
     _wrap('ncrystal_info_getstateofmatter',_int,( ncrystal_info_t,))
     _raw_info_getstruct = _wrap('ncrystal_info_getstructure',_int,(ncrystal_info_t,_uintp,_dblp,_dblp,_dblp,_dblp,_dblp,_dblp,_dblp,_uintp))
     def ncrystal_info_getstructure(nfo):
@@ -288,8 +291,10 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         a,b,c,alpha,beta,gamma,vol = _dbl(),_dbl(),_dbl(),_dbl(),_dbl(),_dbl(),_dbl(),
         if _raw_info_getstruct(nfo,sg,a,b,c,alpha,beta,gamma,vol,natom) == 0:
             return {}
-        return dict(spacegroup=int(sg.value),a=a.value,b=b.value,c=c.value,alpha=alpha.value,
-                    beta=beta.value,gamma=gamma.value,volume=vol.value,n_atoms=int(natom.value))
+        return { 'spacegroup': int(sg.value), 'a': a.value, 'b': b.value,
+                 'c': c.value, 'alpha': alpha.value, 'beta': beta.value,
+                 'gamma': gamma.value, 'volume': vol.value,
+                 'n_atoms': int(natom.value) }
     functions['ncrystal_info_getstructure'] = ncrystal_info_getstructure
 
     _wrap('ncrystal_info_nphases',_int,(ncrystal_info_t,))
@@ -437,7 +442,9 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         density = as_contiguous_double_array(density,'density')
         _raw_vdoseval(emin,emax,len(density),ndarray_to_dblp(density),temp,mass_amu,
                       msd,dt,g0,teff,oint)
-        return dict(msd=msd.value,debye_temp=dt.value,gamma0=g0.value,teff=teff.value,integral=oint.value)
+        return { 'msd': msd.value, 'debye_temp': dt.value,
+                 'gamma0': g0.value, 'teff': teff.value,
+                 'integral': oint.value }
     functions['nc_vdoseval']=nc_vdoseval
 
     _wrap('ncrystal_info_ncomponents',_uint,(ncrystal_info_t,))
@@ -500,9 +507,10 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         _raw_atomdata_getfields(ad,ctypes.byref(dl),ctypes.byref(descr),
                                 mass_amu,sigma_inc,scatlen_coh,sigma_abs,
                                 ncomp,zval,aval)
-        return dict(m=mass_amu.value,incxs=sigma_inc.value,cohsl_fm=scatlen_coh.value,absxs=sigma_abs.value,
-                    dl=_cstr2str(dl.value),descr=_cstr2str(descr.value),
-                    ncomp=ncomp.value,z=zval.value,a=aval.value)
+        return { 'm': mass_amu.value, 'incxs': sigma_inc.value,
+                 'cohsl_fm': scatlen_coh.value, 'absxs': sigma_abs.value,
+                 'dl': _cstr2str(dl.value), 'descr': _cstr2str(descr.value),
+                 'ncomp': ncomp.value, 'z': zval.value, 'a': aval.value }
     functions['ncrystal_atomdata_getfields'] = ncrystal_atomdata_getfields
 
     _raw_ncustom = _wrap('ncrystal_info_ncustomsections',_uint,(ncrystal_info_t,),hide=True)
@@ -513,7 +521,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     def ncrystal_info_getcustomsections(nfo):
         n=_raw_ncustom(nfo)
         if n==0:
-            return tuple()
+            return ()
         out=[]
         for isec in range(n):
             lines=[]
@@ -549,10 +557,10 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     _raw_xs_no = _wrap('ncrystal_crosssection_nonoriented',None,(ncrystal_process_t,_dbl,_dblp),hide=True)
     _raw_xs_no_many = _wrap('ncrystal_crosssection_nonoriented_many',None,(ncrystal_process_t,_dblp,_ulong,
                                                                            _ulong,_dblp),hide=True)
-    _empty_arrayf = _np.empty(shape=(0,),dtype=float) if _np else tuple()
+    _empty_arrayf = _np.empty(shape=(0,),dtype=float) if _np else ()
     _empty_arrayf_2tuple = ( ( _np.empty(shape=(0,),dtype=float),
                                _np.empty(shape=(0,),dtype=float) )
-                             if _np else (tuple(),tuple()) )
+                             if _np else ((),()) )
 
     def ncrystal_crosssection_nonoriented(scat,ekin,repeat=None):
         many = _prepare_many(ekin,repeat)
@@ -561,7 +569,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             _raw_xs_no(scat,ekin,res)
             return res.value
         else:
-            ekin_ct,n_ekin,repeat,ekin_nparr = many
+            ekin_ct,n_ekin,repeat,_ekin_nparr = many
             if repeat == 0:
                 return _empty_arrayf
             xs, xs_ct = _create_numpy_double_array(n_ekin*repeat)
@@ -589,7 +597,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             _raw_samplesct_iso(scat,ekin,ekin_final,mu)
             return ekin_final.value,mu.value
         else:
-            ekin_ct,n_ekin,repeat,ekin_nparr = many
+            ekin_ct,n_ekin,repeat,_ekin_nparr = many
             if repeat == 0:
                 #special case which happens often in our nctool usage:
                 return _empty_arrayf_2tuple
@@ -643,7 +651,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             _raw_gs_no(scat,ekin,angle,de)
             return angle.value,de.value
         else:
-            ekin_ct,n_ekin,repeat,ekin_nparr = many
+            ekin_ct,n_ekin,repeat,_ekin_nparr = many
             angle, angle_ct = _create_numpy_double_array(n_ekin*repeat)
             de, de_ct = _create_numpy_double_array(n_ekin*repeat)
             _raw_gs_no_many(scat,ekin_ct,n_ekin,repeat,angle_ct,de_ct)
@@ -694,7 +702,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         return rawi,raws,rawa
     functions['multicreate_direct'] = multicreate_direct
 
-    _wrap('ncrystal_setbuiltinrandgen',None,tuple())
+    _wrap('ncrystal_setbuiltinrandgen',None,())
 
     _RANDGENFCTTYPE = ctypes.CFUNCTYPE( _dbl )
     _raw_setrand    = _wrap('ncrystal_setrandgen',None,(_RANDGENFCTTYPE,),hide=True)
@@ -715,7 +723,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     _wrap('ncrystal_clone_scatter_rngforcurrentthread',ncrystal_scatter_t,(ncrystal_scatter_t,))
     _wrap('ncrystal_decodecfg_vdoslux',_uint,(_cstr,))
     _wrap('ncrystal_has_factory',_int,(_cstr,))
-    _wrap('ncrystal_clear_caches',None,tuple())
+    _wrap('ncrystal_clear_caches',None,())
 
     _wrap('ncrystal_rngsupportsstatemanip_ofscatter',_int,( ncrystal_scatter_t, ))
     _wrap('ncrystal_setrngstate_ofscatter',None,(ncrystal_scatter_t, _cstr))
@@ -831,12 +839,12 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
     functions['ncrystal_get_pluginlist'] = ncrystal_get_pluginlist
 
     _wrap('ncrystal_add_custom_search_dir',None,(_cstr,))
-    _wrap('ncrystal_remove_custom_search_dirs',None,tuple())
+    _wrap('ncrystal_remove_custom_search_dirs',None,())
     _wrap('ncrystal_enable_abspaths',None,(_int,))
     _wrap('ncrystal_enable_relpaths',None,(_int,))
     _wrap('ncrystal_enable_stddatalib',None,(_int,_cstr))
     _wrap('ncrystal_enable_stdsearchpath',None,(_int,))
-    _wrap('ncrystal_remove_all_data_sources',None,tuple())
+    _wrap('ncrystal_remove_all_data_sources',None,())
     _wrap('ncrystal_enable_factory_threadpool',None,(_uint,))
 
     _raw_benchloadcfg = _wrap('ncrystal_benchloadcfg',_dbl,(_cstr,_int,_int),hide=True)
@@ -925,15 +933,15 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
                 def load( i ):
                     return _cptr_to_nparray( data[i], n, dealloc=False)
 
-                pydata = dict( x = load(0), y = load(1), z = load(2),
-                               ux = load(3), uy = load(4), uz = load(5),
-                               ekin = load(6), w = load(7), nscat = load(8),
-                               nscat_inelas = load(9) )
+                pydata = { 'x': load(0), 'y': load(1), 'z': load(2),
+                           'ux': load(3), 'uy': load(4), 'uz': load(5),
+                           'ekin': load(6), 'w': load(7), 'nscat': load(8),
+                           'nscat_inelas': load(9) }
                 if cbtype==2:
                     pydata.update(
-                        dict( x0 = load(10), y0 = load(11), z0 = load(12),
-                              ux0 = load(13),uy0 = load(14), uz0 = load(15),
-                              ekin0 = load(16), w0 = load(17) )
+                        { 'x0': load(10), 'y0': load(11), 'z0': load(12),
+                          'ux0': load(13), 'uy0': load(14), 'uz0': load(15),
+                          'ekin0': load(16), 'w0': load(17) }
                     )
 
                 user_rv = user_callback( pydata )

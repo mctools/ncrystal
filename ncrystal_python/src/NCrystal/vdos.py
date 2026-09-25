@@ -151,13 +151,13 @@ def extractKnl( vdos, mass_amu, temperature, vdoslux = 3, scatxs = 1.0,
                                    vdoslux,
                                    order_weight_fct,
                                    target_emax )
-    k = dict( alpha = a,
-              beta = b,
-              sab = sab,
-              mass_amu = mass_amu,
-              temperature = temperature,
-              scatxs = scatxs,
-              suggested_emax = suggested_emax )
+    k = { 'alpha': a,
+          'beta': b,
+          'sab': sab,
+          'mass_amu': mass_amu,
+          'temperature': temperature,
+          'scatxs': scatxs,
+          'suggested_emax': suggested_emax }
     if plot:
         from .plot import plot_knl
         plot_knl( k, **plotkwargs )
@@ -236,9 +236,7 @@ class PhononDOSAnalyser:
             from .core import Info
             from .misc import AnyVDOS
             def _is_anyvdos(x):
-                return ( isinstance(x,AnyVDOS)
-                         or isinstance(x,Info.DI_VDOS)
-                         or isinstance(x,Info.DI_VDOSDebye) )
+                return isinstance(x,(AnyVDOS,Info.DI_VDOS,Info.DI_VDOSDebye))
             if _is_anyvdos( data ):
                 fmt = 'anyvdos'
             elif ( data and hasattr(data,'__len__')
@@ -317,7 +315,7 @@ class PhononDOSAnalyser:
             _dl.append( ( str(lbl), egrid, density ) )
         doslist = _dl
 
-        self.__d = dict( doslist = doslist, srcname = _srcname )
+        self.__d = { 'doslist': doslist, 'srcname': _srcname }
 
     @property
     def source_name( self ):
@@ -332,11 +330,11 @@ class PhononDOSAnalyser:
     @property
     def labels( self ):
         """Available DOS labels."""
-        return list(lbl for lbl,_,_ in self.__d['doslist'])
+        return [lbl for lbl,_,_ in self.__d['doslist']]
 
     def dos( self, label_or_idx ):
         """Get DOS by index or label. Returns tuple of two arrays: (egrid,dos)."""
-        lbl,egrid,dos = self.__d['doslist'][self.__dosidx( label_or_idx )]
+        _lbl,egrid,dos = self.__d['doslist'][self.__dosidx( label_or_idx )]
         return egrid,dos
 
     def drop( self, *dos_labels_or_indices ):
@@ -391,7 +389,7 @@ class PhononDOSAnalyser:
         for lbl,eg in egrids[1:]:
             if not _np.array_equal(newegrid,eg):
                 from .exceptions import NCBadInput
-                raise NCBadInput('Can not merge DOS curves with incompatible egrids (problems merging labels "%s" and "%s")'%(egrids[0][0],lbl))
+                raise NCBadInput(f'Can not merge DOS curves with incompatible egrids (problems merging labels "{egrids[0][0]}" and "{lbl}")')
 
         if weights is None:
             weights = [ 1.0 ] * len(mergelist)
@@ -412,7 +410,7 @@ class PhononDOSAnalyser:
         assert c is not None
 
         if newlabel is None:
-            newlabel = 'merged(%s)'%(','.join( [lbl for i,(lbl,_,_) in
+            newlabel = 'merged({})'.format(','.join( [lbl for i,(lbl,_,_) in
                                                 enumerate(self.__d['doslist'])
                                                 if i in mergelist] ))
             while newlabel in self.labels:
@@ -579,10 +577,11 @@ class PhononDOSAnalyser:
                 color_offset += len(selected)
                 o = self if t is None else self.apply_cutoff( t, *selected )
                 if regn is not None:
-                    if t is None:
-                        #Only go ahead in this case, if all selected egrids already have a cutoff:
-                        if not all( self.dos(idx)[0][0]>0.0 for idx in selected ):
-                            continue
+                    #If t is None, only go ahead if all selected egrids
+                    #already have a cutoff:
+                    if t is None and not all( self.dos(idx)[0][0]>0.0
+                                              for idx in selected ):
+                        continue
                     o = o.apply_regularisation( regn, *selected )
                 o.__plot(*selected,**plot_kwargs,kw_plot=pctx.kwargs_subcontext())
 
@@ -632,7 +631,7 @@ class PhononDOSAnalyser:
 
         t = 'DOS cutoff effect'
         if cfg_params:
-            t += ' (%s)'%cfg_params.strip()
+            t += f' ({cfg_params.strip()})'
         pctx.axis.set_title(t)
         return pctx.finalise(do_grid=do_grid,do_legend=do_legend)
 
@@ -699,8 +698,8 @@ class PhononDOSAnalyser:
     def get_dyninfo_args( self, label_or_idx ):
         """returns a dict with 'vdos_egrid' and 'vdos' keys, suitable for usage
            when calling NCMATComposer.set_dyninfo_vdos(..)"""
-        lbl,egrid,dos = self.__d['doslist'][self.__dosidx( label_or_idx )]
-        return dict( vdos_egrid = egrid, vdos = dos )
+        _lbl,egrid,dos = self.__d['doslist'][self.__dosidx( label_or_idx )]
+        return { 'vdos_egrid': egrid, 'vdos': dos }
 
     def determine_mapping_to_composer_labels( self, ncmatcomposer, warn = True ):
         """Try to determine a mapping between labels in this object and an
@@ -725,7 +724,7 @@ class PhononDOSAnalyser:
                 lbl2z[lbl] = nc_atomdata.elementNameToZValue(elemiso,allow_isotopes=True)
         lbl2tgt_zbased = {}
         for z in set(lbl2z.values()):
-            lbls = set( _lbl for _lbl,_z in lbl2z.items() if _z==z )
+            lbls = { _lbl for _lbl,_z in lbl2z.items() if _z==z }
             if len(lbls) == 1:
                 lbl = lbls.pop()
                 tgtlbl = ncmatcomposer.find_label( z, allow_multi = False )
@@ -759,13 +758,14 @@ class PhononDOSAnalyser:
             i = int( label_or_idx )
             if not 0 <= i < len(ll):
                 from .exceptions import NCBadInput
-                raise NCBadInput('Index out of range (%i is not in range 0..%i'%(i,len(ll)-1))
+                raise NCBadInput(f'Index out of range ({i} is not in range'
+                                 f' 0..{len(ll)-1}')
             return i
         _ = [i for i,(lbl,_,_) in enumerate(ll) if lbl == label_or_idx ]
         if not _:
             from .exceptions import NCBadInput
             _ = '","'.join(lbl for lbl,_,_ in ll)
-            raise NCBadInput('Invalid label "%s" (available labels are "%s")'%(label_or_idx,_))
+            raise NCBadInput(f'Invalid label "{label_or_idx}" (available labels are "{_}")')
         assert len(_) == 1
         return _[0]
 
@@ -799,7 +799,7 @@ class PhononDOSAnalyser:
                 masses.append( ad.averageMassAMU() )
         if len(masses) != len(selected):
             raise NCBadInput( 'Invalid number of masses provided' )
-        return dict( n = n, masses = masses, temperature=temperature )
+        return { 'n': n, 'masses': masses, 'temperature': temperature }
 
     def __colorder( self ):
         from ._common import _palette_Few as _palette
@@ -869,9 +869,9 @@ class PhononDOSAnalyser:
                     pctx.axis.plot( _x/unitfactor, _k*(_x**2),ls=':',
                                     color=color)
 
-        pctx.axis.set_xlabel('Frequency (%s)'%unitname)
+        pctx.axis.set_xlabel(f'Frequency ({unitname})')
         if sjolanderGn is not None:
-            pctx.axis.set_ylabel('G%i (arbitrary scale)'%sjolanderGn['n'])
+            pctx.axis.set_ylabel(f'G{int(sjolanderGn["n"])} (arbitrary scale)')
         else:
             pctx.axis.set_ylabel('DOS (arbitrary scale)')
         if ymin is not None or ymax is not None:
@@ -925,7 +925,7 @@ class PhononDOSAnalyser:
             composer_lbls = ncmatcomposer.get_labels()
             missing = set(lblmap.values()).difference(composer_lbls)
             def fmtlabellist(lbls):
-                return ( '"%s"'%('", "'.join(lbls)) if lbls else '' )
+                return ( '"{}"'.format('", "'.join(lbls)) if lbls else '' )
             if missing:
                 raise NCBadInput('Some values in lblmap are not present in provided'
                                  f' NCMATComposer object: {fmtlabellist(missing)} (the'
@@ -963,7 +963,7 @@ def _read_quantumespresso( raw_text_data ):
     _expected_hdr = 'Frequency[cm^-1] DOS PDOS'
     if not hdr or _expected_hdr not in hdr:
         from .exceptions import NCBadInput
-        raise NCBadInput('Invalid input format. Did not find expected header line "# %s"'%_expected_hdr)
+        raise NCBadInput(f'Invalid input format. Did not find expected header line "# {_expected_hdr}"')
     from ._numpy import _ensure_numpy, _np
     _ensure_numpy()
 
@@ -981,7 +981,8 @@ def _read_quantumespresso( raw_text_data ):
     egrid = vdos_units_2_eV['1/cm'] * _get_col( 0 )
 
     doslist  = [ ( 'combined_dos', egrid, _get_col( 1 ) ) ]
-    doslist += [ ('pdos%i'%ipdos, egrid, _get_col(2+ipdos) ) for ipdos in range(npdos)]
+    doslist += [ (f'pdos{ipdos}', egrid, _get_col(2+ipdos) )
+                 for ipdos in range(npdos) ]
     return doslist
 
 def _vdos_egrid_is_regular( egrid ):
@@ -1061,4 +1062,4 @@ def _parsevdosunit( name ):
         return name, unitfactor
     from .exceptions import NCBadInput
     _ = '","'.join(u for u in sorted(vdos_units_2_eV.keys()))
-    raise NCBadInput('Invalid frequency unit "%s" (must be one of "%s")'%(name,_))
+    raise NCBadInput(f'Invalid frequency unit "{name}" (must be one of "{_}")')

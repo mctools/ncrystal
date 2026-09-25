@@ -544,4 +544,4 @@ def _get_data():
 """
     ll = _np.genfromtxt(io.StringIO(thedata),names=True)
     fgs=['CHali','CHaro','CH2','CH3','NH','NH2','NH3','OH','SH']
-    return ll['Energy'].copy()*1e3, dict((k,ll[k].copy()) for k in fgs)
+    return ll['Energy'].copy()*1e3, {k: ll[k].copy() for k in fgs}

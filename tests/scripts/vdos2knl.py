@@ -40,7 +40,7 @@ def test( vdos, m, T, do_plot, vdoslux, target_emax = None ):
                               plot = do_plot )
     for k,v in knl.items():
         if hasattr(v,'shape'):
-            v = 'NumpyArray( shape=%s )'%(v.shape)
+            v = 'NumpyArray( shape={} )'.format(*v.shape)
         print(f" Got {k} : {v}")
     print()
 

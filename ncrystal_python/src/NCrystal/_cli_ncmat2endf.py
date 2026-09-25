@@ -23,11 +23,11 @@ from ._cliimpl import cli_entry_point, create_ArgumentParser
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'conv',
-        displayorder = 40,
-        descr = "Export ENDF data (based on endf-parserpy)."
-    )
+    return {
+        'displaygroup': 'conv',
+        'displayorder': 40,
+        'descr': "Export ENDF data (based on endf-parserpy)."
+    }
 
 longopt_metadata = '--mdata'
 metavar_elastic = 'MODE'
@@ -102,7 +102,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
             e = e.replace("'",'"')
         if '"' not in e and ',' in e:
             #Add some quotes that shlex did not think necessary:
-            e = '"%s"'%e
+            e = f'"{e}"'
         return e
 
     descr += "\n\nExample invocations:\n\n"
@@ -115,10 +115,10 @@ def _parseArgs( progname, arglist, return_parser=False ):
             if len(s[-1]+e) > exw:
                 s[-1] += ' \\'
                 s.append('')
-            s[-1] += ' %s'%e
-        descr += '%s%s\n'%(expre,s[0])
+            s[-1] += f' {e}'
+        descr += f'{expre}{s[0]}\n'
         for e in s[1:]:
-            descr += '%s%s\n'%(' '*len(expre),e)
+            descr += '{}{}\n'.format(' '*len(expre),e)
         descr += '\n'
 
     usagestr = (
@@ -148,8 +148,8 @@ def _parseArgs( progname, arglist, return_parser=False ):
                                f'tsl_element_in_<{metavar_matname}>.endf.'))
     elasmode_default = 'scaled'
     assert elasmode_default in available_elastic_modes
-    elasmode_other = list(e for e in available_elastic_modes
-                          if e != elasmode_default )
+    elasmode_other = [e for e in available_elastic_modes
+                      if e != elasmode_default ]
     assert len(elasmode_other)==2
     ba.add_argument('-e', longopt_elastic,metavar=metavar_elastic,
                     help=wrap('Approximation used for the elastic component'
@@ -216,12 +216,10 @@ def _parseArgs( progname, arglist, return_parser=False ):
         return parser
 
     #Avoid annoying CFGSTR-missing error when ppl use --mdata=help:
-    is_mdata_help = False
-    if f'{longopt_metadata}=help' in arglist:
-        is_mdata_help = True
-    elif longopt_metadata in arglist and 'help' in arglist:
-        if arglist.index(longopt_metadata)+1==arglist.index('help'):
-            is_mdata_help=True
+    is_mdata_help = (
+        f'{longopt_metadata}=help' in arglist
+        or ( longopt_metadata in arglist and 'help' in arglist
+             and arglist.index(longopt_metadata)+1==arglist.index('help') ) )
     if is_mdata_help:
         arglist = [f'{longopt_metadata}=help','dummy']
 
@@ -242,7 +240,7 @@ def _parseArgs( progname, arglist, return_parser=False ):
     assert isinstance(args.mdata,dict)
     for ee in args.mdata_kvlist or []:
         for e in ee:
-            kv = list(_.strip() for _ in e.split(':',1))
+            kv = [_.strip() for _ in e.split(':',1)]
             if len(kv)!=2 or not kv[0]:
                 parser.error(f'Invalid parameter for -m: {e!r}')
             args.mdata[kv[0]] = kv[1]
@@ -329,7 +327,7 @@ def gen_metadata_doc():
         f"""Meta-data for ENDF can be provided by the {longopt_metadata}
         option, by specifying a JSON dictionary like:"""
     )
-    txt+=('''\n\n  %s='{ "LIBNAME" : "MySuperLib"'''%longopt_metadata
+    txt+=(f'''\n\n  {longopt_metadata}='{{ "LIBNAME" : "MySuperLib"'''
           +''', "ALAB" : "MySuperLab" }'\n\n''')
     txt += section(
         """Or by adding individual items with the -m option like:"""

@@ -38,10 +38,10 @@ def nc_use_rng(n=1):
     #bkgd=none => PowderBragg => 1rng/call:
     _sc=NC.createScatter("Al_sg225.ncmat;dcutoff=1.5;bkgd=none")
     [_sc.sampleScatterIsotropic(NC.wl2ekin(3.5)) for i in range(n)]
-    print("  -> NCrystal consumed %i rngs"%n)
+    print(f"  -> NCrystal consumed {n} rngs")
 
 def print_state():
-    print("RNG STATES: %02i %02i"%(_rngstate1[0],_rngstate2[0]))
+    print(f"RNG STATES: {_rngstate1[0]:02} {_rngstate2[0]:02}")
 
 NC.setDefaultRandomGenerator(rng1)
 ####################

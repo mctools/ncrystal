@@ -71,10 +71,10 @@ def print_cppcode_romberg_coeffs(m):
         elif c==Fraction(1,2):
             cfmt = '0.5'
         else:
-            cfmt = '%i./%i.'%(c.as_integer_ratio())
+            cfmt = '{}./{}.'.format(*c.as_integer_ratio())
         coeffs.append(cfmt)
-    print('  constexpr double coeffs%i[%i] = {'%(n,len(coeffs)))
-    txt = ( '%s'%(', '.join(coeffs)) )
+    print(f'  constexpr double coeffs{n}[{len(coeffs)}] = {{')
+    txt = ( '{}'.format(', '.join(coeffs)) )
     width = 78# if n < 129 else 80
     print(textwrap.indent(
         textwrap.fill(txt,width,initial_indent='  ',subsequent_indent='  '),

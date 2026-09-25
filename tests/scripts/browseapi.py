@@ -116,12 +116,12 @@ def test_entries():
     assert p.composition == ((13,((0,1.0),)),)
     assert p.crystalsystem == 'cubic' and p.a == p.b == p.c == 4.04958
     assert p.alpha == 90.0 and abs( p.volume - 4.04958**3 ) < 1e-9
-    assert set(p.debyetemps) == set(['Al']) and p.debyetemps['Al'] == 400.0
-    assert set(p.msds) == set(['Al']) and p.customsections == frozenset()
+    assert set(p.debyetemps) == {'Al'} and p.debyetemps['Al'] == 400.0
+    assert set(p.msds) == {'Al'} and p.customsections == frozenset()
     assert abs( p.braggthreshold - 2*4.04958/3**0.5 ) < 1e-9
     assert abs( p.mass - 26.9815 ) < 1e-3 and p.incohxs > 0.0
     with ensure_error(AttributeError,'PhysicsProps has no attribute "foo"'):
-        p.foo
+        _ = p.foo
     g = lb.match('gas.ncmat')[0].props
     assert g.a is None and g.debyetemps is None and g.crystalsystem is None
     assert g.braggthreshold is None
@@ -254,12 +254,12 @@ def test_lazy_loading():
     b = nb.DataBrowser( progress = lambda a,b : progress.append(b) )
     assert not progress
     s1 = b.from_factory('virtual').where('crystal')
-    assert set(progress) == set([4])#only the virtual factory loaded
+    assert set(progress) == {4}#only the virtual factory loaded
     s2 = b.from_factory('virtual').sorted('density')
     s3 = b.match('virtual::gas*').table('formula')
-    assert set(progress) == set([4]) and s1 and s2 and s3
+    assert set(progress) == {4} and s1 and s2 and s3
     b.match('stdlib::Al_sg225').where('crystal')
-    assert set(progress) == set([4,nb.list_factories()['stdlib']])
+    assert set(progress) == {4,nb.list_factories()['stdlib']}
     #Physics is also loaded on demand when accessed via an entry:
     progress.clear()
     b = nb.DataBrowser( progress = lambda a,b : progress.append(b) )

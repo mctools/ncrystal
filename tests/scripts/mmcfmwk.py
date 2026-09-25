@@ -76,22 +76,20 @@ def main(do_plot, do_update):
         assert isinstance(d2,dict)
         if not d1.keys()==d2.keys():
             raise RuntimeError('Incompatible keys at lvl'
-                               '="%s": %s vs %s'%(_dir,
-                                                  d1.keys(),
-                                                  d2.keys()))
-        for k in d1.keys():
+                               f'="{_dir}": {d1.keys()} vs {d2.keys()}')
+        for k in d1:
             if d1[k] != d2[k]:
                 keyprint = k
                 if _dir:
                     keyprint=_dir+'/'+keyprint
-                print('Issues with  key=%s'%keyprint)
+                print(f'Issues with  key={keyprint}')
                 if isinstance(d1[k],dict):
-                    assert_dict_same(d1[k],d2[k],_dir=_dir+'/%s'%k)
+                    assert_dict_same(d1[k],d2[k],_dir=_dir+f'/{k}')
                 else:
                     print(type(d1[k]))
                     print(type(d2[k]))
                     print('equal:',d1[k]==d2[k])
-                raise RuntimeError('Issues with key=%s'%keyprint)
+                raise RuntimeError(f'Issues with key={keyprint}')
         assert d1 == d2
 
     assert_dict_same(res_j.to_dict(), d)
@@ -112,7 +110,7 @@ def main(do_plot, do_update):
             assert h1.keys()==h2.keys()
             assert 'SINGLESCAT_ELAS' in h1
             assert 'total' in h1
-            for hk in h1.keys():
+            for hk in h1:
                 assert h1[hk] == h2[hk]
 
     #Rely on reference files, to check stability and to have stable output for
@@ -209,7 +207,8 @@ def main(do_plot, do_update):
     resA.tally('theta').plot(rebin_factor=2,logy=False)
     print("Dump test")
     resA.tally('theta').hist_total.clone(rebin_factor=2).dump()
-    print("resA.tally('theta').hist_total.title=%s"%repr(resA.tally('theta').hist_total.title))
+    _ = resA.tally('theta').hist_total.title
+    print(f"resA.tally('theta').hist_total.title={_!r}")
     print(resA.tally_names)
     print("Sum test")
     h = resA.tally('theta').histogram_sum(select=['NOSCAT','MULTISCAT_PUREELAS'],
@@ -251,11 +250,11 @@ def main(do_plot, do_update):
 
 
     with ensure_error(NCBadInput,'Data seems to be in an unsupported format'):
-        MMCResults(dict( datatype = 'NCrystalMiniMCResults_v17',
-                         input = {}, output={} ))
+        MMCResults({ 'datatype': 'NCrystalMiniMCResults_v17',
+                     'input': {}, 'output': {} })
     with ensure_error(NCBadInput,'Data seems to be in an unsupported format'):
-        MMCResults(dict( datatype = 'NCrystalMiniMCResults_v1',
-                         input = {}, output={}, somethingnew={} ))
+        MMCResults({ 'datatype': 'NCrystalMiniMCResults_v1',
+                     'input': {}, 'output': {}, 'somethingnew': {} })
     with ensure_error(NCBadInput,'Unsupported data format'):
         MMCResults([1,2,3])
     resV3 = mmc_run( 'void.ncmat',scenario = '1eV on 1cm 1 times',
@@ -346,9 +345,8 @@ def main(do_plot, do_update):
     #runerr( 'Missing geomcfg parameter.', 'void.ncmat',srccfg='constant;wl=1.8')
     #runerr( 'Missing srccfg parameter.', 'void.ncmat',geomcfg='sphere;r=1')
 
-    kw = dict(cfgstr='void.ncmat',scenario = '0.01eV on 1cm 1 times',
-              enginecfg
-              = 'nthreads=1;tally=e;tallybins=e:5:0:02;tallybreakdown=0')
+    kw = {'cfgstr': 'void.ncmat','scenario': '0.01eV on 1cm 1 times',
+              'enginecfg': 'nthreads=1;tally=e;tallybins=e:5:0:02;tallybreakdown=0'}
     r = mmc_run( **kw, unpack='dict' )
     h = r['output']['tally']['e']['total']
     assert isinstance(h,Hist1D)
@@ -416,7 +414,7 @@ def test_results_compat():
             is_fail = False
         else:
             assert isinstance(rv,str)
-            print("==> Compat check ended in ERROR: >>%s<<"%rv)
+            print(f"==> Compat check ended in ERROR: >>{rv}<<")
         assert is_fail == expect_fail
         if shuffle:
             testrcc(dict2,dict1,threshold=threshold,expect_fail=expect_fail,

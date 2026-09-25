@@ -25,7 +25,7 @@ def platform_so_ending():
     return '.dylib' if platform.system() == 'Darwin' else '.so'
 
 def pkg_libname( pkgname ):
-    libname = 'libPKG__%s'%pkgname
+    libname = f'libPKG__{pkgname}'
     return libname + platform_so_ending()
 
 def main():

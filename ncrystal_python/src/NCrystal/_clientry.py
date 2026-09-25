@@ -60,14 +60,14 @@ def collect_usage_data( mode_list = None ):
     group_keys = [k for k,v in group_defs]
     group_key2descr = dict(group_defs)
 
-    group_key2data = dict( (k,[]) for k in group_keys )
+    group_key2data = { k: [] for k in group_keys }
     for mode in mode_list:
         md = get_module_metadata( mode )
         descr = md['descr']
         grp = md['displaygroup']
         order = md['displayorder']
         assert grp in group_key2descr, ( "invalid group (must be one"
-                                         " of: %s)"%(' '.join(group_keys)) )
+                                         f" of: {' '.join(group_keys)})" )
         group_key2data[grp].append( (order,mode,descr) )
     out = []
     for grp in group_keys:

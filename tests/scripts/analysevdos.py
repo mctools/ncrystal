@@ -44,7 +44,7 @@ for vdoslux in (0,3):
       for di in info.dyninfos:
         if hasattr(di,'analyseVDOS'):
           print(f'==> {cfgstr}//{di.atomData.displayLabel()} => ',end='')
-          print('; '.join('%s=%.12g'%(k,v)
+          print('; '.join(f'{k}={v:.12g}'
                           for k,v in sorted(di.analyseVDOS().items())))
 
 #Also exercise a VDOS with an unusual shape: a huge central region of exact
@@ -56,5 +56,5 @@ for vdoslux in (0,3):
     for di in info.dyninfos:
       if hasattr(di,'analyseVDOS'):
         print(f'==> {cfgstr}//{di.atomData.displayLabel()} => ',end='')
-        print('; '.join('%s=%.12g'%(k,v)
+        print('; '.join(f'{k}={v:.12g}'
                         for k,v in sorted(di.analyseVDOS().items())))

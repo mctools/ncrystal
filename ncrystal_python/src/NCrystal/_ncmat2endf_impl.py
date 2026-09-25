@@ -37,7 +37,7 @@ print = ncprint
 
 #Materials with other processes than the following must be validated by experts
 #before conversion to ENDF can be supported:
-allowed_scat_proc_names = set( ['ElIncScatter', 'PowderBragg', 'SABScatter'] )
+allowed_scat_proc_names = {'ElIncScatter', 'PowderBragg', 'SABScatter'}
 
 mass_neutron = ( nc_constants.const_neutron_mass_amu*
                  nc_constants.constant_dalton2eVc2/
@@ -318,11 +318,11 @@ class NuclearData:
         #sab. Once we do no longer need to support the legacy mode, we can
         #revisit this.
 
-        kwargs = dict( vdos = di,
-                       mass_amu = di.atomData.averageMassAMU(),
-                       temperature = di.temperature,
-                       scatxs = 1.0,# seems to be the right thing
-                       vdoslux = self.__loaded['vdoslux'] )
+        kwargs = { 'vdos': di,
+                   'mass_amu': di.atomData.averageMassAMU(),
+                   'temperature': di.temperature,
+                   'scatxs': 1.0,# seems to be the right thing
+                   'vdoslux': self.__loaded['vdoslux'] }
 
         k = extractKnl( target_emax = None, **kwargs )
         emax0 = k.get('suggested_emax',0.0)
@@ -387,16 +387,16 @@ class NuclearData:
             self._elems[sym].beta[0] = 0.0
             if self._verbosity > 2:
                 def fmta(x):
-                    return '%.4g'%x
+                    return f'{x:.4g}'
                 def fmtb(x):
-                    return '%.4g'%x
+                    return f'{x:.4g}'
                 if unit_test_chop_vals[0]:
                     def fmta(x):
-                        return '%.3g'%x
+                        return f'{x:.3g}'
                     def fmtb(x):
                         if x > 50:
-                            return '%.2g'%x
-                        return '%.3g'%x
+                            return f'{x:.2g}'
+                        return f'{x:.3g}'
                 a,b = self._elems[sym].alpha, self._elems[sym].beta
                 ncprint(f'>>> alpha points: {len(a)}, alpha range: '
                         f'({fmta(_np.min(a*T0/T))}, {fmta(_np.max(a*T0/T))})')
@@ -452,13 +452,13 @@ class NuclearData:
                     self._elems[sym].dwi =  None
         if self._verbosity > 1:
             ncprint('>> Prepare elastic approximations')
-        if ( self._elastic_mode == 'scaled' ):
-            if ( len(self.composition) > 1 and
-                 self._incoherent_fraction < 1e-6 ):
-                    self._elastic_mode = 'greater'
-                    ncwarn('Scaled elastic mode requested '
-                           'but all elements are coherent. '
-                           '"greater" option will be used instead.')
+        if ( self._elastic_mode == 'scaled'
+             and len(self.composition) > 1
+             and self._incoherent_fraction < 1e-6 ):
+            self._elastic_mode = 'greater'
+            ncwarn('Scaled elastic mode requested '
+                   'but all elements are coherent. '
+                   '"greater" option will be used instead.')
         for frac, ad in self.composition:
             sym = ad.elementName()
             if ( self._sigmaE is None and
@@ -1098,8 +1098,8 @@ def _decodecfg_and_loadobjs( cfgstr ):
     def is_already_loaded_obj( x ):
         if not isinstance(x,dict):
             return False
-        expected = set(['info_obj','scat_obj','cfgstr','cfgstr_decoded','temp',
-                        'scat_comps','vdoslux'])
+        expected = {'info_obj','scat_obj','cfgstr','cfgstr_decoded','temp',
+                     'scat_comps','vdoslux'}
         return set(x.keys()) == expected
 
     if is_already_loaded_obj( cfgstr ):
@@ -1121,8 +1121,8 @@ def _decodecfg_and_loadobjs( cfgstr ):
         return dc
 
     def fmtfp( v ):
-        s = '%.14g'%v
-        return s if float(s) == v else '%.17g'%v
+        s = f'{v:.14g}'
+        return s if float(s) == v else f'{v:.17g}'
 
     multiphase_errmsg = 'Only single phase materials supported'
     if _decode_cfg(cfgstr)['ismultiphase']:
@@ -1218,7 +1218,7 @@ def _impl_ncmat2endf( *,
 
     base_temp = loaded['temp']
     if othertemps is None:
-        othertemps = tuple()
+        othertemps = ()
     else:
         if type(othertemps) in (int, float):
             othertemps = (othertemps,)
@@ -1268,7 +1268,8 @@ def _impl_ncmat2endf( *,
         raise NCBadInput('Material configuration indicates scattering'
                          ' processes which has not been vetted for conversion'
                          ' to the ENDF format'
-                         ': "%s"'%('", "'.join(sorted(unsupported_scat_procs))))
+                         ': "{}"'.format(
+                             '", "'.join(sorted(unsupported_scat_procs))))
 
     if verbosity > 0:
         ncprint('Initialise nuclear data...')
@@ -1282,7 +1283,7 @@ def _impl_ncmat2endf( *,
     if endf_metadata.matnum is not None:
         n = len(endf_metadata.matnum)
         for frac, ad in data.composition:
-            if ad.elementName() in endf_metadata.matnum.keys():
+            if ad.elementName() in endf_metadata.matnum:
                 n = n - 1
         if n != 0:
             raise NCBadInput('Incorrect material number assignment')
@@ -1320,42 +1321,42 @@ def _impl_ncmat2endf( *,
         for fn, frac, sym in output_composition:
             ncprint(f'  {fn} : {sym} with fraction {pfmt(frac)}')
         if len(temperatures)==1:
-            ncprint('Suggested material density: %.10g g/cm^3'%density)
+            ncprint(f'Suggested material density: {density:.10g} g/cm^3')
 
-    return dict(
-        density = density,
-        temperature = ( temperatures[0]
+    return {
+        'density': density,
+        'temperature': ( temperatures[0]
                         if len(temperatures)==1
                         else temperatures ),
-        files = list(
-            dict( file = endf_fn,
-                  fraction = frac,
-                  component = sym )
+        'files': [
+            { 'file': endf_fn,
+              'fraction': frac,
+              'component': sym }
             for endf_fn, frac, sym in output_composition
-        )
-    )
+        ]
+    }
 
 
-_metadata_definitions = dict(
-    ALAB = dict( defval = 'MyLAB' ),
-    AUTH = dict( defval = 'NCrystal' ),
-    LIBNAME = dict( defval = 'MyLib' ),
-    NLIB = dict( datatype = int, defval = 0 ),
-    REFERENCE = dict( defval = 'REFERENCE' ),
-    LREL = dict( datatype = int, defval = 0 ),
-    NVER = dict( datatype = int, defval = 1 ),
-    MATNUM = dict( datatype = 'matnumbers', defval = {} ),
-    ENDATE = dict ( defval = '' ),
-    EDATE = dict( datatype = 'datestr', defval = 'MMMYY' ),
-    DDATE = dict( datatype = 'datestr', defval = 'MMMYY' ),
-    RDATE = dict( datatype = 'datestr',
-                  defval = 'MMMYY' ),
-)
+_metadata_definitions = {
+    'ALAB': { 'defval': 'MyLAB' },
+    'AUTH': { 'defval': 'NCrystal' },
+    'LIBNAME': { 'defval': 'MyLib' },
+    'NLIB': { 'datatype': int, 'defval': 0 },
+    'REFERENCE': { 'defval': 'REFERENCE' },
+    'LREL': { 'datatype': int, 'defval': 0 },
+    'NVER': { 'datatype': int, 'defval': 1 },
+    'MATNUM': { 'datatype': 'matnumbers', 'defval': {} },
+    'ENDATE': { 'defval': '' },
+    'EDATE': { 'datatype': 'datestr', 'defval': 'MMMYY' },
+    'DDATE': { 'datatype': 'datestr', 'defval': 'MMMYY' },
+    'RDATE': { 'datatype': 'datestr',
+               'defval': 'MMMYY' },
+}
 
 def _impl_get_metadata_params_and_docs():
     d = {}
     from .ncmat2endf import EndfMetaData
-    for k in _metadata_definitions.keys():
+    for k in _metadata_definitions:
         doc = getattr(EndfMetaData,k.lower()).__doc__
         assert doc is not None
         d[k] = ' '.join(doc.strip().split())
@@ -1495,9 +1496,9 @@ def _interp2d(x, y, x0, y0, z0=None):
     j1[_np.where(j1 < 0)] = 0
 
     # get corner values
-    ii1, jj1 =_np.meshgrid(i1, j1, indexing='ij')
+    _ii1, _jj1 =_np.meshgrid(i1, j1, indexing='ij')
     xx1, yy1 =_np.meshgrid(x0[i1], y0[j1], indexing='ij')
-    ii2, jj2 =_np.meshgrid(i2, j2, indexing='ij')
+    _ii2, _jj2 =_np.meshgrid(i2, j2, indexing='ij')
     xx2, yy2 =_np.meshgrid(x0[i2], y0[j2], indexing='ij')
 
     ii11, jj11 =_np.meshgrid(i1, j1, indexing='ij')
@@ -1536,24 +1537,24 @@ def _tidy_beta( x, allow_negative=False):
     else:
         assert 0.0 <= x <= 1e99
     if x < -120:
-        return float('%.1g'%x)
+        return float(f'{x:.1g}')
     if abs(x) > 8:
-        return float('%.2g'%x)
-    return float('%.3g'%x)
+        return float(f'{x:.2g}')
+    return float(f'{x:.3g}')
 
 def _tidy_alpha_list( a_values ):
     if not unit_test_chop_vals[0]:
         return a_values
     def _chop(x):
         assert 0.0 <= x <= 1e99
-        return float('%.1g'%x)
+        return float(f'{x:.1g}')
     return  [ _chop(x) for x in a_values ]
 
 def _tidy_teffwp( x ):
     if not unit_test_chop_vals[0]:
         return x
     assert 0.0 < x <= 1e99
-    return float('%.13g'%x)
+    return float(f'{x:.13g}')
 
 def _tidy_sab_list( s_values ):
     s_values = [ float(e) for e in s_values ]
@@ -1564,7 +1565,7 @@ def _tidy_sab_list( s_values ):
         #Have to be rather harsh unfortunately:
         if x < 1e-2:
             return 0.0
-        return float('%.1g'%x)
+        return float(f'{x:.1g}')
     return  [ _chop(x) for x in s_values ]
 
 def _detect_and_short_horisontal_ruler_in_line( line, hr_chars = '+-=~*^#' ):

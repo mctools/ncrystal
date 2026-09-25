@@ -21,13 +21,13 @@
 
 # Checks whitespace, encodings, line-endings, file-sizes, ...
 
-ignore_list = set([
+ignore_list = {
     'tests/data/QE_pw_Al.out',
-])
+}
 
-ignore_list_nonascii = set([
+ignore_list_nonascii = {
     'devel/plugin_database.yml',
-])
+}
 
 def main():
 

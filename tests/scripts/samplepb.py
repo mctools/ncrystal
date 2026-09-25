@@ -40,8 +40,8 @@ def samplepb(x0,y0,x1,y1,nsample):
     x=a[:,0]
     y=a[:,1]
 
-    return x,y,dict(rng_per_sample=res['rng_per_sample'],
-                    sampler_details=res['sampler_details'])
+    return x,y,{'rng_per_sample': res['rng_per_sample'],
+                'sampler_details': res['sampler_details']}
 
 def plot_samples(axis,x0,y0,x1,y1,nsample, **plotkwargs):
     x, y, details = samplepb(x0=x0,y0=y0,x1=x1,y1=y1,
@@ -67,8 +67,8 @@ def plot_box(axis,x0,y0,x1,y1,**plotkwargs):
 
 def show(x0,y0,x1,y1):
     import matplotlib.pyplot as plt
-    box = dict(x0=x0,y0=y0,x1=x1,y1=y1)
-    fig,axis = plt.subplots()
+    box = {'x0': x0,'y0': y0,'x1': x1,'y1': y1}
+    _fig,axis = plt.subplots()
     xmax = box['x1']*1.2
     plot_pb( axis, xmax = xmax )
     plot_box( axis, **box )
@@ -76,10 +76,9 @@ def show(x0,y0,x1,y1):
                             alpha=0.4, marker='.' )
     rs = si['rng_per_sample']
     approx_ar = 2.0/rs
-    axis.set_title("Acceptance rate ~= %.3g%% (RNG/sample=%.3g, %s)"
-                   %(approx_ar*100,
-                     rs,
-                     si['sampler_details']['samplemode']))
+    axis.set_title(f"Acceptance rate ~= {approx_ar*100:.3g}%"
+                   f" (RNG/sample={rs:.3g},"
+                   f" {si['sampler_details']['samplemode']})")
 
     orc_x, orc_y = zip(*si['sampler_details']['overlay_region_curve'])
     #print(si['sampler_details']['overlay_region_curve'])
@@ -90,19 +89,19 @@ def show(x0,y0,x1,y1):
 
 def main():
     return#fixme
-    boxes = [ dict(x0=0.9,y0=0.8,x1=1.1,y1=1.1),
-              dict(x0=0,y0=0.1,x1=2.5,y1=1.1),
-              dict(x0=0,y0=0.0,x1=2.5,y1=1.1),
-              dict(x0=0.1,y0=0.1,x1=2.2,y1=60.0),
-              dict(x0=0.1,y0=0.1,x1=0.4,y1=0.5),
-              dict(x0=0.1,y0=1.01,x1=0.4,y1=20.5),
-              dict(x0=10000,y0=9999,x1=1000000,y1=1000000.5),
-              dict(x0=0,y0=0,x1=4.9,y1=12),
-              dict(x0=0,y0=0,x1=5.1,y1=12),
-              dict(x0=0,y0=3,x1=5.1,y1=12),
-              dict(x0=0,y0=0,x1=5.1,y1=0.1),
-              dict(x0=1.0,y0=0,x1=26,y1=30),
-              dict(x0=1.0,y0=0,x1=26,y1=17.3)]
+    boxes = [ {'x0': 0.9,'y0': 0.8,'x1': 1.1,'y1': 1.1},
+              {'x0': 0,'y0': 0.1,'x1': 2.5,'y1': 1.1},
+              {'x0': 0,'y0': 0.0,'x1': 2.5,'y1': 1.1},
+              {'x0': 0.1,'y0': 0.1,'x1': 2.2,'y1': 60.0},
+              {'x0': 0.1,'y0': 0.1,'x1': 0.4,'y1': 0.5},
+              {'x0': 0.1,'y0': 1.01,'x1': 0.4,'y1': 20.5},
+              {'x0': 10000,'y0': 9999,'x1': 1000000,'y1': 1000000.5},
+              {'x0': 0,'y0': 0,'x1': 4.9,'y1': 12},
+              {'x0': 0,'y0': 0,'x1': 5.1,'y1': 12},
+              {'x0': 0,'y0': 3,'x1': 5.1,'y1': 12},
+              {'x0': 0,'y0': 0,'x1': 5.1,'y1': 0.1},
+              {'x0': 1.0,'y0': 0,'x1': 26,'y1': 30},
+              {'x0': 1.0,'y0': 0,'x1': 26,'y1': 17.3}]
     for b in boxes:
         show(**b)
 

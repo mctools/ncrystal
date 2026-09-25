@@ -49,9 +49,9 @@ max_diff_lvl = 1e-7
 
 def test_pyapi( cfgstr, fmt, nstart = 30, nend = 20 ):
     from NCrystalDev.mcstasutils import cfgstr_2_hkl
-    kwargs = dict(cfgstr=cfgstr,
-                  tgtformat=fmt,
-                  fp_format=f'%.{test_precision}g')
+    kwargs = {'cfgstr': cfgstr,
+              'tgtformat': fmt,
+              'fp_format': f'%.{test_precision}g'}
     args_str = fmt_args_as_str( **kwargs )
     hr=f"============= PyAPI >>{args_str}<< ===================="
     print(hr)
@@ -194,7 +194,7 @@ def main():
 
 def cfgstr2hkl(cfgstr,fmt,outfile,use_pyapi):
     assert fmt in ('lau','laz')
-    common = dict(nstart=100, nend=4)
+    common = {'nstart': 100, 'nend': 4}
     if use_pyapi:
         return test_pyapi(cfgstr,fmt,**common)
     if outfile is not None and 'FMT' in outfile:

@@ -37,8 +37,8 @@ def fit_amdahl( nthreads, throughput, throughput_stddev ):
         return 1.0 / ( ( 1.0 - f ) + f / x )
     from scipy.optimize import curve_fit
 
-    res_params, res_param_err = curve_fit(fit_func,x,y,sigma=y_stddev)
-    print("Fitted f=%g"%res_params[0])
+    res_params, _res_param_err = curve_fit(fit_func,x,y,sigma=y_stddev)
+    print(f"Fitted f={res_params[0]:g}")
 
     xx = np.linspace(x[0],x[-1],1000)
     return xx, yscale * fit_func(xx,res_params[0]),res_params[0]
@@ -54,8 +54,8 @@ def _res2title(results):
     n = [ nvals for nvals, nthreads2times in results['results'].items() ]
     sc = results['src_cfg']
     if len(set(n))==1 and ';n=' not in (';'+sc):
-        sc += ';n=%s'%prettyfmt(int(n[0]))
-    return'"%s", src="%s", geom="%s"'%(results['mat_cfgstr'],
+        sc += f';n={prettyfmt(int(n[0]))}'
+    return'"{}", src="{}", geom="{}"'.format(results['mat_cfgstr'],
                                        sc,
                                        results['geom_cfgstr'])
 
@@ -101,7 +101,7 @@ def plot_results(results, use_seen_rates = True):
                           color = color, ls = ':', alpha = 0.5 )
 
     xa,ya,fa = fit_amdahl(vals_nthread[:],vals_rate[:],vals_stddev[:])
-    plt.plot(xa,ya,label='Amdahl (p=%g)'%fa)
+    plt.plot(xa,ya,label=f'Amdahl (p={fa:g})')
 
     plt.legend()
     #plt.title('src="%s", job overhead: %g seconds'%(results['src_cfg'],overhead))

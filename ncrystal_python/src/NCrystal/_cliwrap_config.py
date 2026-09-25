@@ -24,11 +24,11 @@ from ._cliimpl import cli_entry_point
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'main',
-        displayorder = 20,
-        descr = "Access technical info about NCrystal installation."
-    )
+    return {
+        'displaygroup': 'main',
+        'displayorder': 20,
+        'descr': "Access technical info about NCrystal installation."
+    }
 
 def create_argparser_for_sphinx( progname ):
     raise RuntimeError('Do not call create_argparser_for_sphinx'

@@ -86,7 +86,8 @@ def main( parser ):
     txt_cc = ( skelcc.read_text()
                .replace('Skeleton',args.name)
                .replace('"INCLUDEPATH/',
-                        '"%s/'%p_hdr.relative_to(coreroot.joinpath('include'))))
+                        '"{}/'.format(p_hdr.relative_to(
+                            coreroot.joinpath('include')))))
     files_to_create.append( ( p_hdr.joinpath(f'NC{args.name}.hh'), txt_hh) )
     files_to_create.append( ( p_src.joinpath(f'NC{args.name}.cc'), txt_cc) )
     for f,txt in files_to_create:

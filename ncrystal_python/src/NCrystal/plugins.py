@@ -42,8 +42,8 @@ def browsePlugins(dump=False):
     if not dump:
         return ll
     from ._common import print
-    print('NCrystal has %i plugins loaded.'%len(ll))
+    print(f'NCrystal has {len(ll)} plugins loaded.')
     for i in range(len(ll)):
         pluginname, filename, plugintype = ll[i]
-        print('==> %s (%s%s)'%(pluginname,plugintype,
-                             ' from %s'%filename if filename else ''))
+        print('==> {} ({}{})'.format(pluginname,plugintype,
+                             f' from {filename}' if filename else ''))

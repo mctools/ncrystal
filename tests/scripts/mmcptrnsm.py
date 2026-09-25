@@ -49,7 +49,7 @@ def main(do_plot, do_update):
     transm_uz_threshold = math.cos( transm_def_degree*math.pi/180)
 
     def cb( data ):
-        print('Callback processing %i neutrons'%len(data['w']))
+        print(f"Callback processing {len(data['w'])} neutrons")
         print('   got keys:',data.keys())
         w,uz,e0 = data['w'], data['uz'], data['ekin0']
         mask_transm = uz > transm_uz_threshold
@@ -64,8 +64,8 @@ def main(do_plot, do_update):
                   callback = cb )
 
     tallied_stats = res.output_metadata['tallied']
-    print('Total neutrons tallied (count): %i'%tallied_stats['count'])
-    print('Total neutrons tallied (sumw): %i'%tallied_stats['weight'])
+    print('Total neutrons tallied (count):',int(tallied_stats['count']))
+    print('Total neutrons tallied (sumw):',int(tallied_stats['weight']))
 
     h = hist_e0_transm.to_hist1d()
     #normalise to expected sum(weight)/bin in absence of interactions:

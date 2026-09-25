@@ -19,6 +19,8 @@
 ##                                                                            ##
 ################################################################################
 
+# ruff: noqa: N999 (the package name is not up for change)
+
 """
 
 This __main__.py module is here to ensure that NCrystal commandline script

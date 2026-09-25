@@ -40,13 +40,21 @@ from ._msg import _setDefaultPyMsgHandlerIfNotSet as _
 _()
 _=None
 
-from ._chooks import _cstr2str, _get_raw_cfcts, _str2cstr, _get_build_namespace # noqa E402
-from . import constants as _nc_constants
-from ._numpy import _np,_ensure_numpy,_np_linspace
-from . import _coreimpl as _impl
-import enum as _enum
-import ctypes as _ctypes
-import weakref as _weakref
+#Imports below must happen after setting the default message handler above:
+import ctypes as _ctypes  # noqa: E402
+import enum as _enum  # noqa: E402
+import weakref as _weakref  # noqa: E402
+
+from . import _coreimpl as _impl  # noqa: E402
+from . import constants as _nc_constants  # noqa: E402
+from ._chooks import (  # noqa: E402
+    _cstr2str,
+    _get_build_namespace,
+    _get_raw_cfcts,
+    _str2cstr,
+)
+from ._numpy import _ensure_numpy, _np, _np_linspace  # noqa: E402
+
 _rawfct = _get_raw_cfcts()
 
 def get_version():
@@ -199,7 +207,7 @@ class AtomData(RCBase):
             """AtomData of component"""
             return self.__ad
         def __str__(self):
-            return '%g*AtomData(%s)'%(self.__fr,self.__ad.description(True))
+            return f'{self.__fr:g}*AtomData({self.__ad.description(True)})'
         def __repr__(self):
             return self.__str__()
 
@@ -245,16 +253,18 @@ class AtomData(RCBase):
     def description(self,includeValues=True):
         """Returns description of material as a string, with or without values."""
         if includeValues:
-            zstr=' Z=%i'%self.__z if self.__z else ''
-            astr=' A=%i'%self.__a if self.__a else ''
-            _=(self.__descr,self.__cohsl_fm,self.coherentXS(),self.__incxs,
-               self.__absxs,self.__m,zstr,astr)
-            return'%s(cohSL=%gfm cohXS=%gbarn incXS=%gbarn absXS=%gbarn mass=%gamu%s%s)'%_
+            zstr=f' Z={self.__z}' if self.__z else ''
+            astr=f' A={self.__a}' if self.__a else ''
+            return ( f'{self.__descr}(cohSL={self.__cohsl_fm:g}fm'
+                     f' cohXS={self.coherentXS():g}barn'
+                     f' incXS={self.__incxs:g}barn'
+                     f' absXS={self.__absxs:g}barn'
+                     f' mass={self.__m:g}amu{zstr}{astr})' )
         return self.__descr
 
     def __str__(self):
         descr=self.description()
-        return '%s=%s'%(self.__dl,descr) if self.__dl else descr
+        return f'{self.__dl}={descr}' if self.__dl else descr
 
     def __repr__(self):
         return self.__str__()
@@ -334,7 +344,7 @@ class Info(RCBase):
         self._som=None
         self._nphases = int(_rawfct['ncrystal_info_nphases'](rawobj))
         assert self._nphases == 0 or self._nphases >= 2
-        self._phases = tuple() if self._nphases == 0 else None
+        self._phases = () if self._nphases == 0 else None
 
     def getUniqueID(self):
         """Unique identifier of object (UID)."""
@@ -705,11 +715,11 @@ class Info(RCBase):
             ll=[str(self.atomData.displayLabel()),str(self.__n)]
             #Like C++ dump, omit unavailable values (None):
             if self.__dt is not None:
-                ll.append('DebyeT=%gK'%self.__dt)
+                ll.append(f'DebyeT={self.__dt:g}K')
             if self.__msd is not None:
-                ll.append('MSD=%gAa^2'%self.__msd)
-            ll.append('hasPositions=%s'%('yes' if self.__pos else 'no'))
-            return 'AtomInfo(%s)'%(', '.join(ll))
+                ll.append(f'MSD={self.__msd:g}Aa^2')
+            ll.append(f'hasPositions={"yes" if self.__pos else "no"}')
+            return f'AtomInfo({", ".join(ll)})'
 
     def hasAtomInfo(self):
         """Whether or no getAtomInfo()/atominfos are available"""
@@ -836,7 +846,7 @@ class Info(RCBase):
         """Returns True if .hklInfoType() equals HKLInfoType.SymEqvGroup."""
         return self.hklInfoType() == HKLInfoType.SymEqvGroup
 
-    def dspacingFromHKL(self, h, k, l):
+    def dspacingFromHKL(self, h, k, l): # noqa: E741 (standard Miller index)
         """Convenience method, calculating the d-spacing of a given Miller
         index. Calling this incurs the overhead of creating a reciprocal lattice
         matrix from the structure info."""
@@ -925,10 +935,9 @@ class Info(RCBase):
             n=self.__class__.__name__
             if n.startswith('DI_'):
                 n=n[3:]
-            s=', %s'%self._extradescr() if hasattr(self,'_extradescr') else ''
-            return ('DynamicInfo(%s, fraction=%.4g%%, type=%s%s)'%(self.atomData.displayLabel(),
-                                                                   self.__fraction*100.0,
-                                                                   n,s))
+            s=f', {self._extradescr()}' if hasattr(self,'_extradescr') else ''
+            return ( f'DynamicInfo({self.atomData.displayLabel()},'
+                     f' fraction={self.__fraction*100.0:.4g}%, type={n}{s})' )
         def _plotlabel( self ):
             return self.atomData.displayLabel() or self.atomData.description(False)
 
@@ -1015,7 +1024,7 @@ class Info(RCBase):
             self.__vdosorig = None
 
         def _extradescr(self):
-            return 'npts=%i'%len(self.vdosOrigDensity())
+            return f'npts={len(self.vdosOrigDensity())}'
 
         def vdosData(self):
             """Access the VDOS as ([egrid_min,egrid_max],vdos_density)"""
@@ -1120,7 +1129,7 @@ class Info(RCBase):
             return self.__debyetemp
 
         def _extradescr(self):
-            return 'TDebye=%gK'%self.debyeTemperature()
+            return f'TDebye={self.debyeTemperature():g}K'
 
         @property
         def vdos_egrid(self):
@@ -1375,7 +1384,7 @@ class Process(RCBase):
             return f'{name}({summarystr})' if summarystr else name
         def extract_subcomponents(proc):
             subprocs = proc.get('specific',{}).get('components',[])
-            return (fmt_lbl(proc),list( (scl, extract_subcomponents(sp)) for scl,sp in subprocs ))
+            return (fmt_lbl(proc),[ (scl, extract_subcomponents(sp)) for scl,sp in subprocs ])
         return extract_subcomponents(d)
 
     def dump(self,prefix=''):
@@ -1645,7 +1654,9 @@ class LoadedMaterial:
 
     @staticmethod
     def fromExistingObjects(info=None,scatter=None,absorption=None):
-        return LoadedMaterial( ('__fromexistingobjects__',dict(info=info,scatter=scatter,absorption=absorption)) )
+        return LoadedMaterial( ('__fromexistingobjects__',
+                                { 'info': info, 'scatter': scatter,
+                                  'absorption': absorption }) )
 
     def __init__(self,cfgstr):
         """Instantiate from a cfg-string which will be passed to the createInfo,
@@ -1723,7 +1734,7 @@ class LoadedMaterial:
                 has_any=True
                 res += '\n>>> '+descr+':\n'
                 res += '\n'
-                res += o.dump_str(**(dict(verbose=verbose) if name=='info' else {}))
+                res += o.dump_str(**({'verbose': verbose} if name=='info' else {}))
         if not has_any:
             res += '<empty>'
             res += '\n'
@@ -1758,9 +1769,8 @@ class LoadedMaterial:
     def __str__(self):
         def fmt( x ):
             return str(x) if x else 'n/a'
-        return 'LoadedMaterial(Info=%s, Scatter=%s, Absorption=%s)'%( fmt(self.__i),
-                                                                      fmt(self.__s),
-                                                                      fmt(self.__a) )
+        return ( f'LoadedMaterial(Info={fmt(self.__i)},'
+                 f' Scatter={fmt(self.__s)}, Absorption={fmt(self.__a)})' )
     def __repr__(self):
         return str(self)
 
@@ -1895,7 +1905,7 @@ class TextData:
         return self.rawData
 
     def __str__(self):
-        return 'TextData(%s, uid=%i, %i chars)'%(self.__dsn,self.__uid,len(self.__rd))
+        return f'TextData({self.__dsn}, uid={self.__uid}, {len(self.__rd)} chars)'
 
     def __repr__(self):
         return self.__str__()

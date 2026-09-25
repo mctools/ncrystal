@@ -33,6 +33,6 @@ def format_numpy_1darray_asfloat(a,edgeitems=3,threshold=1000):
     if not hasattr(a,'shape') or len(a.shape)!=1:
         return str(a)
     if len(a)>threshold:
-        return '[ %s ... %s ]'%(_fmtitems(a[0:edgeitems]),_fmtitems(a[-edgeitems:]))
+        return f'[ {_fmtitems(a[0:edgeitems])} ... {_fmtitems(a[-edgeitems:])} ]'
     else:
-        return '[ %s ]'%(_fmtitems(a))
+        return f'[ {_fmtitems(a)} ]'

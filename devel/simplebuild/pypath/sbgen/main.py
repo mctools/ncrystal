@@ -36,11 +36,11 @@ _pydep2sblddep = { 'ase':'ASE',
                    'matplotlib':'matplotlib',
                    'mpmath':'mpmath' }
 
-_pydeps2pkg_suffix = [ ( set(['numpy']), 'np' ),
-                       ( set(['toml']), 'toml' ),
-                       ( set(['numpy','matplotlib']), 'mpl' ),
-                       ( set(['numpy','mpmath']), 'mpmath' ),
-                       ( set(['numpy','ase','spglib','gemmi']), 'asg' )
+_pydeps2pkg_suffix = [ ( {'numpy'}, 'np' ),
+                       ( {'toml'}, 'toml' ),
+                       ( {'numpy','matplotlib'}, 'mpl' ),
+                       ( {'numpy','mpmath'}, 'mpmath' ),
+                       ( {'numpy','ase','spglib','gemmi'}, 'asg' )
                       ]
 
 def determine_testpkg_by_pydeps( pydeps ):
@@ -55,13 +55,13 @@ def determine_testpkg_by_pydeps( pydeps ):
             bestname = kname
     if bestset is None:
         return None, pydeps#not possible, needs custom pkg later
-    return 'NCTestPy%s'%bestname, bestset
+    return f'NCTestPy{bestname}', bestset
 
 def pglob( path, *pattern ):
     assert len(pattern)>=1
-    gens = list( ( e for e in path.glob(pat)
+    gens = [ ( e for e in path.glob(pat)
                    if not ( '#' in e.name or '~' in e.name ) )
-                 for pat in pattern )
+                 for pat in pattern ]
     return sorted( itertools.chain( *gens ) )
 
 def create_pkg_extratestscripts(pkgname):
@@ -117,7 +117,7 @@ def get_dependency_from_pydep( pd):
     if s is not None:
         return s
     #Need custom pydep
-    name = 'Py%s'%pd.capitalize()
+    name = f'Py{pd.capitalize()}'
     if name in _created_custom_pydeps:
         return name#already created
     _created_custom_pydeps.add(name)
@@ -274,7 +274,7 @@ def platform_so_ending():
     return '.dylib' if platform.system() == 'Darwin' else '.so'
 
 def pkg_libname( pkgname ):
-    libname = 'libPKG__%s'%pkgname
+    libname = f'libPKG__{pkgname}'
     return libname + platform_so_ending()
 
 def ncconfig_h_contents():
@@ -282,20 +282,20 @@ def ncconfig_h_contents():
     bin2incdir = os.path.relpath( dirs.srcroot.joinpath('include'),
                                   cfg.sbld_instdir.joinpath('bin') )
 
-    cmakebuildtype = dict( debug = 'Debug',
-                           reldbg = 'RelWithDebInfo',
-                           release = 'Release' )[ cfg.sbld_mode ]
+    cmakebuildtype = { 'debug': 'Debug',
+                       'reldbg': 'RelWithDebInfo',
+                       'release': 'Release' }[ cfg.sbld_mode ]
 
 
     libname = pkg_libname(cfg.sbpkgname_lib)
-    expandvars = dict( NCLIBNAME = libname,
-                       NCDATAPKGNAME = cfg.sbpkgname_data,
-                       NCVERSION = cfg.ncrystal_version_str,
-                       NCINTVERSION = str(cfg.ncrystal_version_int),
-                       NCNAMESPACE = cfg.ncrystal_namespace,
-                       NCBIN2INCDIR = bin2incdir,
-                       CMAKEBUILDTYPE = cmakebuildtype,
-                      )
+    expandvars = { 'NCLIBNAME': libname,
+                   'NCDATAPKGNAME': cfg.sbpkgname_data,
+                   'NCVERSION': cfg.ncrystal_version_str,
+                   'NCINTVERSION': str(cfg.ncrystal_version_int),
+                   'NCNAMESPACE': cfg.ncrystal_namespace,
+                   'NCBIN2INCDIR': bin2incdir,
+                   'CMAKEBUILDTYPE': cmakebuildtype,
+                  }
     c = """
 const char * nccfg_const_bin2libdir(void) { return "../lib"; }
 const char * nccfg_const_bin2shlibdir(void) { return "../lib"; }
@@ -322,7 +322,7 @@ int nccfg_boolopt_threads(void) { return 1; }
 int nccfg_boolopt_expects_shlibdir_override(void) { return 0; }
 """
     for k,v in expandvars.items():
-        c = c.replace('@%s@'%k,v)
+        c = c.replace(f'@{k}@',v)
     return c
 
 def create_testplugin_pkg(pkgname,pkg_deps):

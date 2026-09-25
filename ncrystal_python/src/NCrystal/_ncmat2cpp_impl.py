@@ -31,9 +31,9 @@ def _find_data_list( keys, run_standalone = False ):
         return True, []
     if ( isinstance(keys,list)
          and isinstance(keys[0],dict)
-         and set(keys[0].keys())==set(['name',
+         and set(keys[0].keys())=={'name',
                                        'read_text_function',
-                                       'read_bytes_function']) ):
+                                       'read_bytes_function'} ):
         #keys is already a datalist:
         return True, keys
 
@@ -42,10 +42,10 @@ def _find_data_list( keys, run_standalone = False ):
     for f in keys:
         data = _find_data(f,run_standalone)
         if not data:
-            return False, 'File not found: %s'%f
+            return False, f'File not found: {f}'
         assert data['name'] is not None
         if data['name'] in bns:
-            return False, 'Name not unique in list: %s'%f
+            return False, f'Name not unique in list: {f}'
         datalist.append(data)
         bns.add(data['name'])
     datalist.sort(key = lambda d : d['name'])
@@ -61,9 +61,9 @@ def _find_data( key, run_standalone ):
         f = pathlib.Path(key)
         if not f.exists():
             return None
-        return dict( name = pathlib.Path(f).name,
-                     read_text_function = f.read_text,
-                     read_bytes_function = f.read_bytes )
+        return { 'name': pathlib.Path(f).name,
+                 'read_text_function': f.read_text,
+                 'read_bytes_function': f.read_bytes }
     from .core import TextData, createTextData
     from .misc import AnyTextData
     if isinstance(key,AnyTextData):
@@ -89,9 +89,9 @@ def _find_data( key, run_standalone ):
         return td.rawData if is_textdata else td.content
     def td_read_bytes():
         return td_read_text().encode('utf-8')
-    return dict( name = name,
-                 read_text_function = td_read_text,
-                 read_bytes_function = td_read_bytes )
+    return { 'name': name,
+             'read_text_function': td_read_text,
+             'read_bytes_function': td_read_bytes }
 
 def parseArgs( progname, arglist, *, return_parser = False ):
 
@@ -174,7 +174,7 @@ rest of the C++ library, and the enclosing function must be invoked.
     wmax=999999
     args.width = min(args.width, wmax)
     if args.width < wmin:
-        parser.error('Out of range value of --width (must be at least %i)'%wmin)
+        parser.error(f'Out of range value of --width (must be at least {wmin})')
 
     #flatten args.include, so we get single list with 3 elements from:
     #        --inc 'foobla.hh' --inc '<vector>' Bla/Bla.hh
@@ -232,9 +232,9 @@ def files2cppcode(infiles,
         if inc.startswith('#include'):
             out.append(inc)
         elif inc.startswith('<'):
-            out.append('#include %s'%inc)
+            out.append(f'#include {inc}')
         else:
-            out.append('#include "%s"'%inc)
+            out.append(f'#include "{inc}"')
     out.append('')
 
     large_files = False
@@ -249,8 +249,8 @@ def files2cppcode(infiles,
         argssignature='('+fctname.split('(',1)[1]
         tmp=''
         for ns in namespaces:
-            tmp += 'namespace %s { '%ns
-        tmp += 'void %s%s;'%(justname,argssignature)
+            tmp += f'namespace {ns} {{ '
+        tmp += f'void {justname}{argssignature};'
         tmp += ' }'*len(namespaces)
         out+=[tmp]
         out+=['']
@@ -259,7 +259,7 @@ def files2cppcode(infiles,
     if '::' in cppfunctionname:
         fwddeclare(out,cppfunctionname)
 
-    out += [ 'void %s()'%cppfunctionname, '{' ]
+    out += [ f'void {cppfunctionname}()', '{' ]
     prefix='  '
     seen = set()
 
@@ -277,7 +277,7 @@ def files2cppcode(infiles,
         #for p in [pathlib.Path(f) for f in infiles]:
         fn= data['name']
         print(f"ncmat2cpp : Processing {fn}")
-        assert fn not in seen, "ERROR: Multiple files in input named: %s"%fn
+        assert fn not in seen, f"ERROR: Multiple files in input named: {fn}"
         seen.add(fn)
 
         def fmtline(line):
@@ -302,7 +302,7 @@ def files2cppcode(infiles,
                 line=' '.join(line.split('#',1)[0].split())
                 line.encode('ascii')#Just a check
                 if ncmatcfg:
-                    line += '#NCRYSTALMATCFG[%s]'%ncmatcfg
+                    line += f'#NCRYSTALMATCFG[{ncmatcfg}]'
                 if not line:
                     return ''
             else:
@@ -312,12 +312,12 @@ def files2cppcode(infiles,
         def as_c_str(strdata):
             try:
                 strdata.encode('ascii')
-                return '"%s"'%strdata
+                return f'"{strdata}"'
             except UnicodeEncodeError:
                 pass
             try:
                 strdata.encode('utf8')
-                return 'u8"%s"'%strdata
+                return f'u8"{strdata}"'
             except UnicodeEncodeError:
                 raise SystemExit('Invalid encoding encountered in'
                                  ' input (must be ASCII or UTF8)')
@@ -327,7 +327,7 @@ def files2cppcode(infiles,
 
         if validate:
             assert not run_standalone,"standalone mode prevents --validate"
-            print("Trying to validate: %s"%fn)
+            print(f"Trying to validate: {fn}")
             from .misc import MaterialSource
             MaterialSource( raw_text_data ).load( doInfo = True,
                                                   doScatter = False,
@@ -335,7 +335,7 @@ def files2cppcode(infiles,
             print('  -> OK')
 
         lines = list(raw_text_data.splitlines())
-        assert lines,"file was empty: %s"%fn
+        assert lines,f"file was empty: {fn}"
 
         #string literals have a limit of 65K in the standard. For such large
         #files we must embed contents in const std::array<std::uint8_t, 12>
@@ -346,14 +346,15 @@ def files2cppcode(infiles,
             large_files=True
 
         out+= [prefix+"{"]
-        out+= [prefix+"  // File %s%s%s"%(fn,
+        out+= [prefix+"  // File {}{}{}".format(fn,
                                           (' (compact form without comments)' if compact else ''),
                                           (' (too large for string literals)' if is_large else ''))]
 
         if is_large:
             #NB: This could be used for non-text-data as well!
             raw_data_bytes = data['read_bytes_function']()
-            out += [ prefix+'  static const std::array<std::uint8_t,%i> rawdata {'%(len(raw_data_bytes)+1)]
+            out += [ prefix+'  static const std::array<std::uint8_t,'
+                     f'{len(raw_data_bytes)+1}> rawdata {{']
             n = len(raw_data_bytes)
             delim,currentline='',''
             _prefstr = prefix+'    '
@@ -374,7 +375,7 @@ def files2cppcode(infiles,
         else:
             #count_all_entries = [0]
             def linepattern(strdata):
-                return '    %s'%as_c_str(strdata)
+                return f'    {as_c_str(strdata)}'
             #fix_nentries_iout = len(out)
             out += [ prefix+'  const char * textdata =']
             if not compact:
@@ -391,7 +392,7 @@ def files2cppcode(infiles,
                     out += [ prefix+linepattern(alldata[0:n])]
                     alldata = alldata[n:]
             out[-1]+=';'
-        out+= [prefix+"  ::%s(\"%s\",textdata);"%(regfctname.split('(')[0],fn)]
+        out+= [prefix+"  ::{}(\"{}\",textdata);".format(regfctname.split('(')[0],fn)]
         out+= [prefix+"}"]
     out+= ['}','']
 
@@ -413,7 +414,7 @@ def files2cppcode(infiles,
         else:
             from ._common import write_text
             write_text(of,out)
-        print('Wrote: %s'%of)
+        print(f'Wrote: {of}')
     return out
 
 #Sphinx doc function. Signature always the following:

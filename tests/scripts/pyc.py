@@ -28,13 +28,13 @@ import NCrystalDev as NC
 def test_dis(info):
     for i,di in enumerate(info.dyninfos):
         if i%2:
-            di.atominfo#pre-access, to check caching
+            _ = di.atominfo#pre-access, to check caching
         print(di.atomIndex,di,di.atominfo)
 
 def test_ais(info):
     for i,ai in enumerate(info.atominfos):
         if i%2:
-            ai.dyninfo#pre-access, to check caching
+            _ = ai.dyninfo#pre-access, to check caching
         print (ai.atomIndex, ai, ai.dyninfo )
 
 for d in ( 'Na4Si3Al3O12Cl_sg218_Sodalite.ncmat',

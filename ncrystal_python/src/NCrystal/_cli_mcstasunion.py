@@ -23,11 +23,11 @@ from ._cliimpl import cli_entry_point, create_ArgumentParser, print
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'misc',
-        displayorder = 999,
-        descr = "Generate McStas-Union code for using NCrystal materials."
-    )
+    return {
+        'displaygroup': 'misc',
+        'displayorder': 999,
+        'descr': "Generate McStas-Union code for using NCrystal materials."
+    }
 
 def parseArgs( progname, args, return_parser=False ):
 

@@ -27,11 +27,11 @@ from ._cliimpl import cli_entry_point, create_ArgumentParser, print, warn
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'main',
-        displayorder = 10,
-        descr=("Main tool for investigating materials, files, plugins, etc.")
-    )
+    return {
+        'displaygroup': 'main',
+        'displayorder': 10,
+        'descr': "Main tool for investigating materials, files, plugins, etc."
+    }
 
 @cli_entry_point
 def main( progname, arglist ):
@@ -61,10 +61,10 @@ def import_optpymod(name):
     try:
         themod = importlib.import_module(name)
     except ImportError as exc:
-        errmsg = 'ERROR: Could not import a required python module: %s'%name
+        errmsg = f'ERROR: Could not import a required python module: {name}'
         if maybeThisIsConda() and name in ('matplotlib','numpy'):
             errmsg += (' (looks like you are using conda so you might solve it'
-                       ' by running "conda install [-c conda-forge] %s")'%name)
+                       f' by running "conda install [-c conda-forge] {name}")')
         raise SystemExit(errmsg) from exc
     return themod
 
@@ -102,10 +102,10 @@ going to:
         return None
 
 
-    descr="""
+    descr=f"""
 
 The most common usage of this tool is to load input data (usually .ncmat files)
-with NCrystal (v%s) and plot resulting isotropic cross sections for thermal
+with NCrystal (v{nccore.get_version()}) and plot resulting isotropic cross sections for thermal
 neutrons. This is done by specifying one or more configurations ("cfg-strings"),
 which indicates data names (e.g. file names) and optionally cfg parameters
 (e.g. temperatures). Specifying more than one configuration, results in a single
@@ -114,7 +114,7 @@ materials. Specifying just a single file, results in a more detailed cross
 section plot as well as a 2D plot of generated scatter angles. Other behaviours
 can be obtained by specifying flags as indicated below.
 
-"""%nccore.get_version()
+"""
 
     descr=descr.strip()
 
@@ -181,8 +181,8 @@ examples:
                         help="""Print documentation about the available cfg-str variables. Specify twice for more detailed help.""")
     dpi_default=200
     parser.add_argument('--dpi', default=-1,type=int,
-                        help="""Change plot resolution. Set to 0 to leave matplotlib defaults alone.
-                        (default value is %i, or whatever the NCRYSTAL_DPI env var is set to)."""%dpi_default)
+                        help=f"""Change plot resolution. Set to 0 to leave matplotlib defaults alone.
+                        (default value is {dpi_default}, or whatever the NCRYSTAL_DPI env var is set to).""")
     parser.add_argument('--cfg',action='store_true',
                         help='Print normalised cfg-string and dump meta-data about loaded physics processes.')
     parser.add_argument('--plugins', action='store_true',
@@ -248,20 +248,19 @@ examples:
     if args.dpi>3000:
         parser.error('Too high DPI value requested.')
 
-    if args.test:
-        if any((args.cfg,
-                args.input_cfgs,
-                args.dump,
-                args.mc,
-                args.coh_elas,
-                args.incoh_elas,
-                args.sans,
-                args.elastic,
-                args.inelastic,
-                args.absorption,
-                args.pdf,
-                args.phases)):
-            parser.error('Do not specify other arguments with --test.')
+    if args.test and any((args.cfg,
+                              args.input_cfgs,
+                              args.dump,
+                              args.mc,
+                              args.coh_elas,
+                              args.incoh_elas,
+                              args.sans,
+                              args.elastic,
+                              args.inelastic,
+                              args.absorption,
+                              args.pdf,
+                              args.phases)):
+        parser.error('Do not specify other arguments with --test.')
 
     ncomp_select = sum((1 if _ else 0) for _ in (args.coh_elas,args.incoh_elas,args.sans,args.elastic,args.inelastic))
     if ncomp_select > 1:
@@ -316,7 +315,7 @@ def std_main( progname, arglist ):
     if args.extract:
         s = nccore.createTextData(args.extract).rawData
         if s is None:
-            raise SystemExit('Error: unknown file "%s"'%args.extract)
+            raise SystemExit(f'Error: unknown file "{args.extract}"')
         print(s,end='')
         return
 
@@ -367,7 +366,7 @@ def std_main( progname, arglist ):
     cfgs_normalisedstrings = [c.cfgstr for c in cfgs]
     for cstr in set(cfgs_normalisedstrings):
         if cfgs_normalisedstrings.count(cstr)!=1:
-            warn("Configuration specified more than once: \"%s\""%cstr)
+            warn(f"Configuration specified more than once: \"{cstr}\"")
 
     if not cfgs:
         raise SystemExit('Error: nothing selected.'
@@ -385,7 +384,7 @@ def std_main( progname, arglist ):
                              ' the new ncrystal_minimc command for'
                              ' fine-grained access to MiniMC simulations.')
         plot_mmc( cfgs[0].cfgstr,
-                  ( '%s pencil on %s sphere 1e5 times'%(args.mc[0],args.mc[1])
+                  ( f'{args.mc[0]} pencil on {args.mc[1]} sphere 1e5 times'
                     if (args.mc[0]+args.mc[1]).strip() else '' ),
                   logy = args.logy, do_pdf = args.pdf )
     else:
@@ -405,9 +404,11 @@ def std_main( progname, arglist ):
             d = pdf.infodict()
         except AttributeError:
             d={}
-        d['Title'] = 'Plots made with NCrystal nctool from file%s %s'%('' if len(args.input_cfgs)==1 else 's',
-                                                                       ','.join(os.path.basename(f) for f in args.input_cfgs))
-        d['Author'] = 'NCrystal %s (via nctool)'%nccore.get_version()
+        d['Title'] = ( 'Plots made with NCrystal nctool from file'
+                       + ( '' if len(args.input_cfgs)==1 else 's' ) + ' '
+                       + ','.join(os.path.basename(f)
+                                  for f in args.input_cfgs) )
+        d['Author'] = f'NCrystal {nccore.get_version()} (via nctool)'
         d['Subject'] = 'NCrystal plots'
         d['Keywords'] = 'NCrystal'
         from ._common import _datetime_now
@@ -415,7 +416,7 @@ def std_main( progname, arglist ):
         d['CreationDate'] = today
         d['ModDate'] = today
         pdf.close()
-        print("created %s"%_pdffilename)
+        print(f"created {_pdffilename}")
 
 def create_ekins(npoints,range_override):
     from ._numpy import _np_geomspace
@@ -490,7 +491,7 @@ def import_npplt(pdf=False):
 def _remove_common_keyvals(dicts):
     """remove any key from the passed dicts which exists with identical value in all
     the dicts. Returns a single dictionary with entries thus removed."""
-    sets=[set((k,v) for k,v in list(d.items())) for d in dicts]
+    sets=[set(d.items()) for d in dicts]
     common = dict(set.intersection(*sets)) if sets else {}
     for k in list(common.keys()):
         for d in dicts:
@@ -537,12 +538,12 @@ def _cfgdict_to_str(cfgdict):
             if _:
                 _ += ' + '
             multsymb = '\u00D7'
-            _ += '%s%s(%s)'%(fraction,multsymb,phcfg)
-        fn = '{%s}'%_
+            _ += f'{fraction}{multsymb}({phcfg})'
+        fn = f'{{{_}}}'
     o = [fn] if fn else []
     cn = cfgdict.pop('[COMPNAME]','')
     if cfgdict:
-        o += [', '.join('%s=%s'%(k,v) for k,v in sorted(cfgdict.items()))]
+        o += [', '.join(f'{k}={v}' for k,v in sorted(cfgdict.items()))]
     if cn:
         o += [ { 'coh_elas':'Coherent elastic',
                  'incoh_elas':'Incoherent elastic',
@@ -583,7 +584,7 @@ def plot_mmc(cfgstr,scenario_cfg,logy,do_pdf):
     assert logy in (True,False,'auto')
     if logy=='auto':
         logy=True
-    np,plt,pdf = import_npplt(do_pdf)
+    _np,plt,pdf = import_npplt(do_pdf)
     res = mmc.run( cfgstr, scenario=scenario_cfg,
                    enginecfg = 'tally=theta;tallybins=theta:180:0:180' )
     res.tally('theta').plot( max_nbins=250, logy=logy,
@@ -605,9 +606,9 @@ def plot_xsect(cfgs,comp,absorption,pdf,versus_energy,xrange,logy,breakdown_by_p
             breakdown_by_phases = False
         else:
             mothercfg = cfgs[0]
-            scalefactors = list(mothercfg.getChildPhaseNumberFraction(i) for i in range(mothercfg.nPhases()))
+            scalefactors = [mothercfg.getChildPhaseNumberFraction(i) for i in range(mothercfg.nPhases())]
             assert abs(sum(scalefactors)-1.0)<1e-10
-            cfgs = list(mothercfg.getChildPhaseCfg(i) for i in range(mothercfg.nPhases()))
+            cfgs = [mothercfg.getChildPhaseCfg(i) for i in range(mothercfg.nPhases())]
 
     np,plt,pdf = import_npplt(pdf)
     if versus_energy:
@@ -796,7 +797,7 @@ def plot_2d_scatangle(cfg,comp,pdf,versus_energy,xrange):
         ekins = nc_wl2ekin(wavelengths)
 
     #get title (label should be uninteresting for a single part):
-    title,labels = create_title_and_labels([part])
+    title,_labels = create_title_and_labels([part])
 
     #First figure out how many points to put at each wavelength (or energy)
     if not part._nullprocess:
@@ -821,7 +822,7 @@ def plot_2d_scatangle(cfg,comp,pdf,versus_energy,xrange):
         for i,n in enumerate(n_at_xvar):
             i,n = int(i),int(n)
             evalue = xvar[i] if versus_energy else nc_wl2ekin(xvar[i])
-            ekinfinal,mu = part.sampleScatterIsotropic(evalue,repeat=int(n))
+            _ekinfinal,mu = part.sampleScatterIsotropic(evalue,repeat=int(n))
             plot_angles[j:j+n] = np.arccos(mu)
             plot_xvar[j:j+n].fill(xvar[i])
             j+=n
@@ -867,7 +868,7 @@ class XSSum:
 class Cfg:
     def __init__(self,cfgstr, commoncfgstr):
         from .cfgstr import normaliseCfg
-        self._cfgstr = normaliseCfg('%s;%s'%(cfgstr,commoncfgstr))
+        self._cfgstr = normaliseCfg(f'{cfgstr};{commoncfgstr}')
         self._sc = {}
         self._abs = None
         self._totxs = None
@@ -880,7 +881,7 @@ class Cfg:
 
     def getChildPhaseCfg(self,iphase):
         assert( iphase < self.nPhases() )
-        childcfg = Cfg( self._cfgstr,'phasechoice=%i'%iphase )
+        childcfg = Cfg( self._cfgstr,f'phasechoice={int(iphase)}' )
         childcfg._iphase = iphase
         return childcfg
 

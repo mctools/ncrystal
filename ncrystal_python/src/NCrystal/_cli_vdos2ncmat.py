@@ -28,11 +28,11 @@ from .vdos import vdos_units_2_eV
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'misc',
-        displayorder = 10,
-        descr = "Prepare phonon VDOS data for inclusion in NCMAT data."
-    )
+    return {
+        'displaygroup': 'misc',
+        'displayorder': 10,
+        'descr': "Prepare phonon VDOS data for inclusion in NCMAT data."
+    }
 
 units_2_fact = vdos_units_2_eV
 units_opts = ', '.join(sorted(units_2_fact.keys()))
@@ -166,7 +166,7 @@ spectrum into format which is ready for inclusion in .ncmat files.
             args.debye = float(args.debye[0:-1])*constant_boltzmann
         else:
             #find (longest, so "meV" does not trigger "eV") fitting unit:
-            ll=[ (len(u),u) for u in units_2_fact.keys() if args.debye.endswith(u) ]
+            ll=[ (len(u),u) for u in units_2_fact if args.debye.endswith(u) ]
             ll.sort()
             if not ll:
                 parser.error("Option --debye requires unit (see --help)")
@@ -186,9 +186,9 @@ def decodeFileName(filename):
         path,select = filename,None
     import os
     bn=os.path.basename(path)
-    return dict(path=path,select=select,basename=bn,
-                title=bn if not select else '%s in %s'%((select if not select.isdigit(
-                ) else f'column #{select}'),bn))
+    return {'path': path,'select': select,'basename': bn,
+            'title': bn if not select else '{} in {}'.format((select if not select.isdigit(
+            ) else f'column #{select}'),bn)}
 
 def getVDOSFromFile(fn):
     fnd = decodeFileName(fn)
@@ -211,7 +211,7 @@ def getVDOSFromTXT(fn):
                 if len(_)!=2:
                     continue
                 unit=_[1].strip()
-                if unit not in units_2_fact.keys():
+                if unit not in units_2_fact:
                     raise RuntimeError(f'Unknown unit "{unit}" specified in {fn["path"]}. Valid choices are: {units_opts}')
                 break
     if not unit:
@@ -301,9 +301,9 @@ def main( progname, arglist ):
             print(f" => Mapping cutoff value of {c} to grid point at {cutoffs[-1][1]}")
 
 
-    if args.forceregular or (not args.plot):
-        if applyCutoff(egrid,density,cutoffs)[0][0]<=1e-5:
-            raise RuntimeError(f"""
+    if ( ( args.forceregular or not args.plot )
+         and applyCutoff(egrid,density,cutoffs)[0][0]<=1e-5 ):
+        raise RuntimeError(f"""
             ERROR: The first value in the loaded egrid is {egrid[0]} which is less than 1e-5eV.
             This is not allowed when using --forceregular or when not using --plot.
             Please use the --cutoff parameter to remove lowest part of input spectrum (perhaps
@@ -424,7 +424,7 @@ def main( progname, arglist ):
 def applyCutoff(egrid,density,cutoffs):
     if cutoffs:
         assert len(cutoffs)==1
-        c_idx,c_val = cutoffs[0]
+        c_idx,_c_val = cutoffs[0]
         return egrid[c_idx:], density[c_idx:]
     return egrid,density
 

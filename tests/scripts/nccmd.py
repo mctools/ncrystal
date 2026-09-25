@@ -30,7 +30,7 @@ def ncrystalcmd(*args):
     argv = ['/some/where/ncrystal']+[str(e) for e in args]
     print()
     print('='*80)
-    print("==> Invoking: %s"%(shlex.join(argv)))
+    print(f"==> Invoking: {shlex.join(argv)}")
     print('='*80)
     errmsg=None
     try:
@@ -43,7 +43,7 @@ def ncrystalcmd(*args):
     if errmsg is None:
         print("==> Ended with no error")
     else:
-        print("==> Ended with SystemExit(%s)"%se)
+        print(f"==> Ended with SystemExit({se})")
     print('='*80)
 
 def main():

@@ -111,7 +111,7 @@ def test_vdos():
     info = mat.loadInfo()
     print(">>>> Plotting di with show_orig_data=True")
     for di in info.dyninfos:
-        print(">>>> di.plot_vdos %s"%di.atomData.displayLabel())
+        print(f">>>> di.plot_vdos {di.atomData.displayLabel()}")
         di.plot_vdos(show_orig_data=True)
 
 def test_xsects():
@@ -178,13 +178,12 @@ def test_xsects():
                        'stdlib::Be_sg194.ncmat;comp=incoh_elas')
     print(">>>> plot_xsects #2")
     ncplot.plot_xsects('void.ncmat',title='foo')
-    print('estimate_longest_interesting_wavelength multiphase = %g'
-          %ncplot._estimate_longest_interesting_wavelength(
-              nccore.createInfo(
-                  'phases<0.1*stdlib::Al_sg225.ncmat'
-                  '      &0.5*stdlib::MgF2_sg136_MagnesiumFlouride.ncmat'
-                  '      &0.4*gasmix::air>')
-          ))
+    _ = ncplot._estimate_longest_interesting_wavelength(
+        nccore.createInfo(
+            'phases<0.1*stdlib::Al_sg225.ncmat'
+            '      &0.5*stdlib::MgF2_sg136_MagnesiumFlouride.ncmat'
+            '      &0.4*gasmix::air>') )
+    print(f'estimate_longest_interesting_wavelength multiphase = {_:g}')
 
 
 

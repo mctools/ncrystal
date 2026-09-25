@@ -31,18 +31,18 @@ def include_is_virtualapi(include):
     return len(p)==3 and p[0:2]==['NCrystal','virtualapi']
 
 def check_NCrystal_hh( content, incguards ):
-    incguards = dict( (ig,include) for (include,ig) in incguards )
+    incguards = { ig: include for (include,ig) in incguards }
     lines = content.splitlines()
     assert lines[-1] == '#endif'
-    lines = list( e.split('//',1)[0].strip() for e in lines[2:-1])
-    lines = list( e for e in lines if e )
+    lines = [ e.split('//',1)[0].strip() for e in lines[2:-1]]
+    lines = [ e for e in lines if e ]
     i = 0
     while i < len(lines):
         assert lines[i].startswith('#ifndef ')
         ig = lines[i][len('#ifndef '):]
         if ig not in incguards:
             raise SystemExit(f'Forbidden include guard "{ig}" in NCrystal.hh')
-        assert lines[i+1]=='#  include "%s"'%incguards[ig]
+        assert lines[i+1]==f'#  include "{incguards[ig]}"'
         assert lines[i+2]=='#endif'
         i += 3
         del incguards[ig]
@@ -100,7 +100,7 @@ def main():
         elif f.samefile(f_NCRNG_redirection_hh):
             ig = 'NCrystal_NCRNG_redirectionhdr_hh'
 
-        assert ig not in incguards_seen, "duplicate include guard: %s"%repr(ig)
+        assert ig not in incguards_seen, f"duplicate include guard: {ig!r}"
         incguards_seen.add(ig)
         l1, l2 = get_first_two_lines(f)
         assert l1 == f'#ifndef {ig}', f'Unexpected first line in {f}'

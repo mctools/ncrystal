@@ -189,8 +189,8 @@ class EndfMetaData:
 
         from ._common import _datetime_now
         from ._ncmat2endf_impl import _metadata_definitions
-        self.__data = dict( (k,copy.deepcopy(v['defval']))
-                            for k,v in _metadata_definitions.items() )
+        self.__data = { k: copy.deepcopy(v['defval'])
+                        for k,v in _metadata_definitions.items() }
         self.__now_MMMYY = _datetime_now().strftime('%b%y').upper()
         if data:
             self.update_from_dict(data)
@@ -308,7 +308,7 @@ class EndfMetaData:
         return json.dumps( self.__data )
 
     def __repr__(self):
-        return '%s(%s)'%( self.__class__.__name__, self.to_json() )
+        return f'{self.__class__.__name__}({self.to_json()})'
 
     def __str__(self):
         return repr(self)

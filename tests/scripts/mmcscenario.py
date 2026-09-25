@@ -47,10 +47,10 @@ def test(cfgstr,scenario, expecterr = None):
     assert isinstance(s,dict)
     assert all(isinstance(k,str) for k,v in s.items())
     assert all(isinstance(v,str) for k,v in s.items())
-    assert set(s.keys())==set(['geomcfg','srccfg'])
+    assert set(s.keys())=={'geomcfg','srccfg'}
     print()
-    print('    -> geomcfg   = "%s"'%s['geomcfg'])
-    print('    -> srccfg    = "%s"'%s['srccfg'])
+    print('    -> geomcfg   = "{}"'.format(s['geomcfg']))
+    print('    -> srccfg    = "{}"'.format(s['srccfg']))
 
 def main():
     c = 'stdlib:: Al_sg225.ncmat   ;temp=20 C'
@@ -194,7 +194,7 @@ def main():
         descr = ' '.join(descr.split())
         assert 50 < len(descr) < 300
         print()
-        print('Testing scenario: "%s" + "%s"'%(matcfg,scenariostr))
+        print(f'Testing scenario: "{matcfg}" + "{scenariostr}"')
         m( cfgstr = matcfg,
            scenariostr = scenariostr,
            extra_enginecfg = 'nthreads=2',

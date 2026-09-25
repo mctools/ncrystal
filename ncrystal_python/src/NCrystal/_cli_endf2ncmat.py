@@ -28,11 +28,11 @@ from ._cliimpl import cli_entry_point, create_ArgumentParser, print, warn
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'conv',
-        displayorder = 999,
-        descr = "Import ENDF data to NCMAT format (based on PyNE)."
-    )
+    return {
+        'displaygroup': 'conv',
+        'displayorder': 999,
+        'descr': "Import ENDF data to NCMAT format (based on PyNE)."
+    }
 
 __pynecache=[None]
 def import_pyne():
@@ -60,11 +60,11 @@ def import_pyne():
         B=inel['B']
         for ii in range(len(B)//6-1):
             if B[6*(ii+1)]==0.0:
-                if 'teff_%i'%(ii+1) in inel:
+                if f'teff_{ii+1}' in inel:
                     #If upstream already includes fix, do nothing.
                     continue
                 _, teff = _self._get_tab1_record()
-                inel['teff_%i'%(ii+1)] = teff#Store as teff_1, teff_2, etc. for now.
+                inel[f'teff_{ii+1}'] = teff#Store as teff_1, teff_2, etc. for now.
     pyne.endf.Evaluation._read_thermal_inelastic=_fix_rti
     __pynecache[0] = pyne
     return pyne
@@ -109,7 +109,7 @@ def parse_endf6(src,name=None,selectfct=None):
     the start of each material.
 
     """
-    if isinstance(src,str) or isinstance(src,bytes) or hasattr(src,'__fspath__'):
+    if isinstance(src, (str, bytes)) or hasattr(src,'__fspath__'):
         p=pathlib.Path(src).expanduser()
         with p.open('rt') as srcstream:
             return parse_endf6(srcstream,name=p.name)
@@ -142,7 +142,7 @@ def parse_endf6(src,name=None,selectfct=None):
         if selectfct and not selectfct(mat,mf,mt):
             continue
         if mat not in d:
-            d[mat]=dict()
+            d[mat]={}
         dd=d[mat]
         if mf not in dd:
             dd[mf]={}
@@ -151,7 +151,7 @@ def parse_endf6(src,name=None,selectfct=None):
             ddd[mt]=[content]
         else:
             ddd[mt]+=[content]
-    return dict(global_header=global_header,name=name),d
+    return {'global_header': global_header,'name': name},d
 
 def extract_and_format_endf_file_header(filename):
     custom_parse = parse_endf6(filename,selectfct=lambda mat,mf,mt : (mf,mt)==(1,451))
@@ -161,10 +161,10 @@ def extract_and_format_endf_file_header(filename):
                          " contact NCrystal developers if you really"
                          " need this).")
     material_number,material_info = next(iter(mats.items()))
-    return dict( filename = custom_parse[0]['name'],
-                 material_number = material_number,
-                 global_header = custom_parse[0]['global_header'],
-                 infosection=material_info[1][451] )
+    return { 'filename': custom_parse[0]['name'],
+             'material_number': material_number,
+             'global_header': custom_parse[0]['global_header'],
+             'infosection': material_info[1][451] }
 
 def parse_endf_file(filename):
     print(f"Attempting to load ENDF file {filename}...")
@@ -227,7 +227,7 @@ def parse_endf_file(filename):
     def format_fraction(c,ctot):
         return f'{c:.14g}/{ctot:.14g}' if c!=ctot else '1'
     for e in non_principal_data:
-        elementName,thecount,effective_mass=e
+        _elementName,thecount,effective_mass=e
         e += [format_fraction(thecount,count_total)]
 
     header = extract_and_format_endf_file_header(filename)
@@ -482,7 +482,7 @@ def main( progname, arglist ):
                 stdnotice+=' Other files alternatively provide\n'
                 stdnotice+='# the same material at temperatures:\n#\n'
                 nperline=7
-                t_to_write=list(_ for _ in temperatures_combined if _!=t)
+                t_to_write=[_ for _ in temperatures_combined if _!=t]
                 for i in range(0,len(t_to_write),nperline):
                     stdnotice += ('#       '+' '.join(f'{_}K' for _ in t_to_write[i:i+nperline])+'\n')
             for line in args.filehdr:

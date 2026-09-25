@@ -25,12 +25,12 @@ def _cfgfilename( is_debug ):
     return 'simplebuild_debug.cfg' if is_debug else 'simplebuild_reldbg.cfg'
 
 def short_description_sb( mode, is_debug ):
-    d = dict(
-        sbenv = 'Run command in simplebuild environment',
-        sb = 'Build and test code with simplebuild',
-        sbrun =  'Build code and run command in simplebuild environment',
-    )[mode]
-    return '%s (using %s, initial --long for more tests).'%(d,_cfgfilename( is_debug ))
+    d = {
+        'sbenv': 'Run command in simplebuild environment',
+        'sb': 'Build and test code with simplebuild',
+        'sbrun': 'Build code and run command in simplebuild environment',
+    }[mode]
+    return f'{d} (using {_cfgfilename( is_debug )}, initial --long for more tests).'
 
 def _find_sbcmd( cmdname ):
     import shutil

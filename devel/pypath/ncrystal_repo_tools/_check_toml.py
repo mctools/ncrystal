@@ -21,14 +21,14 @@
 
 from .dirs import reporoot
 
-toml_files =  dict( monolith = 'pyproject.toml',
-                    core = 'ncrystal_core/pyproject.toml',
-                    coreempty = 'ncrystal_core/empty_pypkg/pyproject.toml',
-                    py = 'ncrystal_python/pyproject.toml',
-                    plugmgr = 'ncrystal_pypluginmgr/pyproject.toml',
-                    meta = 'ncrystal_metapkg/pyproject.toml',
-                    verify = 'ncrystal_verify/pyproject.toml',
-                   )
+toml_files =  { 'monolith': 'pyproject.toml',
+                'core': 'ncrystal_core/pyproject.toml',
+                'coreempty': 'ncrystal_core/empty_pypkg/pyproject.toml',
+                'py': 'ncrystal_python/pyproject.toml',
+                'plugmgr': 'ncrystal_pypluginmgr/pyproject.toml',
+                'meta': 'ncrystal_metapkg/pyproject.toml',
+                'verify': 'ncrystal_verify/pyproject.toml',
+               }
 
 _data_cache = {}
 def load_data( key ):
@@ -54,7 +54,7 @@ def _actual_load_data(subpath):
     return d
 
 def describe( data ):
-    return '<root>/%s'%data['__srcloc__']
+    return '<root>/{}'.format(data['__srcloc__'])
 
 def cmp_common_entries( keypath, dict1, dict2, allow_diff = None ):
     if allow_diff is None:
@@ -91,8 +91,8 @@ def check_metadata():
     data_plugmgr = load_data( 'plugmgr' )
 
     #Check that there are no unexpected sections:
-    toplvlkeys_notool = set(['build-system','project','__srcloc__'])
-    toplvlkeys = toplvlkeys_notool.union( set(['tool']) )
+    toplvlkeys_notool = {'build-system','project','__srcloc__'}
+    toplvlkeys = toplvlkeys_notool.union( {'tool'} )
     assert toplvlkeys == set( data_monolith.keys() )
     assert toplvlkeys == set( data_core.keys() )
     assert toplvlkeys_notool == set( data_coreempty.keys() )
@@ -124,23 +124,23 @@ def check_metadata():
     assert data_plugmgr['project']['dependencies']==[]
 
     assert ( set(data_meta['project']['dependencies'])
-             == set([f'ncrystal-core=={version}',
-                     f'ncrystal-python=={version}']) )
+             == {f'ncrystal-core=={version}',
+                  f'ncrystal-python=={version}'} )
     assert ( set(data_verify['project']['dependencies'])
-             == set([f'ncrystal-python=={version}']) )
-    assert ( projkeys_monolith - projkeys_core ) == set(['dependencies'])
-    assert ( projkeys_core - projkeys_monolith ) == set([])
-    assert ( projkeys_core - projkeys_meta ) == set(['scripts'])
-    assert ( projkeys_core - projkeys_verify ) == set([])
-    assert ( projkeys_verify - projkeys_core ) == set(['dependencies',
-                                                       'optional-dependencies'])
-    assert ( projkeys_meta - projkeys_core ) == set(['dependencies',
-                                                     'optional-dependencies'])
-    assert ( projkeys_py - projkeys_monolith ) == set(['dynamic'])
-    assert ( projkeys_monolith - projkeys_py ) == set(['version'])
-    assert ( projkeys_core - projkeys_meta ) == set(['scripts'])
-    assert ( projkeys_coreempty - projkeys_core ) == set([])
-    assert ( projkeys_core - projkeys_coreempty ) == set(['scripts'])
+             == {f'ncrystal-python=={version}'} )
+    assert ( projkeys_monolith - projkeys_core ) == {'dependencies'}
+    assert ( projkeys_core - projkeys_monolith ) == set()
+    assert ( projkeys_core - projkeys_meta ) == {'scripts'}
+    assert ( projkeys_core - projkeys_verify ) == set()
+    assert ( projkeys_verify - projkeys_core ) == {'dependencies',
+                                                    'optional-dependencies'}
+    assert ( projkeys_meta - projkeys_core ) == {'dependencies',
+                                                  'optional-dependencies'}
+    assert ( projkeys_py - projkeys_monolith ) == {'dynamic'}
+    assert ( projkeys_monolith - projkeys_py ) == {'version'}
+    assert ( projkeys_core - projkeys_meta ) == {'scripts'}
+    assert ( projkeys_coreempty - projkeys_core ) == set()
+    assert ( projkeys_core - projkeys_coreempty ) == {'scripts'}
 
     cmp_common_entries( 'project', data_coreempty, data_core )
     cmp_common_entries( 'build-system', data_coreempty, data_py )
@@ -172,8 +172,8 @@ def check_metadata():
                         allow_diff = [] )
 
     #Check 'tool' section
-    assert set( data_core['tool'].keys() ) == set(['scikit-build'])
-    assert set( data_monolith['tool'].keys() ) == set(['scikit-build'])
+    assert set( data_core['tool'].keys() ) == {'scikit-build'}
+    assert set( data_monolith['tool'].keys() ) == {'scikit-build'}
     cmp_common_entries( 'tool.scikit-build', data_monolith, data_core,
                         allow_diff = ['sdist','wheel'] )
     cmp_common_entries( 'tool.scikit-build.sdist', data_monolith, data_core,
@@ -261,7 +261,7 @@ def check_all_toml_parsing():
     from .srciter import all_files_iter
     from .toml import parse_toml
     for f in all_files_iter('toml'):
-        print("  Trying to simply load %s"%f.relative_to(reporoot))
+        print(f"  Trying to simply load {f.relative_to(reporoot)}")
         parse_toml(f)
     print('all ok')
 

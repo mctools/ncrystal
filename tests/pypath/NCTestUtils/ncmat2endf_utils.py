@@ -53,13 +53,13 @@ def test_cfg( cfg, check_teff=False,
         if isinstance(kwargs['othertemps'], (int, float)):
             temperatures.append( kwargs['othertemps'] )
         else:
-            temperatures += list( t for t in kwargs['othertemps'] )
+            temperatures += list(kwargs['othertemps'])
     res = ncmat2endf(**kwargs)
     import copy
     #tidy up FP values for test reproducibility
     def chop( d, key ):
         assert key in d and isinstance(d[key],float)
-        d[key] = float('%.13g'%d[key])
+        d[key] = float(f'{d[key]:.13g}')
     res_print = copy.deepcopy(res)
     chop(res_print,'density')
     for f in res_print['files']:
@@ -105,7 +105,7 @@ def test_cfg( cfg, check_teff=False,
                          for T in temperatures]
             require_flteq(teff, teff_vals)
         if ref_parsed:
-            if endf_fn not in ref_parsed.keys():
+            if endf_fn not in ref_parsed:
                 raise RuntimeError( 'No reference parsed ENDF sections for '
                                    f'{endf_fn}')
             parsed = " ".join([" ".join(str(x) for x in _)
@@ -149,7 +149,7 @@ def test_cfg_fail( *args, exception_type=NCBadInput, **kwargs ):
     try:
         test_cfg(*args,**kwargs)
     except exception_type as e:
-        print("FAILED (as expected): %s"%e)
+        print(f"FAILED (as expected): {e}")
         return
     raise SystemExit('Did not fail as expected')
 
@@ -157,7 +157,7 @@ def test_cli_fail( *args, exception_type=NCBadInput, **kwargs ):
     try:
         test_cli(*args,**kwargs)
     except exception_type as e:
-        print("FAILED (as expected): %s"%e)
+        print(f"FAILED (as expected): {e}")
         return
     raise SystemExit('Did not fail as expected')
 

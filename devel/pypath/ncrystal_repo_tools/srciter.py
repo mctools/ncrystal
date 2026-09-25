@@ -107,9 +107,8 @@ class SinglePattern:
 
     def __str__(self):
         return ( 'SinglePattern('
-                 '%s, isneg=%s, onfilestart=%s)'%( repr(self.__pattern),
-                                                   self._is_negated,
-                                                   self._match_on_file_start) )
+                 f'{self.__pattern!r}, isneg={self._is_negated},'
+                 f' onfilestart={self._match_on_file_start})' )
 
     def is_negated( self):
         return self._is_negated
@@ -155,7 +154,7 @@ def expand_patterns( patterns ):
         special_patterns = special_patterns_db.get(p_special_key)
         if special_patterns:
             if p_special_negated:
-                match_patterns += ['!%s'%e for e in special_patterns ]
+                match_patterns += [f'!{e}' for e in special_patterns ]
             else:
                 match_patterns += special_patterns
         else:

@@ -30,7 +30,7 @@ class DocHelper:
         self.add_empty()
         if self.is_wiki:
             assert lvl in (1,2,3)
-            self.o.append('%s %s'%('#'*lvl,t))
+            self.o.append('{} {}'.format('#'*lvl,t))
         else:
             self.o.append(t)
             self.o.append(('=' if lvl==1 else '-')*len(t))
@@ -87,13 +87,13 @@ class DocHelper:
             self.add_line(f'<summary>{name} : {descr_short}</summary>')
             self.add_empty()#required for markdown to work in html tags
             magiceol = '  '#required!
-            defval_shown = ( '"%s"'%defval
+            defval_shown = ( f'"{defval}"'
                              if defval is not None
                              else '(no default value)' )
             self.add_line(f'> **Default value:** {defval_shown}{magiceol}')
             self.add_line(f'> **Description:** {descr}{magiceol}')
             if exvals is not None:
-                exvals_shown = '"%s"'%('", "'.join(exvals))
+                exvals_shown = '"{}"'.format('", "'.join(exvals))
                 self.add_line(f'> **Example values:** {exvals_shown}{magiceol}')
 
             self.add_empty()#required for markdown to work in html tags
@@ -110,7 +110,7 @@ class DocHelper:
             self.add_wrap(a+' ',descr)
         if exvals is not None:
             self.add_wrap( ' '*(len(a)+1)+'Example values: ',
-                           '"%s"'%('", "'.join(exvals)))
+                           '"{}"'.format('", "'.join(exvals)))
 
 def check_keys(d,*keys):
     assert set(d.keys())==set(keys)
@@ -180,13 +180,13 @@ def gendoc_geom( data, **kwargs ):
         check_keys(geom,'name','descr','params','sort_key')
         doc.add_empty()
         if doc.is_wiki:
-            title=('* `"%s"`:'%geom['name'])
+            title=('* `"{}"`:'.format(geom['name']))
             titlesp = '    '
             doc.add_line(title)
             doc.add_empty()
             doc.add_wrap('    ' if doc.is_wiki else '  ',geom['descr'] )
         else:
-            title=('  "%s": '%geom['name']).rjust(nmax+6)
+            title=('  "{}": '.format(geom['name'])).rjust(nmax+6)
             titlesp = ' '*len(title)
             doc.add_wrap( title,geom['descr'] )
         doc.add_empty()
@@ -205,11 +205,11 @@ def gendoc_geom( data, **kwargs ):
 def _print_example_list( doc, list_ex_descr ):
     for ex, descr in list_ex_descr:
         if doc.is_wiki:
-            doc.add_line( '* `"%s"`'%ex )
+            doc.add_line( f'* `"{ex}"`' )
             doc.add_empty()
             doc.add_line(f'    {descr}')
         else:
-            doc.add_line('  "%s":'%ex)
+            doc.add_line(f'  "{ex}":')
             doc.add_wrap('      ',descr)
         doc.add_empty()
 
@@ -251,13 +251,13 @@ def gendoc_src( data, **kwargs ):
         check_keys(src,'name','descr','specific_params','sort_key')
         doc.add_empty()
         if doc.is_wiki:
-            title=('* `"%s"`:'%src['name'])
+            title=('* `"{}"`:'.format(src['name']))
             titlesp = '    '
             doc.add_line(title)
             doc.add_empty()
             doc.add_wrap( '    ' if doc.is_wiki else '  ',src['descr'] )
         else:
-            title=('  "%s": '%src['name']).rjust(nmax+6)
+            title=('  "{}": '.format(src['name'])).rjust(nmax+6)
             titlesp = ' '*len(title)
             doc.add_wrap( title,src['descr'] )
         doc.add_empty()
@@ -305,9 +305,9 @@ def gen_doc_impl( subject, mode ):
         data = evaluate_query(['mmc','cfgdoc',subject])
         if mode == 'dict':
             return data
-        fctmap = dict( geom = gendoc_geom,
-                       src = gendoc_src,
-                       engine = gendoc_engine )
+        fctmap = { 'geom': gendoc_geom,
+                   'src': gendoc_src,
+                   'engine': gendoc_engine }
         fct = fctmap.get(subject)
         assert fct is not None
         s = fct( data=data, is_wiki=is_wiki )
@@ -405,7 +405,7 @@ def gendoc_scenario( **kwargs ):
     from .minimc import decode_scenario
     for descr, matcfg, scenariostr, key in _scenariocfg_examples:
         dec = decode_scenario( matcfg, scenariostr )
-        assert set(dec.keys())==set(['geomcfg','srccfg'])
+        assert set(dec.keys())=={'geomcfg','srccfg'}
         gc,sc = dec['geomcfg'],dec['srccfg']
         doc.add_line(bullet      +f'Input:  material={v}"{matcfg}"{v}')
         doc.add_line(bullet_space+f'        scenario={v}"{scenariostr}"{v}')

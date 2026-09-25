@@ -43,14 +43,14 @@ def prepend_to_path_var( env, varname, val ):
     val = str(val)
     varsep = ':' if platform.system()!='Windows' else ';'
     if varname in env:
-        env[varname] = '%s%s%s'%(val,varsep,env[varname])
+        env[varname] = f'{val}{varsep}{env[varname]}'
     else:
         env[varname] = val
 
 
 def run_test( script, verbose ):
     name = script.stem
-    print(" .. running test %s"%name)
+    print(f" .. running test {name}")
     pypath = script.parent.parent.joinpath('pypath')
     assert pypath.is_dir()
     import os
@@ -85,7 +85,7 @@ def run_test( script, verbose ):
             print_output()
             return False
         else:
-            logfile = script.parent.joinpath('%s.log'%name)
+            logfile = script.parent.joinpath(f'{name}.log')
             if logfile.exists():
                 diff = calc_diff_output( logfile.read_bytes(),
                                          rv.stdout,
@@ -119,7 +119,7 @@ def print_lines_with_snipping( b, prefix, snip = True ):
     n1,n2 = (20,80) if snip else (999999999, 999999999)
     if len(lines)>n1+n2+20:
         lines = ( lines[0:n1]
-                  + ['<SNIPPED %i lines>'%(len(lines)-n1-n2)]
+                  + [f'<SNIPPED {len(lines)-n1-n2} lines>']
                   +lines[-n2:] )
     print(prefix + prefix.join(lines))
 
@@ -217,8 +217,8 @@ def prepare_needs( scripts, verbose ):
         except ModuleNotFoundError:
             ok = False
         mark(ok)
-    return dict( absent = absent,
-                 script2dep = script2dep )
+    return { 'absent': absent,
+             'script2dep': script2dep }
 
 
 def parse_args():
@@ -265,7 +265,7 @@ def parse_args():
     def flatten_to_set( list_of_strs ):
         m = set()
         for a in list_of_strs or []:
-            m.update(set(e.strip() for e in a.split(',')))
+            m.update({e.strip() for e in a.split(',')})
         return m
 
     args.allow_missing = flatten_to_set( args.allow_missing )
@@ -322,10 +322,10 @@ def main():
                    or not (missing-args.allow_missing) )
             if ok:
                 dep_skipped_ok += 1
-                print(" .. skipping test %s (missing: %s)"%(name,' '.join(missing)))
+                print(" .. skipping test {} (missing: {})".format(name,' '.join(missing)))
             else:
                 dep_skipped_bad += 1
-                print(" .. can not run test %s (missing: %s)"%(name,' '.join(missing)))
+                print(" .. can not run test {} (missing: {})".format(name,' '.join(missing)))
         else:
             if not run_test(script,args.verbose):
                 failures += 1
@@ -348,7 +348,7 @@ def main():
     w1 = max( len(s) for s,n in stats )
     w2 = max( len(str(n)) for s,n in stats )
     for s,n in stats:
-        print('   %s:  %s'%(s.rjust(w1),str(n).rjust(w2)))
+        print(f'   {s.rjust(w1)}:  {str(n).rjust(w2)}')
     print()
 
     if nhidden:

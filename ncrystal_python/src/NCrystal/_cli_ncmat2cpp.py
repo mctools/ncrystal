@@ -23,11 +23,11 @@ from ._cliimpl import cli_entry_point
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'misc',
-        displayorder = 30,
-        descr = "Produce C++ code with inline NCMAT data."
-    )
+    return {
+        'displaygroup': 'misc',
+        'displayorder': 30,
+        'descr': "Produce C++ code with inline NCMAT data."
+    }
 
 def create_argparser_for_sphinx( progname ):
     from ._ncmat2cpp_impl import parseArgs

@@ -46,10 +46,10 @@ def graph_to_dot( graph, fix_size = False ):
         fix_size = False
         if n.get('width') is not None:
             fix_size = True
-            ns += 'width=%s '%n.get('width')
+            ns += 'width={} '.format(n.get('width'))
         if n.get('height') is not None:
             fix_size = True
-            ns += 'height=%s '%n.get('height')
+            ns += 'height={} '.format(n.get('height'))
         if fix_size:
             ns += 'fixedsize=true '
         ns += '];\n'
@@ -106,8 +106,8 @@ def display_image_data( data, fmt ):
 class Graph:
 
     def __init__(self):
-        self.__nodes = dict()
-        self.__connections = dict()
+        self.__nodes = {}
+        self.__connections = {}
         self.__hidden_nodes = set()
 
     def node_is_hidden( self, node ):

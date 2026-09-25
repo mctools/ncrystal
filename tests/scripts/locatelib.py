@@ -30,8 +30,8 @@ import pathlib
 import tempfile
 
 def main():
-    orig = dict( (k,os.environ.get(k)) for k in
-                 ('NCRYSTAL_LIB','NCRYSTAL_LIB_NAMESPACE_PROTECTION') )
+    orig = { k: os.environ.get(k) for k in
+             ('NCRYSTAL_LIB','NCRYSTAL_LIB_NAMESPACE_PROTECTION') }
     os.environ.pop('NCRYSTAL_LIB_NAMESPACE_PROTECTION',None)
     try:
         with tempfile.TemporaryDirectory() as td:
@@ -44,7 +44,7 @@ def main():
                     f = d / fn
                     f.touch()
                     os.environ['NCRYSTAL_LIB'] = str(f)
-                    lib, ns, version = _search_env_overrides()
+                    lib, ns, _version = _search_env_overrides()
                     assert pathlib.Path(lib) == f
                     print(f'{sub+"/"+fn:>35} -> namespace {ns!r}')
     finally:

@@ -49,7 +49,7 @@ class Lib:
         self.__fcts = set()
         if not hasattr(self.__lib,'nctest_ctypes_dictionary'):
             print("Warning: No nctest_ctypes_dictionary symbol"
-                  " in testmod %s"%self.__name)
+                  f" in testmod {self.__name}")
         else:
             dictfct = _ctypes_create_fct( self.__lib,
                                           'nctest_ctypes_dictionary',
@@ -95,9 +95,8 @@ class Lib:
 
     def dump(self,prefix=''):
         """Print available functions in this library"""
-        print('%sLibrary "%s" (%i functions):'%(prefix,
-                                                self.__name,
-                                                len(self.__fcts)))
+        print(f'{prefix}Library "{self.__name}"'
+              f' ({len(self.__fcts)} functions):')
         if not self.__fcts:
             print(f"{prefix}  <no functions defined>")
         for fctname,restype,argtypes in sorted(self.__fcts):
@@ -119,7 +118,7 @@ def _ctype_2_str( ct ):
     for k,v in _map_str2ctype.items():
         if ct is v:
             return k
-    raise ValueError("ctype not in map: %s"%ct)
+    raise ValueError(f"ctype not in map: {ct}")
 
 def _decode_signature_str( signature, include_fct_name ):
     signature=signature.strip()
@@ -127,7 +126,7 @@ def _decode_signature_str( signature, include_fct_name ):
     assert signature.count(')')==1
     assert signature.index(')')+1==len(signature)
     r,args = signature[:-1].split('(',2)
-    args = list( a for a in args.split(',') ) if args.strip() else []
+    args = list(args.split(',')) if args.strip() else []
 
     if include_fct_name:
         r = r.split()

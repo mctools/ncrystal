@@ -23,6 +23,7 @@
 import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev._common as nc_common
 import os
+from NCrystalDev._ncmatimpl import _extractInitialHeaderCommentsFromNCMATData
 
 def require(b):
     if not b:
@@ -79,7 +80,6 @@ finally:
     nc_common._cache_nsev[0] = _orig_nsev
 
 #NCMAT header comment extraction (all-empty comment lines once looped forever):
-from NCrystalDev._ncmatimpl import _extractInitialHeaderCommentsFromNCMATData
 
 for _hdr in ('#\n#  a\n#   b\n#\n', '#\n#\n', ''):
     _res = _extractInitialHeaderCommentsFromNCMATData(

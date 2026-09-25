@@ -141,18 +141,18 @@ class FileListEntry:
            explicitly request this entry without interference from similarly
            named entries in other factories.
         """
-        return '%s::%s'%(self.__f,self.__n)
+        return f'{self.__f}::{self.__n}'
 
     def __str__(self):
         ll=[]
         if self.__n:
-            ll+=['name=%s'%self.__n]
+            ll+=[f'name={self.__n}']
         if self.__s:
-            ll+=['source=%s'%self.__s]
+            ll+=[f'source={self.__s}']
         if self.__f:
-            ll+=['factory=%s'%self.__f]
-        ll+=['priority=%s'%self.__p]
-        return 'FileListEntry(%s)'%(', '.join(ll))
+            ll+=[f'factory={self.__f}']
+        ll+=[f'priority={self.__p}']
+        return 'FileListEntry({})'.format(', '.join(ll))
 
     def __lt__(self, other):
         if not isinstance(other, FileListEntry):
@@ -202,8 +202,10 @@ def browseFiles(dump=False,factory=None):
             if factory is not None and lastgroup[0]!=factory:
                 pending.clear()
                 return
-            n=len(pending) - 1
-            pending[0] = pending[0]%('%s files'%n if n!=1 else '%s file'%n )
+            n=len(pending)
+            f,s,p = lastgroup
+            print(f'==> {n} file{"" if n==1 else "s"} from "{f}"'
+                  f' ({s}, priority={p}):')
             for line in pending:
                 print(line)
             pending.clear()
@@ -212,16 +214,16 @@ def browseFiles(dump=False,factory=None):
             if lastgroup != group:
                 print_pending()
                 lastgroup = group
-                pending.append('==> %%s from "%s" (%s, priority=%s):'%group)
             hidden = e.name in seen_names
             seen_names.add(e.name)
             extra=''
             prname=e.name
             if e.priority=='OnlyOnExplicitRequest':
-                prname='%s::%s'%(e.factName,e.name)
+                prname=f'{e.factName}::{e.name}'
             elif hidden:
-                extra=' <--- Hidden by higher priority entries (select as "%s::%s")'%(e.factName,e.name)
-            pending.append(    '    %s%s'%(prname,extra))
+                extra=(' <--- Hidden by higher priority entries'
+                       f' (select as "{e.factName}::{e.name}")')
+            pending.append(f'    {prname}{extra}')
         print_pending()
         return #return None in this case, to avoid spurious printouts in an interactive session
     if factory is None:

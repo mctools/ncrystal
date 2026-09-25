@@ -19,4 +19,6 @@
 ##                                                                            ##
 ################################################################################
 
+# ruff: noqa: N999 (the package name is not up for change)
+
 # Testing modules. Leave this __init__.py file empty.

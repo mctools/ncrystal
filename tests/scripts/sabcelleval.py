@@ -38,7 +38,7 @@ def evalcell(*,E_div_kT, alpha, beta, svals = None, do_plot=False ):
         svals=[1.0,1.0,1.0,1.0]
     assert len(svals)==4
     vals = [E_div_kT,a1,a2,b1,b2,*svals]
-    res = ncquery( [ 'sab','sglcell']+['@%s'%str(e) for e in vals])
+    res = ncquery( [ 'sab','sglcell']+[f'@{e}' for e in vals])
     refcell = RefCell( a1=a1, a2=a2, b1=b1, b2=b2,
                        s11=svals[0], s12=svals[1],
                        s21=svals[2], s22=svals[3] )
@@ -58,10 +58,10 @@ def evalcell(*,E_div_kT, alpha, beta, svals = None, do_plot=False ):
     bfprec_psint = float(abs(bfres['phasespace_integral']/mprefval-1))
     def fmtprecbf(v):
         if do_plot:
-            return '%g'%v
+            return f'{v:g}'
         if v < 1e-14:
             return '<1e-14'
-        return '%.3g'%v
+        return f'{v:.3g}'
 
 
     print(f"bruteforce/mpref precision (full integral): {fmtprecbf(bfprec_fullint)}")
@@ -94,10 +94,10 @@ def evalcell(*,E_div_kT, alpha, beta, svals = None, do_plot=False ):
 
     def fmtprec(v):
         if do_plot:
-            return '%g'%v
+            return f'{v:g}'
         if v < 1e-14:
             return '<1e-14'
-        return '%.1g'%v
+        return f'{v:.1g}'
 
     for _, prec, v, name in vals:
         print(f" {name.rjust(10)} : {v:.11g}  [precision lvl {fmtprec(prec)}]")
@@ -105,7 +105,7 @@ def evalcell(*,E_div_kT, alpha, beta, svals = None, do_plot=False ):
     prec = float(abs(resfullint/mprefval_fullint-1))
     print(f" full integral : {resfullint:.11g} [precision lvl {fmtprec(prec)}]")
 
-    f65 = [e for e in vals if e[3]=='Flex65'][0]
+    f65 = next(e for e in vals if e[3]=='Flex65')
     if do_plot:
         from NCTestUtils.sabcelleval import plot_celleval
         plot_celleval( res )
@@ -120,81 +120,81 @@ def main(do_plot,test_select):
         ncsetenv('FAKEPYPLOT','1')
 
     testpts = [
-        dict( E_div_kT=0.06,
-              alpha=(6.6767857524277714,6.75015702442328),
-              beta=(5.4022664171285335,5.5029404418379908) ),
-        dict(E_div_kT=1.5,alpha=(1.0,2.0),beta=(-2.0,-1.0)),
-        dict(E_div_kT=1.5,alpha=(1.0,2.0),beta=(-2.0,-1.0),
-             svals=[1.0,20.0,3.0,4.0]),
-        dict(E_div_kT=2.0,alpha=(0.5,12.0),beta=(-3.0,4.0)),
-        dict(E_div_kT=2.0,alpha=(0.5,12.0),beta=(-3.0,-0.5)),
-        dict(E_div_kT=2.0,alpha=(0.5,12.0),beta=(-0.1,6.0)),
-        dict(E_div_kT=2.0,alpha=(0.0,12.0),beta=(-3.0,10.5)),
-        dict(E_div_kT=2.0,alpha=(0.0,6.0),beta=(-1.0,4.5)),
-        dict(E_div_kT=2.0,alpha=(0.5,3.0),beta=(-10.0,40.5)),
-        dict(E_div_kT=2.0,alpha=(0.5,3.0),beta=(-10.0,40.5),
-             svals=[1.0,20.0,3.0,4.0]),
-        dict(E_div_kT=1e-5,alpha=(0.5,12.0),beta=(11.0,12.0)),
-        dict(E_div_kT=1e-5,alpha=(11.0,13.0),beta=(0.5,12.0)),
-        dict(E_div_kT=1e-5,alpha=(0.5,12.0),beta=(0.5,12.0)),
-        dict(E_div_kT=1e-5,alpha=(0.5,12.0),beta=(11.0,12.0),
-             svals=[1.0,20.0,3.0,4.0]),
-        dict(E_div_kT=0.01,alpha=(11.35,13),beta=(10,12.0),
-             svals=[0,1,1,0]),
-        dict(E_div_kT=1e-5,alpha=(11.0,13.0),beta=(0.5,12.0),
-             svals=[1.0,20.0,3.0,0]),
-        dict(E_div_kT=0.01,alpha=(5.47*0+5.5-1e-12,5.5),beta=(5,5.92),
-             svals=[1.0,1e-200,1.0,1e-200]),
-        dict(E_div_kT=0.01,alpha=(5.47*0+5.5-1e-12,5.5),beta=(5,5.92),
-             svals=[1.0,1e-20,1.0,1e-20]),
-        dict(E_div_kT=0.01,alpha=(5.47*0+5.5-1e-12,5.5),beta=(5,5.92),
-             svals=[1e-20,1.0,1.0,1e-20]),
-        dict(E_div_kT=1e-5,alpha=(11.0,13.0),beta=(0.5,12.0),
-             svals=[1.0,20.0,3.0,1e-300]),
-        dict(E_div_kT=1e-5,alpha=(0.5,12.0),beta=(0.5,12.0),
-             svals=[1.0,20.0,3.0e-4,4.0]),
-        dict(E_div_kT=0.01,alpha=(5.499,5.5),beta=(5,5.92),
-             svals=[1.0,99,1.0,99]),
-        dict(E_div_kT=0.01,alpha=(5.499,5.5),beta=(5,5.92),
-             svals=[1.0,101,1.0,101]),
-        dict(E_div_kT=0.01,alpha=(5.499,5.5),beta=(5,5.92),
-             svals=[1.0,0.011,1.0,0.011]),
+        { 'E_div_kT': 0.06,
+          'alpha': (6.6767857524277714,6.75015702442328),
+          'beta': (5.4022664171285335,5.5029404418379908) },
+        {'E_div_kT': 1.5,'alpha': (1.0,2.0),'beta': (-2.0,-1.0)},
+        {'E_div_kT': 1.5,'alpha': (1.0,2.0),'beta': (-2.0,-1.0),
+         'svals': [1.0,20.0,3.0,4.0]},
+        {'E_div_kT': 2.0,'alpha': (0.5,12.0),'beta': (-3.0,4.0)},
+        {'E_div_kT': 2.0,'alpha': (0.5,12.0),'beta': (-3.0,-0.5)},
+        {'E_div_kT': 2.0,'alpha': (0.5,12.0),'beta': (-0.1,6.0)},
+        {'E_div_kT': 2.0,'alpha': (0.0,12.0),'beta': (-3.0,10.5)},
+        {'E_div_kT': 2.0,'alpha': (0.0,6.0),'beta': (-1.0,4.5)},
+        {'E_div_kT': 2.0,'alpha': (0.5,3.0),'beta': (-10.0,40.5)},
+        {'E_div_kT': 2.0,'alpha': (0.5,3.0),'beta': (-10.0,40.5),
+         'svals': [1.0,20.0,3.0,4.0]},
+        {'E_div_kT': 1e-5,'alpha': (0.5,12.0),'beta': (11.0,12.0)},
+        {'E_div_kT': 1e-5,'alpha': (11.0,13.0),'beta': (0.5,12.0)},
+        {'E_div_kT': 1e-5,'alpha': (0.5,12.0),'beta': (0.5,12.0)},
+        {'E_div_kT': 1e-5,'alpha': (0.5,12.0),'beta': (11.0,12.0),
+         'svals': [1.0,20.0,3.0,4.0]},
+        {'E_div_kT': 0.01,'alpha': (11.35,13),'beta': (10,12.0),
+         'svals': [0,1,1,0]},
+        {'E_div_kT': 1e-5,'alpha': (11.0,13.0),'beta': (0.5,12.0),
+         'svals': [1.0,20.0,3.0,0]},
+        {'E_div_kT': 0.01,'alpha': (5.47*0+5.5-1e-12,5.5),'beta': (5,5.92),
+         'svals': [1.0,1e-200,1.0,1e-200]},
+        {'E_div_kT': 0.01,'alpha': (5.47*0+5.5-1e-12,5.5),'beta': (5,5.92),
+         'svals': [1.0,1e-20,1.0,1e-20]},
+        {'E_div_kT': 0.01,'alpha': (5.47*0+5.5-1e-12,5.5),'beta': (5,5.92),
+         'svals': [1e-20,1.0,1.0,1e-20]},
+        {'E_div_kT': 1e-5,'alpha': (11.0,13.0),'beta': (0.5,12.0),
+         'svals': [1.0,20.0,3.0,1e-300]},
+        {'E_div_kT': 1e-5,'alpha': (0.5,12.0),'beta': (0.5,12.0),
+         'svals': [1.0,20.0,3.0e-4,4.0]},
+        {'E_div_kT': 0.01,'alpha': (5.499,5.5),'beta': (5,5.92),
+         'svals': [1.0,99,1.0,99]},
+        {'E_div_kT': 0.01,'alpha': (5.499,5.5),'beta': (5,5.92),
+         'svals': [1.0,101,1.0,101]},
+        {'E_div_kT': 0.01,'alpha': (5.499,5.5),'beta': (5,5.92),
+         'svals': [1.0,0.011,1.0,0.011]},
 
         #Note: some rather bad results, attributed to numerical issues when a2
         #~- a1 (which is to be expected, since there are not many mantissa bits
         #left to describe values inside the span from e.g. 5.5-1e-12 to 5.5.
 
-        dict(E_div_kT=0.01,alpha=(5.5-1e-12,5.5),beta=(5,5.92),
-             svals=[1.0,99,1.0,99]),
-        dict(E_div_kT=0.01,alpha=(5.5-1e-12,5.5),beta=(5,5.92),
-             svals=[1.0,101,1.0,101]),
-        dict(E_div_kT=0.01,alpha=(5.5-1e-12,5.5),beta=(5,5.92),
-             svals=[1.0,0.011,1.0,0.011]),
-        dict(E_div_kT=0.01,alpha=(5.47*0+5.5-1e-12,5.5),beta=(5,5.92),
-             svals=[1.0,0.009,1.0,0.009]),
-        dict( E_div_kT=0.2812650004,
-              alpha=(5e-10,8e-10),
-              beta=(-3e-5,-2e-05),
-              svals=[1,1,1,1] ),
-        dict( E_div_kT=0.2812650005,
-              alpha=(5e-10,8e-10),
-              beta=(-3e-5,-2e-05),
-              svals=[1,1,1,1] ),
-        dict(E_div_kT=0.000395856,
-             alpha=(8.36433e-50,8.36433e-10),
-             beta=(-2.78659e-05,-2.60257e-08),
-             svals=[2.09324e-51,2.09324e-11,2.09321e-51,2.09321e-11]),
-        dict(E_div_kT=0.0040353391997826763,
-             alpha=(72.2692,75.2226),
-             beta=(73.9986, 74.7986),
-             svals=[1,2,0,3]),
-        dict(E_div_kT=0.0040353391997826763,
-             alpha=(72.2692,75.2226),
-             beta=(73.9986, 74.7986),
-             svals=[9.24041818707935e-53,
-                    2.2531578033820765e-52,
-                    0,
-                    3.5557933330843412e-53]),
+        {'E_div_kT': 0.01,'alpha': (5.5-1e-12,5.5),'beta': (5,5.92),
+         'svals': [1.0,99,1.0,99]},
+        {'E_div_kT': 0.01,'alpha': (5.5-1e-12,5.5),'beta': (5,5.92),
+         'svals': [1.0,101,1.0,101]},
+        {'E_div_kT': 0.01,'alpha': (5.5-1e-12,5.5),'beta': (5,5.92),
+         'svals': [1.0,0.011,1.0,0.011]},
+        {'E_div_kT': 0.01,'alpha': (5.47*0+5.5-1e-12,5.5),'beta': (5,5.92),
+         'svals': [1.0,0.009,1.0,0.009]},
+        { 'E_div_kT': 0.2812650004,
+          'alpha': (5e-10,8e-10),
+          'beta': (-3e-5,-2e-05),
+          'svals': [1,1,1,1] },
+        { 'E_div_kT': 0.2812650005,
+          'alpha': (5e-10,8e-10),
+          'beta': (-3e-5,-2e-05),
+          'svals': [1,1,1,1] },
+        {'E_div_kT': 0.000395856,
+         'alpha': (8.36433e-50,8.36433e-10),
+         'beta': (-2.78659e-05,-2.60257e-08),
+         'svals': [2.09324e-51,2.09324e-11,2.09321e-51,2.09321e-11]},
+        {'E_div_kT': 0.0040353391997826763,
+         'alpha': (72.2692,75.2226),
+         'beta': (73.9986, 74.7986),
+         'svals': [1,2,0,3]},
+        {'E_div_kT': 0.0040353391997826763,
+         'alpha': (72.2692,75.2226),
+         'beta': (73.9986, 74.7986),
+         'svals': [9.24041818707935e-53,
+                   2.2531578033820765e-52,
+                   0,
+                   3.5557933330843412e-53]},
     ]
 
 
@@ -204,11 +204,11 @@ def main(do_plot,test_select):
     for i,data in enumerate(testpts):
         i += 1
         if test_select and i not in test_select:
-            print("=============> SKIPPING test %i"%i)
+            print(f"=============> SKIPPING test {i}")
             continue
         print()
         print("=============>")
-        print("=============> Launching test %i"%i)
+        print(f"=============> Launching test {i}")
         print("=============>")
         print()
         evalcell(**data,do_plot=do_plot)

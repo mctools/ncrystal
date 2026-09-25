@@ -115,7 +115,7 @@ def test( *,cfgstr,ekin, atomlbl='',
     if verbose:
         print("KS unbinned pval (std vs. ref):")
         def print_pvalline(k,p):
-            print("   %s : %.4g%%"%(k.rjust(3),p*100))
+            print(f"   {k.rjust(3)} : {p*100:.4g}%")
         for k,p in pvals.items():
             print_pvalline(k,p)
         print_pvalline('worst',pvals_worst)
@@ -174,7 +174,8 @@ def test( *,cfgstr,ekin, atomlbl='',
             ax.set_xlabel('beta')
             ax.set_ylabel('alpha')
 
-            linecommon=dict(color='gray', linestyle=':', linewidth=1, alpha=0.7)
+            linecommon={'color': 'gray', 'linestyle': ':',
+                        'linewidth': 1, 'alpha': 0.7}
             ax.hlines( [ v for v in agrid
                          #if amin <= v <= amax
                         ],
@@ -219,10 +220,10 @@ def test( *,cfgstr,ekin, atomlbl='',
         amax = max( s_std.alpha.max(), s_ref.alpha.max() )
         bmin = min( s_std.beta.min(), s_ref.beta.min() )
         bmax = max( s_std.beta.max(), s_ref.beta.max() )
-        common2d = dict( amin = amin, amax = amax,
-                         bmin = bmin, bmax = bmax,
-                         agrid = sab['alpha'],
-                         bgrid = sab['beta'] )
+        common2d = { 'amin': amin, 'amax': amax,
+                     'bmin': bmin, 'bmax': bmax,
+                     'agrid': sab['alpha'],
+                     'bgrid': sab['beta'] }
 
         plot2dcell( axes[0,0],s_std.alpha,s_std.beta,'sampled (std)',
                     emax_div_kT = s_std_emax_div_kT,
@@ -235,8 +236,8 @@ def test( *,cfgstr,ekin, atomlbl='',
         def plothist(ax,key,title):
             pctx = PlotContext(axis=ax,do_show=False)
 
-            hists = dict( (k,s.create_hist(key))
-                          for k,s in samples.items() )
+            hists = { k: s.create_hist(key)
+                      for k,s in samples.items() }
             assert hists['ref'].integral>0
             href = hists['ref']
             hstd = hists['std']
@@ -289,51 +290,51 @@ def main(do_plot,luxlvl,test_select):
         # since it "nicely" provided non-optimal alpha beta grids with lots of
         # room for interesting sampling artifacts to show themselves.
 
-        dict( cfgstr='stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=1002;knllux=1',
-              atomlbl='H',
-              ekin='0.0016694736654149164'#7Aa
-             ),
+        { 'cfgstr': 'stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=1002;knllux=1',
+          'atomlbl': 'H',
+          'ekin': '0.0016694736654149164'#7Aa
+         },
 
-        dict( cfgstr='stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=1002',
-              atomlbl='H',
-              ekin='0.0016694736654149164'#7Aa
-             ),
-        dict( cfgstr='stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=1002',
-              atomlbl='Ca',
-              ekin='0.0016694736654149164'#7A
-             ),
+        { 'cfgstr': 'stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=1002',
+          'atomlbl': 'H',
+          'ekin': '0.0016694736654149164'#7Aa
+         },
+        { 'cfgstr': 'stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=1002',
+          'atomlbl': 'Ca',
+          'ekin': '0.0016694736654149164'#7A
+         },
 
-        dict( cfgstr='stdlib::Al_sg225.ncmat;vdoslux=1000;temp=500', ekin='0.025' ),
+        { 'cfgstr': 'stdlib::Al_sg225.ncmat;vdoslux=1000;temp=500', 'ekin': '0.025' },
 
-        dict( cfgstr='stdlib::Al_sg225.ncmat;vdoslux=1003', ekin='0.025' ),
+        { 'cfgstr': 'stdlib::Al_sg225.ncmat;vdoslux=1003', 'ekin': '0.025' },
 
-        dict( cfgstr='stdlib::Al_sg225.ncmat;knllux=2;vdoslux=1003',ekin='1000.5'),
+        { 'cfgstr': 'stdlib::Al_sg225.ncmat;knllux=2;vdoslux=1003','ekin': '1000.5'},
 
-        dict( cfgstr='stdlib::Al_sg225.ncmat;vdoslux=1003', ekin='0.0025' ),
+        { 'cfgstr': 'stdlib::Al_sg225.ncmat;vdoslux=1003', 'ekin': '0.0025' },
 
-        dict( cfgstr='stdlib::Al_sg225.ncmat;vdoslux=1003', ekin='25e-10' ),#fixme: slow, but perhaps we could just use the limiting E->0 beta dist and speed up??
+        { 'cfgstr': 'stdlib::Al_sg225.ncmat;vdoslux=1003', 'ekin': '25e-10' },#fixme: slow, but perhaps we could just use the limiting E->0 beta dist and speed up??
 
-        dict( cfgstr='stdlib::Al_sg225.ncmat;vdoslux=1003', ekin='15' ),
+        { 'cfgstr': 'stdlib::Al_sg225.ncmat;vdoslux=1003', 'ekin': '15' },
 
-        dict( cfgstr='solid::H/1gcm3;vdoslux=1005', ekin='15' ),
+        { 'cfgstr': 'solid::H/1gcm3;vdoslux=1005', 'ekin': '15' },
 
-        dict( cfgstr='solid::H/1gcm3;vdoslux=1000', ekin='2' ),
+        { 'cfgstr': 'solid::H/1gcm3;vdoslux=1000', 'ekin': '2' },
 
-        dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;knllux=4;vdoslux=2003',atomlbl='H',
-              ekin='15' ),
+        { 'cfgstr': 'stdlib::Polyethylene_CH2.ncmat;knllux=4;vdoslux=2003','atomlbl': 'H',
+          'ekin': '15' },
 
-        dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;knllux=4;vdoslux=2003',atomlbl='H',
-              ekin='10000' ),
+        { 'cfgstr': 'stdlib::Polyethylene_CH2.ncmat;knllux=4;vdoslux=2003','atomlbl': 'H',
+          'ekin': '10000' },
 
-        dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;knllux=4;vdoslux=2003',atomlbl='C',
-              ekin='15' ),
+        { 'cfgstr': 'stdlib::Polyethylene_CH2.ncmat;knllux=4;vdoslux=2003','atomlbl': 'C',
+          'ekin': '15' },
 
-        dict( cfgstr='stdlib::Polyethylene_CH2.ncmat;knllux=4;vdoslux=2003',atomlbl='C',
-              ekin='10000' ),
+        { 'cfgstr': 'stdlib::Polyethylene_CH2.ncmat;knllux=4;vdoslux=2003','atomlbl': 'C',
+          'ekin': '10000' },
 
-        dict( cfgstr='stdlib::Be_sg194.ncmat;vdoslux=1003', ekin='10' ),
+        { 'cfgstr': 'stdlib::Be_sg194.ncmat;vdoslux=1003', 'ekin': '10' },
 
-        dict( cfgstr='stdlib::Ca_sg229_Calcium-gamma.ncmat;vdoslux=1000;temp=800', ekin='0.04' ),
+        { 'cfgstr': 'stdlib::Ca_sg229_Calcium-gamma.ncmat;vdoslux=1000;temp=800', 'ekin': '0.04' },
 
 
     ]
@@ -346,12 +347,12 @@ def main(do_plot,luxlvl,test_select):
     for i,data in enumerate(testpts):
         i += 1
         if test_select and i not in test_select:
-            print("=============> SKIPPING test %i"%i)
+            print(f"=============> SKIPPING test {i}")
             continue
         nused += 1
         print()
         print("=============>")
-        print("=============> Launching test %i"%i)
+        print(f"=============> Launching test {i}")
         print("=============>")
         print()
         npvals, worst_pval = test(**data,
@@ -379,9 +380,9 @@ def main(do_plot,luxlvl,test_select):
 
     for pval, i in pvals:
         ok = pval>pval_threshold
-        okmsg = ( 'OK' if ok else 'FAILED (pval: %.4g%%, not above %.4g%%)'
-                  %(pval*100.0,pval_threshold*100.0) )
-        print("P-value for test #%i : %s"%(i,okmsg))
+        okmsg = ( 'OK' if ok else ( f'FAILED (pval: {pval*100.0:.4g}%, not'
+                                    f' above {pval_threshold*100.0:.4g}%)' ) )
+        print(f"P-value for test #{i} : {okmsg}")
         if not ok:
             test_error = True
 

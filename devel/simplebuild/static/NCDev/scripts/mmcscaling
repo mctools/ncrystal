@@ -55,7 +55,7 @@ def _run( nthreads, src_cfgstr, geom_cfgstr, mat_cfgstr ):
 def run_test_jobs( nthreads_max,
                    src_cfgstr, geom_cfgstr, mat_cfgstr,
                    nvals = None, nsamples = 2 ):
-    nthreads = list(i for i in range(1,nthreads_max+1) if (i<=15 or i%5==0))
+    nthreads = [i for i in range(1,nthreads_max+1) if (i<=15 or i%5==0)]
     nvals = nvals or [1e7]
 
     def runfct( nthreads,nstat):

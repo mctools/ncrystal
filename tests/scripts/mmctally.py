@@ -51,9 +51,9 @@ def main():
     #    the isotropic source, so just testing effect of energy spread.
 
     for tally in ('de','mu','theta','q'):
-        kw = dict(cfgstr='Al_sg225.ncmat;temp=200K',
-                  neutron_energy=(wl2ekin(2.5),'wl=2.5+-0.1'),
-                  tally=tally)
+        kw = {'cfgstr': 'Al_sg225.ncmat;temp=200K',
+              'neutron_energy': (wl2ekin(2.5),'wl=2.5+-0.1'),
+              'tally': tally}
         for tr in ('src','truth'):
             print(f"Testing tally: {tally} [tallyref={tr}]")
             m( key=f'<auto>_{tally}_tallyref{tr}',

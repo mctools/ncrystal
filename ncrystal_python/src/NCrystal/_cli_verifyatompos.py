@@ -25,11 +25,11 @@ from ._cliimpl import cli_entry_point, create_ArgumentParser, print
 
 
 def climod_metadata():
-    return dict(
-        displaygroup = 'misc',
-        displayorder = 20,
-        descr = "Verify consistency of atom positions in NCMAT data."
-    )
+    return {
+        'displaygroup': 'misc',
+        'displayorder': 20,
+        'descr': "Verify consistency of atom positions in NCMAT data."
+    }
 
 def parseArgs( progname, args, return_parser=False ):
 
@@ -119,7 +119,7 @@ def _main_impl( args, wyckoff_print = None ):
     from ._numpy import _ensure_numpy, _np
     _ensure_numpy()
     np = _np
-    _cell_offsets = np.asarray(list((a,b,c) for a in (-1,0,1) for b in (-1,0,1) for c in (-1,0,1)),dtype=float)
+    _cell_offsets = np.asarray([(a,b,c) for a in (-1,0,1) for b in (-1,0,1) for c in (-1,0,1)],dtype=float)
     class UnitCellPoint:
         def __init__(self,xyz):
             """Unit cell point, all coordinates will be integrally shifted to have values in [0,1)"""
@@ -195,15 +195,15 @@ def _main_impl( args, wyckoff_print = None ):
             lbl=ai.atomData.displayLabel()
             print(f"\n==========================> Investigating element: {lbl}")
             print(f"\nThe {len(ai.positions)} positions are generated from the following symmetry-unique points:")
-            unique_sites = list(e for e in sg.unique_sites(ai.positions))
+            unique_sites = list(sg.unique_sites(ai.positions))
             tags = sg.tag_sites(unique_sites + list(ai.positions))
 
             for idx,us in zip(tags[0:len(unique_sites)],unique_sites):
                 wyckoff.append( ( lbl, tuple(us) ) )
                 print(f"\nSymmetry-unique point: {us}")
                 #equiv_sites = sg.equivalent_sites([us])[0]
-                expected_sites = list(UnitCellPoint(e) for e in sg.equivalent_sites([us])[0])
-                actual_sites = list(UnitCellPoint(p) for i,p in enumerate(ai.positions) if tags[len(unique_sites)+i]==idx)
+                expected_sites = [UnitCellPoint(e) for e in sg.equivalent_sites([us])[0]]
+                actual_sites = [UnitCellPoint(p) for i,p in enumerate(ai.positions) if tags[len(unique_sites)+i]==idx]
                 matches,leftovers = matchUpPoints( expected_sites, actual_sites )
                 for p1,p2,dist in matches:
                     distmax = max(dist,distmax)

@@ -101,10 +101,10 @@ def test2():
             is_windows_path = '\\' in p or (len(p)>1 and p[1]==':')
             if is_windows_path:
                 p = p.replace('/','\\')
-                return dict(pathlib=pathlib.PureWindowsPath(p).name)
+                return {'pathlib': pathlib.PureWindowsPath(p).name}
             else:
                 p = p.replace('\\','/')
-                return dict(pathlib=pathlib.PurePosixPath(p).name)
+                return {'pathlib': pathlib.PurePosixPath(p).name}
         for refsrc, refbasename in decode_refbn(p).items():
             if refbasename != nc_basename:
                 raise SystemExit(f"basename({p!r}) mismatch:"
@@ -129,7 +129,7 @@ def test3():
     for fn in [ 'a.txt', 'b.txt', 'b\u2030.ncmat' ]:
         (subdir / fn).write_text('dummy')
     testtext = 'some\nmulti\nline funny \u2030 text\n'
-    print("Writing %i chars"%len(testtext))
+    print(f"Writing {len(testtext)} chars")
 
     (subdir / 'b\u2030.ncmat').write_text(testtext,encoding='utf8')#NCrystal
                                                                    #only loads
@@ -146,7 +146,8 @@ def test3():
         'unicodedir_test\u4500abc/b\u2030.ncmat'
     )
     content_newlines_norm = content.replace('\r\n','\n')
-    print("Read %i chars (after newline normalisation)"%len(content_newlines_norm))
+    print(f"Read {len(content_newlines_norm)} chars"
+          " (after newline normalisation)")
     for e in content.splitlines():
         print('READ>',repr(explicit_unicode_str(e)),flush=True)
     assert testtext == content_newlines_norm
@@ -169,11 +170,11 @@ def test3():
         print(f'Testing ncglob({fmtpat(pattern)}):')
         import glob
         g = sorted(glob.glob(pattern))
-        print('  --> Python glob got %i results:'%len(g))
+        print(f'  --> Python glob got {len(g)} results:')
         for e in g:
             print(f'   *: {fmtpat(e)}')
         g = lib.nctest_ncglob(pattern)
-        print('  --> got %i results:'%len(g))
+        print(f'  --> got {len(g)} results:')
         all_ok = True
         for e in g:
             badstr = ''
@@ -182,7 +183,7 @@ def test3():
                 all_ok = False
             print(f'   *: {fmtpat(e)}{badstr}')
         if len(g) != nexpect:
-            raise SystemExit('Error: did not get expected %i entries'%nexpect)
+            raise SystemExit(f'Error: did not get expected {nexpect} entries')
         if not all_ok:
             raise SystemExit('Error: some hits were invalid')
 

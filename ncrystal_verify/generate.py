@@ -87,7 +87,7 @@ def handle_pymods( testinfo, tgtdir ):
         for f in sorted(pyfiles):
             dest = d.joinpath(f.name)
             assert f.name.endswith('.py')
-            m = '%s.%s'%(modname,f.stem)
+            m = f'{modname}.{f.stem}'
             if modname=='NCTestUtils' and f.name=='loadlib.py':
                 print(f" .. ignoring module: {m}")
                 continue#Ignore
@@ -100,7 +100,7 @@ def handle_pymods( testinfo, tgtdir ):
 
 def handle_datadirs( testinfo, tgtdir ):
     for subdir, f in sorted( testinfo['datafiles'] ):
-        subpath = '%s/%s'%(subdir,f.name) if subdir else f.name
+        subpath = f'{subdir}/{f.name}' if subdir else f.name
         print(f" .. copying data file: {subpath}")
         d = tgtdir.joinpath(subdir) if subdir else tgtdir
         d.mkdir(parents=True,exist_ok=True)

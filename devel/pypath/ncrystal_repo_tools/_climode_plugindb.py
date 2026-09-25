@@ -38,23 +38,23 @@ def load_and_check_data():
 def _add_piptargets_srcurls_etc( pluginname, info ):
 
     pypkgname = f'ncrystal-plugin-{pluginname}'
-    repo_baseurl = 'https://github.com/%s'%info['github_repo_key']
+    repo_baseurl = 'https://github.com/{}'.format(info['github_repo_key'])
     if not info['gitref'] and not info['repo_subdir']:
         src_url = repo_baseurl
     else:
         resolved_gitref = info['gitref'] or 'HEAD'
         src_url = repo_baseurl + f'/tree/{resolved_gitref}'
         if info['repo_subdir']:
-            src_url += '/%s'%info['repo_subdir']
+            src_url += '/{}'.format(info['repo_subdir'])
 
     if info['is_on_pypi']:
         pip_target = pypkgname
     else:
         pip_target = f'git+{repo_baseurl}'
         if info['gitref']:
-            pip_target+='@%s'%info['gitref']
+            pip_target+='@{}'.format(info['gitref'])
         if info['repo_subdir']:
-            pip_target += '#subdirectory=%s'%info['repo_subdir']
+            pip_target += '#subdirectory={}'.format(info['repo_subdir'])
 
     #shlex.quote assumes posix shells, and do not really work on windows,
     #where we have to use mslex.quote. However, it seems that simply adding
@@ -76,10 +76,10 @@ def _prepare_data_and_check_errors( data ):
     #Prepares data in place, returns an error message in case of issues
     if not isinstance(data,dict):
         return "top-level info must be a dictionary"
-    known_keys = set(['github_repo_key','gitref','repo_subdir','description',
-                      'disable_tests', 'is_on_pypi' ])
-    required_keys = set(['github_repo_key','description'])
-    boolean_keys = set(['disable_tests', 'is_on_pypi'])
+    known_keys = {'github_repo_key','gitref','repo_subdir','description',
+                   'disable_tests', 'is_on_pypi' }
+    required_keys = {'github_repo_key','description'}
+    boolean_keys = {'disable_tests', 'is_on_pypi'}
     assert not ( boolean_keys - known_keys )
     assert not (required_keys-known_keys)
     import textwrap
@@ -108,7 +108,7 @@ def _prepare_data_and_check_errors( data ):
         if v0['github_repo_key'].count('/')!=1:
             return f'invalid value for {k0}.github_repo_key'
         assert 'repourl' not in v0
-        v0['repourl'] = 'https://github.com/%s'%v0['github_repo_key']
+        v0['repourl'] = 'https://github.com/{}'.format(v0['github_repo_key'])
         #Add some defaults:
         for bk in boolean_keys:
             #Booleans should be marked as '1' if true and empty string '' else:
@@ -226,10 +226,11 @@ def _produce_wiki( data ):
         if info['disable_tests']:
             print(f"* **WARNING:** `ncrystal-pluginmanager --test {pluginname}`"
                   " is currently failing for this plugin")
-        print("* **Install with:** `pip install %s`"%info['quoted_pip_target'])
+        print("* **Install with:** `pip install"
+              f" {info['quoted_pip_target']}`")
         if info['is_on_pypi']:
-            print("* **PyPI URL:** [%s](%s)"%(info['pypi_url'],
+            print("* **PyPI URL:** [{}]({})".format(info['pypi_url'],
                                               info['pypi_url']))
-        print("* **Source URL:** [%s](%s)"%(info['src_url'],
+        print("* **Source URL:** [{}]({})".format(info['src_url'],
                                             info['src_url']))
     return out_buf.getvalue().rstrip()+'\n'

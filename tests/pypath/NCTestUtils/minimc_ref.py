@@ -40,10 +40,10 @@ def minimc_unittest_stdsphere( *,
     mat = ncload( cfgstr )
     if isinstance(neutron_energy,str) and neutron_energy.endswith('Aa'):
         ekin = wl2ekin(float(neutron_energy[:-2].strip()))
-        srcenergyparam = 'wl=%s'%(neutron_energy[:-2].strip())
+        srcenergyparam = f'wl={neutron_energy[:-2].strip()}'
     elif isinstance(neutron_energy,str) and neutron_energy.endswith('eV'):
         ekin = float(neutron_energy[:-2].strip())
-        srcenergyparam = 'ekin=%s'%(neutron_energy[:-2].strip())
+        srcenergyparam = f'ekin={neutron_energy[:-2].strip()}'
     elif not isinstance(neutron_energy,str) and len(neutron_energy)==2:
         #special case, a tuple: (mean_ekin,srcenergyparam)
         ekin, srcenergyparam = neutron_energy
@@ -94,8 +94,8 @@ def _parse_sysargv():
     args = sys.argv[1:]
     if '--help' in args or '-h' in args:
         print("Possible options: --plot or --update")
-    return dict( do_plot = '--plot' in args,
-                 do_updateref = '--update' in args )
+    return { 'do_plot': '--plot' in args,
+             'do_updateref': '--update' in args }
 
 def main_minimc_unittest_stdsphere( *a, **kw ):
     return minimc_unittest_stdsphere( *a, **kw, **_parse_sysargv() )
