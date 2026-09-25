@@ -1,4 +1,18 @@
 v4.4.7 (work in progress)
+     * Resolve a small flagged "fixme cache?" in CellMgr::lookupCellInfo
+       (NCSABProcessor.cc): construct SABIdx::NAlpha from the already-
+       cached m_nalpham1+1 instead of reconstructing it from the full
+       alphaGrid() on every call -- exactly equivalent by construction
+       (NAlpha's VectD constructor just forwards to .size()). Tried and
+       measured (but reverted, see the same file's now-expanded fixme
+       comment) a second change in the same area: caching the
+       (idx,FullCellSampler) pair across a rejection-sampling loop's
+       retries in sampleAlphaBetaFC, in case the same cell got re-picked
+       on consecutive retries. That measured no wall-clock benefit on
+       sb_ncdev_benchsabsample (Polyethylene_CH2.ncmat, comp=inelas,
+       random energy per call) -- 8571ms vs 8613ms over 5x30M-sample
+       trials each, within run-to-run noise -- so it was not worth the
+       added bookkeeping and was dropped.
      * Fix the same unaudited "rng.generate()*2.0-1.0" shape (isotropic
        mu sampling near kinematic end-points / small-a rejection
        sampling) found repeated verbatim in five places:
