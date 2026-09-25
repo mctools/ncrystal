@@ -74,8 +74,8 @@ def parseArgs( progname, arglist, return_parser = False ):
     epilog += textwrap.fill(
         '--where expressions are Python expressions using the properties'
         ' above, comparison and boolean operators, set/string/number'
-        ' literals, and the functions: %s. Comparisons with unavailable'
-        ' (None) values are considered false.'%(
+        ' literals, and the functions: %s. Expressions failing due to'
+        ' unavailable (None) values are considered false.'%(
             ', '.join(sorted(_where_fct_names()))), width = 79 )
     import argparse
     parser = create_ArgumentParser( prog = progname,
@@ -193,9 +193,11 @@ def parseArgs( progname, arglist, return_parser = False ):
         if c not in propnames + ['description']:
             parser.error(f'Invalid column "{c}" (must be "description" or'
                          f' one of: {", ".join(propnames)})')
-    if args.sort and args.sort not in propnames + ['name']:
+    from .browse import _dict_props
+    sortnames = [ n for n in propnames if n not in _dict_props ]
+    if args.sort and args.sort not in sortnames + ['name']:
         parser.error(f'Invalid sort key "{args.sort}" (must be "name" or'
-                     f' one of: {", ".join(propnames)})')
+                     f' one of: {", ".join(sortnames)})')
     if args.sort and args.sort != 'name' and args.sort not in args.columns:
         args.columns.append( args.sort )
     args.table = table
@@ -386,6 +388,8 @@ def _table_value( entry, col ):
         return '-'
     if isinstance( v, frozenset ):
         return ','.join( sorted(v) ) if v else '-'
+    if isinstance( v, dict ):
+        return ','.join( f'{k}:{x:g}' for k,x in v.items() ) if v else '-'
     if isinstance( v, float ):
         return '%g'%v
     return str(v)

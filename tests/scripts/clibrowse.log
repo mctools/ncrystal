@@ -87,27 +87,47 @@ examples:
   ncrystal_browse -f stdlib --columns formula,sg,density
 
 physics properties available in --where expressions (and --props):
-  elements  : set of element names, e.g. {"Al","O"}
-  atoms     : set of atom labels, including isotopes, e.g. {"D","O"}
-  nelements : number of different elements
-  formula   : chemical formula, e.g. "Al2O3"
-  absxs     : absorption cross section per atom at 2200m/s [barn]
-  scatxs    : free scattering cross section per atom [barn]
-  density   : density [g/cm3]
-  numdens   : number density [atoms/Aa3]
-  temp      : temperature [K]
-  state     : state of matter: "solid", "liquid", "gas", or "unknown"
-  crystal   : True if crystalline (for multiphase: any phase)
-  sg        : space group number (None if not available)
-  natoms    : number of atoms in unit cell (None if not available)
-  dyninfo   : set of dynamic info types present, among "vdos", "vdosdebye",
-              "scatknl" (a full scattering kernel), "freegas", and "sterile"
-  nphases   : number of phases (1 for single-phase materials)
+  elements       : set of element names, e.g. {"Al","O"}
+  atoms          : set of atom labels, including isotopes, e.g. {"D","O"}
+  nelements      : number of different elements
+  formula        : chemical formula, e.g. "Al2O3"
+  mass           : average atomic mass [amu]
+  absxs          : absorption cross section per atom at 2200m/s [barn]
+  scatxs         : free scattering cross section per atom [barn]
+  cohxs          : bound coherent scattering cross section per atom [barn]
+  incohxs        : bound incoherent scattering cross section per atom [barn]
+  density        : density [g/cm3]
+  numdens        : number density [atoms/Aa3]
+  temp           : temperature [K]
+  state          : state of matter: "solid", "liquid", "gas", or "unknown"
+  crystal        : True if crystalline (for multiphase: any phase)
+  crystalsystem  : crystal system (e.g. "cubic"), based on the space group
+                   (None if not available)
+  sg             : space group number (None if not available)
+  natoms         : number of atoms in unit cell (None if not available)
+  a              : unit cell length a [Aa] (None if not available)
+  b              : unit cell length b [Aa] (None if not available)
+  c              : unit cell length c [Aa] (None if not available)
+  alpha          : unit cell angle alpha [degree] (None if not available)
+  beta           : unit cell angle beta [degree] (None if not available)
+  gamma          : unit cell angle gamma [degree] (None if not available)
+  volume         : unit cell volume [Aa^3] (None if not available)
+  braggthreshold : Bragg threshold [Aa], i.e. the longest wavelength with
+                   Bragg diffraction (None if not available)
+  debyetemps     : dict of per-atom Debye temperatures [K], e.g.
+                   {"Al":412.2} (None if not a crystal)
+  msds           : dict of per-atom mean-squared-displacements [Aa^2] (None
+                   if not a crystal)
+  dyninfo        : set of dynamic info types present, among "vdos",
+                   "vdosdebye", "scatknl" (a full scattering kernel),
+                   "freegas", and "sterile"
+  customsections : set of names of @CUSTOM_ sections in NCMAT data
+  nphases        : number of phases (1 for single-phase materials)
 
 --where expressions are Python expressions using the properties above,
 comparison and boolean operators, set/string/number literals, and the
-functions: abs, all, any, len, max, min, round, set, sorted. Comparisons with
-unavailable (None) values are considered false.
+functions: abs, all, any, len, max, min, round, set, sorted. Expressions
+failing due to unavailable (None) values are considered false.
 
 ============= CLI >>browse -f virtual<< =============
 ==> 5 files from "virtual" (virtual, priority=130):
@@ -191,31 +211,49 @@ othermat.ncmat
 ============= CLI >>browse --props -f virtual<< =============
 ==> 5 files from "virtual" (virtual, priority=130):
     Al_sg225.ncmat
-        elements={'O'}  atoms={'O'}  nelements=1  formula='O'  absxs=0.00019
-        scatxs=3.74537  density=2  numdens=0.07528  temp=293.15  state='solid'
-        crystal=False  sg=None  natoms=None  dyninfo={'vdosdebye'}  nphases=1
-    mycrystal.ncmat  A small crystal.
-        elements={'Al'}  atoms={'Al'}  nelements=1  formula='Al'  absxs=0.231
-        scatxs=1.39667  density=2.69865  numdens=0.0602324  temp=293.15
-        state='solid'  crystal=True  sg=225  natoms=4  dyninfo={'vdosdebye'}
+        elements={'O'}  atoms={'O'}  nelements=1  formula='O'  mass=15.9993
+        absxs=0.00019  scatxs=3.74537  cohxs=4.2317  incohxs=0.0008  density=2
+        numdens=0.07528  temp=293.15  state='solid'  crystal=False
+        crystalsystem=None  sg=None  natoms=None  a=None  b=None  c=None
+        alpha=None  beta=None  gamma=None  volume=None  braggthreshold=None
+        debyetemps=None  msds=None  dyninfo={'vdosdebye'}  customsections={}
         nphases=1
+    mycrystal.ncmat  A small crystal.
+        elements={'Al'}  atoms={'Al'}  nelements=1  formula='Al'  mass=26.9815
+        absxs=0.231  scatxs=1.39667  cohxs=1.49485  incohxs=0.0082
+        density=2.69865  numdens=0.0602324  temp=293.15  state='solid'
+        crystal=True  crystalsystem='cubic'  sg=225  natoms=4  a=4.04958
+        b=4.04958  c=4.04958  alpha=90  beta=90  gamma=90  volume=66.4095
+        braggthreshold=4.67605  debyetemps={'Al':400}  msds={'Al':0.0103838}
+        dyninfo={'vdosdebye'}  customsections={}  nphases=1
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
-        elements={'H'}  atoms={'H'}  nelements=1  formula='H'  absxs=0.3326
-        scatxs=20.4902  density=1  numdens=0.597449  temp=293.15  state='solid'
-        crystal=False  sg=None  natoms=None  dyninfo={'vdosdebye'}  nphases=1
+        elements={'H'}  atoms={'H'}  nelements=1  formula='H'  mass=1.00798
+        absxs=0.3326  scatxs=20.4902  cohxs=1.75679  incohxs=80.26  density=1
+        numdens=0.597449  temp=293.15  state='solid'  crystal=False
+        crystalsystem=None  sg=None  natoms=None  a=None  b=None  c=None
+        alpha=None  beta=None  gamma=None  volume=None  braggthreshold=None
+        debyetemps=None  msds=None  dyninfo={'vdosdebye'}  customsections={}
+        nphases=1
     notncmat.laz
         [could not load: Error in Lazy/Lau data: Missing required spacegroup...
     othermat.ncmat
-        elements={'O'}  atoms={'O'}  nelements=1  formula='O'  absxs=0.00019
-        scatxs=3.74537  density=2  numdens=0.07528  temp=293.15  state='solid'
-        crystal=False  sg=None  natoms=None  dyninfo={'vdosdebye'}  nphases=1
+        elements={'O'}  atoms={'O'}  nelements=1  formula='O'  mass=15.9993
+        absxs=0.00019  scatxs=3.74537  cohxs=4.2317  incohxs=0.0008  density=2
+        numdens=0.07528  temp=293.15  state='solid'  crystal=False
+        crystalsystem=None  sg=None  natoms=None  a=None  b=None  c=None
+        alpha=None  beta=None  gamma=None  volume=None  braggthreshold=None
+        debyetemps=None  msds=None  dyninfo={'vdosdebye'}  customsections={}
+        nphases=1
 ============= CLI >>browse --props -f stdlib LiquidHeavyWater<< =============
 ==> 1 file from "stdlib" (<stdlib-location>, priority=120):
     LiquidHeavyWaterD2O_T293.6K.ncmat  Heavy water (D2O) based on ENDF/B-VIII...
         elements={'H','O'}  atoms={'D','O'}  nelements=2  formula='D2O'
-        absxs=0.000409333  scatxs=3.51043  density=1.10526  numdens=0.0997033
-        temp=293.6  state='liquid'  crystal=False  sg=None  natoms=None
-        dyninfo={'scatknl'}  nphases=1
+        mass=6.67584  absxs=0.000409333  scatxs=3.51043  cohxs=5.13878
+        incohxs=1.36693  density=1.10526  numdens=0.0997033  temp=293.6
+        state='liquid'  crystal=False  crystalsystem=None  sg=None  natoms=None
+        a=None  b=None  c=None  alpha=None  beta=None  gamma=None  volume=None
+        braggthreshold=None  debyetemps=None  msds=None  dyninfo={'scatknl'}
+        customsections={}  nphases=1
 ============= CLI >>browse -w '"H" in elements' -f virtual<< =============
 ==> 1 file from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
@@ -244,6 +282,19 @@ LiquidWaterH2O_T293.6K.ncmat
     Al_sg225.ncmat
     mycrystal.ncmat  A small crystal.
     othermat.ncmat
+============= CLI >>browse -w 'crystalsystem=="cubic" and braggthreshold > 4' -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mycrystal.ncmat  A small crystal.
+============= CLI >>browse -w 'max(debyetemps.values()) > 300' -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mycrystal.ncmat  A small crystal.
+============= CLI >>browse -f virtual --columns a,volume,debyetemps,msds,mass,cohxs<< =============
+NAME                   A   VOLUME  DEBYETEMPS          MSDS     MASS    COHXS
+Al_sg225.ncmat         -        -           -             -  15.9993   4.2317
+mycrystal.ncmat  4.04958  66.4095      Al:400  Al:0.0103838  26.9815  1.49485
+mytestmat.ncmat        -        -           -             -  1.00798  1.75679
+notncmat.laz           -        -           -             -        -        -
+othermat.ncmat         -        -           -             -  15.9993   4.2317
 ============= CLI >>browse -f virtual --columns formula,sg,density,dyninfo,description<< =============
 NAME             FORMULA   SG  DENSITY    DYNINFO  DESCRIPTION
 Al_sg225.ncmat         O    -        2  vdosdebye
@@ -286,16 +337,31 @@ Al_sg225.ncmat
             'atoms': ['Al'],
             'nelements': 1,
             'formula': 'Al',
+            'mass': 26.98153841,
             'absxs': 0.231,
             'scatxs': 1.396668642,
+            'cohxs': 1.494845308,
+            'incohxs': 0.0082,
             'density': 2.698645518,
             'numdens': 0.06023238256,
             'temp': 293.15,
             'state': 'solid',
             'crystal': True,
+            'crystalsystem': 'cubic',
             'sg': 225,
             'natoms': 4,
+            'a': 4.04958,
+            'b': 4.04958,
+            'c': 4.04958,
+            'alpha': 90.0,
+            'beta': 90.0,
+            'gamma': 90.0,
+            'volume': 66.40945999,
+            'braggthreshold': 4.676052206,
+            'debyetemps': {'Al': 400.0},
+            'msds': {'Al': 0.01038384084},
             'dyninfo': ['vdosdebye'],
+            'customsections': [],
             'nphases': 1},
   'error': None}]
 ============= CLI >>browse -w 'foo > 1'<< =============
@@ -307,11 +373,15 @@ Caught expected ArgumentError('Invalid --where expression "elements.__class__" (
 ============= CLI >>browse -w 'absxs >'<< =============
 Caught expected ArgumentError('Invalid --where expression "absxs >": invalid syntax')
 ============= CLI >>browse --columns sg,foo<< =============
-Caught expected ArgumentError('Invalid column "foo" (must be "description" or one of: elements, atoms, nelements, formula, absxs, scatxs, density, numdens, temp, state, crystal, sg, natoms, dyninfo, nphases)')
+Caught expected ArgumentError('Invalid column "foo" (must be "description" or one of: elements, atoms, nelements, formula, mass, absxs, scatxs, cohxs, incohxs, density, numdens, temp, state, crystal, crystalsystem, sg, natoms, a, b, c, alpha, beta, gamma, volume, braggthreshold, debyetemps, msds, dyninfo, customsections, nphases)')
 ============= CLI >>browse --sort foo<< =============
-Caught expected ArgumentError('Invalid sort key "foo" (must be "name" or one of: elements, atoms, nelements, formula, absxs, scatxs, density, numdens, temp, state, crystal, sg, natoms, dyninfo, nphases)')
+Caught expected ArgumentError('Invalid sort key "foo" (must be "name" or one of: elements, atoms, nelements, formula, mass, absxs, scatxs, cohxs, incohxs, density, numdens, temp, state, crystal, crystalsystem, sg, natoms, a, b, c, alpha, beta, gamma, volume, braggthreshold, dyninfo, customsections, nphases)')
 ============= CLI >>browse --reverse<< =============
 Caught expected ArgumentError('--reverse requires --sort.')
+============= CLI >>browse --sort debyetemps<< =============
+Caught expected ArgumentError('Invalid sort key "debyetemps" (must be "name" or one of: elements, atoms, nelements, formula, mass, absxs, scatxs, cohxs, incohxs, density, numdens, temp, state, crystal, crystalsystem, sg, natoms, a, b, c, alpha, beta, gamma, volume, braggthreshold, dyninfo, customsections, nphases)')
+============= CLI >>browse -w elements.foo -f virtual<< =============
+Caught expected NCBadInput('Error evaluating --where expression "elements.foo": \'frozenset\' object has no attribute \'foo\'')
 ============= CLI >>browse --columns sg --props<< =============
 Caught expected ArgumentError('Do not specify --props together with --columns or --sort.')
 ============= CLI >>browse --json --names<< =============

@@ -135,11 +135,22 @@ def main():
           names(nb.sort_entries(loaded,'sg',reverse=True)))
     print('sorted by name (reverse):',
           names(nb.sort_entries(loaded,'name',reverse=True)))
+    sortable = ', '.join( n for n,d in nb.physics_props_doc()
+                          if n not in ('debyetemps','msds') )
     with ensure_error(NC.NCBadInput,'Invalid sort key "foo" (must be "name"'
-                      ' or one of: elements, atoms, nelements, formula,'
-                      ' absxs, scatxs, density, numdens, temp, state,'
-                      ' crystal, sg, natoms, dyninfo, nphases)'):
+                      ' or one of: ' + sortable + ')'):
         nb.sort_entries(loaded,'foo')
+    p = [ e for e in loaded if e.name == 'crystal.ncmat' ][0].props
+    assert p.crystalsystem == 'cubic' and p.a == p.b == p.c == 4.04958
+    assert p.alpha == 90.0 and abs( p.volume - 4.04958**3 ) < 1e-9
+    assert set(p.debyetemps) == set(['Al']) and p.debyetemps['Al'] == 400.0
+    assert set(p.msds) == set(['Al']) and p.customsections == frozenset()
+    assert abs( p.braggthreshold - 2*4.04958/3**0.5 ) < 1e-9
+    assert abs( p.mass - 26.9815 ) < 1e-3 and p.incohxs > 0.0
+    g = [ e for e in loaded if e.name == 'gas.ncmat' ][0].props
+    assert g.a is None and g.debyetemps is None and g.crystalsystem is None
+    assert g.braggthreshold is None
+    print('Newer properties OK')
     d = [ e for e in loaded if e.name == 'crystal.ncmat' ][0].as_dict()
     print('as_dict keys:',list(d))
     assert d['props']['dyninfo'] == ['vdosdebye'] and d['error'] is None

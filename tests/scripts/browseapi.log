@@ -1,4 +1,4 @@
-Properties: ['elements', 'atoms', 'nelements', 'formula', 'absxs', 'scatxs', 'density', 'numdens', 'temp', 'state', 'crystal', 'sg', 'natoms', 'dyninfo', 'nphases']
+Properties: ['elements', 'atoms', 'nelements', 'formula', 'mass', 'absxs', 'scatxs', 'cohxs', 'incohxs', 'density', 'numdens', 'temp', 'state', 'crystal', 'crystalsystem', 'sg', 'natoms', 'a', 'b', 'c', 'alpha', 'beta', 'gamma', 'volume', 'braggthreshold', 'debyetemps', 'msds', 'dyninfo', 'customsections', 'nphases']
 ==> Cheap browsing of virtual factory:
   DataEntry(virtual::Al_sg225.ncmat) name='Al_sg225.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat'
      description='Helium gas. Second line.'
@@ -13,10 +13,10 @@ Properties: ['elements', 'atoms', 'nelements', 'formula', 'absxs', 'scatxs', 'de
      description='Helium gas. Second line.'
      comments=('------------------', ' Helium gas.', ' Second line.', '', ' Other paragraph.')
 ==> Loaded:
-  Al_sg225.ncmat: PhysicsProps(elements={'He'}, atoms={'He'}, nelements=1, formula='He', absxs=0.00747, scatxs=0.854857, density=0.0005, numdens=7.52278e-05, temp=293.15, state='gas', crystal=False, sg=None, natoms=None, dyninfo={'freegas'}, nphases=1)
+  Al_sg225.ncmat: PhysicsProps(elements={'He'}, atoms={'He'}, nelements=1, formula='He', mass=4.0026, absxs=0.00747, scatxs=0.854857, cohxs=1.34, incohxs=0, density=0.0005, numdens=7.52278e-05, temp=293.15, state='gas', crystal=False, crystalsystem=None, sg=None, natoms=None, a=None, b=None, c=None, alpha=None, beta=None, gamma=None, volume=None, braggthreshold=None, debyetemps=None, msds=None, dyninfo={'freegas'}, customsections={}, nphases=1)
   broken.ncmat: ERROR '"broken.ncmat": invalid density value in line 3'
-  crystal.ncmat: PhysicsProps(elements={'Al'}, atoms={'Al'}, nelements=1, formula='Al', absxs=0.231, scatxs=1.39667, density=2.69865, numdens=0.0602324, temp=293.15, state='solid', crystal=True, sg=225, natoms=4, dyninfo={'vdosdebye'}, nphases=1)
-  gas.ncmat: PhysicsProps(elements={'He'}, atoms={'He'}, nelements=1, formula='He', absxs=0.00747, scatxs=0.854857, density=0.0005, numdens=7.52278e-05, temp=293.15, state='gas', crystal=False, sg=None, natoms=None, dyninfo={'freegas'}, nphases=1)
+  crystal.ncmat: PhysicsProps(elements={'Al'}, atoms={'Al'}, nelements=1, formula='Al', mass=26.9815, absxs=0.231, scatxs=1.39667, cohxs=1.49485, incohxs=0.0082, density=2.69865, numdens=0.0602324, temp=293.15, state='solid', crystal=True, crystalsystem='cubic', sg=225, natoms=4, a=4.04958, b=4.04958, c=4.04958, alpha=90, beta=90, gamma=90, volume=66.4095, braggthreshold=4.67605, debyetemps={'Al':400}, msds={'Al':0.0103838}, dyninfo={'vdosdebye'}, customsections={}, nphases=1)
+  gas.ncmat: PhysicsProps(elements={'He'}, atoms={'He'}, nelements=1, formula='He', mass=4.0026, absxs=0.00747, scatxs=0.854857, cohxs=1.34, incohxs=0, density=0.0005, numdens=7.52278e-05, temp=293.15, state='gas', crystal=False, crystalsystem=None, sg=None, natoms=None, a=None, b=None, c=None, alpha=None, beta=None, gamma=None, volume=None, braggthreshold=None, debyetemps=None, msds=None, dyninfo={'freegas'}, customsections={}, nphases=1)
 Caught expected AttributeError('PhysicsProps has no attribute "foo"')
 Al_sg225.ncmat entries: ['Al_sg225.ncmat', 'stdlib::Al_sg225.ncmat'] [False, True]
 find('crystal',): ['crystal.ncmat']
@@ -34,7 +34,8 @@ find('gas',){'where': 'absxs < 1', 'factory': 'virtual'}: ['gas.ncmat']
 sorted by absxs: ['Al_sg225.ncmat', 'gas.ncmat', 'crystal.ncmat', 'broken.ncmat']
 sorted by sg (reverse): ['crystal.ncmat', 'Al_sg225.ncmat', 'broken.ncmat', 'gas.ncmat']
 sorted by name (reverse): ['gas.ncmat', 'crystal.ncmat', 'broken.ncmat', 'Al_sg225.ncmat']
-Caught expected NCBadInput('Invalid sort key "foo" (must be "name" or one of: elements, atoms, nelements, formula, absxs, scatxs, density, numdens, temp, state, crystal, sg, natoms, dyninfo, nphases)')
+Caught expected NCBadInput('Invalid sort key "foo" (must be "name" or one of: elements, atoms, nelements, formula, mass, absxs, scatxs, cohxs, incohxs, density, numdens, temp, state, crystal, crystalsystem, sg, natoms, a, b, c, alpha, beta, gamma, volume, braggthreshold, dyninfo, customsections, nphases)')
+Newer properties OK
 as_dict keys: ['name', 'fullkey', 'factory', 'source', 'priority', 'hidden', 'datatype', 'description', 'comments', 'props', 'error']
 matching_lines: ['A small Al crystal.', 'Mentions Togo.']
 matching_lines (regex): []

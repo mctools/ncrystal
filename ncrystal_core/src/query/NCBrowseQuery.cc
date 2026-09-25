@@ -186,6 +186,27 @@ namespace NCRYSTAL_NAMESPACE {
             sg = si.spacegroup;
           natoms = si.n_atoms;
         }
+        //Bragg threshold (max over phases) and custom sections:
+        Optional<double> braggthr;
+        std::set<std::string> customsecs;
+        for ( auto sp : sps ) {
+          auto bt = sp->getBraggThreshold();
+          if ( bt.has_value() ) {
+            const double v = bt.value().dbl();
+            if ( !braggthr.has_value() || v > braggthr.value() )
+              braggthr = v;
+          }
+          for ( auto& cs : sp->getAllCustomSections() )
+            customsecs.insert( cs.first );
+        }
+        //Composition weighted values:
+        StableSum cohxs, incohxs, mass;
+        for ( auto& c : info.getComposition() ) {
+          const auto& ad = c.atom.data();
+          cohxs.add( c.fraction * ad.coherentXS().dbl() );
+          incohxs.add( c.fraction * ad.incoherentXS().dbl() );
+          mass.add( c.fraction * ad.averageMassAMU().dbl() );
+        }
         auto bd = CompositionUtils::createFullBreakdown(
           info.getComposition(), nullptr,
           CompositionUtils::PreferNaturalElements );
@@ -210,6 +231,50 @@ namespace NCRYSTAL_NAMESPACE {
         streamJSONDictEntry( os, "natoms_unitcell", natoms );
         streamJSONDictEntry( os, "dyninfo_types",
                              VectS( ditypes.begin(), ditypes.end() ) );
+        streamJSONDictEntry( os, "braggthreshold", braggthr );
+        streamJSONDictEntry( os, "xsect_coh", cohxs.sum() );
+        streamJSONDictEntry( os, "xsect_incoh", incohxs.sum() );
+        streamJSONDictEntry( os, "mass", mass.sum() );
+        const VectS csnames( customsecs.begin(), customsecs.end() );
+        streamJSONDictEntry( os, "customsections", csnames );
+        os << ",\"cell\":";
+        if ( !info.isMultiPhase() && info.hasStructureInfo() ) {
+          auto& si = info.getStructureInfo();
+          streamJSONDictEntry( os, "a", si.lattice_a,
+                               JSONDictPos::FIRST );
+          streamJSONDictEntry( os, "b", si.lattice_b );
+          streamJSONDictEntry( os, "c", si.lattice_c );
+          streamJSONDictEntry( os, "alpha", si.alpha );
+          streamJSONDictEntry( os, "beta", si.beta );
+          streamJSONDictEntry( os, "gamma", si.gamma );
+          streamJSONDictEntry( os, "volume", si.volume,
+                               JSONDictPos::LAST );
+        } else {
+          streamJSON( os, json_null_t{} );
+        }
+        //Per-atom info (single phase crystals only):
+        os << ",\"atominfo\":";
+        if ( !info.isMultiPhase() && info.hasAtomInfo() ) {
+          os << '[';
+          bool first = true;
+          for ( auto& ai : info.getAtomInfos() ) {
+            os << ( first ? "" : "," );
+            first = false;
+            Optional<double> dt;
+            if ( ai.debyeTemp().has_value() )
+              dt = ai.debyeTemp().value().dbl();
+            streamJSONDictEntry( os, "label",
+                                 info.displayLabel( ai.atom().index ),
+                                 JSONDictPos::FIRST );
+            streamJSONDictEntry( os, "count", ai.numberPerUnitCell() );
+            streamJSONDictEntry( os, "debyetemp", dt );
+            streamJSONDictEntry( os, "msd", ai.msd(),
+                                 JSONDictPos::LAST );
+          }
+          os << ']';
+        } else {
+          streamJSON( os, json_null_t{} );
+        }
         const auto nphases = static_cast<unsigned>(
           info.isMultiPhase() ? info.getPhases().size() : 1 );
         streamJSONDictEntry( os, "nphases", nphases,

@@ -73,21 +73,43 @@ class PhysicsProps:
                         { (1,2):'D', (1,3):'T' }.get( (Z,A), f'{en}{A}' ) )
                 atomfracs[lbl] = atomfracs.get(lbl,0.0) + fr
         elements = frozenset( elementZToName(Z) for Z,_ in compos )
+        cell = info['cell'] or {}
+        ai = info['atominfo']
+        def per_atom( key ):
+            if ai is None:
+                return None
+            return dict( (e['label'],e[key]) for e in ai
+                         if e[key] is not None )
         self.__d = dict(
             elements = elements,
             atoms = frozenset( atomfracs ),
             nelements = len( elements ),
             formula = format_chemform( sorted( atomfracs.items() ) ),
+            mass = info['mass'],
             absxs = info['xsect_absorption'],
             scatxs = info['xsect_free'],
+            cohxs = info['xsect_coh'],
+            incohxs = info['xsect_incoh'],
             density = info['density'],
             numdens = info['numberdensity'],
             temp = info['temperature'],
             state = info['stateofmatter'].lower(),
             crystal = info['crystalline'],
+            crystalsystem = _crystal_system( info['spacegroup'] ),
             sg = info['spacegroup'],
             natoms = info['natoms_unitcell'],
+            a = cell.get('a'),
+            b = cell.get('b'),
+            c = cell.get('c'),
+            alpha = cell.get('alpha'),
+            beta = cell.get('beta'),
+            gamma = cell.get('gamma'),
+            volume = cell.get('volume'),
+            braggthreshold = info['braggthreshold'],
+            debyetemps = per_atom('debyetemp'),
+            msds = per_atom('msd'),
             dyninfo = frozenset( info['dyninfo_types'] ),
+            customsections = frozenset( info['customsections'] ),
             nphases = info['nphases'],
         )
         self.__compos = compos
@@ -97,7 +119,8 @@ class PhysicsProps:
         sets are replaced with sorted lists."""
         if not json_compatible:
             return dict( self.__d )
-        return dict( ( k, sorted(v) if isinstance(v,frozenset) else v )
+        return dict( ( k, sorted(v) if isinstance(v,frozenset) else
+                       ( dict(v) if isinstance(v,dict) else v ) )
                      for k,v in self.__d.items() )
 
     @property
@@ -333,7 +356,7 @@ def sort_entries( entries, key, *, reverse = False ):
     entries). Entries without a value (None, e.g. materials which could not
     be loaded, or with an unavailable property) are always placed last.
     Sets are compared by their sorted contents."""
-    names = [ n for n,d in _propdocs ]
+    names = [ n for n,d in _propdocs if n not in _dict_props ]
     if key != 'name' and key not in names:
         from .exceptions import NCBadInput
         raise NCBadInput(f'Invalid sort key "{key}" (must be "name" or one of:'
@@ -373,20 +396,50 @@ _propdocs = [
     ('atoms', 'set of atom labels, including isotopes, e.g. {"D","O"}'),
     ('nelements', 'number of different elements'),
     ('formula', 'chemical formula, e.g. "Al2O3"'),
+    ('mass', 'average atomic mass [amu]'),
     ('absxs', 'absorption cross section per atom at 2200m/s [barn]'),
     ('scatxs', 'free scattering cross section per atom [barn]'),
+    ('cohxs', 'bound coherent scattering cross section per atom [barn]'),
+    ('incohxs', 'bound incoherent scattering cross section per atom [barn]'),
     ('density', 'density [g/cm3]'),
     ('numdens', 'number density [atoms/Aa3]'),
     ('temp', 'temperature [K]'),
     ('state', 'state of matter: "solid", "liquid", "gas", or "unknown"'),
     ('crystal', 'True if crystalline (for multiphase: any phase)'),
+    ('crystalsystem', ('crystal system (e.g. "cubic"), based on the space'
+                       ' group (None if not available)')),
     ('sg', 'space group number (None if not available)'),
     ('natoms', 'number of atoms in unit cell (None if not available)'),
+    ('a', 'unit cell length a [Aa] (None if not available)'),
+    ('b', 'unit cell length b [Aa] (None if not available)'),
+    ('c', 'unit cell length c [Aa] (None if not available)'),
+    ('alpha', 'unit cell angle alpha [degree] (None if not available)'),
+    ('beta', 'unit cell angle beta [degree] (None if not available)'),
+    ('gamma', 'unit cell angle gamma [degree] (None if not available)'),
+    ('volume', 'unit cell volume [Aa^3] (None if not available)'),
+    ('braggthreshold', ('Bragg threshold [Aa], i.e. the longest wavelength'
+                        ' with Bragg diffraction (None if not available)')),
+    ('debyetemps', ('dict of per-atom Debye temperatures [K], e.g.'
+                    ' {"Al":412.2} (None if not a crystal)')),
+    ('msds', ('dict of per-atom mean-squared-displacements [Aa^2] (None if'
+              ' not a crystal)')),
     ('dyninfo', ('set of dynamic info types present, among "vdos",'
                  ' "vdosdebye", "scatknl" (a full scattering kernel),'
                  ' "freegas", and "sterile"')),
+    ('customsections', 'set of names of @CUSTOM_ sections in NCMAT data'),
     ('nphases', 'number of phases (1 for single-phase materials)'),
 ]
+
+def _crystal_system( sg ):
+    if not sg:
+        return None
+    for sgmin, name in ( (195,'cubic'), (168,'hexagonal'), (143,'trigonal'),
+                         (75,'tetragonal'), (16,'orthorhombic'),
+                         (3,'monoclinic'), (1,'triclinic') ):
+        if sg >= sgmin:
+            return name
+
+_dict_props = ('debyetemps','msds')#not sortable
 
 _where_funcs = dict( len = len, min = min, max = max, any = any, all = all,
                      abs = abs, round = round, set = set, sorted = sorted )
@@ -455,6 +508,9 @@ def _fmt_prop( v ):
         return 'None'
     if isinstance( v, frozenset ):
         return '{' + ','.join( repr(e) for e in sorted(v) ) + '}'
+    if isinstance( v, dict ):
+        return '{' + ','.join( f'{k!r}:{_fmt_prop(x)}'
+                               for k,x in v.items() ) + '}'
     if isinstance( v, float ):
         return '%g'%v
     return repr(v)
@@ -487,11 +543,20 @@ class _WhereExpr:
         return eval( self.__code, ns, props.as_dict() )
 
 def _eval_where( fct, props ):
-    #Comparisons with unavailable values (None) are considered false:
+    #Expressions failing due to unavailable values (None) are considered
+    #false (e.g. "sg > 200" or "max(debyetemps.values()) > 500"):
     try:
         return bool( fct( props ) )
     except TypeError:
         return False
+    except AttributeError as e:
+        if "'NoneType' object" in str(e):
+            return False
+        if not isinstance( fct, _WhereExpr ):
+            raise
+        from .exceptions import NCBadInput
+        raise NCBadInput(f'Error evaluating where expression "{fct.expr}":'
+                         f' {e}') from e
     except Exception as e:
         if not isinstance( fct, _WhereExpr ):
             raise

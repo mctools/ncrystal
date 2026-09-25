@@ -133,6 +133,10 @@ def test_physics():
     run('-w','"scatknl" in dyninfo and "O" in elements','-f','stdlib',
         'Liquid','--names')
     run('-w','elements <= {"Al","O"} and nphases==1','-f','virtual')
+    #Newer properties:
+    run('-w','crystalsystem=="cubic" and braggthreshold > 4','-f','virtual')
+    run('-w','max(debyetemps.values()) > 300','-f','virtual')#None is false
+    run('-f','virtual','--columns','a,volume,debyetemps,msds,mass,cohxs')
     #Tables, sorting and JSON:
     run('-f','virtual','--columns','formula,sg,density,dyninfo,description')
     run('-f','virtual','--sort','density','--reverse')
@@ -166,14 +170,21 @@ def test_physics():
     def bad_args( errmsg, *args ):
         with ensure_error(argparse.ArgumentError,errmsg):
             run(*args)
-    propnames = ('elements, atoms, nelements, formula, absxs, scatxs,'
-                 ' density, numdens, temp, state, crystal, sg, natoms,'
-                 ' dyninfo, nphases')
+    from NCrystalDev.browse import physics_props_doc
+    propnames = ', '.join( n for n,d in physics_props_doc() )
+    propnames_sortable = ', '.join( n for n,d in physics_props_doc()
+                                    if n not in ('debyetemps','msds') )
     bad_args('Invalid column "foo" (must be "description" or one of: '
              + propnames + ')', '--columns','sg,foo')
     bad_args('Invalid sort key "foo" (must be "name" or one of: '
-             + propnames + ')', '--sort','foo')
+             + propnames_sortable + ')', '--sort','foo')
     bad_args('--reverse requires --sort.','--reverse')
+    bad_args('Invalid sort key "debyetemps" (must be "name" or one of: '
+             + propnames_sortable + ')', '--sort','debyetemps')
+    with ensure_error(NC.NCBadInput,'Error evaluating --where expression'
+                      ' "elements.foo": \'frozenset\' object has no'
+                      ' attribute \'foo\''):
+        run('-w','elements.foo','-f','virtual')
     bad_args('Do not specify --props together with --columns or --sort.',
              '--columns','sg','--props')
     bad_args(('Do not specify --json together with --columns, --sort,'
