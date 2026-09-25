@@ -1204,7 +1204,9 @@ class Info(RCBase):
                 elif ditype==4:
                     di = Info.DI_VDOSDebye(*args)
                 else:
-                    raise NCLogicError('Unknown DynInfo type id (%i)'%ditype.value)
+                    #Type unknown to the C API (e.g. custom class from a
+                    #plugin), so only the generic interface is available:
+                    di = Info.DynamicInfo(*args)
                 ll.append( di )
             self.__dyninfo = ll
         return self.__dyninfo

@@ -79,6 +79,9 @@ v4.4.7 (work in progress)
        These changes shift some VDOS/kernel-derived results, typically
        in the last few significant digits (sabxs reference shifts up to
        ~1%, concentrated in low-vdoslux Li2O test cases), without any
+     * Python: Info.dyninfos no longer fails (with an AttributeError) for
+       materials with custom DynamicInfo types (e.g. from plugins). Such
+       entries are now provided as generic Info.DynamicInfo objects.
      * Python: str(AtomInfo) no longer raises TypeError for atoms without
        Debye temperature or MSD (possible e.g. with plugins), but omits the
        missing values like the C++ dump does.
