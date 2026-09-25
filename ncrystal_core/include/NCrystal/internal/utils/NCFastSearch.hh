@@ -46,22 +46,34 @@ namespace NCRYSTAL_NAMESPACE {
   //written so that the inner comparison compiles to a branchless
   //conditional move rather than an ordinary conditional branch.
   //
-  //Motivation: for the query patterns and grid sizes seen in NCrystal's
-  //hottest lookup tables (a few hundred to a few thousand points, entirely
-  //cache-resident under repeated access, queried at essentially random
-  //positions), the dominant cost of an ordinary binary search is not cache
-  //misses but branch *mispredictions*: each comparison's outcome is
-  //data-dependent and close to 50/50, so the CPU's branch predictor does
-  //no better than a coin flip, paying a full misprediction penalty
-  //(~15-20 cycles) roughly half the time, for every one of the
-  //O(log2 N) comparisons. A conditional move has no such penalty. Measured
-  //on representative grids (log-spaced, 100-2400 points): 4-5x faster than
-  //std::lower_bound/upper_bound, confirmed on both GCC and Clang (x86-64,
-  //-O3), with results verified identical across 20M random queries and
-  //many edge cases (see tests/src/app_fastsearch).
+  //Same precondition and behaviour as the standard library functions: first
+  //must be sorted in non-decreasing order (ties/duplicate values are fine,
+  //e.g. a cumulative-sum array with some zero-weight entries), n>=1.
   //
-  //first must be sorted ascending with no duplicate values (i.e. a valid
-  //grid, nc_is_grid(Span<const double>(first,n))), n>=1.
+  //Motivation: while a binary search's O(log2 N) comparison count is
+  //unbeatable in principle, on real hardware its actual cost is usually
+  //dominated by branch *mispredictions* rather than raw comparisons or even
+  //cache misses: each comparison's outcome is data-dependent and close to
+  //50/50 for essentially-random queries, so the CPU's branch predictor
+  //does no better than a coin flip, paying a full misprediction penalty
+  //(~15-20 cycles) roughly half the time. A conditional move has no such
+  //penalty. This stops mattering once the array is so large that memory
+  //latency dominates everything else, but measurements (see below) show
+  //the crossover is gradual, not a cliff: even well beyond that point the
+  //branchless version was never slower, just decreasingly faster.
+  //
+  //Measured (nocheck/fastsearch/bench_search.cc, not part of the repo) on
+  //log-spaced double arrays queried at random positions, on both GCC 15
+  //and Clang 21 (x86-64, -O3): a robust 3-5x faster than
+  //std::lower_bound/upper_bound for array sizes from a handful of
+  //elements up to ~1e5-3e5 (a few hundred KB to a couple MB -- i.e.
+  //comfortably within a typical machine's L2/L3 cache), fading to
+  //~1.1-2.4x by 1e6-1e7 elements (tens of MB, exceeding L3) and ~1.2x by
+  //3e7 (hundreds of MB, firmly into main-memory-latency territory) -- but
+  //not observed to cross over into being slower at any size tried.
+  //Results verified identical to the standard library's across millions
+  //of random queries, arrays containing duplicate/tied values, and many
+  //edge cases (see tests/src/app_fastsearch).
   std::size_t fastLowerBoundIdx( const double* first, std::size_t n, double val ) noexcept;
   std::size_t fastUpperBoundIdx( const double* first, std::size_t n, double val ) noexcept;
   inline std::size_t fastLowerBoundIdx( Span<const double> s, double val ) noexcept

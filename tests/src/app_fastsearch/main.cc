@@ -105,6 +105,22 @@ namespace {
     return x;
   }
 
+  //A cumulative-sum array with some zero-weight entries, exactly the shape
+  //of e.g. PowderBragg::m_fdm_commul (symmetry-forbidden reflections
+  //contribute zero, so consecutive cumulative values tie) -- unlike a
+  //grid, this is only non-decreasing, not strictly increasing:
+  VectD cumulWithTiesGrid( NC::RNG& rng, std::size_t n, double zeroFrac )
+  {
+    VectD x(n);
+    double s = 0.0;
+    for ( auto i : ncrange(n) ) {
+      if ( rng.generate() >= zeroFrac )
+        s += rng.generate();
+      x[i] = s;
+    }
+    return x;
+  }
+
   //Deliberately irregular grid, bounded growth to avoid overflow (see
   //app_gridindex's identical helper -- caught a real inf-overflow bug there
   //with an earlier, unbounded version of this):
@@ -133,7 +149,24 @@ int main()
   stressGrid( "linear-uniform, from 0", linspaceGrid(0.0,50.0,140) );
   stressGrid( "linear-uniform, negative range", linspaceGrid(-10.0,10.0,140) );
 
+  //Explicit small cases with duplicate/tied values (fastLowerBoundIdx/
+  //fastUpperBoundIdx only require non-decreasing, unlike GridIndex's
+  //stricter grid requirement -- verified here, not just asserted):
+  stressGrid( "all-equal", VectD(50,3.0) );
+  stressGrid( "leading duplicates", VectD{1,1,1,1,2,3,4,5} );
+  stressGrid( "trailing duplicates", VectD{1,2,3,4,5,5,5,5} );
+  stressGrid( "many interior ties", VectD{0,0,0,1,2,3,3,3,3,4,5} );
+
   auto rng = NC::getRNG();
+  //Cumulative-sum-with-ties arrays (PowderBragg::m_fdm_commul's shape),
+  //including at the ~1e5 scale PowderBragg tables can reach:
+  for ( double zeroFrac : { 0.0, 0.3, 0.7, 0.95 } ) {
+    std::ostringstream oss;
+    oss << "cumul-with-ties, zeroFrac=" << zeroFrac << ", n=2000";
+    stressGrid( oss.str().c_str(), cumulWithTiesGrid(*rng,2000,zeroFrac) );
+  }
+  stressGrid( "cumul-with-ties, n=150000", cumulWithTiesGrid(*rng,150000,0.3) );
+
   for ( unsigned trial = 0; trial < 8; ++trial ) {
     std::ostringstream oss;
     oss << "irregular, trial " << trial;
