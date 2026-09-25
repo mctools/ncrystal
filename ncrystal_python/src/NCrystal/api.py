@@ -33,8 +33,7 @@ more stable in the long rum.
 
 """
 
-#NB: reduce imported symbols here a bit in a future release (possibly by
-#wrapping the removed function and placing in obsolete.py);
+#NB: reduce imported symbols here a bit in a future release.
 from .exceptions import * # noqa F403
 from .core import *
 from .datasrc import *
@@ -45,7 +44,6 @@ from .ncmat import NCMATComposer, formatVectorForNCMAT # noqa F401
 from .plugins import hasFactory, browsePlugins # noqa F401
 from ._testimpl import *
 from .vdos import createVDOSDebye, debyeIsotropicMSD, PhononDOSAnalyser, debyeTempFromIsotropicMSD, analyseVDOS # noqa F401
-from .obsolete import *
 
 #Some modules are left out on purpose (due to esoteric usage or non-standard
 #dependencies that most users might not need):

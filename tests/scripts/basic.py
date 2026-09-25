@@ -37,7 +37,6 @@ from numpy import set_printoptions as np_setprintopts
 
 np_setprintopts(infstr='inf')#test reproducibility
 
-#NC.disableCaching()
 NC.setDefaultRandomGenerator(None)#better test reproducibility
 
 
@@ -190,13 +189,6 @@ except Exception: #noqa BLE001
     pass
 assert not caught
 myprint("Did not catch exception! (as expected)")
-
-###extract packingfactor:
-##def _testpf(cfgstr):
-##    print('decodepackingfactor("%s") = %g'%(cfgstr,NC.decodecfg_packfact(cfgstr)))
-##_testpf("Al_sg225.ncmat;dcutoff=0.5")
-##_testpf("Al_sg225.ncmat;packfact=0.235;dcutoff=0.5")
-###_testpf("Al_sg225.ncmat;packfact=0.235;dcutoff=0.5;packfact=0.6;")
 
 #ensure proper memory cleanup by releasing internal default-assigned random
 #generator:
