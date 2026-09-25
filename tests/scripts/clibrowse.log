@@ -1,7 +1,8 @@
 ============= CLI >>browse --help<< =============
 usage: ncrystal_browse [-h] [-s WORD] [-E] [-f NAME] [-w EXPR] [--props]
                        [--columns KEYS] [--sort KEY] [--reverse] [--json] [-c]
-                       [--names] [-x DATANAME] [--plugins] [--color WHEN]
+                       [--count] [--path] [--names] [-x DATANAME] [--plugins]
+                       [--color WHEN]
                        [PATTERN ...]
 
 Browse and search the data files available to NCrystal (e.g. files in the
@@ -53,6 +54,10 @@ options:
   --json                Output all information about the selected files
                         (including physics properties) as JSON.
   -c, --comments        Show full NCMAT header comments of the files.
+  --count               Only print the number of selected files.
+  --path                Only print the on-disk paths of the selected files,
+                        one per line (files which are not on disk, e.g. in-
+                        memory files, are skipped).
   --names               Only print the names of the files, one per line
                         (useful for scripting).
   -x, --extract DATANAME
@@ -295,6 +300,22 @@ mycrystal.ncmat  4.04958  66.4095      Al:400  Al:0.0103838  26.9815  1.49485
 mytestmat.ncmat        -        -           -             -  1.00798  1.75679
 notncmat.laz           -        -           -             -        -        -
 othermat.ncmat         -        -           -             -  15.9993   4.2317
+============= CLI >>browse -f virtual --count<< =============
+5
+============= CLI >>browse -f virtual -w crystal --count<< =============
+1
+============= CLI >>browse -f virtual --path<< =============
+============= CLI >>browse -f stdlib Al_sg225 --path<< =============
+============= CLI >>browse -f virtual mycrystl<< =============
+No matching files found.
+Did you mean: mycrystal.ncmat?
+============= CLI >>browse -f virtual mycrystl --columns sg<< =============
+No matching files found.
+Did you mean: mycrystal.ncmat?
+============= CLI >>browse -f virtual mycrystal -w 'absxs > 100'<< =============
+No matching files found.
+============= CLI >>browse -f virtual qwertyzzz<< =============
+No matching files found.
 ============= CLI >>browse -f virtual --columns formula,sg,density,dyninfo,description<< =============
 NAME             FORMULA   SG  DENSITY    DYNINFO  DESCRIPTION
 Al_sg225.ncmat         O    -        2  vdosdebye
@@ -331,6 +352,7 @@ Al_sg225.ncmat
   'priority': 130,
   'hidden': False,
   'datatype': 'ncmat',
+  'path': None,
   'description': 'A small crystal.',
   'comments': ['A small crystal.'],
   'props': {'elements': ['Al'],
@@ -378,14 +400,20 @@ Caught expected ArgumentError('Invalid column "foo" (must be "description" or on
 Caught expected ArgumentError('Invalid sort key "foo" (must be "name" or one of: elements, atoms, nelements, formula, mass, absxs, scatxs, cohxs, incohxs, density, numdens, temp, state, crystal, crystalsystem, sg, natoms, a, b, c, alpha, beta, gamma, volume, braggthreshold, dyninfo, customsections, nphases)')
 ============= CLI >>browse --reverse<< =============
 Caught expected ArgumentError('--reverse requires --sort.')
+============= CLI >>browse --names --count<< =============
+Caught expected ArgumentError('Do not specify both --names and --count.')
+============= CLI >>browse --path --sort name<< =============
+Caught expected ArgumentError('Do not specify --path together with --comments, --props, --columns, or --sort.')
 ============= CLI >>browse --sort debyetemps<< =============
 Caught expected ArgumentError('Invalid sort key "debyetemps" (must be "name" or one of: elements, atoms, nelements, formula, mass, absxs, scatxs, cohxs, incohxs, density, numdens, temp, state, crystal, crystalsystem, sg, natoms, a, b, c, alpha, beta, gamma, volume, braggthreshold, dyninfo, customsections, nphases)')
 ============= CLI >>browse -w elements.foo -f virtual<< =============
 Caught expected NCBadInput('Error evaluating --where expression "elements.foo": \'frozenset\' object has no attribute \'foo\'')
 ============= CLI >>browse --columns sg --props<< =============
 Caught expected ArgumentError('Do not specify --props together with --columns or --sort.')
-============= CLI >>browse --json --names<< =============
+============= CLI >>browse --json --sort sg<< =============
 Caught expected ArgumentError('Do not specify --json together with --columns, --sort, --names, --comments, or --props.')
+============= CLI >>browse --json --names<< =============
+Caught expected ArgumentError('Do not specify both --names and --json.')
 ============= CLI >>browse -w 'absxs/0 > 1' -f virtual<< =============
 Caught expected NCBadInput('Error evaluating --where expression "absxs/0 > 1": float division by zero')
 ============= CLI >>browse -c stdlib::Al_sg225<< =============

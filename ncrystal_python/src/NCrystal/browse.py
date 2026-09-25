@@ -202,6 +202,12 @@ class DataEntry:
         return self.__d.get('datatype')
 
     @property
+    def path( self ):
+        """Absolute path of the on-disk file with the data, or None if not
+        on disk (e.g. in-memory data or data embedded in the library)."""
+        return self.__d.get('path')
+
+    @property
     def comments( self ):
         """Initial comment lines of NCMAT data (tuple of str, without the
         leading '#' and dedented), or None if not NCMAT data."""
@@ -238,7 +244,7 @@ class DataEntry:
         return dict( name = self.name, fullkey = self.fullkey,
                      factory = self.factory, source = self.source,
                      priority = self.priority, hidden = self.hidden,
-                     datatype = self.datatype,
+                     datatype = self.datatype, path = self.path,
                      description = self.description,
                      comments = ( list(self.__comments)
                                   if self.__comments is not None else None ),

@@ -153,6 +153,7 @@ def main():
     print('Newer properties OK')
     d = [ e for e in loaded if e.name == 'crystal.ncmat' ][0].as_dict()
     print('as_dict keys:',list(d))
+    assert d['path'] is None and all( e.path is None for e in loaded )
     assert d['props']['dyninfo'] == ['vdosdebye'] and d['error'] is None
     assert d['description'] == 'A small Al crystal.'
     d = [ e for e in loaded if e.name == 'broken.ncmat' ][0].as_dict()

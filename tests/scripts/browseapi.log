@@ -36,7 +36,7 @@ sorted by sg (reverse): ['crystal.ncmat', 'Al_sg225.ncmat', 'broken.ncmat', 'gas
 sorted by name (reverse): ['gas.ncmat', 'crystal.ncmat', 'broken.ncmat', 'Al_sg225.ncmat']
 Caught expected NCBadInput('Invalid sort key "foo" (must be "name" or one of: elements, atoms, nelements, formula, mass, absxs, scatxs, cohxs, incohxs, density, numdens, temp, state, crystal, crystalsystem, sg, natoms, a, b, c, alpha, beta, gamma, volume, braggthreshold, dyninfo, customsections, nphases)')
 Newer properties OK
-as_dict keys: ['name', 'fullkey', 'factory', 'source', 'priority', 'hidden', 'datatype', 'description', 'comments', 'props', 'error']
+as_dict keys: ['name', 'fullkey', 'factory', 'source', 'priority', 'hidden', 'datatype', 'path', 'description', 'comments', 'props', 'error']
 matching_lines: ['A small Al crystal.', 'Mentions Togo.']
 matching_lines (regex): []
 Progress reporting OK

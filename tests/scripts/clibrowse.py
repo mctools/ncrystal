@@ -137,6 +137,17 @@ def test_physics():
     run('-w','crystalsystem=="cubic" and braggthreshold > 4','-f','virtual')
     run('-w','max(debyetemps.values()) > 300','-f','virtual')#None is false
     run('-f','virtual','--columns','a,volume,debyetemps,msds,mass,cohxs')
+    #Counting, paths and suggestions:
+    run('-f','virtual','--count')
+    run('-f','virtual','-w','crystal','--count')
+    run('-f','virtual','--path')#in-memory files have no path
+    out = run('-f','stdlib','Al_sg225','--path',show=False).strip()
+    #NB: Location depends on installation (might even be embedded):
+    assert out == '' or out.replace('\\','/').endswith('/Al_sg225.ncmat')
+    run('-f','virtual','mycrystl')
+    run('-f','virtual','mycrystl','--columns','sg')
+    run('-f','virtual','mycrystal','-w','absxs > 100')#no suggestions
+    run('-f','virtual','qwertyzzz')
     #Tables, sorting and JSON:
     run('-f','virtual','--columns','formula,sg,density,dyninfo,description')
     run('-f','virtual','--sort','density','--reverse')
@@ -179,6 +190,9 @@ def test_physics():
     bad_args('Invalid sort key "foo" (must be "name" or one of: '
              + propnames_sortable + ')', '--sort','foo')
     bad_args('--reverse requires --sort.','--reverse')
+    bad_args('Do not specify both --names and --count.','--names','--count')
+    bad_args(('Do not specify --path together with --comments, --props,'
+              ' --columns, or --sort.'),'--path','--sort','name')
     bad_args('Invalid sort key "debyetemps" (must be "name" or one of: '
              + propnames_sortable + ')', '--sort','debyetemps')
     with ensure_error(NC.NCBadInput,'Error evaluating --where expression'
@@ -188,7 +202,8 @@ def test_physics():
     bad_args('Do not specify --props together with --columns or --sort.',
              '--columns','sg','--props')
     bad_args(('Do not specify --json together with --columns, --sort,'
-              ' --names, --comments, or --props.'),'--json','--names')
+              ' --names, --comments, or --props.'),'--json','--sort','sg')
+    bad_args('Do not specify both --names and --json.','--json','--names')
     with ensure_error(NC.NCBadInput,'Error evaluating --where expression'
                       ' "absxs/0 > 1": float division by zero'):
         run('-w','absxs/0 > 1','-f','virtual')

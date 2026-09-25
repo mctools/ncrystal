@@ -305,6 +305,8 @@ namespace NCRYSTAL_NAMESPACE {
         try {
           auto td = FactImpl::createTextData( TextDataPath( key ) );
           streamJSONDictEntry( os, "datatype", td->dataType() );
+          streamJSONDictEntry( os, "path",
+                               td->getLastKnownOnDiskLocation() );
           os << ",\"comments\":";
           if ( td->dataType() == "ncmat" )
             streamJSON( os, headerComments( *td ) );

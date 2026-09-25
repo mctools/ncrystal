@@ -130,6 +130,13 @@ def parseArgs( progname, arglist, return_parser = False ):
                               ' JSON.'))
     parser.add_argument('-c','--comments', action='store_true',
                         help='Show full NCMAT header comments of the files.')
+    parser.add_argument('--count', action='store_true',
+                        help='Only print the number of selected files.')
+    parser.add_argument('--path', action='store_true',
+                        help=('Only print the on-disk paths of the selected'
+                              ' files, one per line (files which are not'
+                              ' on disk, e.g. in-memory files, are'
+                              ' skipped).'))
     parser.add_argument('--names', action='store_true',
                         help=('Only print the names of the files, one per'
                               ' line (useful for scripting).'))
@@ -167,12 +174,23 @@ def parseArgs( progname, arglist, return_parser = False ):
     if nmodes and ( args.pattern or args.search or args.factory
                     or args.comments or args.names or args.where
                     or args.props or args.columns or args.sort
-                    or args.json ):
+                    or args.json or args.count or args.path ):
         parser.error('--extract and --plugins can not be combined'
                      ' with other options.')
+    outmodes = [ o for o,v in [ ('--names',args.names),
+                                ('--count',args.count),
+                                ('--path',args.path),
+                                ('--json',args.json) ] if v ]
+    if len(outmodes) > 1:
+        parser.error(f'Do not specify both {outmodes[0]} and'
+                     f' {outmodes[1]}.')
     if args.names and ( args.comments or args.props ):
         parser.error('Do not specify --names together with --comments'
                      ' or --props.')
+    if ( args.count or args.path ) and ( args.comments or args.props
+                                         or args.columns or args.sort ):
+        parser.error(f'Do not specify {outmodes[0]} together with'
+                     ' --comments, --props, --columns, or --sort.')
     table = bool( args.columns or args.sort )
     others = [ o for o,v in [ ('--names',args.names),
                               ('--comments',args.comments),
@@ -357,6 +375,7 @@ def _collect( args ):
                          progress = progress.update if progress else None )
     if progress:
         progress.done()
+    args.all_entries = entries#for suggestions
     try:
         return nb.filter_entries( entries, patterns = args.pattern,
                                   search = args.search, regex = args.regex,
@@ -398,7 +417,7 @@ def _print_table( entries, args ):
     #NB: Rows are never truncated (no data should be lost), except for the
     #free-text description column which is shortened to fit if possible.
     if not entries:
-        print('No matching files found.')
+        _print_no_matches( args )
         return
     cols = args.columns
     header = [ 'NAME' ] + [ c.upper() for c in cols ]
@@ -420,6 +439,45 @@ def _print_table( entries, args ):
     print( fmt(header) )
     for r in rows:
         print( fmt(r) )
+
+def _print_no_matches( args ):
+    print('No matching files found.')
+    if not args.regex and any( c in w for w in args.search + args.pattern
+                               for c in '|^$+()\\{}' ):
+        print('Note: Search WORDs are matched literally. Use -E/--regex'
+              ' for regular expressions (e.g. -E -s "boron|b4c").')
+    sugg = _suggestions( args )
+    if sugg:
+        print('Did you mean: %s?'%( ', '.join(sugg) ))
+
+def _suggestions( args ):
+    #Suggest similar names if (plain) name patterns alone matched nothing:
+    from .browse import _is_glob, filter_entries
+    patterns = [ p for p in args.pattern if not _is_glob(p) ]
+    if args.regex or not patterns or patterns != args.pattern:
+        return []
+    entries = getattr( args, 'all_entries', [] )
+    if filter_entries( entries, patterns = patterns ):
+        return []
+    import difflib
+    def stem( n ):
+        return n.rsplit('.',1)[0].lower() if '.' in n else n.lower()
+    #Compare with full names (without extension), and with their parts
+    #(e.g. "diamond" in "C_sg227_Diamond.ncmat"):
+    cands = {}
+    for e in entries:
+        st = stem(e.name)
+        cands.setdefault( st, e.name )
+        for part in st.split('_'):
+            if len(part) >= 4:
+                cands.setdefault( part, e.name )
+    res = []
+    for p in patterns:
+        for m in difflib.get_close_matches( stem(p), list(cands), n = 3,
+                                            cutoff = 0.7 ):
+            if cands[m] not in res:
+                res.append( cands[m] )
+    return res
 
 def _strip_empty( lines ):
     lines = list( lines or [] )
@@ -473,11 +531,7 @@ def _print_listing( items, args ):
                 if comments:
                     print()
     if not items:
-        print('No matching files found.')
-        if not args.regex and any( c in w for w in args.search + args.pattern
-                                   for c in '|^$+()\\{}' ):
-            print('Note: Search WORDs are matched literally. Use -E/--regex'
-                  ' for regular expressions (e.g. -E -s "boron|b4c").')
+        _print_no_matches( args )
 
 @cli_entry_point
 def main( progname, arglist ):
@@ -494,6 +548,14 @@ def main( progname, arglist ):
     if args.sort:
         from .browse import sort_entries
         items = sort_entries( items, args.sort, reverse = args.reverse )
+    if args.count:
+        print( len(items) )
+        return
+    if args.path:
+        for i in items:
+            if i.path:
+                print( i.path )
+        return
     if args.json:
         import json
         print( json.dumps( [ i.as_dict() for i in items ], indent = 1 ) )
