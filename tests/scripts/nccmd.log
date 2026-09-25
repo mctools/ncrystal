@@ -179,71 +179,59 @@ The full list of available modules are:
 ================================================================================
 ==> Metadata for mode "browse":
 {'displaygroup': 'main',
- 'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+ 'displayorder': 15,
+ 'descr': 'Browse and search available data files (e.g. the standard library '
+          'of NCMAT files) and plugins.'}
 ==> Metadata for mode "cif2ncmat":
-{'displaygroup': 'main',
- 'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+{'displaygroup': 'conv',
+ 'displayorder': 10,
+ 'descr': 'Create NCMAT data based on CIF input.'}
 ==> Metadata for mode "config":
 {'displaygroup': 'main',
- 'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+ 'displayorder': 20,
+ 'descr': 'Access technical info about NCrystal installation.'}
 ==> Metadata for mode "endf2ncmat":
-{'displaygroup': 'main',
- 'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+{'displaygroup': 'conv',
+ 'displayorder': 999,
+ 'descr': 'Import ENDF data to NCMAT format (based on PyNE).'}
 ==> Metadata for mode "hfg2ncmat":
-{'displaygroup': 'main',
- 'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+{'displaygroup': 'conv',
+ 'displayorder': 20,
+ 'descr': 'Create NCMAT data for amorphous hydrogen-rich materials.'}
 ==> Metadata for mode "mcstasunion":
-{'displaygroup': 'main',
- 'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+{'displaygroup': 'misc',
+ 'displayorder': 999,
+ 'descr': 'Generate McStas-Union code for using NCrystal materials.'}
 ==> Metadata for mode "minimc":
 {'displaygroup': 'main',
  'displayorder': 30,
  'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
           'own Monte Carlo simulation framework.'}
 ==> Metadata for mode "ncmat2cpp":
-{'displaygroup': 'main',
+{'displaygroup': 'misc',
  'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+ 'descr': 'Produce C++ code with inline NCMAT data.'}
 ==> Metadata for mode "ncmat2endf":
-{'displaygroup': 'main',
- 'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+{'displaygroup': 'conv',
+ 'displayorder': 40,
+ 'descr': 'Export ENDF data (based on endf-parserpy).'}
 ==> Metadata for mode "ncmat2hkl":
-{'displaygroup': 'main',
+{'displaygroup': 'conv',
  'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+ 'descr': 'Export crystal reflection lists to .laz/.lau formats.'}
 ==> Metadata for mode "nctool":
 {'displaygroup': 'main',
- 'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+ 'displayorder': 10,
+ 'descr': 'Main tool for investigating materials, files, plugins, etc.'}
 ==> Metadata for mode "query":
-{'displaygroup': 'main',
- 'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+{'displaygroup': 'misc',
+ 'displayorder': 15,
+ 'descr': 'Send low-level queries for JSON data to NCrystal.'}
 ==> Metadata for mode "vdos2ncmat":
-{'displaygroup': 'main',
- 'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+{'displaygroup': 'misc',
+ 'displayorder': 10,
+ 'descr': 'Prepare phonon VDOS data for inclusion in NCMAT data.'}
 ==> Metadata for mode "verifyatompos":
-{'displaygroup': 'main',
- 'displayorder': 30,
- 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
-          'own Monte Carlo simulation framework.'}
+{'displaygroup': 'misc',
+ 'displayorder': 20,
+ 'descr': 'Verify consistency of atom positions in NCMAT data.'}

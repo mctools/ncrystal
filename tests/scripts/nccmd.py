@@ -56,7 +56,7 @@ def main():
 
     for mode in ncclientry.get_mode_list():
         print(f'==> Metadata for mode "{mode}":')
-        pprint.pp( ncclientry.get_module_metadata('minimc') )
+        pprint.pp( ncclientry.get_module_metadata(mode) )
 
 if __name__ == '__main__':
     main()
