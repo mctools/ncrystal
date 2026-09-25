@@ -1,4 +1,21 @@
 v4.4.7 (work in progress)
+     * Decorate stable_exp/stable_expm1 (NCMath.cc, along with their
+       expm1_reducedarg_taylor14 helper) with NCRYSTAL_FMADISPATCH_ATTR too,
+       for the same reason as Romberg::integrate() below: both are now
+       straight-line, loop-free, explicit-std::fma code (no libm calls at
+       all -- see the earlier stable_exp/expm1 rewrite), so this recovers
+       hardware FMA speed on a portable (non--mfma) build via runtime CPU
+       dispatch. Confirmed real multiversioning ([clone .default]/[clone
+       .fma]/[clone .resolver] symbols for all three) and the full sb -t
+       --long suite stays green. Motivated by profiling (valgrind/callgrind,
+       since this sandbox's perf_event_paranoid=4 blocks perf) a cold-start
+       app_benchsab run on Al_sg225.ncmat;knllux=3: stable_expm1 was ~1% of
+       total instructions, and this session's other touched functions
+       (Romberg::integrate, fixedOrderIntegration9pts) collectively ~2%
+       more -- confirming none of this session's fixes are a dominant cost
+       (the pre-existing, already-hardened FastConvolve/VDOSGn FFT machinery
+       remains the actual hot path, at ~45% combined, untouched this
+       session) while still finding this additional, real dispatch win.
      * Decorate Romberg::integrate() (NCRomberg.cc) with
        NCRYSTAL_FMADISPATCH_ATTR, so its now-fully-explicit-std::fma
        Richardson-extrapolation arithmetic (see the Romberg fix above) gets
