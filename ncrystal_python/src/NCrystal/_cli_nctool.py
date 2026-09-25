@@ -186,13 +186,18 @@ examples:
     parser.add_argument('--cfg',action='store_true',
                         help='Print normalised cfg-string and dump meta-data about loaded physics processes.')
     parser.add_argument('--plugins', action='store_true',
-                        help='List currently enabled loaded plugins.')
+                        help=('List currently enabled loaded plugins (see'
+                              ' also "ncrystal browse --plugins").'))
     parser.add_argument('-b','--browse', action='store_true',
-                        help='List data available in standard locations (e.g. the files in the current directory or search path)')
+                        help=('List data available in standard locations'
+                              ' (e.g. the files in the current directory or'
+                              ' search path). See also the "ncrystal browse"'
+                              ' command, which provides more powerful ways to'
+                              ' browse and search available data.'))
     parser.add_argument('--extract', type=str, default=None, metavar="DATANAME",
                         help='''Extract contents of DATANAME (e.g. a file name) using the same lookup mechanism as used for data
                         specified in NCrystal cfg strings. This can therefore also be used to inspect
-                        in-memory (or on-demand created) data.''')
+                        in-memory (or on-demand created) data (see also "ncrystal browse -x").''')
 
     if return_parser:
         return parser

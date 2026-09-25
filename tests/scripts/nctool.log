@@ -56,13 +56,18 @@ options:
                         NCRYSTAL_DPI env var is set to).
   --cfg                 Print normalised cfg-string and dump meta-data about
                         loaded physics processes.
-  --plugins             List currently enabled loaded plugins.
+  --plugins             List currently enabled loaded plugins (see also
+                        "ncrystal browse --plugins").
   -b, --browse          List data available in standard locations (e.g. the
-                        files in the current directory or search path)
+                        files in the current directory or search path). See
+                        also the "ncrystal browse" command, which provides
+                        more powerful ways to browse and search available
+                        data.
   --extract DATANAME    Extract contents of DATANAME (e.g. a file name) using
                         the same lookup mechanism as used for data specified
                         in NCrystal cfg strings. This can therefore also be
-                        used to inspect in-memory (or on-demand created) data.
+                        used to inspect in-memory (or on-demand created) data
+                        (see also "ncrystal browse -x").
 
 examples:
   $ nctool Al_sg225.ncmat
