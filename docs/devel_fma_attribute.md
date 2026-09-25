@@ -143,3 +143,21 @@ targets (e.g. Apple's Clang has its own version numbering; musl-libc systems
 lack the ifunc mechanism this relies on regardless of compiler version). See
 `ncrystal_fmadispatch.cmake` for the actual compile+link+run probe used
 instead.
+
+**Apple/macOS gotcha (confirmed via a real basictest.yml CI failure, not
+just theorised).** Apple Clang's `target_clones` lowering on Mach-O can
+silently fail to produce a linkable definition for a namespaced or
+non-static-member (i.e. C++-mangled) target -- `NC::stable_expm1` and
+`Romberg::integrate` both hit "undefined symbol" at link time on
+macOS/Intel -- while the exact same attribute on a plain `extern "C"`
+function links and runs fine. The probe in `ncrystal_fmadispatch.cmake`
+originally only tested an `extern "C"` function (ironically, precisely the
+one shape rule 5 above forbids using in real code), so it reported the
+technique as supported when it was not; it now also probes a namespaced
+free function and a non-virtual member function, matching real usage, and
+correctly reports "unsupported" here since `try_run`'s build step itself
+fails exactly as the real project's would. simplebuild's own (non-probing,
+assumption-based) equivalent in `devel/simplebuild/pypath/sbgen/main.py`
+had the same blind spot -- it assumed recent Clang/GCC on `__APPLE__`
+x86_64 was safe -- and has been corrected to exclude `__APPLE__` for the
+same reason.

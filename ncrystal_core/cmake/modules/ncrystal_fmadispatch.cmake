@@ -52,53 +52,87 @@ function( ncrystal_probe_fmadispatch resvar_defs )
       message( STATUS "FMA dispatch probe: skipped (non-x86 CMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}, disabling)" )
     else()
       set( testsrc "${CMAKE_CURRENT_BINARY_DIR}/ncrystal_fmadispatch_probe.cc" )
+      #NB: deliberately probing a namespaced (C++-mangled, non-"extern C")
+      #free function *and* a non-virtual const member function, matching the
+      #two shapes actually used in the real code (e.g. NC::stable_expm1 and
+      #NCrystal::Romberg::integrate respectively), rather than only a plain
+      #extern "C" free function: confirmed (Apple Clang on macOS/Intel,
+      #target_clones silently produces no linkable definition for a
+      #C++-mangled target, while an extern "C" one links fine) that the
+      #extern "C"-only version of this probe is not sufficient -- it reported
+      #the technique as supported when it was not, since try_run's build step
+      #already fails (undefined symbol) for the shapes below whenever this
+      #gap is present, exactly like the real project's link would:
       file(
         WRITE "${testsrc}"
-        "#include <cmath>\n"
-        "#include <cstdio>\n"
-        "#include <cstddef>\n"
-        "\n"
-        "extern \"C\" __attribute__((target_clones(\"default,fma\")))\n"
-        "void ncrystal_probe_cmul( double* re, double* im,\n"
-        "                          const double* cre, const double* cim,\n"
-        "                          std::size_t n )\n"
-        "{\n"
-        "  for ( std::size_t i = 0; i < n; ++i ) {\n"
-        "    double a = re[i], b = im[i], c = cre[i], d = cim[i];\n"
-        "    re[i] = std::fma( a, c, -(b*d) );\n"
-        "    im[i] = std::fma( a, d, b*c );\n"
-        "  }\n"
-        "}\n"
-        "\n"
-        "int main()\n"
-        "{\n"
-        "  const std::size_t n = 64;\n"
-        "  double re[n], im[n], cre[n], cim[n], re_ref[n], im_ref[n];\n"
-        "  for ( std::size_t i = 0; i < n; ++i ) {\n"
-        "    re[i] = re_ref[i] = 1.0 + 0.01*static_cast<double>(i);\n"
-        "    im[i] = im_ref[i] = 0.3*std::sin(0.1*static_cast<double>(i));\n"
-        "    cre[i] = std::cos(0.2*static_cast<double>(i));\n"
-        "    cim[i] = std::sin(0.2*static_cast<double>(i));\n"
-        "  }\n"
-        "  ncrystal_probe_cmul( re, im, cre, cim, n );\n"
-        "  //Independent reference computation (no target_clones/fma involved), to\n"
-        "  //check the dispatched function actually ran and gave a plausible (if\n"
-        "  //not necessarily bit-identical, since it is not compared to a forced\n"
-        "  //std::fma-only reference here) result -- catching e.g. an empty/no-op\n"
-        "  //resolver rather than a genuine dispatcher:\n"
-        "  double maxdiff = 0.0;\n"
-        "  for ( std::size_t i = 0; i < n; ++i ) {\n"
-        "    double a = re_ref[i], b = im_ref[i], c = cre[i], d = cim[i];\n"
-        "    double diff = std::fabs(re[i]-(a*c-b*d)) + std::fabs(im[i]-(a*d+b*c));\n"
-        "    if ( diff > maxdiff ) maxdiff = diff;\n"
-        "  }\n"
-        "  if ( maxdiff > 1e-9 ) {\n"
-        "    std::printf(\"FAIL: maxdiff=%.6g\\n\", maxdiff);\n"
-        "    return 1;\n"
-        "  }\n"
-        "  std::printf(\"OK\\n\");\n"
-        "  return 0;\n"
-        "}\n"
+[[
+#include <cmath>
+#include <cstdio>
+#include <cstddef>
+
+namespace ncrystal_fmadispatch_probe_ns {
+
+  __attribute__((target_clones("default,fma")))
+  void probe_cmul_freefct( double* re, double* im,
+                            const double* cre, const double* cim,
+                            std::size_t n )
+  {
+    for ( std::size_t i = 0; i < n; ++i ) {
+      double a = re[i], b = im[i], c = cre[i], d = cim[i];
+      re[i] = std::fma( a, c, -(b*d) );
+      im[i] = std::fma( a, d, b*c );
+    }
+  }
+
+  class Prober final {
+  public:
+    __attribute__((target_clones("default,fma")))
+    double probe_member_fma( double a, double b, double c ) const
+    {
+      return std::fma( a, b, c );
+    }
+  };
+
+}
+
+int main()
+{
+  using namespace ncrystal_fmadispatch_probe_ns;
+  const std::size_t n = 64;
+  double re[n], im[n], cre[n], cim[n], re_ref[n], im_ref[n];
+  for ( std::size_t i = 0; i < n; ++i ) {
+    re[i] = re_ref[i] = 1.0 + 0.01*static_cast<double>(i);
+    im[i] = im_ref[i] = 0.3*std::sin(0.1*static_cast<double>(i));
+    cre[i] = std::cos(0.2*static_cast<double>(i));
+    cim[i] = std::sin(0.2*static_cast<double>(i));
+  }
+  probe_cmul_freefct( re, im, cre, cim, n );
+
+  //Independent reference computation (no target_clones/fma involved), to
+  //check the dispatched function actually ran and gave a plausible (if not
+  //necessarily bit-identical, since it is not compared to a forced
+  //std::fma-only reference here) result -- catching e.g. an empty/no-op
+  //resolver rather than a genuine dispatcher:
+  double maxdiff = 0.0;
+  for ( std::size_t i = 0; i < n; ++i ) {
+    double a = re_ref[i], b = im_ref[i], c = cre[i], d = cim[i];
+    double diff = std::fabs(re[i]-(a*c-b*d)) + std::fabs(im[i]-(a*d+b*c));
+    if ( diff > maxdiff ) maxdiff = diff;
+  }
+
+  Prober p;
+  double mres = p.probe_member_fma( 2.5, 3.5, -1.0 );
+  double mdiff = std::fabs( mres - ( 2.5*3.5 - 1.0 ) );
+  if ( mdiff > maxdiff ) maxdiff = mdiff;
+
+  if ( maxdiff > 1e-9 ) {
+    std::printf("FAIL: maxdiff=%.6g\n", maxdiff);
+    return 1;
+  }
+  std::printf("OK\n");
+  return 0;
+}
+]]
       )
       message( STATUS "FMA dispatch probe: compiling and running a self-check..." )
       #Using only the long-supported try_run keywords here (COMPILE_OUTPUT_VARIABLE
