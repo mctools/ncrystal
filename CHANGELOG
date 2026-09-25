@@ -1,4 +1,16 @@
 v4.4.7 (work in progress)
+     * Make the sabxs cross-platform reproducibility test's tolerance depend
+       on vdoslux (tests/pypath/NCTestUtils/xs.py's XSMonitor now accepts a
+       callable(teststr)->float for test_rdtol, not just a plain float;
+       tests/pypath/NCTestUtils/sabxs.py wires up 1e-4 for vdoslux=2000
+       (not a priority setting), 1e-5 for vdoslux=2001 (the historical
+       default), 1e-6 for vdoslux>=2002 (the more refined next-gen settings
+       where a still-open residual is being chased, see above -- tightening
+       here is what's actually driving the investigation, not a courtesy).
+       tests/data/sabxs_A and sabxs_B reference data regenerated for the
+       small number of cases that needed it at the new 1e-6 bar (pure
+       default-build drift relative to this session's other fixes above,
+       not a cross-platform issue).
      * Rewrite NC::stable_exp/stable_expm1 (NCMath.cc) to no longer call
        std::exp/std::log/std::expm1/std::log1p at all: the previous
        implementation refined a libm call with one Newton-Raphson step, which

@@ -43,6 +43,9 @@ class XSMonitor:
         ( self.__do_plot,
           self.__do_update,
           self.__test_select ) = _parse_sysargv()
+        #test_rdtol can be a plain float (same tolerance for every test), or
+        #a callable(teststr)->float for tests whose acceptable tolerance
+        #varies (e.g. by vdoslux setting):
         self.__test_rdtol = test_rdtol
         self.__reffile_format_evals = reffile_format_evals
         self.__reffile_format_xsvals = reffile_format_xsvals
@@ -66,6 +69,10 @@ class XSMonitor:
         f = self.reffile(teststr)
         f.write_text(o)
         print(f'Wrote: {f}')
+
+    def rdtol( self, teststr ):
+        return ( self.__test_rdtol(teststr) if callable(self.__test_rdtol)
+                 else self.__test_rdtol )
 
     def load_ref( self, teststr ):
         f = self.reffile(teststr)
@@ -102,7 +109,8 @@ class XSMonitor:
                 self.save_ref(teststr,evals,xsvals)
                 continue
             ref_evals, ref_xsvals = self.load_ref(teststr)
-            if calc_reldiff(evals,ref_evals).max() > self.__test_rdtol:
+            rdtol = self.rdtol(teststr)
+            if calc_reldiff(evals,ref_evals).max() > rdtol:
                 badtests.add((None,testkey))
                 print(f"ERROR: reference e-grid for {testkey} is inconsistent."
                       " Developers: If expected, --update after investigating"
@@ -110,7 +118,7 @@ class XSMonitor:
             else:
                 rda = calc_reldiff( xsvals, ref_xsvals )
                 rd = rda.max()
-                if rd>self.__test_rdtol:
+                if rd>rdtol:
                     badtests.add((rd,testkey))
                     print(f"ERROR: reference cross sections for {testkey} are"
                           f" inconsistent at the reldiff={rd:g} level."
@@ -127,7 +135,7 @@ class XSMonitor:
                             estr = '            <same>'
                         rdval = rda[i]
                         rdstr = fmt(rdval,4)
-                        if rdval>self.__test_rdtol:
+                        if rdval>rdtol:
                             rdstr+=' <-- problem'
                         print(f' {ref_estr}'
                               f' {estr}'
@@ -156,7 +164,7 @@ class XSMonitor:
                              label='observed difference')
                 axdiff.loglog()
                 axdiff.grid()
-                axdiff.axhline(self.__test_rdtol,color='red',ls=':',
+                axdiff.axhline(rdtol,color='red',ls=':',
                                label='test tolerance')
                 axdiff.set_ylabel('XS relative difference')
                 axdiff.set_xlabel('Neutron energy [eV]')

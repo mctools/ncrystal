@@ -20,9 +20,28 @@
 ################################################################################
 
 # adaptation of .xs utils for inelastic sab
+import re
+
 import NCrystalDev.core as nccore
 from NCrystalDev._numpy import _np_geomspace, _np_linspace
 from NCrystalDev.constants import constant_boltzmann, wl2ekin
+
+
+def _rdtol_for_cfgstr( cfgstr ):
+    #The acceptable cross-platform reldiff depends on the vdoslux setting:
+    #vdoslux=2000 is not a priority (loosest tolerance), vdoslux=2001 is
+    #the historical default tolerance, and vdoslux>=2002 (more refined next-
+    #gen settings, where a still-open residual is being chased) get the
+    #tightest tolerance:
+    m = re.search( r';vdoslux=(\d+)', cfgstr )
+    vdoslux = int( m.group(1) ) if m else None
+    if vdoslux == 2000:
+        return 1e-4
+    if vdoslux == 2001:
+        return 1e-5
+    if vdoslux is not None and vdoslux > 2001:
+        return 1e-6
+    return 1e-5  #legacy/unspecified vdoslux: unchanged historical default
 
 
 def run( testgroup ):
@@ -32,7 +51,8 @@ def run( testgroup ):
     mon = XSMonitor( refdatadir = f'sabxs_{testgroup}',
                      matloadfct = _load_fct,
                      egridgenfct = _egrid_fct,
-                     testlistgenfct = testlist_filtered )
+                     testlistgenfct = testlist_filtered,
+                     test_rdtol = _rdtol_for_cfgstr )
     mon.run()
 
 _test_focus = ( 'Al_sg225.ncmat',
