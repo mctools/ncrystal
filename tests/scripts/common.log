@@ -13,3 +13,6 @@ ncpprint(do_sort=False): "{'b': [1, 2], 'a': {'z': 1, 'y': 2}}\n"
 ncpprint(do_sort=True): "{'a': {'y': 2, 'z': 1}, 'b': [1, 2]}\n"
 ncsetenv+ncgetenv (namespaced env vars=True): '17'
 ncsetenv+ncgetenv (namespaced env vars=False): '17'
+Header comments of '#\n#  a\n#   b\n#\n': ['', 'a', ' b', '']
+Header comments of '#\n#\n': ['', '']
+Header comments of '': []

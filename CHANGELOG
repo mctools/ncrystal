@@ -79,6 +79,8 @@ v4.4.7 (work in progress)
        These changes shift some VDOS/kernel-derived results, typically
        in the last few significant digits (sabxs reference shifts up to
        ~1%, concentrated in low-vdoslux Li2O test cases), without any
+     * Python: fix infinite loop when extracting NCMAT header comments
+       consisting only of empty comment lines.
      * Python: Info.dyninfos no longer fails (with an AttributeError) for
        materials with custom DynamicInfo types (e.g. from plugins). Such
        entries are now provided as generic Info.DynamicInfo objects.
