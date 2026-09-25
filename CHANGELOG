@@ -1,4 +1,22 @@
 v4.4.7 (work in progress)
+     * Extend the SAB cell-integration performance pass below:
+       NCSABProcessor.cc's sIntegralAtE had an unaudited plain-Horner
+       quintic smootherstep (t*t*t*(t*(t*6.0-15.0)+10.0), evaluated per
+       cell within the tapering band) -- fixed with explicit std::fma.
+       impl_numIntRegion's per-alpha-point contribution loop (up to 33
+       iterations per region, itself per touched cell -- effectively a
+       second, duplicated implementation of IntegrandOfA::contrib's
+       calculation, pre-existing duplication noted in the file's own
+       "fixme: cleanup and consolidation" comment) had the same unaudited
+       lerp form fixed elsewhere this session; switched to nclerp and
+       extracted the whole loop into a new function (fillContribAtAlpha)
+       decorated with NCRYSTAL_FMADISPATCH_ATTR (confirmed multiversioned).
+       Re-profiling after this and the previous commit: SOfAlphaGrid's own
+       self-time dropped from ~13% to ~10% (its fma ramp-fill work moved
+       into the now-dispatched fmaRampFill, visible separately at ~2%), and
+       fillContribAtAlpha shows up as a clean ~7% line where its cost was
+       previously invisible, buried inline in impl_numIntRegion. Full
+       sb -t --long green, no reference-log changes needed this time.
      * Performance pass over the SAB cell-integration hot path (motivated by
        profiling inelastic-scattering initialisation with the new
        parse_gperf tool across 5 materials spanning element mass/VDOS shape

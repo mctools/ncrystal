@@ -476,6 +476,52 @@ namespace NCRYSTAL_NAMESPACE {
         }
       };
 
+      //Per-alpha-point contribution loop from impl_numIntRegion below,
+      //extracted into its own function so it can carry
+      //NCRYSTAL_FMADISPATCH_ATTR (called up to 33 times per region, itself
+      //called per touched cell -- consistently hot in profiling across
+      //every material tried). Same computation as IntegrandOfA::contrib
+      //(that duplication is pre-existing, see the "fixme: cleanup and
+      //consolidation" comment at the top of this file, not introduced
+      //here). Every FP expression is either explicit std::fma (via the
+      //now-audited getBetaMinus/getBetaPlus/nclerp) or provably safe if
+      //silently contracted -- audited per doc/devel_fma_attribute.md rule 1:
+      NCRYSTAL_FMADISPATCH_ATTR
+      void fillContribAtAlpha( double* contrib_out, std::size_t npts,
+                               const double* Sb1_arr, const double* Sb2_arr,
+                               const double* alpha_arr,
+                               double foure, double E_div_kT,
+                               double cs_b1, double cs_b2, double invdb,
+                               bool is_bounded_by_betaminus,
+                               bool is_bounded_by_betaplus,
+                               bool is_bounded_on_both_sides )
+      {
+        double bl(cs_b1), bu(cs_b2);
+        for ( std::size_t i = 0; i < npts; ++i ) {
+          double Sb1 = Sb1_arr[i];
+          double Sb2 = Sb2_arr[i];
+          double a = alpha_arr[i];
+          double dbpm = std::sqrt( foure * a );//nb: expensive
+          //bl/bu = beta_minus/beta_plus(E,a) via the shared, cancellation
+          //-hardened getBetaMinus/getBetaPlus rather than the naive a-+dbpm
+          //formula, which is a catastrophic-cancellation trap whenever a is
+          //close to 4*E (exactly the regime entered here) -- see the
+          //BoundedCellSampler beta_minus fix for the same class of bug:
+          if ( is_bounded_by_betaminus )
+            bl = getBetaMinus(E_div_kT,a);
+          if ( is_bounded_by_betaplus )
+            bu = ncmax(bl,getBetaPlus(E_div_kT,a));//ncmax as a safeguard
+                                                   //against FP issues
+          //To find the contribution we integrate S(a,b) over [bl,bu]. This is
+          //easy, since we always interpolate linearly in b:
+          const double bmiddle( is_bounded_on_both_sides ? a : (bu+bl)*0.5 );
+          double rb = (bmiddle-cs_b1)*invdb;
+          double smiddle = nclerp(Sb1,Sb2,rb);
+          contrib_out[i] = calc_bu_minus_bl_times_smiddle( is_bounded_on_both_sides,
+                                                           dbpm, bu, bl, smiddle );
+        }
+      }
+
       static void impl_numIntRegion( const CellData& entire_cell,
                                      const CellData& subcell,
                                      double E_div_kT,
@@ -535,38 +581,14 @@ namespace NCRYSTAL_NAMESPACE {
                                    scheme.npts );
           SOfAlphaGrid sofa_at_b2( method_b2, cs.a1, cs.S[2], cs.a2, cs.S[3],
                                    scheme.npts );
-          double * itC = contrib_at_a;
-          double * itCE = itC + scheme.npts;
-          const double * itSb1 = sofa_at_b1.S;
-          const double * itSb2 = sofa_at_b2.S;
-          const double * itA = sofa_at_b2.a;
-          double bl(cs.b1), bu(cs.b2);
           const bool is_bounded_on_both_sides ( is_bounded_by_betaminus
                                                 && is_bounded_by_betaplus );
           const double foure = 4.0*E_div_kT;
-          for ( ; itC!=itCE; ++itC ) {
-            double Sb1 = *(itSb1++);
-            double Sb2 = *(itSb2++);
-            double a = *(itA++);
-            double dbpm = std::sqrt( foure * a );//nb: expensive
-            //bl/bu = beta_minus/beta_plus(E,a) via the shared, cancellation
-            //-hardened getBetaMinus/getBetaPlus rather than the naive a-+dbpm
-            //formula, which is a catastrophic-cancellation trap whenever a is
-            //close to 4*E (exactly the regime entered here) -- see the
-            //BoundedCellSampler beta_minus fix for the same class of bug:
-            if ( is_bounded_by_betaminus )
-              bl = getBetaMinus(E_div_kT,a);
-            if ( is_bounded_by_betaplus )
-              bu = ncmax(bl,getBetaPlus(E_div_kT,a));//ncmax as a safeguard
-                                                     //against FP issues
-            //To find the contribution we integrate S(a,b) over [bl,bu]. This is
-            //easy, since we always interpolate linearly in b:
-            const double bmiddle( is_bounded_on_both_sides ? a : (bu+bl)*0.5 );
-            double rb = (bmiddle-cs.b1)*invdb;
-            double smiddle = Sb1*(1.0-rb)+Sb2*(rb);
-            *itC = calc_bu_minus_bl_times_smiddle( is_bounded_on_both_sides,
-                                                   dbpm, bu, bl, smiddle );
-          }
+          fillContribAtAlpha( contrib_at_a, scheme.npts,
+                              sofa_at_b1.S, sofa_at_b2.S, sofa_at_b2.a,
+                              foure, E_div_kT, cs.b1, cs.b2, invdb,
+                              is_bounded_by_betaminus, is_bounded_by_betaplus,
+                              is_bounded_on_both_sides );
         }
 
         if ( use_romberg_adaptive ) {
