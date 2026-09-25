@@ -113,7 +113,8 @@ v4.4.7 (work in progress)
        -E regexes), searches NCMAT header comments with grep-like colored
        hits (e.g. -E -s 'boron|b4c'), and can select on physics properties
        of the loaded materials (e.g. -w "'B' in elements and absxs > 100"),
-       with --columns/--sort tables, --json, --info, --count and --path.
+       with --columns/--sort tables (also as --csv or --json), --json,
+       --info, --count and --path.
      * Python: fix infinite loop when extracting NCMAT header comments
        consisting only of empty comment lines.
      * Python: Info.dyninfos no longer fails (with an AttributeError) for

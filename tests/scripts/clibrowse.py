@@ -192,6 +192,24 @@ def test_physics():
     import NCTestUtils.stabilise_ncpprint # noqa F401
     import NCrystalDev._common as nc_common
     nc_common.ncpprint( json.loads(out) )#FP precision clipped
+    out = run('-f','virtual','--sort','density','--columns','formula,sg,'
+              'dyninfo,description','--json',show=False)
+    nc_common.ncpprint( json.loads(out) )
+    #CSV (full precision, so check values rather than printing them):
+    out = run('-f','virtual','--sort','sg','--columns','formula,density,'
+              'debyetemps,elements,description','--csv',show=False)
+    import csv
+    import io
+    rows = list( csv.reader( io.StringIO(out) ) )
+    print('CSV header:',rows[0])
+    for r in rows[1:]:
+        dens = float(r[2]) if r[2] else None
+        print('CSV row:',r[0],r[1],None if dens is None else '%.6g'%dens,
+              r[3].split(':')[0] if r[3] else None,r[4],repr(r[5]))
+    #No truncation:
+    run('-f','virtual','mytestmat','--no-truncate')
+    run('-f','virtual','mytestmat','--columns','description','--no-truncate')
+    run('-f','virtual','mytestmat','-s','truncated','--no-truncate')
     import argparse
     def bad_where( expr, errmsg ):
         with ensure_error(argparse.ArgumentError,errmsg):
@@ -231,8 +249,11 @@ def test_physics():
         run('-w','elements.foo','-f','virtual')
     bad_args('Do not specify --props together with --columns or --sort.',
              '--columns','sg','--props')
-    bad_args(('Do not specify --json together with --columns, --sort,'
-              ' --names, --comments, or --props.'),'--json','--sort','sg')
+    bad_args(('Do not specify --json together with --names, --comments,'
+              ' or --props.'),'--json','--props')
+    bad_args('--csv requires --columns or --sort.','--csv')
+    bad_args('Do not specify both --csv and --json.','--csv','--json',
+             '--sort','sg')
     bad_args('Do not specify both --names and --json.','--json','--names')
     with ensure_error(NC.NCBadInput,'Error evaluating --where expression'
                       ' "absxs/0 > 1": float division by zero'):

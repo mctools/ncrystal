@@ -129,7 +129,15 @@ def parseArgs( progname, arglist, return_parser = False ):
     parser.add_argument('--json', action='store_true',
                         help=('Output all information about the selected'
                               ' data (including physics properties) as'
-                              ' JSON.'))
+                              ' JSON. With --columns or --sort, only the'
+                              ' name and the table columns are output.'))
+    parser.add_argument('--csv', action='store_true',
+                        help=('Output the table of --columns or --sort in'
+                              ' CSV format (with full numerical'
+                              ' precision).'))
+    parser.add_argument('--no-truncate', action='store_true',
+                        help=('Never shorten long descriptions or other'
+                              ' text to fit the line width.'))
     parser.add_argument('-c','--comments', action='store_true',
                         help='Show full NCMAT header comments.')
     parser.add_argument('--info', action='store_true',
@@ -181,10 +189,11 @@ def parseArgs( progname, arglist, return_parser = False ):
                     or args.comments or args.names or args.where
                     or args.props or args.columns or args.sort
                     or args.json or args.count or args.path
-                    or args.info ):
+                    or args.info or args.csv ):
         parser.error('--extract and --plugins can not be combined'
                      ' with other options.')
-    outmodes = [ o for o,v in [ ('--info',args.info),
+    outmodes = [ o for o,v in [ ('--csv',args.csv),
+                                ('--info',args.info),
                                 ('--names',args.names),
                                 ('--count',args.count),
                                 ('--path',args.path),
@@ -206,9 +215,11 @@ def parseArgs( progname, arglist, return_parser = False ):
     if table and others:
         parser.error(f'Do not specify {others[0]} together with --columns'
                      ' or --sort.')
-    if args.json and ( table or others ):
-        parser.error('Do not specify --json together with --columns,'
-                     ' --sort, --names, --comments, or --props.')
+    if args.json and others:
+        parser.error('Do not specify --json together with --names,'
+                     ' --comments, or --props.')
+    if args.csv and not table:
+        parser.error('--csv requires --columns or --sort.')
     if args.reverse and not args.sort:
         parser.error('--reverse requires --sort.')
     from .browse import physics_props_doc
@@ -369,7 +380,11 @@ def _linewidth():
         return max( 80, shutil.get_terminal_size().columns )
     return 80
 
+_no_truncate = [False]
+
 def _truncate( s, n ):
+    if _no_truncate[0]:
+        return s
     return s if len(s) <= n else s[:max(0,n-3)].rstrip() + '...'
 
 def _collect( args ):
@@ -421,6 +436,40 @@ def _table_value( entry, col ):
     if isinstance( v, float ):
         return '%g'%v
     return str(v)
+
+def _table_json( entry, cols ):
+    d = dict( name = entry.display_name )
+    props = ( entry.props.as_dict( json_compatible = True )
+              if entry.props is not None else None )
+    for c in cols:
+        if c == 'description':
+            d[c] = entry.description
+        else:
+            d[c] = props[c] if props is not None else None
+    return d
+
+def _csv_value( v ):
+    #Full precision (repr) floats, empty for unavailable values:
+    if v is None:
+        return ''
+    if isinstance( v, list ):
+        return ','.join( str(e) for e in v )
+    if isinstance( v, dict ):
+        return ','.join( f'{k}:{x!r}' for k,x in v.items() )
+    if isinstance( v, float ):
+        return repr(v)
+    return str(v)
+
+def _print_csv( entries, args ):
+    import csv
+    import io
+    buf = io.StringIO()
+    w = csv.writer( buf, lineterminator = '\n' )
+    w.writerow( [ 'name' ] + args.columns )
+    for e in entries:
+        d = _table_json( e, args.columns )
+        w.writerow( [ d['name'] ] + [ _csv_value(d[c]) for c in args.columns ] )
+    print( buf.getvalue(), end = '' )
 
 def _print_table( entries, args ):
     #NB: Rows are never truncated (no data should be lost), except for the
@@ -591,6 +640,13 @@ def _print_listing( items, args ):
 @cli_entry_point
 def main( progname, arglist ):
     args = parseArgs( progname, arglist )
+    _no_truncate[0] = args.no_truncate
+    try:
+        _main_impl( args )
+    finally:
+        _no_truncate[0] = False
+
+def _main_impl( args ):
     if args.extract:
         from .core import createTextData
         print( createTextData( args.extract ).rawData, end='' )
@@ -614,9 +670,17 @@ def main( progname, arglist ):
             if i.path:
                 print( i.path )
         return
+    if args.json and args.table:
+        import json
+        print( json.dumps( [ _table_json(i,args.columns) for i in items ],
+                           indent = 1 ) )
+        return
     if args.json:
         import json
         print( json.dumps( [ i.as_dict() for i in items ], indent = 1 ) )
+        return
+    if args.csv:
+        _print_csv( items, args )
         return
     if args.table:
         _print_table( items, args )

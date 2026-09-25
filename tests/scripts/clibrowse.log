@@ -1,8 +1,9 @@
 ============= CLI >>browse --help<< =============
 usage: ncrystal_browse [-h] [-s WORD] [-E] [-f NAME] [-w EXPR] [--props]
-                       [--columns KEYS] [--sort KEY] [--reverse] [--json] [-c]
-                       [--info] [--count] [--path] [--names] [-x DATANAME]
-                       [--plugins] [--color WHEN]
+                       [--columns KEYS] [--sort KEY] [--reverse] [--json]
+                       [--csv] [--no-truncate] [-c] [--info] [--count]
+                       [--path] [--names] [-x DATANAME] [--plugins]
+                       [--color WHEN]
                        [PATTERN ...]
 
 Browse and search the data available to NCrystal (e.g. files in the
@@ -53,7 +54,13 @@ options:
                         without a value are listed last.
   --reverse             Reverse the order of --sort.
   --json                Output all information about the selected data
-                        (including physics properties) as JSON.
+                        (including physics properties) as JSON. With --columns
+                        or --sort, only the name and the table columns are
+                        output.
+  --csv                 Output the table of --columns or --sort in CSV format
+                        (with full numerical precision).
+  --no-truncate         Never shorten long descriptions or other text to fit
+                        the line width.
   -c, --comments        Show full NCMAT header comments.
   --info                Show all available information about each selected
                         entry, including physics properties, header comments,
@@ -482,6 +489,56 @@ Al_sg225.ncmat
             'customsections': [],
             'nphases': 1},
   'error': None}]
+============= CLI >>browse -f virtual --sort density --columns formula,sg,dyninfo,description --json<< =============
+[{'name': 'mytestmat.ncmat',
+  'formula': 'H',
+  'sg': None,
+  'dyninfo': ['vdosdebye'],
+  'description': 'My test material (for testing only). Second line of '
+                 'description which is long enough that it will have to be '
+                 'truncated in the listing.',
+  'density': 1.0},
+ {'name': 'Al_sg225.ncmat',
+  'formula': 'O',
+  'sg': None,
+  'dyninfo': ['vdosdebye'],
+  'description': '',
+  'density': 2.0},
+ {'name': 'othermat.ncmat',
+  'formula': 'O',
+  'sg': None,
+  'dyninfo': ['vdosdebye'],
+  'description': '',
+  'density': 2.0},
+ {'name': 'mycrystal.ncmat',
+  'formula': 'Al',
+  'sg': 225,
+  'dyninfo': ['vdosdebye'],
+  'description': 'A small crystal.',
+  'density': 2.6986455177},
+ {'name': 'notncmat.laz',
+  'formula': None,
+  'sg': None,
+  'dyninfo': None,
+  'description': '',
+  'density': None}]
+============= CLI >>browse -f virtual --sort sg --columns formula,density,debyetemps,elements,description --csv<< =============
+CSV header: ['name', 'formula', 'density', 'debyetemps', 'elements', 'description', 'sg']
+CSV row: mycrystal.ncmat Al 2.69865 Al Al 'A small crystal.'
+CSV row: Al_sg225.ncmat O 2 None O ''
+CSV row: mytestmat.ncmat H 1 None H 'My test material (for testing only). Second line of description which is long enough that it will have to be truncated in the listing.'
+CSV row: notncmat.laz  None None  ''
+CSV row: othermat.ncmat O 2 None O ''
+============= CLI >>browse -f virtual mytestmat --no-truncate<< =============
+==> 1 entry from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of description which is long enough that it will have to be truncated in the listing.
+============= CLI >>browse -f virtual mytestmat --columns description --no-truncate<< =============
+NAME             DESCRIPTION
+mytestmat.ncmat  My test material (for testing only). Second line of description which is long enough that it will have to be truncated in the listing.
+============= CLI >>browse -f virtual mytestmat -s truncated --no-truncate<< =============
+==> 1 entry from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of description which is long enough that it will have to be truncated in the listing.
+        | truncated in the listing.
 ============= CLI >>browse -w 'foo > 1'<< =============
 Caught expected ArgumentError('Unknown name "foo" in --where expression "foo > 1" (see --help for available properties)')
 ============= CLI >>browse -w 'open("x")'<< =============
@@ -510,8 +567,12 @@ Caught expected ArgumentError('Invalid sort key "debyetemps" (must be "name" or 
 Caught expected NCBadInput('Error evaluating --where expression "elements.foo": \'frozenset\' object has no attribute \'foo\'')
 ============= CLI >>browse --columns sg --props<< =============
 Caught expected ArgumentError('Do not specify --props together with --columns or --sort.')
-============= CLI >>browse --json --sort sg<< =============
-Caught expected ArgumentError('Do not specify --json together with --columns, --sort, --names, --comments, or --props.')
+============= CLI >>browse --json --props<< =============
+Caught expected ArgumentError('Do not specify --json together with --names, --comments, or --props.')
+============= CLI >>browse --csv<< =============
+Caught expected ArgumentError('--csv requires --columns or --sort.')
+============= CLI >>browse --csv --json --sort sg<< =============
+Caught expected ArgumentError('Do not specify both --csv and --json.')
 ============= CLI >>browse --json --names<< =============
 Caught expected ArgumentError('Do not specify both --names and --json.')
 ============= CLI >>browse -w 'absxs/0 > 1' -f virtual<< =============
