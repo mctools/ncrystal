@@ -1,4 +1,31 @@
 v4.4.7 (work in progress)
+     * Fix the last-standing piece of the long-chased sabxs cross-platform
+       residual: NCRomberg.cc's generic Romberg-integration Richardson
+       extrapolation (R(i,j), used throughout via integrateRomberg17/33 --
+       notably VDOSEval::calcGamma0, called once per material and feeding
+       every subsequent G1 evaluation) combined every level's update as a
+       plain "a*b+c*d". Unlike a plain "a*b+c" (one obvious fusion), this
+       shape has *two* valid single-fusion readings (fma(a,b,c*d) or
+       fma(c,d,a*b)), so different platforms/flags were free to pick either
+       -- not just contract-or-not, but which term. Traced directly via the
+       existing SABXSDIAG diagnostic instrumentation (tests/src/
+       app_sabxsdiag): the earliest observed default-vs--mfma divergence
+       was at order n=1's raw G1 value, i.e. upstream of any convolution,
+       exactly where calcGamma0's result first enters the pipeline.
+       Rewrote every such combination (~20 across the unrolled R(4,4)/R(5,5)
+       fast path and the generic R(i,j) loop, plus evalFuncMany/
+       evalFuncManySum's own "offset+delta*i" argument) with an explicit
+       std::fma always fusing the same, fixed term. Verified: full sb -t
+       (incl. --long) green after regenerating the handful of reference
+       cases this legitimately shifted (a discrete grid-size decision in
+       app_gnerange's test.log, and default-build sabxs_A/B drift too small
+       to matter under the old flat tolerance but caught by the new
+       per-vdoslux one below); and, the actual point of this investigation,
+       testsabxs now passes cleanly under a full -mfma-forced rebuild --
+       "ALL OK", not a single case above tolerance, closing the residual
+       that survived every fix so far this session (reducePtsBy
+       Equidistribution's own fma hardening, stable_exp/stable_expm1's full
+       rewrite) because none of them were the actual remaining cause.
      * Make the sabxs cross-platform reproducibility test's tolerance depend
        on vdoslux (tests/pypath/NCTestUtils/xs.py's XSMonitor now accepts a
        callable(teststr)->float for test_rdtol, not just a plain float;
