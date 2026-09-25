@@ -79,7 +79,8 @@ namespace NCRYSTAL_NAMESPACE {
       ThreadCount determineNThreads( ThreadCount n )
       {
 #ifdef NCRYSTAL_DISABLE_THREADS
-        if ( n.get() > 1 ) {
+        //NB: No warning for "auto", which means whatever is available:
+        if ( n.get() > 1 && !n.indicatesAutoDetect() ) {
           NCRYSTAL_WARN("NCrystal installation does not support threads."
                         " Running simulation in single thread and not "
                         "the requested "<<n<<" threads");
