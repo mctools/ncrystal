@@ -703,10 +703,11 @@ class Info(RCBase):
 
         def __str__(self):
             ll=[str(self.atomData.displayLabel()),str(self.__n)]
-            if self.__dt>0.0:
-                ll.append('DebyeT=%gK'%self.__dt if self.__dt else 'DebyeT=n/a')
-            if self.__msd>0.0:
-                ll.append('MSD=%gAa^2'%self.__msd if self.__msd else 'MSD=n/a')
+            #Like C++ dump, omit unavailable values (None):
+            if self.__dt is not None:
+                ll.append('DebyeT=%gK'%self.__dt)
+            if self.__msd is not None:
+                ll.append('MSD=%gAa^2'%self.__msd)
             ll.append('hasPositions=%s'%('yes' if self.__pos else 'no'))
             return 'AtomInfo(%s)'%(', '.join(ll))
 
