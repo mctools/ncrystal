@@ -420,7 +420,10 @@ namespace NCRYSTAL_NAMESPACE {
     //reduction in stable_expm1 below: truncation error there is
     //~4e-18 relative (first omitted term, r^15/15!), comfortably below
     //double precision. Coefficients are exact rationals rounded to the
-    //nearest double, so identical on every platform by construction:
+    //nearest double, so identical on every platform by construction.
+    //NCRYSTAL_FMADISPATCH_ATTR: entirely explicit std::fma, no loops, no
+    //nc_assert -- safe per doc/devel_fma_attribute.md rule 1:
+    NCRYSTAL_FMADISPATCH_ATTR
     double expm1_reducedarg_taylor14( double r )
     {
       constexpr double c1 = 1.0;
@@ -456,6 +459,11 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
+//NCRYSTAL_FMADISPATCH_ATTR: straight-line code (no loops, no nc_assert),
+//every arithmetic expression already either explicit std::fma or one of
+//the exact operations (std::round/std::ldexp/subtraction of at-most-1.0
+//from 1.0) documented above as safe -- audited per rule 1:
+NCRYSTAL_FMADISPATCH_ATTR
 double NC::stable_expm1( double x )
 {
   //Avoids std::exp/std::log/std::expm1/std::log1p entirely (unlike the
@@ -496,6 +504,11 @@ double NC::stable_expm1( double x )
   return std::fma( pow2n, expm1_r, pow2n - 1.0 );
 }
 
+//NCRYSTAL_FMADISPATCH_ATTR: no loops, no nc_assert, and the only
+//arithmetic beyond the calls to the (also decorated) stable_expm1 is a
+//division and a plain "1.0+..." addition, neither an a*b+c shape --
+//audited per rule 1:
+NCRYSTAL_FMADISPATCH_ATTR
 double NC::stable_exp( double x )
 {
   //exp(x)=1+expm1(x): unlike the "obvious" exp(x)-1 (which cancels
