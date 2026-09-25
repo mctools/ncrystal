@@ -162,6 +162,7 @@ def main():
     assert len(al) == 1
     al = al[0]
     al['source'] = '<stdlib-location>'
+    al['path'] = '<location-dependent>'#might also be embedded
     al['comments'] = al['comments'][0:3]
     show('stdlib::Al_sg225.ncmat (source replaced, first comments only)',al)
 

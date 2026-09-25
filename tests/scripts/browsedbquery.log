@@ -169,7 +169,7 @@ Overview queries OK
  'priority': 120,
  'hidden': True,
  'datatype': 'ncmat',
- 'path': '/workspace/data/Al_sg225.ncmat',
+ 'path': '<location-dependent>',
  'comments': ['', 'Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)', ''],
  'info': {'composition': [[13, [[0, 1.0]]]],
           'xsect_absorption': 0.231,
