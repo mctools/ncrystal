@@ -1,4 +1,9 @@
 v4.4.7 (work in progress)
+     * Fix one more unaudited a*b-c shape found in the same sweep:
+       NCSABRefSampler.cc's extension-probability calculation computed
+       "4.0*(ext_xs_E*E_div_kT - ext_xs_Ecell*E_div_kT_cell)" -- fixed with
+       explicit std::fma for the inner difference-of-products. Full sb -t
+       --long green, zero reference-log changes.
      * Fix the root cause of a cross-platform divergence in
        NC::VDOS::estimateSpectrumCrossing (NCVDOSUtils.cc) that had
        previously only been tapered around, not actually fixed:
