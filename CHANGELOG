@@ -1,4 +1,33 @@
 v4.4.7 (work in progress)
+     * Fix the same unaudited "rng.generate()*2.0-1.0" shape (isotropic
+       mu sampling near kinematic end-points / small-a rejection
+       sampling) found repeated verbatim in five places:
+       NCElIncXS.cc, NCSABExtended.cc, NCSABSampler.cc,
+       NCSABProcessor.cc and NCFreeGasUtils.hh -- fixed each with
+       explicit std::fma. Unlike the other fixes this sweep these feed
+       a randomly sampled scattering cosine directly, so a platform
+       difference here would show up as a difference in the exact
+       sampled outcome for a given RNG stream, not just a rounding
+       artefact in an intermediate value. Full sb -t --long green,
+       zero reference-log changes.
+     * Fix an unaudited "a*(1-t)+b*t" lerp shape in
+       NCSABCellSample.cc's FullCellSampler::sampleAlphaBeta (linear
+       interpolation of the sampled beta value across a cell) --
+       switched to the project's existing audited nclerp() helper
+       instead of hand-rolling the fma-fusable form again. Full sb -t
+       --long green, zero reference-log changes.
+     * Fix another unaudited a-=b*c shape, this time in
+       NCSABIntegrator.cc's analyseEnergyPoint: the Simpson-like
+       beta-crossing correction "prev_betaxs.first -= db_real*(1.0/3.0)"
+       is on the same footing as the a*b-c shapes fixed elsewhere this
+       sweep -- fixed with explicit std::fma. Grepped the rest of the
+       file for the same pattern; nothing else unaudited remains. Full
+       sb -t --long green, zero reference-log changes.
+     * Fix one more unaudited a*b-c shape found in the same sweep:
+       NCSABRefSampler.cc's extension-probability calculation computed
+       "4.0*(ext_xs_E*E_div_kT - ext_xs_Ecell*E_div_kT_cell)" -- fixed with
+       explicit std::fma for the inner difference-of-products. Full sb -t
+       --long green, zero reference-log changes.
      * Fix the root cause of a cross-platform divergence in
        NC::VDOS::estimateSpectrumCrossing (NCVDOSUtils.cc) that had
        previously only been tapered around, not actually fixed:

@@ -164,7 +164,9 @@ NCS::SABExtended::sampleScatter( RNG& rng, NeutronEnergy ekin ) const
   if ( muIsotropicAtBeta(ab.second,ekin.get()*m_invkT) ) {
     //close to kinematical end-point, numerically safe fall-back:
     dE = ab.second*m_kT;
-    mu = rng.generate()*2.0 - 1.0;
+    //Explicit std::fma (unaudited a*b-c shape otherwise -- see
+    //docs/devel_fma_attribute.md):
+    mu = std::fma( rng.generate(), 2.0, -1.0 );
   } else {
     auto dEmu = convertAlphaBetaToDeltaEMu( ab.first, ab.second, ekin, m_kT );
     dE = dEmu.deltaE;
