@@ -62,6 +62,7 @@ def parseArgs( progname, arglist, return_parser = False ):
       %(prog)s -E -s "boron|b4c"   # search with regular expression
       %(prog)s -c Al_sg225.ncmat   # show header comments of a file
       %(prog)s -x Al_sg225.ncmat   # show full content of a file
+      %(prog)s --info Al_sg225.ncmat # show all info about a file
       %(prog)s --plugins           # list loaded plugins
       %(prog)s -w "'B' in elements and absxs > 100"
       %(prog)s -w "'vdos' in dyninfo" -w "crystal and sg == 225"
@@ -130,6 +131,10 @@ def parseArgs( progname, arglist, return_parser = False ):
                               ' JSON.'))
     parser.add_argument('-c','--comments', action='store_true',
                         help='Show full NCMAT header comments of the files.')
+    parser.add_argument('--info', action='store_true',
+                        help=('Show all available information about each'
+                              ' selected file, including physics properties,'
+                              ' header comments, and usage examples.'))
     parser.add_argument('--count', action='store_true',
                         help='Only print the number of selected files.')
     parser.add_argument('--path', action='store_true',
@@ -174,10 +179,12 @@ def parseArgs( progname, arglist, return_parser = False ):
     if nmodes and ( args.pattern or args.search or args.factory
                     or args.comments or args.names or args.where
                     or args.props or args.columns or args.sort
-                    or args.json or args.count or args.path ):
+                    or args.json or args.count or args.path
+                    or args.info ):
         parser.error('--extract and --plugins can not be combined'
                      ' with other options.')
-    outmodes = [ o for o,v in [ ('--names',args.names),
+    outmodes = [ o for o,v in [ ('--info',args.info),
+                                ('--names',args.names),
                                 ('--count',args.count),
                                 ('--path',args.path),
                                 ('--json',args.json) ] if v ]
@@ -187,8 +194,8 @@ def parseArgs( progname, arglist, return_parser = False ):
     if args.names and ( args.comments or args.props ):
         parser.error('Do not specify --names together with --comments'
                      ' or --props.')
-    if ( args.count or args.path ) and ( args.comments or args.props
-                                         or args.columns or args.sort ):
+    if ( args.count or args.path or args.info ) and (
+            args.comments or args.props or args.columns or args.sort ):
         parser.error(f'Do not specify {outmodes[0]} together with'
                      ' --comments, --props, --columns, or --sort.')
     table = bool( args.columns or args.sort )
@@ -367,7 +374,7 @@ def _truncate( s, n ):
 def _collect( args ):
     from . import browse as nb
     from .exceptions import NCBadInput
-    load = bool( args.where or args.props or args.json
+    load = bool( args.where or args.props or args.json or args.info
                  or [ c for c in args.columns if c != 'description' ]
                  or ( args.sort and args.sort != 'name' ) )
     progress = _Progress( 'Loading materials' ) if load else None
@@ -383,19 +390,20 @@ def _collect( args ):
     except NCBadInput as e:
         raise NCBadInput( _cli_msg( str(e) ) ) from e
 
-def _print_props( entry, linewidth ):
+def _print_props( entry, linewidth, indent = 8 ):
+    pre = ' '*indent
     if entry.props is None:
-        print(_truncate(f'        [could not load: {entry.error}]',
+        print(_truncate(f'{pre}[could not load: {entry.error}]',
                         linewidth))
         return
     import textwrap
 
     from .browse import _fmt_prop
     parts = [ f'{k}={_fmt_prop(v)}' for k,v in entry.props.as_dict().items() ]
-    for line in textwrap.wrap( '  '.join(parts), width = linewidth - 8,
+    for line in textwrap.wrap( '  '.join(parts), width = linewidth - indent,
                                break_long_words = False,
                                break_on_hyphens = False ):
-        print(f'        {line}')
+        print(f'{pre}{line}')
 
 def _table_value( entry, col ):
     if col == 'description':
@@ -439,6 +447,51 @@ def _print_table( entries, args ):
     print( fmt(header) )
     for r in rows:
         print( fmt(r) )
+
+def _print_info( entries, args ):
+    if not entries:
+        _print_no_matches( args )
+        return
+    import textwrap
+    linewidth = _linewidth()
+    for n, e in enumerate( entries ):
+        if n:
+            print()
+        name = e.display_name
+        print(f'==> {name}')
+        srcdescr = ( f'{e.source} (factory "{e.factory}",'
+                     f' priority {e.priority})' )
+        fields = [ ('Description', e.description or '-'),
+                   ('Full key', e.fullkey),
+                   ('Source', srcdescr),
+                   ('Data type', e.datatype or '-'),
+                   ('On-disk path', e.path or '-') ]
+        if e.hidden:
+            fields.append( ('Hidden', ( 'yes, by a higher priority entry'
+                                        ' with the same name' ) ) )
+        for k, v in fields:
+            ll = textwrap.wrap( v, width = linewidth - 20,
+                                break_long_words = False,
+                                break_on_hyphens = False ) or ['']
+            print(f'    {k:<14}: {ll[0]}')
+            for x in ll[1:]:
+                print(f'{"":20}{x}')
+        print('  Physics properties:')
+        _print_props( e, linewidth, indent = 4 )
+        comments = _strip_empty( e.comments )
+        if comments:
+            print('  Header comments:')
+            for ll in comments:
+                print(f'    # {ll}'.rstrip())
+        print('  Usage examples:')
+        pycmd = ( f'python3 -c \'import NCrystal as NC;'
+                  f' NC.load("{name}").dump()\'' )
+        for d, c in [ ( 'Plot cross sections', f'nctool "{name}"' ),
+                      ( 'Show full content',
+                        f'ncrystal browse -x "{name}"' ),
+                      ( 'Load in Python', pycmd ) ]:
+            print(f'    # {d}:')
+            print(f'    {c}')
 
 def _print_no_matches( args ):
     print('No matching files found.')
@@ -550,6 +603,9 @@ def main( progname, arglist ):
         items = sort_entries( items, args.sort, reverse = args.reverse )
     if args.count:
         print( len(items) )
+        return
+    if args.info:
+        _print_info( items, args )
         return
     if args.path:
         for i in items:

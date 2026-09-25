@@ -1,8 +1,8 @@
 ============= CLI >>browse --help<< =============
 usage: ncrystal_browse [-h] [-s WORD] [-E] [-f NAME] [-w EXPR] [--props]
                        [--columns KEYS] [--sort KEY] [--reverse] [--json] [-c]
-                       [--count] [--path] [--names] [-x DATANAME] [--plugins]
-                       [--color WHEN]
+                       [--info] [--count] [--path] [--names] [-x DATANAME]
+                       [--plugins] [--color WHEN]
                        [PATTERN ...]
 
 Browse and search the data files available to NCrystal (e.g. files in the
@@ -54,6 +54,9 @@ options:
   --json                Output all information about the selected files
                         (including physics properties) as JSON.
   -c, --comments        Show full NCMAT header comments of the files.
+  --info                Show all available information about each selected
+                        file, including physics properties, header comments,
+                        and usage examples.
   --count               Only print the number of selected files.
   --path                Only print the on-disk paths of the selected files,
                         one per line (files which are not on disk, e.g. in-
@@ -84,6 +87,7 @@ examples:
   ncrystal_browse -E -s "boron|b4c"   # search with regular expression
   ncrystal_browse -c Al_sg225.ncmat   # show header comments of a file
   ncrystal_browse -x Al_sg225.ncmat   # show full content of a file
+  ncrystal_browse --info Al_sg225.ncmat # show all info about a file
   ncrystal_browse --plugins           # list loaded plugins
   ncrystal_browse -w "'B' in elements and absxs > 100"
   ncrystal_browse -w "'vdos' in dyninfo" -w "crystal and sg == 225"
@@ -300,6 +304,97 @@ mycrystal.ncmat  4.04958  66.4095      Al:400  Al:0.0103838  26.9815  1.49485
 mytestmat.ncmat        -        -           -             -  1.00798  1.75679
 notncmat.laz           -        -           -             -        -        -
 othermat.ncmat         -        -           -             -  15.9993   4.2317
+============= CLI >>browse -f virtual --info mycrystal notncmat<< =============
+==> mycrystal.ncmat
+    Description   : A small crystal.
+    Full key      : virtual::mycrystal.ncmat
+    Source        : virtual (factory "virtual", priority 130)
+    Data type     : ncmat
+    On-disk path  : -
+  Physics properties:
+    elements={'Al'}  atoms={'Al'}  nelements=1  formula='Al'  mass=26.9815
+    absxs=0.231  scatxs=1.39667  cohxs=1.49485  incohxs=0.0082  density=2.69865
+    numdens=0.0602324  temp=293.15  state='solid'  crystal=True
+    crystalsystem='cubic'  sg=225  natoms=4  a=4.04958  b=4.04958  c=4.04958
+    alpha=90  beta=90  gamma=90  volume=66.4095  braggthreshold=4.67605
+    debyetemps={'Al':400}  msds={'Al':0.0103838}  dyninfo={'vdosdebye'}
+    customsections={}  nphases=1
+  Header comments:
+    # A small crystal.
+  Usage examples:
+    # Plot cross sections:
+    nctool "mycrystal.ncmat"
+    # Show full content:
+    ncrystal browse -x "mycrystal.ncmat"
+    # Load in Python:
+    python3 -c 'import NCrystal as NC; NC.load("mycrystal.ncmat").dump()'
+
+==> notncmat.laz
+    Description   : -
+    Full key      : virtual::notncmat.laz
+    Source        : virtual (factory "virtual", priority 130)
+    Data type     : laz
+    On-disk path  : -
+  Physics properties:
+    [could not load: Error in Lazy/Lau data: Missing required spacegroup head...
+  Usage examples:
+    # Plot cross sections:
+    nctool "notncmat.laz"
+    # Show full content:
+    ncrystal browse -x "notncmat.laz"
+    # Load in Python:
+    python3 -c 'import NCrystal as NC; NC.load("notncmat.laz").dump()'
+============= CLI >>browse --info stdlib::Al_sg225<< =============
+==> stdlib::Al_sg225.ncmat
+    Description   : Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)
+    Full key      : stdlib::Al_sg225.ncmat
+    Source        : <stdlib-location> (factory "stdlib", priority 120)
+    Data type     : ncmat
+    On-disk path  : <location-dependent>
+    Hidden        : yes, by a higher priority entry with the same name
+  Physics properties:
+    elements={'Al'}  atoms={'Al'}  nelements=1  formula='Al'  mass=26.9815
+    absxs=0.231  scatxs=1.39667  cohxs=1.49485  incohxs=0.0082  density=2.69865
+    numdens=0.0602324  temp=293.15  state='solid'  crystal=True
+    crystalsystem='cubic'  sg=225  natoms=4  a=4.04958  b=4.04958  c=4.04958
+    alpha=90  beta=90  gamma=90  volume=66.4095  braggthreshold=4.67605
+    debyetemps={'Al':412.207}  msds={'Al':0.00980669}  dyninfo={'vdos'}
+    customsections={}  nphases=1
+  Header comments:
+    # Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)
+    #
+    # Under usual conditions this phase exists from 0 to 933K.
+    #
+    # Structure converted with ncrystal_onlinedb2ncmat from:
+    #
+    #    "Second edition. Interscience Publishers,
+    #     New York, Cubic closest packed, ccp, structure"
+    #    Wyckoff R W G (1963)
+    #    Crystallography Open Database entry 9008460
+    #    https://www.crystallography.net/cod/9008460.html
+    #
+    # This crystal structure is also compatible with structure obtained from:
+    #
+    #   https://www.crystallography.net/cod/9012428.html
+    #   https://www.crystallography.net/cod/9011602.html
+    #   https://www.crystallography.net/cod/9012002.html
+    #
+    # The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+    # software from Figure 1 of:
+    #
+    #    "First principles phonon calculations in materials science"
+    #    A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5
+    #    https://doi.org/10.1016/j.scriptamat.2015.07.021
+  Usage examples:
+    # Plot cross sections:
+    nctool "stdlib::Al_sg225.ncmat"
+    # Show full content:
+    ncrystal browse -x "stdlib::Al_sg225.ncmat"
+    # Load in Python:
+    python3 -c 'import NCrystal as NC; NC.load("stdlib::Al_sg225.ncmat").dump()'
+============= CLI >>browse -f virtual --info mycrystl<< =============
+No matching files found.
+Did you mean: mycrystal.ncmat?
 ============= CLI >>browse -f virtual --count<< =============
 5
 ============= CLI >>browse -f virtual -w crystal --count<< =============
@@ -402,6 +497,10 @@ Caught expected ArgumentError('Invalid sort key "foo" (must be "name" or one of:
 Caught expected ArgumentError('--reverse requires --sort.')
 ============= CLI >>browse --names --count<< =============
 Caught expected ArgumentError('Do not specify both --names and --count.')
+============= CLI >>browse --info --json<< =============
+Caught expected ArgumentError('Do not specify both --info and --json.')
+============= CLI >>browse --info --props<< =============
+Caught expected ArgumentError('Do not specify --info together with --comments, --props, --columns, or --sort.')
 ============= CLI >>browse --path --sort name<< =============
 Caught expected ArgumentError('Do not specify --path together with --comments, --props, --columns, or --sort.')
 ============= CLI >>browse --sort debyetemps<< =============
