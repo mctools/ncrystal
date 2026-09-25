@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/utils/NCSpline.hh"
+#include "NCrystal/internal/utils/NCFastSearch.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/utils/NCFileUtils.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
@@ -329,8 +330,7 @@ double NC::PCHIPInterp::eval(double x) const
 #endif
   if (x == xp[m_n - 1])
     return yp[m_n - 1];
-  const auto it = std::upper_bound(xp, xp + m_n, x);
-  const std::size_t i = static_cast<std::size_t>(it - xp) - 1;
+  const std::size_t i = NC::fastUpperBoundIdx(xp, m_n, x) - 1;
   const double t = (x - xp[i]) * ip[i];
   const double t2 = t * t;
   const double u = 1.0 - t;
