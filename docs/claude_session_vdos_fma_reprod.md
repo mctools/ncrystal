@@ -284,3 +284,96 @@ materials/temperatures, versus 2.3e-5 before), by flipping decisions that
 were previously correct. Reverted; this residual is left open rather than
 papered over with a tolerance that actively regresses other cases.
 
+### A fast standalone build for iterating on the algorithm itself
+
+Every previous fix in this document was validated with a full
+`ncdevtool sb [-i] -t` cycle per variant (~1-2 minutes each), which made
+trying several candidate algorithm designs prohibitively slow. Before
+attempting a real fix for the residual above, set up
+`nocheck/fastiter/` (gitignored, not part of the repo): `build.sh`
+compiles a small `main.cc` directly against `NCMath.cc` plus the two
+small `.cc` files needed to satisfy `Exception`/`Msg` symbols, using the
+real repo headers and the already-generated `ncapi.h` from an existing
+sb cache, with arbitrary `CXX`/flags (`CXX=clang++ ./build.sh -mfma`,
+etc.) -- no simplebuild involved. Full compile+link in ~1-2s regardless
+of flags or compiler, versus ~1-2 minutes for the smallest `ncdevtool sb`
+rebuild. This is what made it practical to actually try (and reject) two
+candidate fixes before landing on a third that worked, rather than
+picking one and hoping.
+
+### Extracting the real data, and designing reducePtsByEquidistributionRobust
+
+Added a temporary dump-to-file diagnostic to both
+`reducePtsByEquidistribution` call sites in `NCVDOSKnlGrid.cc` (env-var
+gated, since reverted once the data was captured) and ran it against
+Li_from_Li2O (the known-bad case) plus six more materials/elements
+(Al, Cu, Pb, LiH, and both elements of Polyethylene), giving 23 real
+`(x,y,targetN)` triples ranging from ~120 to ~42000 points. Loaded these
+into the fast standalone harness above and, for each, swept synthetic
+relative noise on `y` from `1e-16` to `1e-6` (the range actually observed
+cross-platform, from genuine last-ULP up to the amplified-by-curvature
+scale found earlier in this document) over 50 trials each, counting how
+often the selection changed at all and by how much.
+
+On the known-bad dataset, this reproduced the real bug precisely: 1/50
+trials change the selection at `1e-8` (matching the sporadic, rare nature
+of the real cross-platform divergence), rising to 49/50 by `1e-7`.
+Running the same sweep on the other six datasets showed the same class
+of fragility is widespread, not unique to the one known case -- several
+already show real instability at `1e-8`, and nearly all become
+substantially unstable by `1e-7` to `1e-6`.
+
+Two candidate fixes were tried in the fast harness and rejected:
+- **Quantising** the per-interval density to a coarse relative precision
+  (`std::round`-based) before accumulating it into the cumulative
+  integral: pushed the failure threshold up by about an order of
+  magnitude on the known-bad case, but is not a real fix -- it just
+  relocates the discontinuity to the quantisation boundary, which
+  *regressed* other datasets at the same noise level they were
+  previously fine at (e.g. `O_from_Li2O`'s e0grid: 0/50 -> 30/50 at
+  `1e-8`).
+- **Widening the existing tie-break bias** (`tieBreakRelTol`, from the
+  previous fix) far enough to cover the noise scale actually observed:
+  catastrophic on the full sabxs test suite (up to 5.6e-4 relative
+  regressions on cases that were previously exactly correct), for the
+  same reason widening it the first time around this branch of the
+  investigation would have -- it biases *every* near-tie, including the
+  many genuine, correctly-resolved ones.
+
+The fix that worked: widen the **stencil** used for the |y''| curvature
+estimate itself (points `hw` apart rather than always immediate
+neighbours, `hw=1` reproducing the original 3-point formula exactly).
+This is a standard technique for improving a numerical derivative's
+signal-to-noise ratio -- noise in `y` doesn't grow with a wider stencil,
+but the genuine signal (the actual change of slope, for any real feature
+spanning more than a couple of points) does. Sweeping `hw` from 1 to 5
+gave a clean, monotonic improvement in stability with quality staying
+flat or slightly *improving* on most of the 23 real datasets (interp
+error is not just preserved but sometimes reduced, since the wider
+stencil also damps genuine per-point noise in the curvature estimate,
+not just cross-platform differences); `hw=3` was chosen as a reasonable
+middle ground (some individual datasets, e.g. Pb, do show a real quality
+cost with no compensating robustness benefit, since they were already
+stable -- an honest, documented trade-off, not something hidden).
+
+Implemented as `NC::reducePtsByEquidistributionRobust` (NCMath.hh/.cc),
+a fully independent implementation (not sharing code with
+`reducePtsByEquidistribution` via a common helper, so as not to disturb
+that function's own, separately-revertible SABXSDIAG-TEMPORARY
+instrumentation) with the same contract and the same tie-break bias,
+just the wider stencil. `tests/src/app_ptreduceequi/main.cc` was
+restructured to run its entire existing test battery against both
+functions (via a rebindable `std::function`), plus two new tests using
+seven of the real datasets (committed to `tests/data/ptreduce/`, at
+reduced `%.10g` precision to fit the repo's size conventions): one
+reproducing the known bug directly and confirming the fix, one checking
+noise-robustness and quality across all seven materials in aggregate
+(summed `maxdiff` dropped from 56 to 10, an ~82% reduction, with no
+individual dataset's quality collapsing).
+
+Not yet wired into any production call site -- that would be the natural
+next step (in `VDOS::determineAlphaBetaGridFromGn`'s two call sites),
+once there's been a chance to confirm via a real CI run that this,
+rather than something not yet found, is actually what limits the
+remaining sabxs reproducibility on real hardware.
+
