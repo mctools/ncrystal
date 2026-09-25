@@ -79,6 +79,10 @@ v4.4.7 (work in progress)
        These changes shift some VDOS/kernel-derived results, typically
        in the last few significant digits (sabxs reference shifts up to
        ~1%, concentrated in low-vdoslux Li2O test cases), without any
+     * Python: fix internal ncsetenv to use the same env var names as the
+       C++ code and ncgetenv. It wrongly included the namespace in builds
+       with NCRYSTAL_NAMESPACE but without namespaced env vars, so for
+       instance "nctool --bench --threads N" had no effect there.
      * Python: remove the NCrystal.obsolete module and its functions
        (clearInfoCaches, decodecfg_packfact, disableCaching, enableCaching,
        getFileContents) along with the NCRYSTAL_NOPYOBSOLETE env var. Due to

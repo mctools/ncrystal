@@ -11,3 +11,5 @@ format_chemform([('Al', 0.9), ('Cr', 0.1)]): 'Al9Cr'
 format_chemform([('Al', 0.3333333333333333), ('Cr', 0.6666666666666666)]): 'AlCr2'
 ncpprint(do_sort=False): "{'b': [1, 2], 'a': {'z': 1, 'y': 2}}\n"
 ncpprint(do_sort=True): "{'a': {'y': 2, 'z': 1}, 'b': [1, 2]}\n"
+ncsetenv+ncgetenv (namespaced env vars=True): '17'
+ncsetenv+ncgetenv (namespaced env vars=False): '17'

@@ -22,6 +22,7 @@
 
 import NCTestUtils.enable_fpe # noqa F401
 import NCrystalDev._common as nc_common
+import os
 
 def require(b):
     if not b:
@@ -60,3 +61,19 @@ for _ds in (False,True):
     with nc_common.capture_print_ctxmgr() as _cap:
         nc_common.ncpprint(_d,do_sort=_ds)
     print(f'ncpprint(do_sort={_ds}):',repr(''.join(_cap.data)))
+
+#ncsetenv must use the same env var names as ncgetenv (and C++), also for
+#namespaced builds without namespaced env vars (simulated by forcing the flag):
+_orig_nsev = nc_common._cache_nsev[0]
+try:
+    for _flag in (True, False):
+        nc_common._cache_nsev[0] = _flag
+        nc_common.ncsetenv('TESTENVROUNDTRIP','17')
+        _v = nc_common.ncgetenv('TESTENVROUNDTRIP')
+        nc_common.ncsetenv('TESTENVROUNDTRIP',None)
+        print(f'ncsetenv+ncgetenv (namespaced env vars={_flag}):',repr(_v))
+        require( _v == '17' )
+        require( nc_common.ncgetenv('TESTENVROUNDTRIP') is None )
+        require( not any('TESTENVROUNDTRIP' in k for k in os.environ) )
+finally:
+    nc_common._cache_nsev[0] = _orig_nsev

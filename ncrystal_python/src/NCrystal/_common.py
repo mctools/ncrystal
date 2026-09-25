@@ -97,8 +97,7 @@ def ncgetenv_int_nonneg( name, defval ):
 
 def ncsetenv( name, val ):
     import os
-    assert not name.startswith('NCRYSTAL_')#common mistake
-    varname = 'NCRYSTAL' + get_namespace().upper()+'_' + name
+    varname = expand_envname( name )
     if val is None:
         if varname in os.environ:
             del os.environ[varname]
