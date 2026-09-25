@@ -49,11 +49,21 @@ def _default_pymsghandler( msg, msgtype ):
 #NB: This next function could become part of a public API, allowing e.g. a GUI
 #to redirect all NCrystal output to appropriate text boxes, etc.:
 _was_set = [False]
+_current = [None]#None means the C++ default handler
 def _setMsgHandler( handler ):
     from ._chooks import _get_raw_cfcts
     _rawfct = _get_raw_cfcts()
     _rawfct['setmsghandler'](handler)
     _was_set[0] = True
+    _current[0] = handler
+
+class _suppress_msgs_ctx:
+    #Temporarily discard all messages from the C++ library.
+    def __enter__( self ):
+        self.__orig = _current[0]
+        _setMsgHandler( lambda msg, msgtype : None )
+    def __exit__( self, *a, **kw ):
+        _setMsgHandler( self.__orig )
 
 def _setDefaultPyMsgHandlerIfNotSet():
     if not _was_set[0]:

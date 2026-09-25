@@ -45,7 +45,9 @@ def parseArgs( progname, arglist, return_parser = False ):
     one or more PATTERNs (case-insensitive substrings of file names, or glob
     patterns like "Al*.ncmat"), by requiring certain words to be present in
     the file names or NCMAT header comments (--search), or by only showing
-    files from a given source (--factory).
+    files from a given source (--factory). Files can also be selected based
+    on their physics content with --where (see below), which requires all
+    candidate files to be loaded.
 
     Files marked "(hidden)" are shadowed by files with the same name from a
     higher priority source, and are listed with their full name (like
@@ -61,7 +63,18 @@ def parseArgs( progname, arglist, return_parser = False ):
       %(prog)s -c Al_sg225.ncmat   # show header comments of a file
       %(prog)s -x Al_sg225.ncmat   # show full content of a file
       %(prog)s --plugins           # list loaded plugins
+      %(prog)s -w "'B' in elements and absxs > 100"
+      %(prog)s -w "'vdos' in dyninfo" -w "crystal and sg == 225"
+      %(prog)s --props Al_sg225.ncmat  # show the properties of a file
     """).strip()
+    epilog += ( '\n\nphysics properties available in --where expressions'
+                ' (and --props):\n' + _propdocs_str() + '\n\n' )
+    epilog += textwrap.fill(
+        '--where expressions are Python expressions using the properties'
+        ' above, comparison and boolean operators, set/string/number'
+        ' literals, and the functions: %s. Comparisons with unavailable'
+        ' (None) values are considered false.'%(
+            ', '.join(sorted(_where_funcs))), width = 79 )
     import argparse
     parser = create_ArgumentParser( prog = progname,
                                     description = descr,
@@ -87,6 +100,17 @@ def parseArgs( progname, arglist, return_parser = False ):
                         metavar='NAME',
                         help=('Only show files delivered by the named'
                               ' factory (e.g. "stdlib" or "virtual").'))
+    parser.add_argument('-w','--where', type=str, action='append',
+                        default=[], metavar='EXPR',
+                        help=('Only show files for which the Python expression'
+                              ' EXPR is true, based on physics properties of'
+                              ' the loaded material (see below). Can be'
+                              ' specified multiple times, in which case all'
+                              ' expressions must be true.'))
+    parser.add_argument('--props', action='store_true',
+                        help=('Show the physics properties of each file (i.e.'
+                              ' the values available in --where expressions).'
+                              ))
     parser.add_argument('-c','--comments', action='store_true',
                         help='Show full NCMAT header comments of the files.')
     parser.add_argument('--names', action='store_true',
@@ -124,11 +148,17 @@ def parseArgs( progname, arglist, return_parser = False ):
     if nmodes > 1:
         parser.error('Do not specify both --extract and --plugins.')
     if nmodes and ( args.pattern or args.search or args.factory
-                    or args.comments or args.names ):
+                    or args.comments or args.names or args.where
+                    or args.props ):
         parser.error('--extract and --plugins can not be combined'
                      ' with other options.')
-    if args.names and args.comments:
-        parser.error('Do not specify both --names and --comments.')
+    if args.names and ( args.comments or args.props ):
+        parser.error('Do not specify --names together with --comments'
+                     ' or --props.')
+    try:
+        args.where_code = [ _compile_where( w ) for w in args.where ]
+    except _WhereError as e:
+        parser.error(str(e))
     import re
     def compile_re( s ):
         try:
@@ -141,6 +171,165 @@ def parseArgs( progname, arglist, return_parser = False ):
     args.pattern_re = ( [ compile_re(p) for p in args.pattern ]
                         if args.regex else None )
     return args
+
+#Physics properties of materials, available in --where expressions:
+_propdocs = [
+    ('elements', 'set of element names, e.g. {"Al","O"}'),
+    ('atoms', 'set of atom labels, including isotopes, e.g. {"D","O"}'),
+    ('nelements', 'number of different elements'),
+    ('formula', 'chemical formula, e.g. "Al2O3"'),
+    ('absxs', 'absorption cross section per atom at 2200m/s [barn]'),
+    ('scatxs', 'free scattering cross section per atom [barn]'),
+    ('density', 'density [g/cm3]'),
+    ('numdens', 'number density [atoms/Aa3]'),
+    ('temp', 'temperature [K]'),
+    ('state', 'state of matter: "solid", "liquid", "gas", or "unknown"'),
+    ('crystal', 'True if crystalline (for multiphase: any phase)'),
+    ('sg', 'space group number (None if not available)'),
+    ('natoms', 'number of atoms in unit cell (None if not available)'),
+    ('dyninfo', ('set of dynamic info types present, among "vdos",'
+                 ' "vdosdebye", "scatknl" (a full scattering kernel),'
+                 ' "freegas", and "sterile"')),
+    ('nphases', 'number of phases (1 for single-phase materials)'),
+]
+
+def _propdocs_str():
+    import textwrap
+    w = max( len(n) for n,d in _propdocs )
+    out = []
+    for n,d in _propdocs:
+        ll = textwrap.wrap( d, width = 76 - w - 5 )
+        out.append( f'  {n.ljust(w)} : {ll[0]}' )
+        out += [ ' '*(w+5)+e for e in ll[1:] ]
+    return '\n'.join(out)
+
+_where_funcs = dict( len = len, min = min, max = max, any = any, all = all,
+                     abs = abs, round = round, set = set, sorted = sorted )
+
+class _WhereError(Exception):
+    pass
+
+def _compile_where( expr ):
+    #Compile --where expression, only allowing known names and no private
+    #attributes (as a basic safety measure and to catch typos early).
+    import ast
+    try:
+        tree = ast.parse( expr, mode = 'eval' )
+    except SyntaxError as e:
+        raise _WhereError(f'Invalid --where expression "{expr}": {e.msg}')
+    allowed = set( n for n,d in _propdocs ) | set( _where_funcs )
+    for node in ast.walk( tree ):
+        if isinstance( node, ast.Name ) and node.id not in allowed:
+            raise _WhereError(f'Unknown name "{node.id}" in --where'
+                              f' expression "{expr}" (see --help for'
+                              ' available properties)')
+        if isinstance( node, ast.Attribute ) and node.attr.startswith('_'):
+            raise _WhereError(f'Invalid --where expression "{expr}"'
+                              ' (private attributes are not allowed)')
+    return expr, compile( tree, '<where>', 'eval' )
+
+def _eval_where( where_code, props ):
+    ns = dict( _where_funcs )
+    ns['__builtins__'] = {}
+    for expr, code in where_code:
+        try:
+            ok = eval( code, ns, dict(props) )
+        except TypeError:
+            ok = False#e.g. comparison with None
+        except Exception as e:
+            from .exceptions import NCBadInput
+            raise NCBadInput(f'Error evaluating --where expression'
+                             f' "{expr}": {e}') from e
+        if not ok:
+            return False
+    return True
+
+def _physics_props( info ):
+    #Physics properties of loaded Info object (see _propdocs).
+    from ._common import format_chemform
+    from .atomdata import elementZToName
+    phases = ( [ ph for fr,ph in info.phases ] if info.isMultiPhase()
+               else [ info ] )
+    leaves = []
+    def add_leaves( i ):
+        if not i.isMultiPhase():
+            leaves.append( i )
+        for fr,ph in ( i.phases if i.isMultiPhase() else [] ):
+            add_leaves( ph )
+    add_leaves( info )
+    fc = info.getFlattenedComposition()
+    elements = frozenset( elementZToName(Z) for Z,_ in fc )
+    atomfracs = {}
+    for Z, isotopes in fc:
+        en = elementZToName(Z)
+        for A, fr in isotopes:
+            lbl = en if A == 0 else { (1,2):'D', (1,3):'T' }.get( (Z,A),
+                                                                  f'{en}{A}' )
+            atomfracs[lbl] = atomfracs.get(lbl,0.0) + fr
+    ditypes = { 'DI_VDOS' : 'vdos', 'DI_VDOSDebye' : 'vdosdebye',
+                'DI_ScatKnlDirect' : 'scatknl', 'DI_FreeGas' : 'freegas',
+                'DI_Sterile' : 'sterile' }
+    dyninfo = frozenset( ditypes.get( type(di).__name__, 'other' )
+                         for i in leaves for di in i.dyninfos )
+    struct = ( info.getStructureInfo() if ( not info.isMultiPhase()
+                                            and info.hasStructureInfo() )
+               else None )
+    return dict(
+        elements = elements,
+        atoms = frozenset( atomfracs ),
+        nelements = len( elements ),
+        formula = format_chemform( sorted( atomfracs.items() ) ),
+        absxs = info.getXSectAbsorption(),
+        scatxs = info.getXSectFree(),
+        density = info.getDensity(),
+        numdens = info.getNumberDensity(),
+        temp = info.getTemperature() if info.hasTemperature() else None,
+        state = info.stateOfMatter().name.lower(),
+        crystal = any( i.isCrystalline() for i in leaves ),
+        sg = struct['spacegroup'] if struct else None,
+        natoms = struct['n_atoms'] if struct else None,
+        dyninfo = dyninfo,
+        nphases = max( 1, len( phases ) ),
+    )
+
+def _fmt_prop( v ):
+    if v is None:
+        return 'None'
+    if isinstance( v, frozenset ):
+        return '{' + ','.join( repr(e) for e in sorted(v) ) + '}'
+    if isinstance( v, float ):
+        return '%g'%v
+    return repr(v)
+
+class _Progress:
+    #Progress indicator on stderr, only shown on a terminal and only if the
+    #work takes more than a second.
+    def __init__( self, total, what ):
+        import sys
+        import time
+        self.__t0 = time.time()
+        self.__total, self.__what = total, what
+        self.__shown = False
+        self.__enabled = ( hasattr(sys.stderr,'isatty')
+                           and sys.stderr.isatty() )
+    def update( self, n ):
+        if not self.__enabled:
+            return
+        import sys
+        import time
+        t = time.time()
+        if not self.__shown and t - self.__t0 < 1.0:
+            return
+        if self.__shown and t - self.__tlast < 0.1:
+            return#limit update rate
+        self.__shown, self.__tlast = True, t
+        sys.stderr.write(f'\r{self.__what}: {n}/{self.__total}')
+        sys.stderr.flush()
+    def done( self ):
+        if self.__shown:
+            import sys
+            sys.stderr.write('\r\x1b[K')
+            sys.stderr.flush()
 
 #Same options and synonyms as GNU grep:
 _color_choices = { 'always' : True, 'yes' : True, 'force' : True,
@@ -308,7 +497,41 @@ def _collect( args ):
                                      if any( r.search(ll) for r in regexes ) ]
                 selected.append( i )
         items = selected
+    if args.where or args.props:
+        _load_props( items )
+    if args.where:
+        items = [ i for i in items if i.props is not None
+                  and _eval_where( args.where_code, i.props ) ]
     return items
+
+def _load_props( items ):
+    from ._msg import _suppress_msgs_ctx
+    from .core import createInfo
+    progress = _Progress( len(items), 'Loading materials' )
+    #Loading might emit warnings (e.g. about @CUSTOM_ sections) which are not
+    #relevant here:
+    with _suppress_msgs_ctx():
+        for n, i in enumerate( items ):
+            progress.update( n )
+            i.props, i.load_error = None, None
+            try:
+                i.props = _physics_props( createInfo( i.entry.fullKey ) )
+            except Exception as e: # noqa BLE001
+                #Files which can not be loaded are simply not selected:
+                i.load_error = str(e) or e.__class__.__name__
+    progress.done()
+
+def _print_props( item, linewidth ):
+    if item.props is None:
+        print(_truncate(f'        [could not load: {item.load_error}]',
+                        linewidth))
+        return
+    import textwrap
+    parts = [ f'{k}={_fmt_prop(v)}' for k,v in item.props.items() ]
+    for line in textwrap.wrap( '  '.join(parts), width = linewidth - 8,
+                               break_long_words = False,
+                               break_on_hyphens = False ):
+        print(f'        {line}')
 
 def _strip_empty( lines ):
     lines = list( lines or [] )
@@ -352,6 +575,8 @@ def _print_listing( items, args ):
             for ll in getattr(i,'matching_lines',[]):
                 if not args.comments:
                     print('        | '+hl(_truncate(ll,linewidth-10)))
+            if args.props:
+                _print_props( i, linewidth )
             if args.comments:
                 comments = _strip_empty( i.comments )
                 for ll in comments:

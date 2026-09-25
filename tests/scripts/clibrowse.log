@@ -1,6 +1,6 @@
 ============= CLI >>browse --help<< =============
-usage: ncrystal_browse [-h] [-s WORD] [-E] [-f NAME] [-c] [--names]
-                       [-x DATANAME] [--plugins] [--color WHEN]
+usage: ncrystal_browse [-h] [-s WORD] [-E] [-f NAME] [-w EXPR] [--props] [-c]
+                       [--names] [-x DATANAME] [--plugins] [--color WHEN]
                        [PATTERN ...]
 
 Browse and search the data files available to NCrystal (e.g. files in the
@@ -13,7 +13,9 @@ comments of any NCMAT files. The list can be narrowed down by providing
 one or more PATTERNs (case-insensitive substrings of file names, or glob
 patterns like "Al*.ncmat"), by requiring certain words to be present in
 the file names or NCMAT header comments (--search), or by only showing
-files from a given source (--factory).
+files from a given source (--factory). Files can also be selected based
+on their physics content with --where (see below), which requires all
+candidate files to be loaded.
 
 Files marked "(hidden)" are shadowed by files with the same name from a
 higher priority source, and are listed with their full name (like
@@ -34,6 +36,12 @@ options:
                         boundaries (e.g. -E -s "boron|b4c").
   -f, --factory NAME    Only show files delivered by the named factory (e.g.
                         "stdlib" or "virtual").
+  -w, --where EXPR      Only show files for which the Python expression EXPR
+                        is true, based on physics properties of the loaded
+                        material (see below). Can be specified multiple times,
+                        in which case all expressions must be true.
+  --props               Show the physics properties of each file (i.e. the
+                        values available in --where expressions).
   -c, --comments        Show full NCMAT header comments of the files.
   --names               Only print the names of the files, one per line
                         (useful for scripting).
@@ -62,10 +70,37 @@ examples:
   ncrystal_browse -c Al_sg225.ncmat   # show header comments of a file
   ncrystal_browse -x Al_sg225.ncmat   # show full content of a file
   ncrystal_browse --plugins           # list loaded plugins
+  ncrystal_browse -w "'B' in elements and absxs > 100"
+  ncrystal_browse -w "'vdos' in dyninfo" -w "crystal and sg == 225"
+  ncrystal_browse --props Al_sg225.ncmat  # show the properties of a file
+
+physics properties available in --where expressions (and --props):
+  elements  : set of element names, e.g. {"Al","O"}
+  atoms     : set of atom labels, including isotopes, e.g. {"D","O"}
+  nelements : number of different elements
+  formula   : chemical formula, e.g. "Al2O3"
+  absxs     : absorption cross section per atom at 2200m/s [barn]
+  scatxs    : free scattering cross section per atom [barn]
+  density   : density [g/cm3]
+  numdens   : number density [atoms/Aa3]
+  temp      : temperature [K]
+  state     : state of matter: "solid", "liquid", "gas", or "unknown"
+  crystal   : True if crystalline (for multiphase: any phase)
+  sg        : space group number (None if not available)
+  natoms    : number of atoms in unit cell (None if not available)
+  dyninfo   : set of dynamic info types present, among "vdos", "vdosdebye",
+              "scatknl" (a full scattering kernel), "freegas", and "sterile"
+  nphases   : number of phases (1 for single-phase materials)
+
+--where expressions are Python expressions using the properties above,
+comparison and boolean operators, set/string/number literals, and the
+functions: abs, all, any, len, max, min, round, set, sorted. Comparisons with
+unavailable (None) values are considered false.
 
 ============= CLI >>browse -f virtual<< =============
-==> 4 files from "virtual" (virtual, priority=130):
+==> 5 files from "virtual" (virtual, priority=130):
     Al_sg225.ncmat
+    mycrystal.ncmat  A small crystal.
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
     notncmat.laz
     othermat.ncmat
@@ -122,12 +157,16 @@ Note: Search WORDs are matched literally. Use -E/--regex for regular expressions
         | My test material (for testing only).
         | Some more comments mentioning Togo and VDOS.
 ============= CLI >>browse -E --names '^my.*mat' 'othermat\.ncmat$' '^other$'<< =============
+mycrystal.ncmat
 mytestmat.ncmat
 othermat.ncmat
 ============= CLI >>browse --names 'my.*mat'<< =============
 ============= CLI >>browse -c -f virtual<< =============
-==> 4 files from "virtual" (virtual, priority=130):
+==> 5 files from "virtual" (virtual, priority=130):
     Al_sg225.ncmat
+    mycrystal.ncmat
+        # A small crystal.
+
     mytestmat.ncmat
         # My test material (for testing only).
         # Second line of description which is long enough that it will have to be
@@ -137,6 +176,72 @@ othermat.ncmat
 
     notncmat.laz
     othermat.ncmat
+============= CLI >>browse --props -f virtual<< =============
+==> 5 files from "virtual" (virtual, priority=130):
+    Al_sg225.ncmat
+        elements={'O'}  atoms={'O'}  nelements=1  formula='O'  absxs=0.00019
+        scatxs=3.74537  density=2  numdens=0.07528  temp=293.15  state='solid'
+        crystal=False  sg=None  natoms=None  dyninfo={'vdosdebye'}  nphases=1
+    mycrystal.ncmat  A small crystal.
+        elements={'Al'}  atoms={'Al'}  nelements=1  formula='Al'  absxs=0.231
+        scatxs=1.39667  density=2.69865  numdens=0.0602324  temp=293.15
+        state='solid'  crystal=True  sg=225  natoms=4  dyninfo={'vdosdebye'}
+        nphases=1
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        elements={'H'}  atoms={'H'}  nelements=1  formula='H'  absxs=0.3326
+        scatxs=20.4902  density=1  numdens=0.597449  temp=293.15  state='solid'
+        crystal=False  sg=None  natoms=None  dyninfo={'vdosdebye'}  nphases=1
+    notncmat.laz
+        [could not load: Error in Lazy/Lau data: Missing required spacegroup...
+    othermat.ncmat
+        elements={'O'}  atoms={'O'}  nelements=1  formula='O'  absxs=0.00019
+        scatxs=3.74537  density=2  numdens=0.07528  temp=293.15  state='solid'
+        crystal=False  sg=None  natoms=None  dyninfo={'vdosdebye'}  nphases=1
+============= CLI >>browse --props -f stdlib LiquidHeavyWater<< =============
+==> 1 file from "stdlib" (<stdlib-location>, priority=120):
+    LiquidHeavyWaterD2O_T293.6K.ncmat  Heavy water (D2O) based on ENDF/B-VIII...
+        elements={'H','O'}  atoms={'D','O'}  nelements=2  formula='D2O'
+        absxs=0.000409333  scatxs=3.51043  density=1.10526  numdens=0.0997033
+        temp=293.6  state='liquid'  crystal=False  sg=None  natoms=None
+        dyninfo={'scatknl'}  nphases=1
+============= CLI >>browse -w '"H" in elements' -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+============= CLI >>browse -w 'crystal and sg==225 and natoms==4' -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mycrystal.ncmat  A small crystal.
+============= CLI >>browse -w 'sg > 200' -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mycrystal.ncmat  A small crystal.
+============= CLI >>browse -w '"vdosdebye" in dyninfo' -w 'density<1.5' -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+============= CLI >>browse -w 'absxs>0.2 and len(atoms)==1 and state=="solid"' -f virtual<< =============
+==> 2 files from "virtual" (virtual, priority=130):
+    mycrystal.ncmat  A small crystal.
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+============= CLI >>browse -w 'formula in ("D2O","H2O")' -f stdlib Liquid<< =============
+==> 2 files from "stdlib" (<stdlib-location>, priority=120):
+    LiquidHeavyWaterD2O_T293.6K.ncmat  Heavy water (D2O) based on ENDF/B-VIII...
+    LiquidWaterH2O_T293.6K.ncmat       Water (H2O) based on ENDF/B-VIII.0 sca...
+============= CLI >>browse -w '"scatknl" in dyninfo and "O" in elements' -f stdlib Liquid --names<< =============
+LiquidHeavyWaterD2O_T293.6K.ncmat
+LiquidWaterH2O_T293.6K.ncmat
+============= CLI >>browse -w 'elements <= {"Al","O"} and nphases==1' -f virtual<< =============
+==> 3 files from "virtual" (virtual, priority=130):
+    Al_sg225.ncmat
+    mycrystal.ncmat  A small crystal.
+    othermat.ncmat
+============= CLI >>browse -w 'foo > 1'<< =============
+Caught expected ArgumentError('Unknown name "foo" in --where expression "foo > 1" (see --help for available properties)')
+============= CLI >>browse -w 'open("x")'<< =============
+Caught expected ArgumentError('Unknown name "open" in --where expression "open("x")" (see --help for available properties)')
+============= CLI >>browse -w elements.__class__<< =============
+Caught expected ArgumentError('Invalid --where expression "elements.__class__" (private attributes are not allowed)')
+============= CLI >>browse -w 'absxs >'<< =============
+Caught expected ArgumentError('Invalid --where expression "absxs >": invalid syntax')
+============= CLI >>browse -w 'absxs/0 > 1' -f virtual<< =============
+Caught expected NCBadInput('Error evaluating --where expression "absxs/0 > 1": float division by zero')
 ============= CLI >>browse -c stdlib::Al_sg225<< =============
 ==> 1 file from "stdlib" (<stdlib-location>, priority=120):
     stdlib::Al_sg225.ncmat (hidden)
@@ -187,7 +292,7 @@ Caught expected NCFileNotFound('Could not find data: "nonexistent.ncmat"')
 ============= CLI >>browse -x mytestmat.ncmat -f virtual<< =============
 Caught expected ArgumentError('--extract and --plugins can not be combined with other options.')
 ============= CLI >>browse --names -c<< =============
-Caught expected ArgumentError('Do not specify both --names and --comments.')
+Caught expected ArgumentError('Do not specify --names together with --comments or --props.')
 ============= CLI >>browse -E -s '('<< =============
 Caught expected ArgumentError('Invalid regular expression "(": missing ), unterminated subpattern at position 0')
 ============= CLI >>browse -s togo -s my -f virtual<< =============
