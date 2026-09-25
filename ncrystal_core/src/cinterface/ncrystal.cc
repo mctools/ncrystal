@@ -49,7 +49,11 @@
 #include "NCrystal/internal/query/NCQuery.hh"
 #include <cstdio>
 #include <chrono>
+#include <map>
 #include <sstream>
+#ifndef NCRYSTAL_DISABLE_THREADS
+#  include <thread>
+#endif
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -279,23 +283,59 @@ namespace NCRYSTAL_NAMESPACE {
 
     static int quietonerror = 0;
     static int haltonerror = 1;
-    static int waserror = 0;
-    static char errmsg[512];
-    static char errtype[64];
     static void (*custom_error_handler)(char *,char*) = 0;
+
+    //Error state is kept per thread (keyed on thread id, guarded by a
+    //mutex, since thread_local is avoided), so an error in one thread is
+    //never reported in another. Entries only change via their own thread,
+    //so returned char pointers stay valid until that thread clears them.
+#ifndef NCRYSTAL_DISABLE_THREADS
+    using ThreadID = std::thread::id;
+    ThreadID currentThreadID() { return std::this_thread::get_id(); }
+#else
+    using ThreadID = int;
+    ThreadID currentThreadID() { return 1; }//always the same
+#endif
+    struct ErrorState {
+      char errmsg[512];
+      char errtype[64];
+    };
+    struct ErrorStates {
+      std::mutex mtx;
+      std::map<ThreadID,ErrorState> states;
+    };
+    ErrorStates& errorStates()
+    {
+      static ErrorStates s_states;
+      return s_states;
+    }
+    const ErrorState* currentErrorState()
+    {
+      auto& es = errorStates();
+      NCRYSTAL_LOCK_GUARD(es.mtx);
+      auto it = es.states.find( currentThreadID() );
+      return it == es.states.end() ? nullptr : &it->second;
+    }
 
     void setError(const char *msg, const char * etype = 0) noexcept {
       if (!etype)
         etype="ncrystal_c-interface";
-      strncpy(errmsg,msg,sizeof(errmsg)-1);
-      strncpy(errtype,etype,sizeof(errtype)-1);
+      ErrorState* state;
+      {
+        auto& es = errorStates();
+        NCRYSTAL_LOCK_GUARD(es.mtx);
+        state = &es.states[ currentThreadID() ];
+      }
+      char * errmsg = state->errmsg;
+      char * errtype = state->errtype;
+      strncpy(errmsg,msg,sizeof(state->errmsg)-1);
+      strncpy(errtype,etype,sizeof(state->errtype)-1);
       //Ensure final null-char in case of very long input strings:
-      errmsg[sizeof(errmsg)-1]='\0';
-      errtype[sizeof(errtype)-1]='\0';
+      errmsg[sizeof(state->errmsg)-1]='\0';
+      errtype[sizeof(state->errtype)-1]='\0';
       if (custom_error_handler) {
         (*custom_error_handler)(errtype,errmsg);
       }
-      waserror = 1;
       if (!quietonerror) {
         NCRYSTAL_RAWOUT("NCrystal ERROR ["<<errtype<<"]: "<<errmsg<<'\n');
       }
@@ -343,22 +383,26 @@ void ncrystal_seterrhandler(void (*handler)(char*,char*))
 
 int ncrystal_error(void)
 {
-  return ncc::waserror;
+  return ncc::currentErrorState() ? 1 : 0;
 }
 
 const char * ncrystal_lasterror(void)
 {
-  return ncc::waserror ? ncc::errmsg : 0;
+  auto state = ncc::currentErrorState();
+  return state ? state->errmsg : 0;
 }
 
 const char * ncrystal_lasterrortype(void)
 {
-  return ncc::waserror ? ncc::errtype : 0;
+  auto state = ncc::currentErrorState();
+  return state ? state->errtype : 0;
 }
 
 void ncrystal_clearerror(void)
 {
-  ncc::waserror = 0;
+  auto& es = ncc::errorStates();
+  NCRYSTAL_LOCK_GUARD(es.mtx);
+  es.states.erase( ncc::currentThreadID() );
 }
 
 int ncrystal_setquietonerror(int q)

@@ -1036,7 +1036,8 @@ extern "C" {
   NCRYSTAL_API int ncrystal_setquietonerror(int);/* returns old value */
 
   /*If not halting on error, these functions can be used to access information     */
-  /*about errors encountered:                                                      */
+  /*about errors encountered. The error state is kept separately for each thread,  */
+  /*so these functions only report errors encountered in the calling thread:       */
   NCRYSTAL_API int ncrystal_error(void);/* returns 1 if an error condition occurred. */
   NCRYSTAL_API const char * ncrystal_lasterror(void);/* returns description of last error (NULL if none) */
   NCRYSTAL_API const char * ncrystal_lasterrortype(void);/* returns description of last error (NULL if none) */
