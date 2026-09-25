@@ -94,7 +94,9 @@ NC::CosineScatAngle NC::ElIncXS::sampleMuMonoAtomic( RNG& rng, NeutronEnergy eki
 
      double maxval = exp_smallarg_approx(a);
      while (true) {
-       double mu = rng.generate()*2.0-1.0;
+       //Explicit std::fma (unaudited a*b-c shape otherwise -- see
+       //docs/devel_fma_attribute.md):
+       double mu = std::fma( rng.generate(), 2.0, -1.0 );
        if (rng.generate()*maxval < exp_smallarg_approx(a*mu))
          return CosineScatAngle{ mu };
      }

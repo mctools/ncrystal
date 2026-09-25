@@ -150,7 +150,9 @@ namespace NCRYSTAL_NAMESPACE {
       nc_assert( beta >= -m_c_real*1.001 );
       //close to kinematical end-point, or neutron has such an extreme energy
       //that it triggered various code-paths resulting in -m_c_real<beta<-m_c.
-      return std::make_pair(beta*m_kT,rng.generate()*2.0-1.0);
+      //Explicit std::fma (unaudited a*b-c shape otherwise -- see
+      //docs/devel_fma_attribute.md):
+      return std::make_pair( beta*m_kT, std::fma( rng.generate(), 2.0, -1.0 ) );
     }
     auto res = convertAlphaBetaToDeltaEMu( sampleAlpha(beta,rng),
                                            beta,
