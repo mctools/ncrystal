@@ -200,15 +200,19 @@ f"""
 //match whatever compiler simplebuild actually invokes, not the host running
 //this script. Falls through to the safe (disabled) fallback in ncapi.h.in
 //on anything else, notably ARM (where "fma" is not even a valid
-//target_clones string -- see docs/devel_fma_attribute.md), Windows, and
-//(confirmed via a real basictest.yml CI failure on macOS/Intel: Apple
-//Clang's target_clones silently produces no linkable definition for a
-//namespaced/member C++-mangled target, e.g. NC::stable_expm1 or
-//Romberg::integrate, even though it works fine for a plain extern "C"
-//function -- exactly the gap ncrystal_fmadispatch.cmake's probe was
-//extended to catch after this) __APPLE__:
+//target_clones string -- see docs/devel_fma_attribute.md) and Windows.
+//A real basictest.yml CI failure on macOS/Intel showed this assumption is
+//only valid if every NCRYSTAL_FMADISPATCH_ATTR-decorated function is either
+//in an anonymous namespace (the ordinary case) or, if it must be namespaced/
+//externally-visible/a member, routed through an extern "C" +
+//NCRYSTAL_APPLY_C_NAMESPACE-wrapped free function (see
+//docs/devel_fma_attribute.md and NC::stable_exp/stable_expm1/
+//NCrystal::Romberg::integrate for the pattern) -- Apple Clang's
+//target_clones lowering on Mach-O silently produces no linkable definition
+//for a namespaced/member (C++-mangled) target otherwise. The codebase now
+//follows that convention throughout, so __APPLE__ is included again below:
 #if defined(__x86_64__) || defined(__i386__)
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
 #if ( defined(__clang__) && __clang_major__ >= 14 ) || ( defined(__GNUC__) && !defined(__clang__) && __GNUC__ >= 6 )
 //Clang debug builds (NDEBUG undefined) hit a confirmed Clang codegen bug
 //where an ODR-used inline function only reachable via a target_clones

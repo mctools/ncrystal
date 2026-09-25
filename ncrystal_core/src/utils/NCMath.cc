@@ -460,12 +460,32 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-//NCRYSTAL_FMADISPATCH_ATTR: straight-line code (no loops, no nc_assert),
-//every arithmetic expression already either explicit std::fma or one of
-//the exact operations (std::round/std::ldexp/subtraction of at-most-1.0
-//from 1.0) documented above as safe -- audited per rule 1:
+//extern "C" + NCRYSTAL_APPLY_C_NAMESPACE: stable_expm1/stable_exp are
+//exported (declared in NCMath.hh, called from other .cc files), unlike
+//expm1_reducedarg_taylor14 above (anon-namespace, internal linkage, not
+//affected by any of this) -- Apple Clang's target_clones lowering on
+//Mach-O has been confirmed (a real basictest.yml CI failure) to silently
+//produce no linkable definition for a *namespaced or member* (i.e.
+//C++-mangled) target_clones target, while the identical attribute on a
+//plain extern "C" function links and runs fine there. Giving the actual
+//(dispatched) definition C linkage sidesteps that gap; the public
+//NC::stable_expm1 below becomes a thin wrapper. NCRYSTAL_APPLY_C_NAMESPACE
+//keeps the resulting unmangled symbol from colliding with a
+//differently-namespaced NCrystal build in the same process, the same way
+//e.g. register_stdscat_factory already does for unrelated reasons -- see
+//docs/devel_fma_attribute.md for the full reasoning:
+//
+//Lexically nested inside namespace NCRYSTAL_NAMESPACE (unlike
+//register_stdscat_factory's plain file-scope extern "C" elsewhere in the
+//codebase) purely so unqualified names from this namespace (kInfinity,
+//ncisnan, the anon-namespace constants/expm1_reducedarg_taylor14 above)
+//remain visible exactly as they were when this was a NC::-qualified
+//definition -- extern "C" strips C++ name mangling regardless of lexical
+//namespace nesting, so the resulting symbol is unaffected by this:
+namespace NCRYSTAL_NAMESPACE {
+extern "C"
 NCRYSTAL_FMADISPATCH_ATTR
-double NC::stable_expm1( double x )
+double NCRYSTAL_APPLY_C_NAMESPACE(detail_stable_expm1)( double x )
 {
   //Avoids std::exp/std::log/std::expm1/std::log1p entirely (unlike the
   //Newton-Raphson-on-libm approach this replaced), so the result is
@@ -505,12 +525,17 @@ double NC::stable_expm1( double x )
   return std::fma( pow2n, expm1_r, pow2n - 1.0 );
 }
 
+//extern "C" + NCRYSTAL_APPLY_C_NAMESPACE: see detail_stable_expm1 above
+//for why. Calls the *detail* expm1 directly (not the public wrapper), to
+//stay on the C-linkage, dispatched fast path throughout, including the
+//recursive self-call for negative x:
 //NCRYSTAL_FMADISPATCH_ATTR: no loops, no nc_assert, and the only
-//arithmetic beyond the calls to the (also decorated) stable_expm1 is a
-//division and a plain "1.0+..." addition, neither an a*b+c shape --
+//arithmetic beyond the calls to the (also decorated) detail_stable_expm1
+//is a division and a plain "1.0+..." addition, neither an a*b+c shape --
 //audited per rule 1:
+extern "C"
 NCRYSTAL_FMADISPATCH_ATTR
-double NC::stable_exp( double x )
+double NCRYSTAL_APPLY_C_NAMESPACE(detail_stable_exp)( double x )
 {
   //exp(x)=1+expm1(x): unlike the "obvious" exp(x)-1 (which cancels
   //catastrophically for small x, the reason expm1 exists in the first
@@ -531,8 +556,19 @@ double NC::stable_exp( double x )
   //above) and reciprocate -- division doesn't cancel, so it stays accurate
   //all the way down to underflow:
   if ( x < 0.0 )
-    return 1.0 / stable_exp( -x );
-  return 1.0 + stable_expm1( x );
+    return 1.0 / NCRYSTAL_APPLY_C_NAMESPACE(detail_stable_exp)( -x );
+  return 1.0 + NCRYSTAL_APPLY_C_NAMESPACE(detail_stable_expm1)( x );
+}
+}//namespace NCRYSTAL_NAMESPACE
+
+double NC::stable_expm1( double x )
+{
+  return NCRYSTAL_APPLY_C_NAMESPACE(detail_stable_expm1)( x );
+}
+
+double NC::stable_exp( double x )
+{
+  return NCRYSTAL_APPLY_C_NAMESPACE(detail_stable_exp)( x );
 }
 
 double NC::stable_log( double x )

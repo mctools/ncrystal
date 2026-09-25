@@ -13,7 +13,15 @@ CPU dispatch. Internal NCrystal use only. Quick rules:
    provably safe if silently contracted.
 3. Never remove existing `std::fma()` calls; this only speeds them up.
 4. Never use on a virtual member function or in headers.
-5. Never use on `extern "C"` functions.
+5. Never decorate a namespaced (non-anonymous) free function or a member
+   function *directly* if it must remain externally visible/callable --
+   Apple Clang's `target_clones` on Mach-O silently fails to produce a
+   linkable definition for such a target. If it needs dispatch, extract
+   the body into a private `extern "C"` + `NCRYSTAL_APPLY_C_NAMESPACE`
+   -wrapped free function instead (see `NC::stable_exp`/`stable_expm1`/
+   `NCrystal::Romberg::integrate` for the pattern), and make the original
+   function a thin wrapper calling it. Never use a bare `extern "C"`
+   function (without the `NCRYSTAL_APPLY_C_NAMESPACE` wrapping) for this.
 6. Never use `ncrange(...)`/`ValRange` (the `for (auto i : ncrange(n))`
    idiom) inside the decorated function's body; use a plain hand-written
    `for (std::size_t i = 0; i < n; ++i)` loop instead.
@@ -54,30 +62,36 @@ for `static` and non-static (non-virtual) member functions. Virtual member
 functions are rejected outright by GCC ("sorry, unimplemented: virtual
 function multiversioning not supported") -- do not use it there.
 
-**Never `extern "C"` (rule 4).** Not just unneeded -- actively harmful.
-`extern "C"` on a function inside an anonymous namespace defeats that
-namespace's local linkage in the object NCrystal actually ships (confirmed
-with `nm -D`/`readelf --dyn-syms` on a real build, with this project's
-ordinary, non-`-fvisibility=hidden` flags): the symbol leaks into the
-shared library's *dynamic* symbol table as a `GLOBAL`/`WEAK` export, even
-though the equivalent plain (mangled) C++ symbol correctly stays local.
-This is true independent of `target_clones` -- a plain `extern "C"`
-function with no attribute at all leaks the same way. An unnamespaced,
-`WEAK` symbol is exactly what
-`NCRYSTAL_NAMESPACE_PROTECTION`/`NCRYSTAL_C_NAMESPACE` (see `ncapi.h.in`)
-exist to prevent: it lets two differently namespaced NCrystal builds
-loaded into the same process (e.g. simplebuild's `NCrystalDev` and a
-pip-installed `NCrystal`) silently bind to *each other's* definition of
-the same-named function -- fine while the two builds happen to agree, a
-silent correctness bug the moment they do not. Confirmed working, at full
-speed, without `extern "C"`, on both a plain free function (ordinary
-mangled C++ linkage) and on member functions (which cannot be given C
-linkage at all -- see above). If a stable, unmangled name is ever
-genuinely needed (e.g. calling the function from ctypes, or across a
-shared-library boundary the way the stable C API in `ncrystal.cc` does),
-that function is not a private, file-local kernel any more, and needs the
-same namespacing guard `ncrystal.h`/`ncrystal.cc` already use for that
-purpose -- a different, bigger undertaking than this document covers.
+**Never a *bare* `extern "C"` (rule 5).** `extern "C"` on a function inside
+an anonymous namespace defeats that namespace's local linkage in the
+object NCrystal actually ships (confirmed with `nm -D`/`readelf
+--dyn-syms` on a real build, with this project's ordinary,
+non-`-fvisibility=hidden` flags): the symbol leaks into the shared
+library's *dynamic* symbol table as a `GLOBAL`/`WEAK` export, even though
+the equivalent plain (mangled) C++ symbol correctly stays local. This is
+true independent of `target_clones` -- a plain `extern "C"` function with
+no attribute at all leaks the same way. The leak itself is *not* the
+hazard (also confirmed: `register_stdscat_factory` elsewhere in the
+codebase leaks into the dynamic symbol table the exact same way, and has
+always been fine) -- the hazard is an **unnamespaced** leaked name: two
+differently namespaced NCrystal builds loaded into the same process (e.g.
+simplebuild's `NCrystalDev` and a pip-installed `NCrystal`) would silently
+bind to *each other's* definition of the same-named function -- fine
+while the two builds happen to agree, a silent correctness bug the moment
+they do not. `NCRYSTAL_APPLY_C_NAMESPACE` (see `ncapi.h.in`) exists
+precisely to prevent that, by baking the build's namespace into the
+leaked name itself (`ncrystaldev_foo` vs. `ncrystal_foo`), so there is
+nothing left to collide. This is exactly what `register_stdscat_factory`
+already does (for unrelated reasons: a stable name for dynamic-plugin
+lookup), and what `detail_stable_exp`/`detail_stable_expm1`/
+`detail_romberg_integrate` (see rule 5's Apple/macOS section below) now
+also do. A **bare** `extern "C"` function, without this wrapping, is still
+forbidden: that *is* the unnamespaced-collision hazard.
+Confirmed working, at full speed, without any `extern "C"` at all, on both
+a plain free function (ordinary mangled C++ linkage) and on member
+functions (which cannot be given C linkage at all in the first place) --
+so absent the Apple/macOS gap below, there is no reason to reach for this
+pattern at all.
 
 **Declaration vs. definition, and translation-unit scope (rule 5).** The
 attribute does not technically need to appear identically on both a
@@ -144,20 +158,46 @@ lack the ifunc mechanism this relies on regardless of compiler version). See
 `ncrystal_fmadispatch.cmake` for the actual compile+link+run probe used
 instead.
 
-**Apple/macOS gotcha (confirmed via a real basictest.yml CI failure, not
-just theorised).** Apple Clang's `target_clones` lowering on Mach-O can
-silently fail to produce a linkable definition for a namespaced or
-non-static-member (i.e. C++-mangled) target -- `NC::stable_expm1` and
-`Romberg::integrate` both hit "undefined symbol" at link time on
-macOS/Intel -- while the exact same attribute on a plain `extern "C"`
-function links and runs fine. The probe in `ncrystal_fmadispatch.cmake`
-originally only tested an `extern "C"` function (ironically, precisely the
-one shape rule 5 above forbids using in real code), so it reported the
-technique as supported when it was not; it now also probes a namespaced
-free function and a non-virtual member function, matching real usage, and
-correctly reports "unsupported" here since `try_run`'s build step itself
-fails exactly as the real project's would. simplebuild's own (non-probing,
-assumption-based) equivalent in `devel/simplebuild/pypath/sbgen/main.py`
-had the same blind spot -- it assumed recent Clang/GCC on `__APPLE__`
-x86_64 was safe -- and has been corrected to exclude `__APPLE__` for the
-same reason.
+**Apple/macOS gotcha, and the established fix (confirmed via a real
+basictest.yml CI failure, not just theorised).** Apple Clang's
+`target_clones` lowering on Mach-O can silently fail to produce a
+linkable definition for a namespaced or non-static-member (i.e.
+C++-mangled) target -- `NC::stable_expm1` and `Romberg::integrate` both
+hit "undefined symbol" at link time on macOS/Intel -- while the exact
+same attribute on a plain `extern "C"` function links and runs fine
+there. Both functions needed to stay externally callable (`stable_exp`/
+`stable_expm1` are declared in `NCMath.hh` and called from other `.cc`
+files; `Romberg::integrate` is a public, non-virtual member function), so
+neither could simply move into an anonymous namespace.
+
+The fix: extract the actual (decorated) body into a private, file-local
+`extern "C"` free function named via `NCRYSTAL_APPLY_C_NAMESPACE` (see
+rule 5 above for why that specific combination, rather than a bare
+`extern "C"`, is safe), and make the original namespaced/member function
+a thin wrapper calling it. For a free function this is direct
+(`detail_stable_exp`/`detail_stable_expm1` in `NCMath.cc`). For a member
+function that calls other (virtual) methods on `*this`
+(`Romberg::integrate`, via `evalFuncMany`/`evalFuncManySum`/`accept`),
+the extracted free function instead takes the instance as an explicit
+`const Romberg*` parameter and calls through it
+(`detail_romberg_integrate` in `NCRomberg.cc`) -- calling a virtual method
+from within a `target_clones` function is unaffected by whether the call
+goes through an explicit pointer or an implicit `this` (same as already
+noted above for `evalFuncMany`/`evalFuncManySum`/`accept` themselves not
+being decorable). Confirmed on GCC 15 and Clang 21 (via `nm --demangle`)
+that this still produces genuine `.default`/`.fma`/`.resolver`
+multiversioning, and (via `nm -D`) that the wrapped symbols do leak into
+the dynamic symbol table exactly like `register_stdscat_factory` already
+does, harmlessly, since `NCRYSTAL_APPLY_C_NAMESPACE` makes the name
+build-specific.
+
+The probe in `ncrystal_fmadispatch.cmake` still tests only a plain
+`extern "C"` function (matching this established, safe pattern) rather
+than a namespaced/member one -- it is not the probe's job to enforce the
+rule-5 coding convention, only to confirm the technique the convention
+relies on actually works on this platform/toolchain. simplebuild's own
+(non-probing, assumption-based) equivalent in
+`devel/simplebuild/pypath/sbgen/main.py` makes the same "extern C"
+assumption, and now includes `__APPLE__` again on that basis: valid
+*provided* every current and future `NCRYSTAL_FMADISPATCH_ATTR`-decorated
+function keeps following rule 5.
