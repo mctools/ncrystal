@@ -504,21 +504,41 @@ def _collect( args ):
                   and _eval_where( args.where_code, i.props ) ]
     return items
 
-def _load_props( items ):
-    from ._msg import _suppress_msgs_ctx
+def _load_one( key ):
+    #Returns (props, None) or (None, errmsg).
     from .core import createInfo
+    try:
+        return _physics_props( createInfo( key ) ), None
+    except Exception as e: # noqa BLE001
+        #Files which can not be loaded are simply not selected:
+        return None, ( str(e) or e.__class__.__name__ )
+
+def _nthreads_default():
+    #Gains saturate around 8 threads (remaining Python work holds the GIL):
+    import os
+    return max( 1, min( 8, os.cpu_count() or 1 ) )
+
+def _load_props( items, nthreads = None ):
+    #Load all items in parallel. Threads are efficient here, since ctypes
+    #releases the GIL while the (thread-safe) C++ factories do the work.
+    from ._msg import _suppress_msgs_ctx
     progress = _Progress( len(items), 'Loading materials' )
+    nthreads = min( len(items), nthreads or _nthreads_default() )
     #Loading might emit warnings (e.g. about @CUSTOM_ sections) which are not
     #relevant here:
     with _suppress_msgs_ctx():
-        for n, i in enumerate( items ):
-            progress.update( n )
-            i.props, i.load_error = None, None
-            try:
-                i.props = _physics_props( createInfo( i.entry.fullKey ) )
-            except Exception as e: # noqa BLE001
-                #Files which can not be loaded are simply not selected:
-                i.load_error = str(e) or e.__class__.__name__
+        if nthreads <= 1:
+            for n, i in enumerate( items ):
+                progress.update( n )
+                i.props, i.load_error = _load_one( i.entry.fullKey )
+        else:
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+            with ThreadPoolExecutor( max_workers = nthreads ) as pool:
+                futs = dict( ( pool.submit( _load_one, i.entry.fullKey ), i )
+                             for i in items )
+                for n, f in enumerate( as_completed( futs ) ):
+                    progress.update( n )
+                    futs[f].props, futs[f].load_error = f.result()
     progress.done()
 
 def _print_props( item, linewidth ):
