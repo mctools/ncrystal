@@ -1,0 +1,160 @@
+============= CLI >>browse --help<< =============
+usage: ncrystal_browse [-h] [-s WORD] [-f NAME] [-c] [--names] [-x DATANAME]
+                       [--plugins]
+                       [PATTERN ...]
+
+Browse and search the data files available to NCrystal (e.g. files in the
+standard data library, in the current directory, or in-memory files),
+and the loaded plugins.
+
+By default a list of available files is printed, grouped by the source
+delivering them, and with a short description extracted from the header
+comments of any NCMAT files. The list can be narrowed down by providing
+one or more PATTERNs (case-insensitive substrings of file names, or glob
+patterns like "Al*.ncmat"), by requiring certain words to be present in
+the file names or NCMAT header comments (--search), or by only showing
+files from a given source (--factory).
+
+Files marked "(hidden)" are shadowed by files with the same name from a
+higher priority source, and are listed with their full name (like
+"stdlib::Al_sg225.ncmat"), which can be used to select them explicitly.
+
+positional arguments:
+  PATTERN               Only show files whose names match the pattern.
+
+options:
+  -h, --help            show this help message and exit
+  -s, --search WORD     Only show files which contain WORD in their name or
+                        NCMAT header comments (case-insensitive). Can be
+                        specified multiple times, in which case all words must
+                        be present. Matching comment lines are shown.
+  -f, --factory NAME    Only show files delivered by the named factory (e.g.
+                        "stdlib" or "virtual").
+  -c, --comments        Show full NCMAT header comments of the files.
+  --names               Only print the names of the files, one per line
+                        (useful for scripting).
+  -x, --extract DATANAME
+                        Print the full content of DATANAME (e.g. a file name),
+                        using the same lookup mechanism as for data in
+                        NCrystal cfg-strings. This can therefore also be used
+                        to inspect in-memory (or on-demand created) data.
+  --plugins             List the currently loaded plugins.
+
+examples:
+  ncrystal_browse                     # list all files
+  ncrystal_browse Al                  # files with "al" in the name
+  ncrystal_browse "*_sg225*"          # files matching a glob pattern
+  ncrystal_browse -s vdos -s togo     # search names and header comments
+  ncrystal_browse -c Al_sg225.ncmat   # show header comments of a file
+  ncrystal_browse -x Al_sg225.ncmat   # show full content of a file
+  ncrystal_browse --plugins           # list loaded plugins
+
+============= CLI >>browse -f virtual<< =============
+==> 4 files from "virtual" (virtual, priority=130):
+    Al_sg225.ncmat
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+    notncmat.laz
+    othermat.ncmat
+============= CLI >>browse Al_sg225<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    Al_sg225.ncmat
+==> 1 file from "stdlib" (<stdlib-location>, priority=120):
+    stdlib::Al_sg225.ncmat  Aluminium (Al, fcc, cubic, SG-225 / Fm-3m) (hidden)
+============= CLI >>browse 'stdlib::Be*'<< =============
+==> 4 files from "stdlib" (<stdlib-location>, priority=120):
+    Be3N2_sg206_BerylliumNitride.ncmat   Alpha beryllium nitride (alpha-Be3N2...
+    BeF2_sg152_Beryllium_Fluoride.ncmat  Beryllium fluoride (BeF2, trigonal,...
+    BeO_sg186.ncmat                      Beryllium Oxide (BeO, hexagonal, SG-...
+    Be_sg194.ncmat                       Beryllium
+============= CLI >>browse --names -f stdlib '*sg229*'<< =============
+Ba_sg229.ncmat
+Ca_sg229_Calcium-gamma.ncmat
+Cr_sg229.ncmat
+Fe_sg229_Iron-alpha.ncmat
+K_sg229.ncmat
+Mo_sg229.ncmat
+Na_sg229.ncmat
+Nb_sg229.ncmat
+Rb_sg229.ncmat
+V_sg229.ncmat
+W_sg229.ncmat
+============= CLI >>browse --names Al_sg225<< =============
+Al_sg225.ncmat
+stdlib::Al_sg225.ncmat
+============= CLI >>browse -s togo -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        | Some more comments mentioning Togo and VDOS.
+============= CLI >>browse -s TOGO -s vdos -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        | Some more comments mentioning Togo and VDOS.
+============= CLI >>browse -s togo -s nonexistentword<< =============
+No matching files found.
+============= CLI >>browse -s togo -f stdlib Al_sg225<< =============
+==> 1 file from "stdlib" (<stdlib-location>, priority=120):
+    stdlib::Al_sg225.ncmat  Aluminium (Al, fcc, cubic, SG-225 / Fm-3m) (hidden)
+        | A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5
+============= CLI >>browse -c -f virtual<< =============
+==> 4 files from "virtual" (virtual, priority=130):
+    Al_sg225.ncmat
+    mytestmat.ncmat
+        # My test material (for testing only).
+        # Second line of description which is long enough that it will have to be
+        # truncated in the listing.
+        #
+        # Some more comments mentioning Togo and VDOS.
+
+    notncmat.laz
+    othermat.ncmat
+============= CLI >>browse -c stdlib::Al_sg225<< =============
+==> 1 file from "stdlib" (<stdlib-location>, priority=120):
+    stdlib::Al_sg225.ncmat (hidden)
+        # Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)
+        #
+        # Under usual conditions this phase exists from 0 to 933K.
+        #
+        # Structure converted with ncrystal_onlinedb2ncmat from:
+        #
+        #    "Second edition. Interscience Publishers,
+        #     New York, Cubic closest packed, ccp, structure"
+        #    Wyckoff R W G (1963)
+        #    Crystallography Open Database entry 9008460
+        #    https://www.crystallography.net/cod/9008460.html
+        #
+        # This crystal structure is also compatible with structure obtained from:
+        #
+        #   https://www.crystallography.net/cod/9012428.html
+        #   https://www.crystallography.net/cod/9011602.html
+        #   https://www.crystallography.net/cod/9012002.html
+        #
+        # The VDOS curve was extracted by T. Kittelmann using the engauge digitizer
+        # software from Figure 1 of:
+        #
+        #    "First principles phonon calculations in materials science"
+        #    A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5
+        #    https://doi.org/10.1016/j.scriptamat.2015.07.021
+
+============= CLI >>browse -x mytestmat.ncmat<< =============
+NCMAT v7
+#
+#   My test material (for testing only).
+#   Second line of description which is long enough that it will have to be
+#   truncated in the listing.
+#
+#   Some more comments mentioning Togo and VDOS.
+#
+@DENSITY
+  1 g_per_cm3
+@DYNINFO
+  element H
+  fraction 1
+  type vdosdebye
+  debye_temp 300
+============= CLI >>browse --plugins<< =============
+============= CLI >>browse -x nonexistent.ncmat<< =============
+Caught expected NCFileNotFound('Could not find data: "nonexistent.ncmat"')
+============= CLI >>browse -x mytestmat.ncmat -f virtual<< =============
+Caught expected ArgumentError('--extract and --plugins can not be combined with other options.')
+============= CLI >>browse --names -c<< =============
+Caught expected ArgumentError('Do not specify both --names and --comments.')

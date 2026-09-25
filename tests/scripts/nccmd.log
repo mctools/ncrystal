@@ -20,6 +20,8 @@ The full list of available modules are:
   =======================
 
      nctool        : Main tool for investigating materials, files, plugins, etc.
+     browse        : Browse and search available data files (e.g. the standard
+                     library of NCMAT files) and plugins.
      config        : Access technical info about NCrystal installation.
      minimc        : Investigate multiple scattering and geometry effects via
                      NCrystal's own Monte Carlo simulation framework.
@@ -49,7 +51,7 @@ The full list of available modules are:
 ================================================================================
 ==> Invoking: /some/where/ncrystal -l
 ================================================================================
-cif2ncmat config endf2ncmat hfg2ncmat mcstasunion minimc ncmat2cpp ncmat2endf ncmat2hkl nctool query vdos2ncmat verifyatompos
+browse cif2ncmat config endf2ncmat hfg2ncmat mcstasunion minimc ncmat2cpp ncmat2endf ncmat2hkl nctool query vdos2ncmat verifyatompos
 ================================================================================
 ==> Ended with no error
 ================================================================================
@@ -57,7 +59,7 @@ cif2ncmat config endf2ncmat hfg2ncmat mcstasunion minimc ncmat2cpp ncmat2endf nc
 ================================================================================
 ==> Invoking: /some/where/ncrystal --list
 ================================================================================
-cif2ncmat config endf2ncmat hfg2ncmat mcstasunion minimc ncmat2cpp ncmat2endf ncmat2hkl nctool query vdos2ncmat verifyatompos
+browse cif2ncmat config endf2ncmat hfg2ncmat mcstasunion minimc ncmat2cpp ncmat2endf ncmat2hkl nctool query vdos2ncmat verifyatompos
 ================================================================================
 ==> Ended with no error
 ================================================================================
@@ -83,6 +85,8 @@ The full list of available modules are:
   =======================
 
      nctool        : Main tool for investigating materials, files, plugins, etc.
+     browse        : Browse and search available data files (e.g. the standard
+                     library of NCMAT files) and plugins.
      config        : Access technical info about NCrystal installation.
      minimc        : Investigate multiple scattering and geometry effects via
                      NCrystal's own Monte Carlo simulation framework.
@@ -130,6 +134,8 @@ The full list of available modules are:
   =======================
 
      nctool        : Main tool for investigating materials, files, plugins, etc.
+     browse        : Browse and search available data files (e.g. the standard
+                     library of NCMAT files) and plugins.
      config        : Access technical info about NCrystal installation.
      minimc        : Investigate multiple scattering and geometry effects via
                      NCrystal's own Monte Carlo simulation framework.
@@ -171,6 +177,11 @@ The full list of available modules are:
 ================================================================================
 ==> Ended with no error
 ================================================================================
+==> Metadata for mode "browse":
+{'displaygroup': 'main',
+ 'displayorder': 30,
+ 'descr': "Investigate multiple scattering and geometry effects via NCrystal's "
+          'own Monte Carlo simulation framework.'}
 ==> Metadata for mode "cif2ncmat":
 {'displaygroup': 'main',
  'displayorder': 30,
