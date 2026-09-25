@@ -1,4 +1,24 @@
 v4.4.7 (work in progress)
+     * Wire fastLowerBoundIdx/fastUpperBoundIdx into the remaining
+       qualifying call sites found by a full-codebase audit (plain
+       double array, default comparator, and not part of a legacy-only
+       code path -- NCSABXSProvider.cc, NCSABSampler.cc,
+       NCSABSamplerModels.cc, NCSABEval.cc and NCSABUCN.cc are all
+       legacy and were excluded): PointwiseDist::percentileWithIndex
+       and ::commulIntegral, NC::reducePtsByEquidistribution and
+       ::reducePtsByEquidistributionRobust, NC::
+       findClosestValInSortedVector, VDOSGnData::interpolateDensityMany
+       (a lower_bound followed by an upper_bound restricted to the
+       first search's result -- same subrange-offset pattern as
+       PowderBragg::findLastValidPlaneIdx earlier), VDOS::spaceOutGrid,
+       OrderIntervalsByNearnessToZero's constructor, VDOS::evalPWLSum,
+       and PiecewiseLinearFct1D::eval (which also lost an awkward
+       iterator-decrement dance in favour of plain index arithmetic
+       while being converted). Left alone: ~6 more sites using custom
+       comparators, non-double types, or (one case) float instead of
+       double, which would need a templated generalisation of
+       fastLowerBoundIdx/fastUpperBoundIdx rather than a drop-in swap.
+       Full sb -t --long green, zero reference-log changes.
      * Wire fastLowerBoundIdx/fastUpperBoundIdx into two more call
        sites, chosen because they are plain double arrays with the
        default comparator (directly compatible, no generalisation

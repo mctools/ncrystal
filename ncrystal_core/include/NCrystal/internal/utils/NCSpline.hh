@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCFastSearch.hh"
 
 namespace NCRYSTAL_NAMESPACE {
 
@@ -239,15 +240,13 @@ inline NCrystal::PiecewiseLinearFct1D::PiecewiseLinearFct1D( VectD x,
 
 inline double NCrystal::PiecewiseLinearFct1D::eval( double x ) const {
   nc_assert(!ncisnan(x));
-  auto it = std::lower_bound( m_x.begin(), m_x.end(), x );
-  if ( it == m_x.end() || it == m_x.begin() )
-    return evalEdgeCase( it, x );
-  auto idx = std::distance(m_x.begin(),it);
-  auto itY = std::next(m_y.begin(),idx);
-  const double x1 = *it--;
-  const double x0 = *it;
-  const double y1 = *itY--;
-  const double y0 = *itY;
+  const std::size_t idx = fastLowerBoundIdx( m_x.data(), m_x.size(), x );
+  if ( idx == m_x.size() || idx == 0 )
+    return evalEdgeCase( std::next(m_x.begin(),static_cast<std::ptrdiff_t>(idx)), x );
+  const double x1 = m_x[idx];
+  const double x0 = m_x[idx-1];
+  const double y1 = m_y[idx];
+  const double y0 = m_y[idx-1];
   return y0 + (y1-y0 ) * ( x - x0 ) / ( x1 - x0 );
 }
 

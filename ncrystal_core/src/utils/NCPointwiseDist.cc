@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/utils/NCPointwiseDist.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCFastSearch.hh"
 #include <cstdio>
 
 namespace NC = NCrystal;
@@ -81,7 +82,7 @@ std::pair<double,unsigned> NC::PointwiseDist::percentileWithIndex(double p ) con
     return std::pair<double,unsigned>(m_x.back(),
                                       static_cast<unsigned>(m_x.size()-2));
 
-  std::size_t i = std::max<std::size_t>(std::min<std::size_t>(std::lower_bound(m_cdf.begin(), m_cdf.end(), p)-m_cdf.begin(),m_cdf.size()-1),1);
+  std::size_t i = std::max<std::size_t>(std::min<std::size_t>(fastLowerBoundIdx(m_cdf.data(), m_cdf.size(), p),m_cdf.size()-1),1);
   nc_assert( i>0 && i < m_x.size() );
   double dx = m_x[i]-m_x[i-1];
   double c = (p-m_cdf[i-1]);
@@ -113,14 +114,12 @@ double NC::PointwiseDist::commulIntegral( double x ) const
     return 1.0;
 
   //Find bin with binary search:
-  auto it = std::upper_bound( m_x.begin(), m_x.end(), x );
-  nc_assert( it != m_x.end() );
-  nc_assert( it != m_x.begin() );
+  std::size_t i1 = fastUpperBoundIdx( m_x.data(), m_x.size(), x );
+  nc_assert( i1 != m_x.size() );
+  nc_assert( i1 != 0 );
 
-  //We are in the interval [std::prev(it),it], find parameters of this last bin:
-  auto i1 = std::distance(m_x.begin(),it);
-  nc_assert(i1>0);
-  auto i0 = i1 - 1;
+  //We are in the interval [i0,i1], find parameters of this last bin:
+  std::size_t i0 = i1 - 1;
   const double x1 = vectAt(m_x,i0);
   const double y1 = vectAt(m_y,i0);
   const double x2 = vectAt(m_x,i1);

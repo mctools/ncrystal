@@ -21,6 +21,7 @@
 #include "NCrystal/internal/vdos/NCVDOSUtils.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
+#include "NCrystal/internal/utils/NCFastSearch.hh"
 #include "NCrystal/internal/phys_utils/NCKinUtils.hh"
 
 namespace NC=NCrystal;
@@ -222,7 +223,7 @@ void NC::VDOS::spaceOutGrid(Span<double> g, double rtol)
 
   double* const itB = g.data();
   double* const itE = itB + g.size();
-  double* const itZero = std::lower_bound(itB, itE, 0.0);
+  double* const itZero = itB + fastLowerBoundIdx(itB, g.size(), 0.0);
 
   double* const itNegE = itZero;
   double* itPosB = itZero;
@@ -277,8 +278,7 @@ namespace NCRYSTAL_NAMESPACE {
         {
           nc_assert( nc_is_grid(x) );
           m_n = x.size() - 1;
-          const std::size_t z =
-            std::lower_bound(x.begin(), x.end(), 0.0) - x.begin();
+          const std::size_t z = fastLowerBoundIdx(x.data(), x.size(), 0.0);
           m_p = z < m_n ? z : m_n;
           m_q = z ? z - 1 : m_n;
           if (z > m_n) {
@@ -579,8 +579,7 @@ NC::VectD NC::VDOS::evalPWLSum( Span<const PWLFct> fs,
     // tiny tolerance of the endpoints as being at the endpoints.
     const double xtol = 1e-9 * p.binWidth;
 
-    std::size_t g = static_cast<std::size_t>
-      (std::lower_bound(grid.begin(), grid.end(), p.x0 - xtol) - grid.begin());
+    std::size_t g = fastLowerBoundIdx(grid.data(), grid.size(), p.x0 - xtol);
 
     if (g == grid.size() || gridPtr[g] > xmax + xtol)
       continue;
