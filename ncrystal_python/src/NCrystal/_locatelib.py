@@ -169,10 +169,10 @@ def _search_env_overrides():
     #non-standard naming of the shared libraries:
     ns = os.environ.get('NCRYSTAL_LIB_NAMESPACE_PROTECTION','')
     if lib:
-        if not ns and '.' in lib and 'NCrystal-' in lib:
-            #Try to infer the namespace from the library name (so it is enough
-            #to set NCRYSTAL_LIB).
-            ll = lib.split('.')[0]
+        if not ns:
+            #Try to infer the namespace from the library file name (so it is
+            #enough to set NCRYSTAL_LIB).
+            ll = pathlib.Path(lib).name.split('.')[0]
             if 'NCrystal-' in ll:
                 ll = ll.split('NCrystal-')[-1]
                 if ll and 'NCrystal-' not in ll and '.' not in ll:

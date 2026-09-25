@@ -79,6 +79,9 @@ v4.4.7 (work in progress)
        These changes shift some VDOS/kernel-derived results, typically
        in the last few significant digits (sabxs reference shifts up to
        ~1%, concentrated in low-vdoslux Li2O test cases), without any
+     * Python: when only NCRYSTAL_LIB is set, infer the namespace from the
+       library file name alone (previously failed if any parent directory
+       name contained a dot, e.g. ".venv").
      * Python: a MiniMC callback function returning "error" now results in a
        proper NCCalcError rather than a TypeError from "raise None".
      * Python: fix internal _msg._setMsgHandler(None), which installed a
