@@ -1689,7 +1689,7 @@ Results from C++:
  'S': [1.0, 20.0, 3.0, 1e-300],
  'surveyor': {'E_div_kT_touch': 0.0, 'E_div_kT_cover': 3.0048076923},
  'celleval_OBSOLETE': {'full_integral': 72.986956413,
-                       'phasespace_integral': -0.26736429998,
+                       'phasespace_integral': -0.29458117641,
                        'phasespace_E_div_kT': 1e-05},
  'cellintegral': {'full_integral': 72.986956413,
                   'phasespace_E_div_kT': 1e-05,

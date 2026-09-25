@@ -1,4 +1,57 @@
 v4.4.7 (work in progress)
+     * Performance pass over the SAB cell-integration hot path (motivated by
+       profiling inelastic-scattering initialisation with the new
+       parse_gperf tool across 5 materials spanning element mass/VDOS shape
+       -- Al, Pb, LiH's H, polyethylene's H, Debye-VDOS Ca -- swept over
+       next-gen vdoslux=2000/2002/2004, knllux=0/2/4 and temp=10/293.15/
+       1000K; the vdoslux=2000..2006/knllux=0..6 next-gen code specifically,
+       not the legacy 0..5 path this app defaults to if vdoslux/knllux
+       aren't given explicitly). Findings: temperature dominates cost
+       (2.5-5x from 10K to 1000K, more phonon orders needed), vdoslux has a
+       moderate effect (1.3-2.5x), knllux only matters for the downstream
+       SABProcessor/table-construction phase (~2.8x from 0 to 4), not VDOS
+       expansion. At the high end of that range, NCSABCellInteg.cc's
+       SOfAlphaGrid construction and IntegrandOfA::contrib (the per-alpha-
+       slice integrand) are consistently hot across every material tried:
+       - SOfAlphaGrid's constructor already used explicit std::fma for its
+         two linear ramps but, being a constructor, could not carry
+         NCRYSTAL_FMADISPATCH_ATTR; extracted into a new free function
+         (fmaRampFill) that can.
+       - NCKinUtils.hh's getAlphaLimits/getAlphaLimitsWithDiff/getAlphaMinus/
+         getAlphaPlus/getBetaMinus/getBetaPlus/getBetaLimits (called from
+         IntegrandOfA::contrib, among many other places) all had a
+         previously-unaudited "u +- 2*sqrt(v)" shape -- confirmed
+         empirically (disassembly) to actually get fused under -mfma even
+         though written across separate statements, unlike a similar
+         StableSum::add pattern audited earlier this session that does not
+         -- fixed with explicit std::fma throughout, along with the
+         alphaMinusTaylor/betaMinusTaylor Taylor expansions (plain Horner,
+         same unaudited-a*b+c class as elsewhere this session).
+       - IntegrandOfA::contrib's smiddle computation, and half a dozen
+         interpolation functions in NCSABUtils.hh (interpolate_loglin_
+         fallbacklinlin[_fast[2]], interpolate_linlin_NEW, interpolate_
+         linear, sampleLogLinDist[_fast]), used the unaudited "a*(1-t)+b*t"
+         lerp form instead of the project's existing fma-based nclerp
+         helper; switched to nclerp throughout.
+       - With NCKinUtils.hh's functions and nclerp now explicit-fma-safe,
+         IntegrandOfA::contrib itself is now fully audited and was decorated
+         with NCRYSTAL_FMADISPATCH_ATTR (a non-static, non-virtual member
+         function -- confirmed both multiversioning, via nm, and real
+         vfmadd instructions in the compiled .fma clone, via objdump,
+         including the inlined Taylor expansion).
+       Full sb -t --long green throughout (one reference log needed
+       regenerating: a near-degenerate E_div_kT~0 case in the *_OBSOLETE
+       comparison path of testsabcelleval, whose own pass/fail assertions
+       against the mpmath/brute-force references were unaffected -- only
+       the exact printed value shifted, as expected whenever a computation
+       moves from two roundings to a single fma rounding). A stashed
+       before/after wall-clock comparison at the worst-case settings across
+       all 5 materials showed differences within the ~3% trial-to-trial
+       noise of this measurement method, i.e. inconclusive either way at
+       that resolution; the change is kept regardless as real,
+       independently-justified correctness+dispatch hardening in a
+       genuinely hot path, consistent with this session's standing policy
+       for such patterns.
      * Decorate stable_exp/stable_expm1 (NCMath.cc, along with their
        expm1_reducedarg_taylor14 helper) with NCRYSTAL_FMADISPATCH_ATTR too,
        for the same reason as Romberg::integrate() below: both are now
