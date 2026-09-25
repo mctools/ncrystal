@@ -62,6 +62,12 @@ namespace NCRYSTAL_NAMESPACE {
     //Wait for all queued jobs to finish (note that in some cases of recursive
     //usage of JobGroups, this might actually entail helping to run pending jobs
     //from the global thread-pool, thus avoiding a potential deadlock).
+    //
+    //Exceptions: If jobs throw exceptions in MT mode, all jobs are still
+    //run, and the first exception is rethrown here in the calling thread
+    //(in non-MT mode, the exception simply propagates out of queue(..)).
+    //If the FactoryJobs object is destroyed without waitAll() (e.g. due to
+    //an exception), the destructor still waits for all jobs to finish.
     void waitAll()
     {
       if ( isMT() )

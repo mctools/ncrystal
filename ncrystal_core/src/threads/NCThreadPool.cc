@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCThreadPool.hh"
+#include "NCrystal/threads/NCFactThreads.hh"
 namespace NC = NCrystal;
 
 NC::ThreadPool::ThreadPool::ThreadPool() = default;
@@ -110,7 +111,7 @@ void NC::ThreadPool::ThreadPool::threadWorkFct()
       job = std::move(m_jobqueue.front());
       m_jobqueue.pop();
       lock.unlock();
-      job();
+      FactoryThreadPool::detail::runJobNoThrow( job );
     } else {
       nc_assert_always( m_threads_should_end );
       return;//end thread

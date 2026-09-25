@@ -21,6 +21,27 @@
 #include "NCrystal/threads/NCFactThreads.hh"
 namespace NC = NCrystal;
 
+#include <cstdio>
+#include <exception>
+
+void NC::FactoryThreadPool::detail::runJobNoThrow( const voidfct_t& job )
+  noexcept
+{
+  const char * what = nullptr;
+  try {
+    job();
+    return;
+  } catch ( std::exception& e ) {
+    what = e.what();
+  } catch ( ... ) {
+  }
+  std::fprintf( stderr, "NCrystal ERROR: Unexpected exception in job run"
+                " by factory thread-pool (jobs must not throw): %s\n",
+                what ? what : "<unknown exception>" );
+  std::fflush( stderr );
+  std::terminate();
+}
+
 #ifdef NCRYSTAL_DISABLE_THREADS
 
 #include "NCrystal/internal/utils/NCString.hh"

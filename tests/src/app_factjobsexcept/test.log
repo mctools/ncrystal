@@ -1,0 +1,10 @@
+Without thread-pool:
+  caught CalcError from a job: OK
+  caught non-std exception from a job: OK
+  all jobs finished when unwinding: OK
+  normal usage afterwards: OK
+With thread-pool (if thread support available):
+  caught CalcError from a job: OK
+  caught non-std exception from a job: OK
+  all jobs finished when unwinding: OK
+  normal usage afterwards: OK

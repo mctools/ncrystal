@@ -61,7 +61,10 @@ namespace NCRYSTAL_NAMESPACE {
     NCRYSTAL_API void enable( ThreadCount = ThreadCount::auto_detect() );
 
     //Schedule a job to be run. If a thread-pool was not enabled, the job will
-    //simply be run immediately in the current thread.
+    //simply be run immediately in the current thread. Jobs must not throw
+    //exceptions when run in the thread-pool (doing so terminates the
+    //process), so most code should rather use the FactoryJobs class from
+    //NCFactoryJobs.hh, which transfers any exceptions to the calling thread.
     NCRYSTAL_API void queue( voidfct_t );
 
     //Current total number of threads used (including the user
@@ -86,6 +89,11 @@ namespace NCRYSTAL_NAMESPACE {
       //(only the outermost begin/end calls change the thread-pool).
       NCRYSTAL_API void beginTemporaryThreads( ThreadCount );
       NCRYSTAL_API void endTemporaryThreads();
+
+      //Run job from the thread-pool. Such jobs must not throw, so if an
+      //exception escapes anyway, an error is printed and the process is
+      //terminated (rather than silently leaving inconsistent state):
+      NCRYSTAL_API void runJobNoThrow( const voidfct_t& ) noexcept;
     }
 
   }

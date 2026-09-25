@@ -87,6 +87,8 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Exceptions in jobs run by the factory thread pool are now transferred
+       to and rethrown in the calling thread (github issue #339).
      * NCRYSTAL_FACTORY_THREADS is now handled by the thread-pool itself (read
        on first use); explicit enableFactoryThreads calls take precedence.
      * New NCrystal.browse Python module for browsing and searching available
