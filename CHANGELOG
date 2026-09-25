@@ -1,4 +1,18 @@
 v4.4.7 (work in progress)
+     * Remove the SABXSDIAG-TEMPORARY diagnostic instrumentation (added in
+       5d4ce340/d5fcb4e2 to get ground truth from the actually-diverging CI
+       legs while chasing the sabxs residual fixed above): the env-var-gated
+       NCRYSTAL_MSG dumps in NCSABProcessor.cc/NCMath.cc/NCVDOSKnlGrid.cc,
+       and the dedicated tests/src/app_sabxsdiag test app entirely, as its
+       own top comment always said to do once the data had been captured.
+       A real 6-leg CI run against the Romberg fix confirms the residual is
+       gone (testsabxs/long_sabxsb passing on every leg, including gcc-10
+       and ubuntu-24.04-arm); the diagnostic's own golden log (raw
+       intermediate values, not the actual xsect comparison) was the only
+       thing still failing, on macOS and ARM, since it was never meant to
+       be cross-platform-reproducible itself -- removing it (rather than
+       chasing yet another regeneration) both follows the stated plan and
+       stops carrying dead weight.
      * Fix the last-standing piece of the long-chased sabxs cross-platform
        residual: NCRomberg.cc's generic Romberg-integration Richardson
        extrapolation (R(i,j), used throughout via integrateRomberg17/33 --

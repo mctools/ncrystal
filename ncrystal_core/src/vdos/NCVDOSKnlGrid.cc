@@ -23,8 +23,6 @@
 #include "NCrystal/internal/utils/NCSpan.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCString.hh"
-#include "NCrystal/internal/utils/NCMsg.hh"//SABXSDIAG-TEMPORARY
-#include <iomanip>//SABXSDIAG-TEMPORARY
 
 //TODO: reduce usage of nc_assert_always in this file once the model has been
 //      used in production for a while.
@@ -66,8 +64,6 @@ NC::VDOS::getCombinedGnFct( const GnExpansion& gnexpn )
   VectD ws;
   fs.reserve(nmax);
   ws.reserve(nmax);
-  //SABXSDIAG-TEMPORARY: dedicated diagnostic commit, see tests/src/app_sabxsdiag.
-  const bool sabxsdiag = std::getenv("NCRYSTAL_SABXS_DIAG") != nullptr;
   for ( auto nm1 : ncrange(nmax) ) {
     const auto n = nm1+1;
     fs.emplace_back();
@@ -75,20 +71,6 @@ NC::VDOS::getCombinedGnFct( const GnExpansion& gnexpn )
     fs.back().binWidth = Gn.binWidth(n)*invkT;
     fs.back().f = Gn.getRawSpectrum(n);
     ws.push_back(combinedGnFctWeight( n ));
-    if ( sabxsdiag ) {
-      const auto& f = fs.back();
-      double sum = 0.0;
-      for ( auto v : f.f )
-        sum += v;
-      NCRYSTAL_MSG( "SABXSDIAG getCombinedGnFct n=" << n
-                   << " size=" << f.f.size()
-                   << " x0=" << std::setprecision(17) << f.x0
-                   << " binWidth=" << std::setprecision(17) << f.binWidth
-                   << " weight=" << std::setprecision(17) << ws.back()
-                   << " rawSum=" << std::setprecision(17) << sum
-                   << " rawFirst=" << std::setprecision(17) << f.f.front()
-                   << " rawLast=" << std::setprecision(17) << f.f.back() );
-    }
   };
   std::vector<EquidistantGrid> individual_grids;
   individual_grids.reserve(nmax);
@@ -381,17 +363,6 @@ NC::VDOS::determineAlphaBetaGridFromGn( const GnExpansion& gnexpn,
   // -> both are grids of course:
   nc_assert( nc_is_grid( avals ) );
   nc_assert( nc_is_grid( bvals ) );
-  //SABXSDIAG-TEMPORARY: dedicated diagnostic commit, see tests/src/app_sabxsdiag.
-  if ( std::getenv("NCRYSTAL_SABXS_DIAG") ) {
-    NCRYSTAL_MSG( "SABXSDIAG alphaGrid size=" << avals.size()
-                 << " betaGrid size=" << bvals.size() );
-    for ( auto i : ncrange(avals.size()) )
-      NCRYSTAL_MSG( "SABXSDIAG alphaGrid[" << i << "]="
-                   << std::setprecision(17) << vectAt(avals,i) );
-    for ( auto i : ncrange(bvals.size()) )
-      NCRYSTAL_MSG( "SABXSDIAG betaGrid[" << i << "]="
-                   << std::setprecision(17) << vectAt(bvals,i) );
-  }
   return {avals, bvals};
 }
 
@@ -435,15 +406,10 @@ NC::VDOS::setupE0ABGrid( const GnExpansion& gnexpn, unsigned npts )
   std::vector<PWLFct> fcts;
   fcts.reserve(16);
 
-  //SABXSDIAG-TEMPORARY: dedicated diagnostic commit, see tests/src/app_sabxsdiag.
-  const bool sabxsdiag = std::getenv("NCRYSTAL_SABXS_DIAG") != nullptr;
   double minus_log_nfactorial = 0.0;// accumulate -ln(n!)
   for ( auto nm1 : ncrange(nmax) ) {
     const auto n = nm1+1;
     minus_log_nfactorial -= std::log(static_cast<double>(n));
-    if ( sabxsdiag )
-      NCRYSTAL_MSG( "SABXSDIAG setupE0ABGrid minus_log_nfactorial n=" << n
-                   << " val=" << std::setprecision(17) << minus_log_nfactorial );
     if ( n>1 ) {
       //check if we can break already
       const double betamax = Gn.eRange(n).second*invkT;
@@ -467,18 +433,6 @@ NC::VDOS::setupE0ABGrid( const GnExpansion& gnexpn, unsigned npts )
     f.binWidth = Gn.binWidth(n)*invkT;
     nc_assert_always(f.binWidth>0.0);
     f.f = Gn.getRawSpectrum(n);
-    if ( sabxsdiag ) {
-      double sum = 0.0;
-      for ( auto v : f.f )
-        sum += v;
-      NCRYSTAL_MSG( "SABXSDIAG setupE0ABGrid rawSpectrum n=" << n
-                   << " size=" << f.f.size()
-                   << " x0=" << std::setprecision(17) << f.x0
-                   << " binWidth=" << std::setprecision(17) << f.binWidth
-                   << " rawSum=" << std::setprecision(17) << sum
-                   << " rawFirst=" << std::setprecision(17) << f.f.front()
-                   << " rawLast=" << std::setprecision(17) << f.f.back() );
-    }
     //Discard non-positive values:
     f = pwlNarrowToPos(f);
     if ( f.f.empty() ) {
@@ -508,17 +462,6 @@ NC::VDOS::setupE0ABGrid( const GnExpansion& gnexpn, unsigned npts )
       const double logarg = std::fma( static_cast<double>(n), std::log(x),
                                       minus_log_nfactorial ) - x;
       factor *= std::exp( logarg );
-      //SABXSDIAG-TEMPORARY: bound to a handful of points per order to keep
-      //output size manageable, but always include the first/last few (edge
-      //behaviour) and a mid-point:
-      if ( sabxsdiag && ( i<3 || i+3>=f.f.size() || i==f.f.size()/2 ) )
-        NCRYSTAL_MSG( "SABXSDIAG setupE0ABGrid factor n=" << n
-                     << " i=" << i
-                     << " beta=" << std::setprecision(17) << beta
-                     << " x=" << std::setprecision(17) << x
-                     << " logarg=" << std::setprecision(17) << logarg
-                     << " factor=" << std::setprecision(17) << factor
-                     << " rawval=" << std::setprecision(17) << f_fmut[i] );
       f_fmut[i] *= factor;
     }
   }

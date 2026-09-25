@@ -21,11 +21,9 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCRotMatrix.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
-#include "NCrystal/internal/utils/NCMsg.hh"//SABXSDIAG-TEMPORARY
 #include <sstream>
 #include <list>
 #include <queue>
-#include <iomanip>//SABXSDIAG-TEMPORARY
 
 namespace NC = NCrystal;
 
@@ -1045,12 +1043,6 @@ NC::reducePtsByEquidistribution(Span<const double> x,
   //Place points at equal steps of the cumulative integral, always using the
   //closest input point, but ensure that we get exactly targetN distinct points
   //in increasing order (so also leave room for the points still to come):
-  //SABXSDIAG-TEMPORARY: dedicated diagnostic commit, see tests/src/app_sabxsdiag.
-  const bool sabxsdiag = std::getenv("NCRYSTAL_SABXS_DIAG") != nullptr;
-  if ( sabxsdiag )
-    NCRYSTAL_MSG( "SABXSDIAG reducePtsByEquidistribution n=" << n
-                 << " targetN=" << targetN
-                 << " mtot=" << std::setprecision(17) << mtot );
   std::vector<std::size_t> sel;
   sel.reserve(targetN);
   sel.push_back(0);
@@ -1061,12 +1053,6 @@ NC::reducePtsByEquidistribution(Span<const double> x,
     std::size_t hi = static_cast<std::size_t>
       (std::lower_bound(cum.begin(), cum.end(), q) - cum.begin());
     std::size_t idx = hi;
-    if ( sabxsdiag )
-      NCRYSTAL_MSG( "SABXSDIAG tie k=" << k
-                   << " q=" << std::setprecision(17) << q
-                   << " hi=" << hi
-                   << " cum_lo=" << ( hi > 0 ? vectAt(cum,hi-1) : -1.0 )
-                   << " cum_hi=" << ( hi < n ? vectAt(cum,hi) : -1.0 ) );
     //Bias the "which neighbour is closer" tie-break by a fixed tolerance well
     //above the ~1e-15 relative noise that cum[] can carry from the
     //std::log/std::exp calls further upstream (whose last-bit result can
