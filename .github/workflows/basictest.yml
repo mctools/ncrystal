@@ -165,43 +165,52 @@ jobs:
       run: python -mpip install -r ./src/devel/reqs/requirements_all_and_devel.txt
 
     - name: Prepare log capture dir
-      run: mkdir -p ${{github.workspace}}/ci-logs
+      run: mkdir -p ci-logs
 
+    #NB: Paths below are relative (rather than "${{github.workspace}}/...",
+    #as in the "build" job above) deliberately: github.workspace expands to
+    #an OS-native path, i.e. Windows backslashes here, and bash treats an
+    #unescaped backslash as an escape character, silently mangling any such
+    #path when it is interpolated into a run: command (e.g.
+    #"D:\a\ncrystal\ncrystal" had its backslash-letter pairs eaten,
+    #breaking "mkdir -p" and the "[ -f ... ]" test below it). Relative paths
+    #sidestep the issue entirely, since run: steps already default to
+    #github.workspace as their working directory:
     - name: Configure CMake
       run: >
         cmake
-        -S ${{github.workspace}}/src
-        -B ${{github.workspace}}/build
-        -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install
+        -S src
+        -B build
+        -DCMAKE_INSTALL_PREFIX=install
         -DNCRYSTAL_ENABLE_EXAMPLES=ON
         -DNCRYSTAL_BUILD_STRICT=ON
         -DNCRYSTAL_ENABLE_TESTING=ON
         -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
         -DNCRYSTAL_TEST_ENABLE_LONG=ON
-        2>&1 | tee ${{github.workspace}}/ci-logs/configure.log
+        2>&1 | tee ci-logs/configure.log
 
     - name: Build
       run: >
         cmake
-        --build ${{github.workspace}}/build
+        --build build
         --config Release
-        2>&1 | tee ${{github.workspace}}/ci-logs/build.log
+        2>&1 | tee ci-logs/build.log
 
     - name: CTest
       run: >
         ctest --test-dir ./build --build-config Release --no-tests=error --output-on-failure
         --test-output-size-failed 100000 --test-output-truncation middle
-        2>&1 | tee ${{github.workspace}}/ci-logs/ctest.log
+        2>&1 | tee ci-logs/ctest.log
 
     - name: Package logs
       if: always()
       run: |
-        mkdir -p ${{github.workspace}}/ci-logs
+        mkdir -p ci-logs
         for f in build/CMakeFiles/CMakeConfigureLog.yaml \
                  build/CMakeFiles/CMakeError.log \
                  build/CMakeFiles/CMakeOutput.log \
                  build/Testing/Temporary/LastTest.log; do
-          [ -f "${{github.workspace}}/$f" ] && cp "${{github.workspace}}/$f" ${{github.workspace}}/ci-logs/
+          [ -f "$f" ] && cp "$f" ci-logs/
         done
 
     - name: Upload logs
@@ -209,7 +218,7 @@ jobs:
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
         name: ci-logs-${{ matrix.os }}
-        path: ${{github.workspace}}/ci-logs
+        path: ci-logs
         if-no-files-found: warn
 
   collect_logs:
