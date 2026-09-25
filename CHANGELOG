@@ -1,4 +1,22 @@
 v4.4.7 (work in progress)
+     * Harden reducePtsByEquidistribution and reducePtsByEquidistributionRobust
+       (NCMath.cc) against a previously-unaudited FMA-contraction hazard: both
+       accumulated their combined density as "d += w_lin*dlin[i]; d +=
+       w_log*dlog[i]", a plain "a += b*c" shape a compiler may silently fuse
+       into a hardware FMA depending on target/flags (contracted by default on
+       AArch64, not on baseline x86-64) -- feeding straight into the cum[]
+       array the near-tie point-selection decision compares against. Rewrote
+       both with explicit std::fma, per the project's standing FP-contraction
+       policy (docs/devel_fma_attribute.md). Verified: default-vs-`-mfma`
+       output is now byte-identical for all seven committed real (x,y)
+       datasets (tests/data/ptreduce/), full sb -t suite green with zero
+       reference-log changes. Note: this is real, independently-justified
+       hardening, but a direct measurement (an `-mfma`-forced full rebuild,
+       comparing sabxs group A's worst-case reldiff before/after) showed it
+       has zero effect on the still-open sabxs residual described below --
+       that residual is driven by genuinely-differing (not contraction-
+       related) ~1e-14 relative upstream noise in Gn.getRawSpectrum, not by
+       this function's own arithmetic.
      * Add reducePtsByEquidistributionRobust (NCMath.hh/.cc) alongside the
        existing reducePtsByEquidistribution, for callers whose y-values carry
        more numerical noise than a typical closed-form function evaluation
