@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/utils/NCFastSearch.hh"
 namespace NC=NCrystal;
 
 NC::Vector NC::randIsotropicDirection( RNG& rng )
@@ -216,9 +217,8 @@ std::size_t NC::pickRandIdxByWeight( double rand01val, Span<const double> commul
     return n-1;
   }
   //Binary search:
-  auto itB = commulvals.begin();
-  auto it = std::lower_bound( itB,commulvals.end(), commulvals.back() * rand01val );
-  return std::min<std::size_t>((std::size_t)(it-itB),n-1);
+  auto idx = fastLowerBoundIdx( commulvals, commulvals.back() * rand01val );
+  return std::min<std::size_t>(idx,n-1);
 }
 
 double NC::randExpDivSqrt( RNG& rng, double c, double a, double b )
