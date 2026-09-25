@@ -40,6 +40,15 @@ as_dict keys: ['name', 'fullkey', 'factory', 'source', 'priority', 'hidden', 'da
 matching_lines: ['A small Al crystal.', 'Mentions Togo.']
 matching_lines (regex): []
 Progress reporting OK
+  mem.lau: datatype=lau comments=None descr='' path(basename)=None error=None
+     sg=225 crystalsystem=cubic formula=Al a=4.04958 braggthreshold=4.67605 dyninfo=['vdosdebye']
+  mem.laz: datatype=laz comments=None descr='' path(basename)=None error=None
+     sg=225 crystalsystem=cubic formula=Al a=4.04958 braggthreshold=4.67605 dyninfo=['vdosdebye']
+  disk.lau: datatype=lau comments=None descr='' path(basename)=disk.lau error=None
+     sg=225 crystalsystem=cubic formula=Al a=4.04958 braggthreshold=4.67605 dyninfo=['vdosdebye']
+  disk.laz: datatype=laz comments=None descr='' path(basename)=disk.laz error=None
+     sg=225 crystalsystem=cubic formula=Al a=4.04958 braggthreshold=4.67605 dyninfo=['vdosdebye']
+LAZ/LAU data OK
 Factory thread handling OK
 Caught expected NCBadInput('Unknown TextData factory: "nonexistent"')
 Caught expected NCBadInput('Invalid regular expression "(": missing ), unterminated subpattern at position 0')

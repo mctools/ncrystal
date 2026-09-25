@@ -68,6 +68,40 @@ def names( entries ):
 def nthreads():
     return evaluate_query(['util','factorythreads'])['nthreads']
 
+def lazlau( fmt ):
+    #Small .laz/.lau data (high dcutoff):
+    from NCrystalDev.mcstasutils import cfgstr_2_hkl
+    return '\n'.join( cfgstr_2_hkl( cfgstr = ( 'stdlib::Al_sg225.ncmat;'
+                                               'dcutoff=1.0' ),
+                                    tgtformat = fmt, verbose = False,
+                                    fp_format = '%.8g' ) ) + '\n'
+
+def test_lazlau():
+    #Non-NCMAT data, both in-memory and on-disk (in current directory):
+    import pathlib
+
+    from NCTestUtils.common import work_in_tmpdir
+    NC.registerInMemoryFileData('mem.laz',lazlau('laz'))
+    NC.registerInMemoryFileData('mem.lau',lazlau('lau'))
+    NC.enableRelativePaths(True)
+    with work_in_tmpdir():
+        pathlib.Path('disk.laz').write_text(lazlau('laz'))
+        pathlib.Path('disk.lau').write_text(lazlau('lau'))
+        for e in ( nb.find('*.la?',factory='virtual',load=True)
+                   + nb.browse('relpath',load=True) ):
+            path = ( e.path and pathlib.Path(e.path).name )#abs path varies
+            print(f'  {e.display_name}: datatype={e.datatype}'
+                  f' comments={e.comments} descr={e.description!r}'
+                  f' path(basename)={path} error={e.error}')
+            p = e.props
+            print(f'     sg={p.sg} crystalsystem={p.crystalsystem}'
+                  f' formula={p.formula} a={p.a:g}'
+                  f' braggthreshold={p.braggthreshold:.6g}'
+                  f' dyninfo={sorted(p.dyninfo)}')
+            assert e.load().info.hasStructureInfo()
+    NC.enableRelativePaths(False)
+    print('LAZ/LAU data OK')
+
 def main():
     NC.removeAllDataSources()
     NC.enableStandardDataLibrary()
@@ -173,6 +207,8 @@ def main():
     assert len(progress) > 2
     assert [ a for a,b in progress ] == sorted( a for a,b in progress )
     print('Progress reporting OK')
+
+    test_lazlau()
 
     #Factory threads are only changed temporarily:
     assert nthreads() == 1

@@ -5,30 +5,31 @@ usage: ncrystal_browse [-h] [-s WORD] [-E] [-f NAME] [-w EXPR] [--props]
                        [--plugins] [--color WHEN]
                        [PATTERN ...]
 
-Browse and search the data files available to NCrystal (e.g. files in the
-standard data library, in the current directory, or in-memory files),
-and the loaded plugins.
+Browse and search the data available to NCrystal (e.g. files in the
+standard data library or in the current directory, in-memory data, or
+data created on-demand like "solid::B4C/2.52gcm3"), and the loaded
+plugins.
 
-By default a list of available files is printed, grouped by the source
-delivering them, and with a short description extracted from the header
-comments of any NCMAT files. The list can be narrowed down by providing
-one or more PATTERNs (case-insensitive substrings of file names, or glob
-patterns like "Al*.ncmat"), by requiring certain words to be present in
-the file names or NCMAT header comments (--search), or by only showing
-files from a given source (--factory). Files can also be selected based
-on their physics content with --where (see below), which requires all
-candidate files to be loaded.
+By default a list of available data entries is printed, grouped by the
+source delivering them, and with a short description extracted from the
+header comments of any NCMAT data. The list can be narrowed down by
+providing one or more PATTERNs (case-insensitive substrings of names, or
+glob patterns like "Al*.ncmat"), by requiring certain words to be present
+in the names or NCMAT header comments (--search), or by only showing
+entries from a given source (--factory). Entries can also be selected
+based on their physics content with --where (see below), which requires
+all candidate entries to be loaded.
 
-Files marked "(hidden)" are shadowed by files with the same name from a
-higher priority source, and are listed with their full name (like
+Entries marked "(hidden)" are shadowed by entries with the same name from
+a higher priority source, and are listed with their full name (like
 "stdlib::Al_sg225.ncmat"), which can be used to select them explicitly.
 
 positional arguments:
-  PATTERN               Only show files whose names match the pattern.
+  PATTERN               Only show data whose names match the pattern.
 
 options:
   -h, --help            show this help message and exit
-  -s, --search WORD     Only show files which contain WORD in their name or
+  -s, --search WORD     Only show data which contain WORD in their name or
                         NCMAT header comments (case-insensitive). Can be
                         specified multiple times, in which case all words must
                         be present. Matching comment lines are shown.
@@ -36,32 +37,32 @@ options:
                         insensitive) Python regular expressions, which match
                         anywhere in the text, with ^ and $ matching at line
                         boundaries (e.g. -E -s "boron|b4c").
-  -f, --factory NAME    Only show files delivered by the named factory (e.g.
+  -f, --factory NAME    Only show data delivered by the named factory (e.g.
                         "stdlib" or "virtual").
-  -w, --where EXPR      Only show files for which the Python expression EXPR
-                        is true, based on physics properties of the loaded
+  -w, --where EXPR      Only show data for which the Python expression EXPR is
+                        true, based on physics properties of the loaded
                         material (see below). Can be specified multiple times,
                         in which case all expressions must be true.
-  --props               Show the physics properties of each file (i.e. the
+  --props               Show the physics properties of each entry (i.e. the
                         values available in --where expressions).
   --columns KEYS        Show a table with the given comma-separated physics
-                        properties (and "description") of each file, instead
+                        properties (and "description") of each entry, instead
                         of the usual listing.
   --sort KEY            Show a table sorted by KEY, which is "name" or a
-                        physics property (which is then also shown). Files
+                        physics property (which is then also shown). Entries
                         without a value are listed last.
   --reverse             Reverse the order of --sort.
-  --json                Output all information about the selected files
+  --json                Output all information about the selected data
                         (including physics properties) as JSON.
-  -c, --comments        Show full NCMAT header comments of the files.
+  -c, --comments        Show full NCMAT header comments.
   --info                Show all available information about each selected
-                        file, including physics properties, header comments,
+                        entry, including physics properties, header comments,
                         and usage examples.
-  --count               Only print the number of selected files.
+  --count               Only print the number of selected entries.
   --path                Only print the on-disk paths of the selected files,
-                        one per line (files which are not on disk, e.g. in-
-                        memory files, are skipped).
-  --names               Only print the names of the files, one per line
+                        one per line (entries which are not on disk, e.g. in-
+                        memory data, are skipped).
+  --names               Only print the names of the entries, one per line
                         (useful for scripting).
   -x, --extract DATANAME
                         Print the full content of DATANAME (e.g. a file name),
@@ -80,18 +81,18 @@ options:
                         means --color=auto.
 
 examples:
-  ncrystal_browse                     # list all files
-  ncrystal_browse Al                  # files with "al" in the name
-  ncrystal_browse "*_sg225*"          # files matching a glob pattern
+  ncrystal_browse                     # list all data
+  ncrystal_browse Al                  # data with "al" in the name
+  ncrystal_browse "*_sg225*"          # data matching a glob pattern
   ncrystal_browse -s vdos -s togo     # search names and header comments
   ncrystal_browse -E -s "boron|b4c"   # search with regular expression
-  ncrystal_browse -c Al_sg225.ncmat   # show header comments of a file
-  ncrystal_browse -x Al_sg225.ncmat   # show full content of a file
-  ncrystal_browse --info Al_sg225.ncmat # show all info about a file
+  ncrystal_browse -c Al_sg225.ncmat   # show header comments
+  ncrystal_browse -x Al_sg225.ncmat   # show full content
+  ncrystal_browse --info Al_sg225.ncmat # show all info
   ncrystal_browse --plugins           # list loaded plugins
   ncrystal_browse -w "'B' in elements and absxs > 100"
   ncrystal_browse -w "'vdos' in dyninfo" -w "crystal and sg == 225"
-  ncrystal_browse --props Al_sg225.ncmat  # show the properties of a file
+  ncrystal_browse --props Al_sg225.ncmat  # show the physics properties
   ncrystal_browse -w "'B' in elements" --sort absxs --reverse
   ncrystal_browse -f stdlib --columns formula,sg,density
 
@@ -139,19 +140,19 @@ functions: abs, all, any, len, max, min, round, set, sorted. Expressions
 failing due to unavailable (None) values are considered false.
 
 ============= CLI >>browse -f virtual<< =============
-==> 5 files from "virtual" (virtual, priority=130):
+==> 5 entries from "virtual" (virtual, priority=130):
     Al_sg225.ncmat
     mycrystal.ncmat  A small crystal.
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
     notncmat.laz
     othermat.ncmat
 ============= CLI >>browse Al_sg225<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     Al_sg225.ncmat
-==> 1 file from "stdlib" (<stdlib-location>, priority=120):
+==> 1 entry from "stdlib" (<stdlib-location>, priority=120):
     stdlib::Al_sg225.ncmat  Aluminium (Al, fcc, cubic, SG-225 / Fm-3m) (hidden)
 ============= CLI >>browse 'stdlib::Be*'<< =============
-==> 4 files from "stdlib" (<stdlib-location>, priority=120):
+==> 4 entries from "stdlib" (<stdlib-location>, priority=120):
     Be3N2_sg206_BerylliumNitride.ncmat   Alpha beryllium nitride (alpha-Be3N2...
     BeF2_sg152_Beryllium_Fluoride.ncmat  Beryllium fluoride (BeF2, trigonal,...
     BeO_sg186.ncmat                      Beryllium Oxide (BeO, hexagonal, SG-...
@@ -172,28 +173,28 @@ W_sg229.ncmat
 Al_sg225.ncmat
 stdlib::Al_sg225.ncmat
 ============= CLI >>browse -s togo -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | Some more comments mentioning Togo and VDOS.
 ============= CLI >>browse -s TOGO -s vdos -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | Some more comments mentioning Togo and VDOS.
 ============= CLI >>browse -s togo -s nonexistentword<< =============
-No matching files found.
+No matching data found.
 ============= CLI >>browse -s togo -f stdlib Al_sg225<< =============
-==> 1 file from "stdlib" (<stdlib-location>, priority=120):
+==> 1 entry from "stdlib" (<stdlib-location>, priority=120):
     stdlib::Al_sg225.ncmat  Aluminium (Al, fcc, cubic, SG-225 / Fm-3m) (hidden)
         | A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5
 ============= CLI >>browse -s 'togo|nomatch' -f virtual<< =============
-No matching files found.
+No matching data found.
 Note: Search WORDs are matched literally. Use -E/--regex for regular expressions (e.g. -E -s "boron|b4c").
 ============= CLI >>browse -E -s 'togo|nomatch' -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | Some more comments mentioning Togo and VDOS.
 ============= CLI >>browse -E -s 'test.*only' -s '^ *some' -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | My test material (for testing only).
         | Some more comments mentioning Togo and VDOS.
@@ -203,7 +204,7 @@ mytestmat.ncmat
 othermat.ncmat
 ============= CLI >>browse --names 'my.*mat'<< =============
 ============= CLI >>browse -c -f virtual<< =============
-==> 5 files from "virtual" (virtual, priority=130):
+==> 5 entries from "virtual" (virtual, priority=130):
     Al_sg225.ncmat
     mycrystal.ncmat
         # A small crystal.
@@ -218,7 +219,7 @@ othermat.ncmat
     notncmat.laz
     othermat.ncmat
 ============= CLI >>browse --props -f virtual<< =============
-==> 5 files from "virtual" (virtual, priority=130):
+==> 5 entries from "virtual" (virtual, priority=130):
     Al_sg225.ncmat
         elements={'O'}  atoms={'O'}  nelements=1  formula='O'  mass=15.9993
         absxs=0.00019  scatxs=3.74537  cohxs=4.2317  incohxs=0.0008  density=2
@@ -254,7 +255,7 @@ othermat.ncmat
         debyetemps=None  msds=None  dyninfo={'vdosdebye'}  customsections={}
         nphases=1
 ============= CLI >>browse --props -f stdlib LiquidHeavyWater<< =============
-==> 1 file from "stdlib" (<stdlib-location>, priority=120):
+==> 1 entry from "stdlib" (<stdlib-location>, priority=120):
     LiquidHeavyWaterD2O_T293.6K.ncmat  Heavy water (D2O) based on ENDF/B-VIII...
         elements={'H','O'}  atoms={'D','O'}  nelements=2  formula='D2O'
         mass=6.67584  absxs=0.000409333  scatxs=3.51043  cohxs=5.13878
@@ -264,38 +265,38 @@ othermat.ncmat
         braggthreshold=None  debyetemps=None  msds=None  dyninfo={'scatknl'}
         customsections={}  nphases=1
 ============= CLI >>browse -w '"H" in elements' -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
 ============= CLI >>browse -w 'crystal and sg==225 and natoms==4' -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mycrystal.ncmat  A small crystal.
 ============= CLI >>browse -w 'sg > 200' -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mycrystal.ncmat  A small crystal.
 ============= CLI >>browse -w '"vdosdebye" in dyninfo' -w 'density<1.5' -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
 ============= CLI >>browse -w 'absxs>0.2 and len(atoms)==1 and state=="solid"' -f virtual<< =============
-==> 2 files from "virtual" (virtual, priority=130):
+==> 2 entries from "virtual" (virtual, priority=130):
     mycrystal.ncmat  A small crystal.
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
 ============= CLI >>browse -w 'formula in ("D2O","H2O")' -f stdlib Liquid<< =============
-==> 2 files from "stdlib" (<stdlib-location>, priority=120):
+==> 2 entries from "stdlib" (<stdlib-location>, priority=120):
     LiquidHeavyWaterD2O_T293.6K.ncmat  Heavy water (D2O) based on ENDF/B-VIII...
     LiquidWaterH2O_T293.6K.ncmat       Water (H2O) based on ENDF/B-VIII.0 sca...
 ============= CLI >>browse -w '"scatknl" in dyninfo and "O" in elements' -f stdlib Liquid --names<< =============
 LiquidHeavyWaterD2O_T293.6K.ncmat
 LiquidWaterH2O_T293.6K.ncmat
 ============= CLI >>browse -w 'elements <= {"Al","O"} and nphases==1' -f virtual<< =============
-==> 3 files from "virtual" (virtual, priority=130):
+==> 3 entries from "virtual" (virtual, priority=130):
     Al_sg225.ncmat
     mycrystal.ncmat  A small crystal.
     othermat.ncmat
 ============= CLI >>browse -w 'crystalsystem=="cubic" and braggthreshold > 4' -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mycrystal.ncmat  A small crystal.
 ============= CLI >>browse -w 'max(debyetemps.values()) > 300' -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mycrystal.ncmat  A small crystal.
 ============= CLI >>browse -f virtual --columns a,volume,debyetemps,msds,mass,cohxs<< =============
 NAME                   A   VOLUME  DEBYETEMPS          MSDS     MASS    COHXS
@@ -348,7 +349,7 @@ othermat.ncmat         -        -           -             -  15.9993   4.2317
 ==> stdlib::Al_sg225.ncmat
     Description   : Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)
     Full key      : stdlib::Al_sg225.ncmat
-    Source        : <stdlib-location> (factory "stdlib", priority 120)
+    Source        : <location-dependent> (factory "stdlib", priority 120)
     Data type     : ncmat
     On-disk path  : <location-dependent>
     Hidden        : yes, by a higher priority entry with the same name
@@ -393,7 +394,7 @@ othermat.ncmat         -        -           -             -  15.9993   4.2317
     # Load in Python:
     python3 -c 'import NCrystal as NC; NC.load("stdlib::Al_sg225.ncmat").dump()'
 ============= CLI >>browse -f virtual --info mycrystl<< =============
-No matching files found.
+No matching data found.
 Did you mean: mycrystal.ncmat?
 ============= CLI >>browse -f virtual --count<< =============
 5
@@ -402,15 +403,15 @@ Did you mean: mycrystal.ncmat?
 ============= CLI >>browse -f virtual --path<< =============
 ============= CLI >>browse -f stdlib Al_sg225 --path<< =============
 ============= CLI >>browse -f virtual mycrystl<< =============
-No matching files found.
+No matching data found.
 Did you mean: mycrystal.ncmat?
 ============= CLI >>browse -f virtual mycrystl --columns sg<< =============
-No matching files found.
+No matching data found.
 Did you mean: mycrystal.ncmat?
 ============= CLI >>browse -f virtual mycrystal -w 'absxs > 100'<< =============
-No matching files found.
+No matching data found.
 ============= CLI >>browse -f virtual qwertyzzz<< =============
-No matching files found.
+No matching data found.
 ============= CLI >>browse -f virtual --columns formula,sg,density,dyninfo,description<< =============
 NAME             FORMULA   SG  DENSITY    DYNINFO  DESCRIPTION
 Al_sg225.ncmat         O    -        2  vdosdebye
@@ -454,13 +455,13 @@ Al_sg225.ncmat
             'atoms': ['Al'],
             'nelements': 1,
             'formula': 'Al',
-            'mass': 26.98153841,
+            'mass': 26.981538408,
             'absxs': 0.231,
-            'scatxs': 1.396668642,
-            'cohxs': 1.494845308,
+            'scatxs': 1.3966686416,
+            'cohxs': 1.4948453085,
             'incohxs': 0.0082,
-            'density': 2.698645518,
-            'numdens': 0.06023238256,
+            'density': 2.6986455177,
+            'numdens': 0.060232382561,
             'temp': 293.15,
             'state': 'solid',
             'crystal': True,
@@ -473,10 +474,10 @@ Al_sg225.ncmat
             'alpha': 90.0,
             'beta': 90.0,
             'gamma': 90.0,
-            'volume': 66.40945999,
-            'braggthreshold': 4.676052206,
+            'volume': 66.409459993,
+            'braggthreshold': 4.6760522062,
             'debyetemps': {'Al': 400.0},
-            'msds': {'Al': 0.01038384084},
+            'msds': {'Al': 0.010383840837},
             'dyninfo': ['vdosdebye'],
             'customsections': [],
             'nphases': 1},
@@ -515,8 +516,51 @@ Caught expected ArgumentError('Do not specify --json together with --columns, --
 Caught expected ArgumentError('Do not specify both --names and --json.')
 ============= CLI >>browse -w 'absxs/0 > 1' -f virtual<< =============
 Caught expected NCBadInput('Error evaluating --where expression "absxs/0 > 1": float division by zero')
+============= CLI >>browse '*.la?'<< =============
+==> 2 entries from "relpath" (<current-dir>, priority=140):
+    disk.lau
+    disk.laz
+==> 3 entries from "virtual" (virtual, priority=130):
+    mem.lau
+    mem.laz
+    notncmat.laz
+============= CLI >>browse '*.la?' --columns formula,sg,a,braggthreshold,dyninfo<< =============
+NAME          FORMULA   SG        A  BRAGGTHRESHOLD    DYNINFO
+disk.lau           Al  225  4.04958         4.67605  vdosdebye
+disk.laz           Al  225  4.04958         4.67605  vdosdebye
+mem.lau            Al  225  4.04958         4.67605  vdosdebye
+mem.laz            Al  225  4.04958         4.67605  vdosdebye
+notncmat.laz        -    -        -               -          -
+============= CLI >>browse -s disk<< =============
+==> 2 entries from "relpath" (<current-dir>, priority=140):
+    disk.lau
+    disk.laz
+============= CLI >>browse -f relpath --info disk.laz<< =============
+==> disk.laz
+    Description   : -
+    Full key      : relpath::disk.laz
+    Source        : <location-dependent> (factory "relpath", priority 140)
+    Data type     : laz
+    On-disk path  : <location-dependent>
+  Physics properties:
+    elements={'Al'}  atoms={'Al'}  nelements=1  formula='Al'  mass=26.9815
+    absxs=0.231  scatxs=1.39667  cohxs=1.49485  incohxs=0.0082  density=2.69865
+    numdens=0.0602324  temp=293.15  state='solid'  crystal=True
+    crystalsystem='cubic'  sg=225  natoms=4  a=4.04958  b=4.04958  c=4.04958
+    alpha=90  beta=90  gamma=90  volume=66.4095  braggthreshold=4.67605
+    debyetemps=None  msds=None  dyninfo={'vdosdebye'}  customsections={}
+    nphases=1
+  Usage examples:
+    # Plot cross sections:
+    nctool "disk.laz"
+    # Show full content:
+    ncrystal browse -x "disk.laz"
+    # Load in Python:
+    python3 -c 'import NCrystal as NC; NC.load("disk.laz").dump()'
+============= CLI >>browse -f virtual -w sg==225 --count<< =============
+3
 ============= CLI >>browse -c stdlib::Al_sg225<< =============
-==> 1 file from "stdlib" (<stdlib-location>, priority=120):
+==> 1 entry from "stdlib" (<stdlib-location>, priority=120):
     stdlib::Al_sg225.ncmat (hidden)
         # Aluminium (Al, fcc, cubic, SG-225 / Fm-3m)
         #
@@ -569,17 +613,17 @@ Caught expected ArgumentError('Do not specify --names together with --comments o
 ============= CLI >>browse -E -s '('<< =============
 Caught expected ArgumentError('Invalid regular expression "(": missing ), unterminated subpattern at position 0')
 ============= CLI >>browse -s togo -s my -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | My test material (for testing only).
         | Some more comments mentioning Togo and VDOS.
 ============= CLI >>browse -s togo -s my -f virtual --color=always<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     <ESC>[01;31m<ESC>[Kmy<ESC>[m<ESC>[Ktestmat.ncmat  <ESC>[01;31m<ESC>[KMy<ESC>[m<ESC>[K test material (for testing only). Second line of desc...
         | <ESC>[01;31m<ESC>[KMy<ESC>[m<ESC>[K test material (for testing only).
         | Some more comments mentioning <ESC>[01;31m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
 ============= CLI >>browse -s togo -f virtual -c --colour=yes<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat
         # My test material (for testing only).
         # Second line of description which is long enough that it will have to be
@@ -588,31 +632,31 @@ Caught expected ArgumentError('Invalid regular expression "(": missing ), unterm
         # Some more comments mentioning <ESC>[01;31m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
 
 ============= CLI >>browse -s togo -f virtual --color=never<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | Some more comments mentioning Togo and VDOS.
 ============= CLI >>browse -s togo --color mytestmat<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | Some more comments mentioning Togo and VDOS.
 ============= CLI >>browse -s togo -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | Some more comments mentioning <ESC>[01;31m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
 ============= CLI >>browse -s togo -f virtual<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | Some more comments mentioning Togo and VDOS.
 ============= CLI >>browse -s togo -f virtual --color=always<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | Some more comments mentioning <ESC>[01;31m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
 ============= CLI >>browse -s togo -f virtual --color=always<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | Some more comments mentioning <ESC>[01;32m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
 ============= CLI >>browse -E -s 'tog|nothing' -s ogo -f virtual --color=always<< =============
-==> 1 file from "virtual" (virtual, priority=130):
+==> 1 entry from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | Some more comments mentioning <ESC>[01;31m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
 ============= CLI >>browse --color=blue<< =============

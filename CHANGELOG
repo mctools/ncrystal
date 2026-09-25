@@ -96,9 +96,10 @@ v4.4.7 (work in progress)
      * New NCrystal.browse Python module for browsing and searching available
        data, optionally based on physics properties of the loaded materials.
      * New JSON queries ["util","browsedb",...] and ["util","browsefactories"]
-       providing data file listings with NCMAT header comments and physics
-       properties (loaded in parallel if factory threads are enabled), and
-       ["util","factorythreads"] providing the factory thread-pool state.
+       providing listings of available data with NCMAT header comments and
+       physics properties (loaded in parallel if factory threads are
+       enabled), and ["util","factorythreads"] providing the factory
+       thread-pool state.
      * C API: error state (ncrystal_error, ncrystal_lasterror, ...) is now
        kept per thread, so errors are no longer reported in the wrong thread
        when the C API (or the Python API) is used from several threads.
@@ -106,7 +107,7 @@ v4.4.7 (work in progress)
        files, which used a shared static buffer, so concurrent reads (e.g.
        creating materials in different threads) could corrupt file contents.
      * New command-line tool "ncrystal browse" for browsing and searching
-       available data files and plugins, more powerful than the --browse,
+       available data and plugins, more powerful than the --browse,
        --extract and --plugins flags of nctool (kept for now): it shows short
        NCMAT descriptions, filters by source and name (substrings, globs or
        -E regexes), searches NCMAT header comments with grep-like colored

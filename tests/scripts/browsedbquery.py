@@ -24,10 +24,10 @@
 # queries.
 
 import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.stabilise_ncpprint # noqa F401
 import NCrystalDev as NC
 from NCrystalDev.misc import evaluate_query
 from NCTestUtils.common import ensure_error
-import pprint
 
 _crystal = """NCMAT v7
 #
@@ -68,19 +68,10 @@ _broken = """NCMAT v7
 def q( *args ):
     return evaluate_query( ['util'] + list(args) )
 
-def rounded( x ):
-    #Round floats, for reproducibility across platforms:
-    if isinstance( x, float ):
-        return float( '%.10g'%x )
-    if isinstance( x, list ):
-        return [ rounded(e) for e in x ]
-    if isinstance( x, dict ):
-        return dict( (k,rounded(v)) for k,v in x.items() )
-    return x
-
 def show( title, data ):
+    import NCrystalDev._common as nc_common
     print(f'==> {title}:')
-    pprint.pp( rounded(data), width = 78 )
+    nc_common.ncpprint( data )#NB: FP precision clipped by stabilise_ncpprint
 
 def run_scenario( name, code, envval = None ):
     #Run code in fresh process (the NCRYSTAL_FACTORY_THREADS env var is

@@ -19,7 +19,7 @@
 ##                                                                            ##
 ################################################################################
 
-"""Command-line tool for browsing available data files and plugins."""
+"""Command-line tool for browsing available data and plugins."""
 
 from ._cliimpl import cli_entry_point, create_ArgumentParser, print
 
@@ -28,45 +28,46 @@ def climod_metadata():
     return dict(
         displaygroup = 'main',
         displayorder = 15,
-        descr = ( "Browse and search available data files (e.g. the"
+        descr = ( "Browse and search available data (e.g. the"
                   " standard library of NCMAT files) and plugins." )
     )
 
 def parseArgs( progname, arglist, return_parser = False ):
     import textwrap
     descr = textwrap.dedent("""
-    Browse and search the data files available to NCrystal (e.g. files in the
-    standard data library, in the current directory, or in-memory files),
-    and the loaded plugins.
+    Browse and search the data available to NCrystal (e.g. files in the
+    standard data library or in the current directory, in-memory data, or
+    data created on-demand like "solid::B4C/2.52gcm3"), and the loaded
+    plugins.
 
-    By default a list of available files is printed, grouped by the source
-    delivering them, and with a short description extracted from the header
-    comments of any NCMAT files. The list can be narrowed down by providing
-    one or more PATTERNs (case-insensitive substrings of file names, or glob
-    patterns like "Al*.ncmat"), by requiring certain words to be present in
-    the file names or NCMAT header comments (--search), or by only showing
-    files from a given source (--factory). Files can also be selected based
-    on their physics content with --where (see below), which requires all
-    candidate files to be loaded.
+    By default a list of available data entries is printed, grouped by the
+    source delivering them, and with a short description extracted from the
+    header comments of any NCMAT data. The list can be narrowed down by
+    providing one or more PATTERNs (case-insensitive substrings of names, or
+    glob patterns like "Al*.ncmat"), by requiring certain words to be present
+    in the names or NCMAT header comments (--search), or by only showing
+    entries from a given source (--factory). Entries can also be selected
+    based on their physics content with --where (see below), which requires
+    all candidate entries to be loaded.
 
-    Files marked "(hidden)" are shadowed by files with the same name from a
-    higher priority source, and are listed with their full name (like
+    Entries marked "(hidden)" are shadowed by entries with the same name from
+    a higher priority source, and are listed with their full name (like
     "stdlib::Al_sg225.ncmat"), which can be used to select them explicitly.
     """).strip()
     epilog = textwrap.dedent("""
     examples:
-      %(prog)s                     # list all files
-      %(prog)s Al                  # files with "al" in the name
-      %(prog)s "*_sg225*"          # files matching a glob pattern
+      %(prog)s                     # list all data
+      %(prog)s Al                  # data with "al" in the name
+      %(prog)s "*_sg225*"          # data matching a glob pattern
       %(prog)s -s vdos -s togo     # search names and header comments
       %(prog)s -E -s "boron|b4c"   # search with regular expression
-      %(prog)s -c Al_sg225.ncmat   # show header comments of a file
-      %(prog)s -x Al_sg225.ncmat   # show full content of a file
-      %(prog)s --info Al_sg225.ncmat # show all info about a file
+      %(prog)s -c Al_sg225.ncmat   # show header comments
+      %(prog)s -x Al_sg225.ncmat   # show full content
+      %(prog)s --info Al_sg225.ncmat # show all info
       %(prog)s --plugins           # list loaded plugins
       %(prog)s -w "'B' in elements and absxs > 100"
       %(prog)s -w "'vdos' in dyninfo" -w "crystal and sg == 225"
-      %(prog)s --props Al_sg225.ncmat  # show the properties of a file
+      %(prog)s --props Al_sg225.ncmat  # show the physics properties
       %(prog)s -w "'B' in elements" --sort absxs --reverse
       %(prog)s -f stdlib --columns formula,sg,density
     """).strip()
@@ -85,10 +86,10 @@ def parseArgs( progname, arglist, return_parser = False ):
                                     formatter_class
                                     = argparse.RawDescriptionHelpFormatter )
     parser.add_argument('pattern', type=str, nargs='*', metavar='PATTERN',
-                        help='Only show files whose names match the pattern.')
+                        help='Only show data whose names match the pattern.')
     parser.add_argument('-s','--search', type=str, action='append',
                         default=[], metavar='WORD',
-                        help=('Only show files which contain WORD in their'
+                        help=('Only show data which contain WORD in their'
                               ' name or NCMAT header comments (case'
                               '-insensitive). Can be specified multiple'
                               ' times, in which case all words must be'
@@ -101,49 +102,49 @@ def parseArgs( progname, arglist, return_parser = False ):
                               ' (e.g. -E -s "boron|b4c").'))
     parser.add_argument('-f','--factory', type=str, default=None,
                         metavar='NAME',
-                        help=('Only show files delivered by the named'
+                        help=('Only show data delivered by the named'
                               ' factory (e.g. "stdlib" or "virtual").'))
     parser.add_argument('-w','--where', type=str, action='append',
                         default=[], metavar='EXPR',
-                        help=('Only show files for which the Python expression'
+                        help=('Only show data for which the Python expression'
                               ' EXPR is true, based on physics properties of'
                               ' the loaded material (see below). Can be'
                               ' specified multiple times, in which case all'
                               ' expressions must be true.'))
     parser.add_argument('--props', action='store_true',
-                        help=('Show the physics properties of each file (i.e.'
+                        help=('Show the physics properties of each entry (i.e.'
                               ' the values available in --where expressions).'
                               ))
     parser.add_argument('--columns', type=str, default=None, metavar='KEYS',
                         help=('Show a table with the given comma-separated'
                               ' physics properties (and "description")'
-                              ' of each file, instead of the usual listing.'))
+                              ' of each entry, instead of the usual listing.'))
     parser.add_argument('--sort', type=str, default=None, metavar='KEY',
                         help=('Show a table sorted by KEY, which is "name"'
                               ' or a physics property (which is then also'
-                              ' shown). Files without a value are listed'
+                              ' shown). Entries without a value are listed'
                               ' last.'))
     parser.add_argument('--reverse', action='store_true',
                         help='Reverse the order of --sort.')
     parser.add_argument('--json', action='store_true',
                         help=('Output all information about the selected'
-                              ' files (including physics properties) as'
+                              ' data (including physics properties) as'
                               ' JSON.'))
     parser.add_argument('-c','--comments', action='store_true',
-                        help='Show full NCMAT header comments of the files.')
+                        help='Show full NCMAT header comments.')
     parser.add_argument('--info', action='store_true',
                         help=('Show all available information about each'
-                              ' selected file, including physics properties,'
+                              ' selected entry, including physics properties,'
                               ' header comments, and usage examples.'))
     parser.add_argument('--count', action='store_true',
-                        help='Only print the number of selected files.')
+                        help='Only print the number of selected entries.')
     parser.add_argument('--path', action='store_true',
                         help=('Only print the on-disk paths of the selected'
-                              ' files, one per line (files which are not'
-                              ' on disk, e.g. in-memory files, are'
+                              ' files, one per line (entries which are not'
+                              ' on disk, e.g. in-memory data, are'
                               ' skipped).'))
     parser.add_argument('--names', action='store_true',
-                        help=('Only print the names of the files, one per'
+                        help=('Only print the names of the entries, one per'
                               ' line (useful for scripting).'))
     parser.add_argument('-x','--extract', type=str, default=None,
                         metavar='DATANAME',
@@ -494,7 +495,7 @@ def _print_info( entries, args ):
             print(f'    {c}')
 
 def _print_no_matches( args ):
-    print('No matching files found.')
+    print('No matching data found.')
     if not args.regex and any( c in w for w in args.search + args.pattern
                                for c in '|^$+()\\{}' ):
         print('Note: Search WORDs are matched literally. Use -E/--regex'
@@ -553,7 +554,8 @@ def _print_listing( items, args ):
         n = len(group)
         src = f' ({source}, priority={priority})' if source else (
             f' (priority={priority})' )
-        print(f'==> {n} file{"" if n==1 else "s"} from "{factname}"{src}:')
+        print(f'==> {n} entr{"y" if n==1 else "ies"} from "{factname}"'
+              f'{src}:')
         namew = min( 40, max( len(i.display_name) for i in group ) )
         for i in group:
             name = i.display_name

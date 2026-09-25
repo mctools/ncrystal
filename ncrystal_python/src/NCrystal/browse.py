@@ -19,10 +19,10 @@
 ##                                                                            ##
 ################################################################################
 
-"""Utilities for browsing and searching the data files available to NCrystal
-(e.g. files in the standard data library, in-memory files, or files in the
-current directory), optionally based on the physics content of the materials
-they describe.
+"""Utilities for browsing and searching the data available to NCrystal (e.g.
+files in the standard data library or in the current directory, in-memory
+data, or data created on-demand like "solid::B4C/2.52gcm3"), optionally based
+on the physics content of the materials they describe.
 
 Example:
 
@@ -143,8 +143,9 @@ class PhysicsProps:
         return str(self)
 
 class DataEntry:
-    """An entry (e.g. a file) available to NCrystal. Objects are created by
-    the browse() or find() functions."""
+    """A data entry available to NCrystal (e.g. a file, in-memory data, or
+    data created on-demand). Objects are created by the browse() or find()
+    functions."""
 
     def __init__( self, data ):
         """For internal usage only (data is a dictionary from the C++
@@ -157,7 +158,7 @@ class DataEntry:
 
     @property
     def name( self ):
-        """Name (e.g. file name) used to request the entry."""
+        """Name (e.g. a file name) used to request the entry."""
         return self.__d['name']
 
     @property

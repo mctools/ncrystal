@@ -81,9 +81,11 @@ def run( *args, show = True, sanitize_paths = False ):
     #Location of stdlib depends on installation:
     out = re.sub(r'from "stdlib" \(.*, priority=',
                  'from "stdlib" (<stdlib-location>, priority=', out)
+    out = re.sub(r'from "relpath" \(.*, priority=',
+                 'from "relpath" (<current-dir>, priority=', out)
     if sanitize_paths:
-        out = re.sub(r'(Source        : ).*( \(factory "stdlib")',
-                     r'\1<stdlib-location>\2', out)
+        out = re.sub(r'(Source        : ).*( \(factory "(stdlib|relpath)")',
+                     r'\1<location-dependent>\2', out)
         out = re.sub(r'(On-disk path  : ).*', r'\1<location-dependent>', out)
     out = out.replace('\x1b','<ESC>')#make color codes visible in log
     if show:
@@ -125,6 +127,30 @@ def test_colors():
                       " 'never', 'no', 'none', 'tty', 'yes')"):
         run('--color=blue')
 
+def test_lazlau():
+    #Non-NCMAT data, both in-memory and on-disk (in current directory):
+    import pathlib
+
+    from NCrystalDev.mcstasutils import cfgstr_2_hkl
+    from NCTestUtils.common import work_in_tmpdir
+    def lazlau( fmt ):
+        return '\n'.join( cfgstr_2_hkl( cfgstr = ( 'stdlib::Al_sg225.ncmat;'
+                                                   'dcutoff=1.0' ),
+                                        tgtformat = fmt, verbose = False,
+                                        fp_format = '%.8g' ) ) + '\n'
+    NC.registerInMemoryFileData('mem.laz',lazlau('laz'))
+    NC.registerInMemoryFileData('mem.lau',lazlau('lau'))
+    NC.enableRelativePaths(True)
+    with work_in_tmpdir():
+        pathlib.Path('disk.laz').write_text(lazlau('laz'))
+        pathlib.Path('disk.lau').write_text(lazlau('lau'))
+        run('*.la?')
+        run('*.la?','--columns','formula,sg,a,braggthreshold,dyninfo')
+        run('-s','disk')
+        run('-f','relpath','--info','disk.laz',sanitize_paths=True)
+        run('-f','virtual','-w','sg==225','--count')
+    NC.enableRelativePaths(False)
+
 def test_physics():
     run('--props','-f','virtual')
     run('--props','-f','stdlib','LiquidHeavyWater')
@@ -163,16 +189,9 @@ def test_physics():
     run('-f','virtual','--sort','name','--reverse')
     import json
     out = run('-f','virtual','mycrystal','--json',show=False)
-    def rounded( x ):
-        if isinstance( x, float ):
-            return float( '%.10g'%x )
-        if isinstance( x, list ):
-            return [ rounded(e) for e in x ]
-        if isinstance( x, dict ):
-            return dict( (k,rounded(v)) for k,v in x.items() )
-        return x
-    import pprint
-    pprint.pp( rounded( json.loads(out) ) )
+    import NCTestUtils.stabilise_ncpprint # noqa F401
+    import NCrystalDev._common as nc_common
+    nc_common.ncpprint( json.loads(out) )#FP precision clipped
     import argparse
     def bad_where( expr, errmsg ):
         with ensure_error(argparse.ArgumentError,errmsg):
@@ -257,6 +276,7 @@ def main_impl():
     run('--names','my.*mat')
     run('-c','-f','virtual')
     test_physics()
+    test_lazlau()
     run('-c','stdlib::Al_sg225')
     run('-x','mytestmat.ncmat')
     out = run('--plugins',show=False)
