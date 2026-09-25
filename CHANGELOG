@@ -1,4 +1,29 @@
 v4.4.7 (work in progress)
+     * Wire fastLowerBoundIdx/fastUpperBoundIdx into two more call
+       sites, chosen because they are plain double arrays with the
+       default comparator (directly compatible, no generalisation
+       needed) and confirmed hot: PowderBragg::findLastValidPlaneIdx
+       and ::genScatterMu (coherent elastic/Bragg scattering -- can
+       have as many as ~1e5 HKL planes for large/complex unit cells),
+       and NC::pickRandIdxByWeight (weighted random selection used
+       throughout the codebase: SAB cell/component sampling,
+       single-crystal mosaic models, absorption-oriented-volume
+       models, ...). PowderBragg's cumulative cross-section array can
+       have consecutive equal entries whenever a plane's structure
+       factor is zero (symmetry-forbidden reflections); the previous
+       entry's added test coverage for tied/duplicate values (and
+       corrected docstring) was motivated by exactly this case.
+       A broader codebase survey found ~15 more std::lower_bound/
+       upper_bound call sites, but most are either cold (cfg-string
+       parsing, atom database lookups, one-time VDOS/energy-grid setup)
+       or use custom types/comparators (would need a templated
+       generalisation of fastLowerBoundIdx/fastUpperBoundIdx, not
+       attempted here) -- left alone rather than swept blindly.
+       Measured with sb_ncdev_benchsabsample (comp=coh_elas,
+       SiO2-alpha_sg154_AlphaQuartz.ncmat, random energy per call, 5
+       trials of 10M samples each): ~24% faster (844ms -> 644ms, clean
+       non-overlapping trial ranges). Full sb -t --long green, zero
+       reference-log changes.
      * Wire NC::fastLowerBoundIdx/fastUpperBoundIdx (see the previous
        entry) into the three call sites profiling identified as the
        actual dominant cost of a SAB scatter sample: SABProcessor's

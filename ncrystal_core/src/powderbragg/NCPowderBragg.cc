@@ -21,6 +21,7 @@
 #include "NCrystal/internal/powderbragg/NCPowderBragg.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
+#include "NCrystal/internal/utils/NCFastSearch.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include <functional>//std::greater
 
@@ -157,9 +158,7 @@ std::size_t NC::PowderBragg::findLastValidPlaneIdx( NC::NeutronEnergy ekin) cons
   nc_assert( !ncisnan(ekin.dbl()) );
   nc_assert( ekin >= m_threshold );
   nc_assert( std::isfinite( ekin.dbl() ) );
-  return (std::upper_bound(m_2dE.begin() + 1,
-                           m_2dE.end(),
-                           ekin.get()) - m_2dE.begin()) - 1;
+  return fastUpperBoundIdx( m_2dE.data()+1, m_2dE.size()-1, ekin.get() );
 }
 
 
@@ -184,11 +183,8 @@ NC::CosineScatAngle NC::PowderBragg::genScatterMu( RNG& rng,
   nc_assert(last_valid_idx<m_fdm_commul.size());
 
   //randomly select one plane by contribution:
-  VectD::const_iterator itFCUpper = std::next( m_fdm_commul.begin(), last_valid_idx );
-  VectD::const_iterator itFC = std::lower_bound( m_fdm_commul.begin(),
-                                                 itFCUpper,
-                                                 rng.generate() * (*itFCUpper) );
-  std::size_t idx_rand = (std::size_t)( itFC - m_fdm_commul.begin() );
+  const double target = rng.generate() * m_fdm_commul[last_valid_idx];
+  std::size_t idx_rand = fastLowerBoundIdx( m_fdm_commul.data(), last_valid_idx, target );
   nc_assert(idx_rand<m_2dE.size());
   double sin_theta_bragg_squared = m_2dE[idx_rand] / ekin.get();
 
