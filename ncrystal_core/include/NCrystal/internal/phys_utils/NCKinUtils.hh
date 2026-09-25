@@ -100,7 +100,17 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr double c4 = 5./64.;
       constexpr double c3 = - 1./8.;
       constexpr double c2 = 1./4.;
-      return beta*x*(c2+x*(c3+x*(c4+x*(c5+x*(c6+x*(c7+x*(c8+x*c9)))))));
+      //Horner's method with std::fma throughout for reproducibility (same
+      //technique as e.g. safe_xcothx in NCVDOSEval.cc):
+      double p = c9;
+      p = std::fma( x, p, c8 );
+      p = std::fma( x, p, c7 );
+      p = std::fma( x, p, c6 );
+      p = std::fma( x, p, c5 );
+      p = std::fma( x, p, c4 );
+      p = std::fma( x, p, c3 );
+      p = std::fma( x, p, c2 );
+      return beta*x*p;
     }
   }
 
@@ -115,12 +125,18 @@ namespace NCRYSTAL_NAMESPACE {
       return {1.0,-1.0};
     }
     const double a = kk + ekin_div_kT;
-    const double b = 2.0*std::sqrt( ekin_div_kT * kk );
+    const double sq = std::sqrt( ekin_div_kT * kk );
+    //a-+2*sq is exactly the a*b+-c shape a compiler may or may not silently
+    //fuse under -mfma (confirmed empirically for this exact pattern, even
+    //split across statements as here -- see docs/devel_fma_attribute.md);
+    //explicit std::fma makes every platform compute the identical,
+    //single-rounded result:
     const double aminus = ( detail::alphaMinusNeedsTaylor( ekin_div_kT, beta )
                             ? detail::alphaMinusTaylor( ekin_div_kT, beta )
-                            : std::max(0.0,a - b) );
-    nc_assert( a+b >= aminus );
-    return { aminus, a + b };
+                            : std::max(0.0, std::fma(-2.0, sq, a)) );
+    const double aplus = std::fma(2.0, sq, a);
+    nc_assert( aplus >= aminus );
+    return { aminus, aplus };
   }
 
   inline AlphaLimitsWithDiff getAlphaLimitsWithDiff( double ekin_div_kT, double beta )
@@ -130,11 +146,14 @@ namespace NCRYSTAL_NAMESPACE {
     nc_assert( beta >= -ekin_div_kT );
     const double kk = ekin_div_kT + beta;
     const double a = kk + ekin_div_kT;
-    const double b = 2.0*std::sqrt( ekin_div_kT * kk );
+    const double sq = std::sqrt( ekin_div_kT * kk );
     const double aminus = ( detail::alphaMinusNeedsTaylor( ekin_div_kT, beta )
                             ? detail::alphaMinusTaylor( ekin_div_kT, beta )
-                            : std::max(0.0,a - b) );
-    return { aminus, a+b, 2.0*b };
+                            : std::max(0.0, std::fma(-2.0, sq, a)) );
+    const double aplus = std::fma(2.0, sq, a);
+    return { aminus, aplus, 4.0*sq };//adiff = 2*b = 4*sq (see class doc: a
+                                     //deliberately independent, stable
+                                     //formula, not aplus-aminus)
   }
 
   inline double getAlphaMinus( double ekin_div_kT, double beta ) {
@@ -146,8 +165,8 @@ namespace NCRYSTAL_NAMESPACE {
     const double kk = ekin_div_kT + beta;
     nc_assert( kk >= 0.0 );
     const double a = kk + ekin_div_kT;
-    const double b = 2.0*std::sqrt( ekin_div_kT * kk );
-    return std::max(0.0,a - b);
+    const double sq = std::sqrt( ekin_div_kT * kk );
+    return std::max(0.0, std::fma(-2.0, sq, a));
   }
 
   inline double getAlphaPlus( double ekin_div_kT, double beta )
@@ -158,8 +177,8 @@ namespace NCRYSTAL_NAMESPACE {
     const double kk = ekin_div_kT + beta;
     nc_assert( kk >= 0.0 );
     const double a = kk + ekin_div_kT;
-    const double b = 2.0*std::sqrt( ekin_div_kT * kk );
-    return a + b;
+    const double sq = std::sqrt( ekin_div_kT * kk );
+    return std::fma(2.0, sq, a);
   }
 
   namespace detail {
@@ -179,32 +198,42 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr double c6 = 21./1048576.;
       constexpr double c7 = -33./8388608.;
       constexpr double c8 = 429./536870912.;
-      return ekin_div_kT*(x*(c1+x*(c2+x*(c3+x*(c4+x*(c5+x*(c6+x*(c7+x*c8))))))));
+      //Horner's method with std::fma throughout for reproducibility:
+      double p = c8;
+      p = std::fma( x, p, c7 );
+      p = std::fma( x, p, c6 );
+      p = std::fma( x, p, c5 );
+      p = std::fma( x, p, c4 );
+      p = std::fma( x, p, c3 );
+      p = std::fma( x, p, c2 );
+      p = std::fma( x, p, c1 );
+      return ekin_div_kT*x*p;
     }
   }
 
   inline double getBetaMinus( double ekin_div_kT, double alpha )
   {
     nc_assert(ekin_div_kT*alpha>=0);
+    //See getAlphaLimits for why std::fma is used explicitly here:
     return ( detail::betaMinusNeedsTaylor( ekin_div_kT, alpha )
              ? detail::betaMinusTaylor( ekin_div_kT, alpha )
-             : ( alpha - 2*std::sqrt(ekin_div_kT*alpha) ) );
+             : std::fma(-2.0, std::sqrt(ekin_div_kT*alpha), alpha) );
   }
 
   inline double getBetaPlus( double ekin_div_kT, double alpha )
   {
     nc_assert(ekin_div_kT*alpha>=0);
-    return alpha + 2*std::sqrt(ekin_div_kT*alpha);
+    return std::fma(2.0, std::sqrt(ekin_div_kT*alpha), alpha);
   }
 
   inline BetaLimits_t getBetaLimits( double ekin_div_kT, double alpha )
   {
     nc_assert(ekin_div_kT>=0);
     nc_assert(alpha>=0);
-    const double k = 2*std::sqrt(ekin_div_kT*alpha);
+    const double sq = std::sqrt(ekin_div_kT*alpha);
     return { ( detail::betaMinusNeedsTaylor( ekin_div_kT, alpha )
                ? detail::betaMinusTaylor( ekin_div_kT, alpha )
-               : alpha - k ), alpha + k };
+               : std::fma(-2.0, sq, alpha) ), std::fma(2.0, sq, alpha) };
   }
 }
 

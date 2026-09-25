@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/sab/NCSABCellInteg.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
@@ -116,6 +117,23 @@ namespace NCRYSTAL_NAMESPACE {
         double getLogS() const { return m_logS; }
       };
 
+      //out[i] = fma(slope,i,offset) for i in [i0,i1): the linear-ramp fill
+      //used (twice) in SOfAlphaGrid's constructor below. Extracted into its
+      //own free function so it can carry NCRYSTAL_FMADISPATCH_ATTR -- a
+      //constructor cannot be decorated, but SOfAlphaGrid is constructed
+      //extremely frequently in the SAB cell-integration hot path (profiling:
+      //~13-18% of total init self-time across every material tried), so
+      //this std::fma call is worth the same hardware-dispatch speed as
+      //everywhere else it appears. Single fma expression, no other FP, no
+      //loop-index oddities -- safe per doc/devel_fma_attribute.md rule 1:
+      NCRYSTAL_FMADISPATCH_ATTR
+      void fmaRampFill( double* out, unsigned i0, unsigned i1,
+                        double slope, double offset )
+      {
+        for ( unsigned i = i0; i < i1; ++i )
+          out[i] = std::fma( slope, static_cast<double>(i), offset );
+      }
+
       struct SOfAlphaGrid final : private NoCopyMove {
         //Class which sets up an alpha grid like linspace(a1,a2,n) with
         //associated interpolated values of S and logS. In case of loglin
@@ -144,15 +162,13 @@ namespace NCRYSTAL_NAMESPACE {
           const double inv_nm1 = 1.0 / nm1;
           const double da = (a2-a1)*inv_nm1;
 
-          for ( unsigned i = 1; i < nm1; ++i )
-            a[i] = std::fma(da, static_cast<double>(i), a1); // = a1+da*i
+          fmaRampFill( a, 1, nm1, da, a1 ); // a[i] = a1+da*i
 
           if ( meth == Method::LIN ) {
             //linear
             final_k = s2-s1;
             double ds = final_k*inv_nm1;
-            for ( unsigned i = 1; i < nm1; ++i )
-              S[i] = std::fma(ds, static_cast<double>(i), s1); // = s1+ds*i
+            fmaRampFill( S, 1, nm1, ds, s1 ); // S[i] = s1+ds*i
             return;
           }
 
@@ -283,6 +299,13 @@ namespace NCRYSTAL_NAMESPACE {
           double s_at_b2;
         };
 
+        //NCRYSTAL_FMADISPATCH_ATTR: this is called once per alpha slice in
+        //the SAB cell-integration hot path; every plain FP expression here
+        //(and in the now-explicit-fma getBetaMinus/getBetaPlus/nclerp it
+        //calls) is either explicit std::fma or provably safe if silently
+        //contracted (no remaining a*b+-c shape) -- audited per
+        //doc/devel_fma_attribute.md rule 1:
+        NCRYSTAL_FMADISPATCH_ATTR
         double contrib(const AlphaSlice& slice) const
         {
           nc_assert(m_b2>m_b1);
@@ -314,7 +337,10 @@ namespace NCRYSTAL_NAMESPACE {
           const double bmiddle( m_is_bounded_by_both ? a : (bu+bl)*0.5 );
           nc_assert(valueInInterval(-0.01,1.01,(bmiddle-m_b1)*m_invdb));
           const double rb = ncclamp((bmiddle-m_b1)*m_invdb,0.0,1.0);
-          const double smiddle = slice.s_at_b1*(1.0-rb)+slice.s_at_b2*rb;
+          //nclerp (fma-based) rather than the equivalent but unaudited
+          //"a*(1-t)+b*t" form (two products summed -- the same fma-fusion
+          //ambiguity class as elsewhere in this file):
+          const double smiddle = nclerp( slice.s_at_b1, slice.s_at_b2, rb );
           return calc_bu_minus_bl_times_smiddle( m_is_bounded_by_both,
                                                  dbpm, bu, bl, smiddle );
         }

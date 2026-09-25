@@ -176,11 +176,13 @@ inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin(double a, do
   if ( x < midpoint ) {
     //choose form most numerically stable for x near a
     const double r = (x-a) / (b-a);
-    return ( linlin_mode ? ( fa + (fb-fa)*r ) : fa * std::pow(fb/fa,r) );
+    //nclerp (fma-based) rather than the equivalent but unaudited
+    //"a+(b-a)*t" form (see docs/devel_fma_attribute.md):
+    return ( linlin_mode ? nclerp(fa,fb,r) : fa * std::pow(fb/fa,r) );
   } else {
     //choose form most numerically stable for x near b
     const double s = (b-x) / (b-a);
-    return ( linlin_mode ? ( fb + (fa-fb)*s ) : fb * std::pow(fa/fb,s) );
+    return ( linlin_mode ? nclerp(fb,fa,s) : fb * std::pow(fa/fb,s) );
   }
 }
 
@@ -197,11 +199,13 @@ inline double NCrystal::SABUtils::interpolate_loglin_fallbacklinlin_fast(double 
   if ( x < midpoint ) {
     //choose form most numerically stable for x near a
     const double r = (x-a) / bma;
-    return ( linlin_mode ? ( fa + (fb-fa)*r ) : std::exp(logfa+(logfb-logfa)*r) );
+    //nclerp (fma-based) rather than the equivalent but unaudited
+    //"a+(b-a)*t" form (see docs/devel_fma_attribute.md):
+    return ( linlin_mode ? nclerp(fa,fb,r) : std::exp(nclerp(logfa,logfb,r)) );
   } else {
     //choose form most numerically stable for x near b
     const double s = (b-x) / bma;
-    return ( linlin_mode ? ( fb + (fa-fb)*s ) : std::exp(logfb+(logfa-logfb)*s) );
+    return ( linlin_mode ? nclerp(fb,fa,s) : std::exp(nclerp(logfb,logfa,s)) );
   }
 }
 
@@ -218,11 +222,13 @@ inline double NCrystal::SABUtils::interpolate_linlin_NEW(double a, double fa,
   if ( x < midpoint ) {
     //choose forms most numerically stable for x near a
     const double r = (x-a) / bma;
-    return fa + (fb-fa)*r;
+    //nclerp (fma-based) rather than the equivalent but unaudited
+    //"a+(b-a)*t" form (see docs/devel_fma_attribute.md):
+    return nclerp(fa,fb,r);
   } else {
     //choose forms most numerically stable for x near b
     const double s = (b-x) / bma;
-    return fb + (fa-fb)*s;
+    return nclerp(fb,fa,s);
   }
 }
 
@@ -282,17 +288,19 @@ NCrystal::SABUtils::interpolate_loglin_fallbacklinlin_fast2
   if ( x < midpoint ) {
     //choose forms most numerically stable for x near a
     const double r = (x-a) / bma;
+    //nclerp (fma-based) rather than the equivalent but unaudited
+    //"a+(b-a)*t" form (see docs/devel_fma_attribute.md):
     if ( loglin_mode )
-      res.second = logfa+(logfb-logfa)*r;
+      res.second = nclerp(logfa,logfb,r);
     else
-      res.first = fa + (fb-fa)*r;
+      res.first = nclerp(fa,fb,r);
   } else {
     //choose form most numerically stable for x near b
     const double s = (b-x) / bma;
     if ( loglin_mode )
-      res.second = logfb+(logfa-logfb)*s;
+      res.second = nclerp(logfb,logfa,s);
     else
-      res.first = fb + (fa-fb)*s;
+      res.first = nclerp(fb,fa,s);
   }
   if ( loglin_mode )
     res.first = std::exp(res.second);
@@ -410,7 +418,7 @@ inline double NCrystal::SABUtils::sampleLogLinDist(double a, double fa, double b
     df = 0.0;
   }
   if (!df)
-    return a + rand*(b-a);//fa=fb, select uniformly in [a,b]
+    return nclerp(a,b,rand);//fa=fb, select uniformly in [a,b]
   //exactly one of fa and fb is 0:
   nc_assert(fa||fb);
   double x = (b-a)*std::sqrt(rand);
@@ -435,7 +443,7 @@ inline double NCrystal::SABUtils::sampleLogLinDist_fast(double a, double fa, dou
     df = 0.0;
   }
   if (!df)
-    return a + rand*(b-a);//fa=fb, select uniformly in [a,b]
+    return nclerp(a,b,rand);//fa=fb, select uniformly in [a,b]
   //exactly one of fa and fb is 0:
   nc_assert(fa||fb);
   double x = (b-a)*std::sqrt(rand);
@@ -448,7 +456,9 @@ inline double NCrystal::SABUtils::interpolate_linear(double a, double fa, double
   nc_assert( !ncisnanorinf(x) );
   nc_assert( x >= a && x <= b );
   double r = ( x - a ) / ( b - a );
-  return (1-r) * fa + r * fb;
+  //nclerp (fma-based) rather than the equivalent but unaudited
+  //"(1-t)*a+t*b" form (see docs/devel_fma_attribute.md):
+  return nclerp(fa,fb,r);
 }
 
 template<NCrystal::SABUtils::InterpolationScheme scheme>
