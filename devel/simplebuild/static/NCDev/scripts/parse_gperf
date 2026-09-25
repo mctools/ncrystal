@@ -1,0 +1,169 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2026 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+# Standalone reader+symbolizer for the raw cpu.prof file that ../scripts/
+# gperfcpu (or a manual LD_PRELOAD=libprofiler.so CPUPROFILE=cpu.prof run)
+# produces, for use where pprof/google-pprof itself is not installed and
+# cannot be (e.g. a locked-down sandbox with no sudo/network) -- gperfcpu's
+# own instructions assume pprof is available, this script is what to fall
+# back to when it is not.
+#
+# Uses only the standard library plus the system's own addr2line, so it can
+# be run directly (this file is plain, license-headered Python -- no
+# NCrystal import, no simplebuild needed):
+#
+#   python3 devel/simplebuild/static/NCDev/scripts/parse_gperf cpu.prof
+#
+# The raw format (stable across gperftools versions, undocumented but
+# simple): a 5-word header [0, 3, period_us, 0, 0], then a sequence of
+# records [count, num_pcs, pc_0, ..., pc_{num_pcs-1}] (one per captured
+# stack, in program counter order leaf-first), terminated by a sentinel
+# record [0, 1, 0], followed by a trailing ASCII dump of /proc/self/maps
+# (used here to map each pc to a library path + file offset for addr2line).
+#
+# Reports two views, similar to pprof's flat/cum: "self" attributes each
+# sample fully to its leaf (topmost) frame -- what is actually executing;
+# "cumulative" attributes each sample to every distinct frame anywhere in
+# its captured stack -- which functions' call subtrees are expensive, even
+# if the hot instructions are spread across many small callees.
+
+import argparse
+import collections
+import struct
+import subprocess
+import sys
+
+
+def parse_profile(path):
+    with open(path, 'rb') as f:
+        data = f.read()
+    n = len(data) // 8
+    words = struct.unpack('<%dQ' % n, data[:n * 8])
+    if n < 5 or words[0] != 0:
+        raise ValueError(f"{path} does not look like a gperftools cpu"
+                          " profile (bad header)")
+    i = 5
+    records = []
+    while i < n:
+        count, num_pcs = words[i], words[i + 1]
+        if count == 0 and num_pcs == 1 and words[i + 2] == 0:
+            i += 3
+            break
+        records.append((count, words[i + 2:i + 2 + num_pcs]))
+        i += 2 + num_pcs
+    maps_text = data[i * 8:].decode('utf-8', 'replace')
+    maps = []
+    for line in maps_text.splitlines():
+        parts = line.split()
+        if len(parts) < 6 or '-' not in parts[0]:
+            continue
+        addrs, perms, offset, _dev, _inode, *pathparts = parts
+        if 'x' not in perms:
+            continue
+        libpath = ' '.join(pathparts)
+        if not libpath or libpath.startswith('['):
+            continue
+        lo, hi = (int(x, 16) for x in addrs.split('-'))
+        maps.append((lo, hi, int(offset, 16), libpath))
+    return records, maps
+
+
+def addr_to_lib_offset(pc, maps):
+    for lo, hi, offset, libpath in maps:
+        if lo <= pc < hi:
+            return libpath, (pc - lo) + offset
+    return None, None
+
+
+def symbolize(pcs, maps):
+    """Returns {pc: 'function [libbasename]'} for every pc in pcs."""
+    pc_libaddr = {pc: addr_to_lib_offset(pc, maps) for pc in pcs}
+    by_lib = collections.defaultdict(list)
+    for pc, (lib, off) in pc_libaddr.items():
+        if lib:
+            by_lib[lib].append(off)
+    addr2sym = {}
+    for lib, offsets in by_lib.items():
+        try:
+            out = subprocess.run(
+                ['addr2line', '-f', '-C', '-e', lib]
+                + [hex(o) for o in offsets],
+                capture_output=True, text=True, check=True).stdout.splitlines()
+        except (OSError, subprocess.CalledProcessError) as e:
+            print(f"# addr2line failed for {lib}: {e}", file=sys.stderr)
+            continue
+        for off, fn in zip(offsets, out[0::2]):  # 2 lines/addr: func, file:line
+            addr2sym[(lib, off)] = fn
+    result = {}
+    for pc, (lib, off) in pc_libaddr.items():
+        sym = addr2sym.get((lib, off), '??')
+        libname = lib.rsplit('/', 1)[-1] if lib else '??'
+        result[pc] = f"{sym} [{libname}]"
+    return result
+
+
+def report(title, counts, total, topn):
+    print(f"\n{title} ({'%d' % len(counts)} distinct):")
+    print(f"{'count':>8} {'pct':>7}  function [lib]")
+    for name, count in counts.most_common(topn):
+        print(f"{count:>8} {100.0 * count / total:6.2f}%  {name}")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument('profile', help='cpu.prof file from gperfcpu/libprofiler.so')
+    ap.add_argument('-n', '--top', type=int, default=30,
+                     help='how many functions to list per view (default: 30)')
+    args = ap.parse_args()
+
+    records, maps = parse_profile(args.profile)
+    total = sum(count for count, _ in records)
+    print(f"# {len(records)} unique stacks, {total} total samples")
+    if not total:
+        return
+
+    leaf_counts = collections.Counter()
+    cum_counts = collections.Counter()
+    all_pcs = set()
+    for count, pcs in records:
+        all_pcs.update(pcs)
+        if pcs:
+            leaf_counts[pcs[0]] += count
+        for pc in set(pcs):  # once per distinct frame in this stack
+            cum_counts[pc] += count
+
+    sym = symbolize(all_pcs, maps)
+    leaf_by_name = collections.Counter()
+    for pc, count in leaf_counts.items():
+        leaf_by_name[sym[pc]] += count
+    cum_by_name = collections.Counter()
+    for pc, count in cum_counts.items():
+        cum_by_name[sym[pc]] += count
+
+    report("Self (leaf frame -- what's actually executing)",
+           leaf_by_name, total, args.top)
+    report("Cumulative (anywhere in the stack -- expensive call subtrees)",
+           cum_by_name, total, args.top)
+
+
+if __name__ == '__main__':
+    main()
