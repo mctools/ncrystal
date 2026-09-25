@@ -388,6 +388,37 @@ namespace NCRYSTAL_NAMESPACE {
                                                       std::size_t targetN,
                                                       const PtReduceCfg& cfg = {} );
 
+  //Same contract and algorithm as reducePtsByEquidistribution, except the
+  //curvature (|y''|) estimate at each point uses a wider stencil
+  //(curvatureStencilHalfWidth points on either side, rather than the
+  //immediate neighbours) than the standard 3-point one. Motivation: |y''| is
+  //a second difference, so it amplifies noise in y (from a preceding
+  //numerically-intensive computation, e.g. an FFT-based convolution) by a
+  //factor which grows as that noise shrinks relative to the point spacing --
+  //cross-platform last-few-ULP differences too small to matter anywhere else
+  //can, at some point along x, tip the comparison used to decide which of
+  //two candidate input points is closer to a given target quantile of the
+  //cumulative density, causing a genuinely different (not last-bit-different)
+  //point to be selected on different platforms/compilers. A wider stencil
+  //estimates the same curvature by looking further apart in x, which does
+  //not change the noise in y but does increase the signal (the actual change
+  //of slope) for any genuinely smooth feature spanning more than a couple of
+  //input points, improving the signal-to-noise ratio of the estimate; this
+  //trades a small amount of resolution for sharp, few-point-wide features
+  //(the curvature estimate near such a feature is smoothed over a wider
+  //window) for substantially improved robustness against exactly this kind
+  //of platform-dependent selection instability. curvatureStencilHalfWidth=1
+  //reproduces reducePtsByEquidistribution's own 3-point estimate exactly.
+  //See docs/claude_session_vdos_fma_reprod.md for the investigation this
+  //followed from, and tests/src/app_ptreduceequi/main.cc for a comparison
+  //of the two on both synthetic and real (VDOS/SAB-derived) data.
+  std::pair<VectD,VectD> reducePtsByEquidistributionRobust
+  ( Span<const double> x,
+   Span<const double> y,
+   std::size_t targetN,
+   std::size_t curvatureStencilHalfWidth = 3,
+   const PtReduceCfg& cfg = {} );
+
   //Vector utilities:
   inline void vectorAppend(VectD& v1, const VectD& v2);//appends contents of v2 to v1
   template<class TVector, class Func>

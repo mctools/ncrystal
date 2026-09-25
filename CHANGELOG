@@ -1,4 +1,34 @@
 v4.4.7 (work in progress)
+     * Add reducePtsByEquidistributionRobust (NCMath.hh/.cc) alongside the
+       existing reducePtsByEquidistribution, for callers whose y-values carry
+       more numerical noise than a typical closed-form function evaluation
+       (e.g. the output of an FFT-based convolution). Same algorithm and
+       contract, except the |y''| curvature estimate driving point selection
+       uses a wider stencil (points further apart in x, not just immediate
+       neighbours) -- a standard technique for reducing a numerical
+       derivative's sensitivity to noise in the underlying values, at some
+       cost in resolution for genuinely sharp, few-point-wide features.
+       Motivated by the still-open residual noted above: on the exact real
+       (x,y) data that exposed it (captured from
+       VDOS::determineAlphaBetaGridFromGn's setupE0ABGrid call), a synthetic
+       noise-injection test at the actually-observed magnitude (~1e-8
+       relative) flips reducePtsByEquidistribution's selection in 1/50
+       trials, and at 1e-7 in 49/50 (with up to 2 points affected); the new
+       function is unaffected at 1e-8 and only 14/50 at 1e-7 (never more
+       than 1 point). Checked, using the same synthetic-noise methodology,
+       against six more real (x,y) datasets from other materials/elements to
+       confirm this is not just a fix for the one known case at the expense
+       of others: summed over all seven datasets and two noise levels, the
+       new function is more than 5x as stable in aggregate, with no
+       individual case worse. tests/src/app_ptreduceequi/main.cc now runs
+       its entire existing test battery (contract, quality and synthetic
+       robustness checks) against both functions, plus dedicated tests using
+       the real datasets (added under tests/data/ptreduce/). Not yet wired
+       into any production call site -- see
+       docs/claude_session_vdos_fma_reprod.md for the residual this targets
+       and why it is a real, if smaller, structural sensitivity rather than
+       something a threshold/tolerance tweak could fix (several were tried
+       and made other cases worse).
      * Fix the actual root cause of the long-standing cross-platform sabxs
        instability for high-order VDOS phonon expansions (real production
        case: Li2O, vdoslux=2004): VDOSGn's convolution
