@@ -67,7 +67,8 @@ NC::Optional<std::string> NC::readEntireFileToString( const std::string& path )
   static const size_type maxread_megabytes = static_cast<size_type>(ncgetenv_int("MAXREAD_MEGABYTES",100));
   static const size_type maxread_bytes = maxread_megabytes*1048576ull;
   size_type maxread_blocks = maxread_bytes/read_block_size + 1;
-  static std::ifstream::char_type buffer[read_block_size] = {};
+  //NB: Not static, since this function must be usable concurrently:
+  std::ifstream::char_type buffer[read_block_size];
   auto mode = std::ios_base::binary | std::ios_base::in;
 #ifdef NCRYSTAL_USE_WINDOWS_FILEUTILS
   std::ifstream fh = WinFileUtils::open_ifstream_from_path( path, mode );

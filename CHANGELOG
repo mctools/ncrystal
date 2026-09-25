@@ -87,6 +87,9 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Fix thread-safety bug (present since v2.5.0) in reading of on-disk
+       files, which used a shared static buffer, so concurrent reads (e.g.
+       creating materials in different threads) could corrupt file contents.
      * New command-line tool "ncrystal browse" for browsing and searching
        available data files and plugins, more powerful than the --browse,
        --extract and --plugins flags of nctool (kept for now): it shows short
