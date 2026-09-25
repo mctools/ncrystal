@@ -93,8 +93,10 @@ v4.4.7 (work in progress)
        to and rethrown in the calling thread (github issue #339).
      * NCRYSTAL_FACTORY_THREADS is now handled by the thread-pool itself (read
        on first use); explicit enableFactoryThreads calls take precedence.
-     * New NCrystal.browse Python module for browsing and searching available
-       data, optionally based on physics properties of the loaded materials.
+     * New NCrystal.browse Python module, in which the DataBrowser class
+       provides the features of "ncrystal browse" (browsing, searching and
+       selecting data, also on physics properties, and producing listings or
+       text/csv/json/html tables), and query_data() the underlying data.
      * New JSON queries ["util","browsedb",...] and ["util","browsefactories"]
        providing listings of available data with NCMAT header comments and
        physics properties (loaded in parallel if factory threads are

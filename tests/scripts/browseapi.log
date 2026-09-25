@@ -1,45 +1,193 @@
 Properties: ['elements', 'atoms', 'nelements', 'formula', 'mass', 'absxs', 'scatxs', 'cohxs', 'incohxs', 'density', 'numdens', 'temp', 'state', 'crystal', 'crystalsystem', 'sg', 'natoms', 'a', 'b', 'c', 'alpha', 'beta', 'gamma', 'volume', 'braggthreshold', 'debyetemps', 'msds', 'dyninfo', 'customsections', 'nphases']
-==> Cheap browsing of virtual factory:
-  DataEntry(virtual::Al_sg225.ncmat) name='Al_sg225.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat'
+query_data("virtual")[2]:
+{'name': 'crystal.ncmat',
+ 'fullkey': 'virtual::crystal.ncmat',
+ 'factory': 'virtual',
+ 'source': 'virtual',
+ 'priority': 130,
+ 'hidden': False,
+ 'datatype': 'ncmat',
+ 'path': None,
+ 'comments': ['', 'A small Al crystal.', '', 'Mentions Togo.'],
+ 'info': {'composition': [[13, [[0, 1.0]]]],
+          'xsect_absorption': 0.231,
+          'xsect_free': 1.3966686416,
+          'density': 2.6986455177,
+          'numberdensity': 0.060232382561,
+          'temperature': 293.15,
+          'stateofmatter': 'Solid',
+          'crystalline': True,
+          'spacegroup': 225,
+          'natoms_unitcell': 4,
+          'dyninfo_types': ['vdosdebye'],
+          'braggthreshold': 4.6760522062,
+          'xsect_coh': 1.4948453085,
+          'xsect_incoh': 0.0082,
+          'mass': 26.981538408,
+          'customsections': [],
+          'cell': {'a': 4.04958,
+                   'b': 4.04958,
+                   'c': 4.04958,
+                   'alpha': 90.0,
+                   'beta': 90.0,
+                   'gamma': 90.0,
+                   'volume': 66.409459993},
+          'atominfo': [{'label': 'Al',
+                        'count': 4,
+                        'debyetemp': 400.0,
+                        'msd': 0.010383840837}],
+          'nphases': 1}}
+query_data OK
+==> Entries (not loaded):
+  DataEntry(virtual::Al_sg225.ncmat) name='Al_sg225.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat' path=None
      description='Helium gas. Second line.'
      comments=('------------------', ' Helium gas.', ' Second line.', '', ' Other paragraph.')
-  DataEntry(virtual::broken.ncmat) name='broken.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat'
+  DataEntry(virtual::broken.ncmat) name='broken.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat' path=None
      description=''
      comments=()
-  DataEntry(virtual::crystal.ncmat) name='crystal.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat'
+  DataEntry(virtual::crystal.ncmat) name='crystal.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat' path=None
      description='A small Al crystal.'
      comments=('', 'A small Al crystal.', '', 'Mentions Togo.')
-  DataEntry(virtual::gas.ncmat) name='gas.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat'
+  DataEntry(virtual::gas.ncmat) name='gas.ncmat' factory='virtual' source='virtual' priority=130 hidden=False datatype='ncmat' path=None
      description='Helium gas. Second line.'
      comments=('------------------', ' Helium gas.', ' Second line.', '', ' Other paragraph.')
-==> Loaded:
+==> Entries (loaded):
   Al_sg225.ncmat: PhysicsProps(elements={'He'}, atoms={'He'}, nelements=1, formula='He', mass=4.0026, absxs=0.00747, scatxs=0.854857, cohxs=1.34, incohxs=0, density=0.0005, numdens=7.52278e-05, temp=293.15, state='gas', crystal=False, crystalsystem=None, sg=None, natoms=None, a=None, b=None, c=None, alpha=None, beta=None, gamma=None, volume=None, braggthreshold=None, debyetemps=None, msds=None, dyninfo={'freegas'}, customsections={}, nphases=1)
   broken.ncmat: ERROR '"broken.ncmat": invalid density value in line 3'
   crystal.ncmat: PhysicsProps(elements={'Al'}, atoms={'Al'}, nelements=1, formula='Al', mass=26.9815, absxs=0.231, scatxs=1.39667, cohxs=1.49485, incohxs=0.0082, density=2.69865, numdens=0.0602324, temp=293.15, state='solid', crystal=True, crystalsystem='cubic', sg=225, natoms=4, a=4.04958, b=4.04958, c=4.04958, alpha=90, beta=90, gamma=90, volume=66.4095, braggthreshold=4.67605, debyetemps={'Al':400}, msds={'Al':0.0103838}, dyninfo={'vdosdebye'}, customsections={}, nphases=1)
   gas.ncmat: PhysicsProps(elements={'He'}, atoms={'He'}, nelements=1, formula='He', mass=4.0026, absxs=0.00747, scatxs=0.854857, cohxs=1.34, incohxs=0, density=0.0005, numdens=7.52278e-05, temp=293.15, state='gas', crystal=False, crystalsystem=None, sg=None, natoms=None, a=None, b=None, c=None, alpha=None, beta=None, gamma=None, volume=None, braggthreshold=None, debyetemps=None, msds=None, dyninfo={'freegas'}, customsections={}, nphases=1)
 Caught expected AttributeError('PhysicsProps has no attribute "foo"')
-Al_sg225.ncmat entries: ['Al_sg225.ncmat', 'stdlib::Al_sg225.ncmat'] [False, True]
-find('crystal',): ['crystal.ncmat']
-find('*.NCMAT',){'factory': 'virtual'}: ['Al_sg225.ncmat', 'broken.ncmat', 'crystal.ncmat', 'gas.ncmat']
-find('stdlib::Be*',): ['Be3N2_sg206_BerylliumNitride.ncmat', 'BeF2_sg152_Beryllium_Fluoride.ncmat', 'BeO_sg186.ncmat', 'Be_sg194.ncmat']
-find('^b.*_sg1[0-9]{2}',){'regex': True, 'factory': 'stdlib'}: ['B4C_sg166_BoronCarbide.ncmat', 'BeF2_sg152_Beryllium_Fluoride.ncmat', 'BeO_sg186.ncmat', 'Be_sg194.ncmat', 'Bi_sg166.ncmat']
-find{'search': 'togo', 'factory': 'virtual'}: ['crystal.ncmat']
-find{'search': ['togo', 'small'], 'factory': 'virtual'}: ['crystal.ncmat']
-find{'search': ['^ *mentions'], 'regex': True, 'factory': 'virtual'}: ['crystal.ncmat']
-find{'where': "'He' in elements", 'factory': 'virtual'}: ['Al_sg225.ncmat', 'gas.ncmat']
-find{'where': ['crystal', 'sg==225', 'natoms>3'], 'factory': 'virtual'}: ['crystal.ncmat']
-find{'where': 'sg > 200', 'factory': 'virtual'}: ['crystal.ncmat']
-find{'where': '<function>', 'factory': 'virtual'}: ['Al_sg225.ncmat', 'gas.ncmat']
-find('gas',){'where': 'absxs < 1', 'factory': 'virtual'}: ['gas.ncmat']
-sorted by absxs: ['Al_sg225.ncmat', 'gas.ncmat', 'crystal.ncmat', 'broken.ncmat']
-sorted by sg (reverse): ['crystal.ncmat', 'Al_sg225.ncmat', 'broken.ncmat', 'gas.ncmat']
-sorted by name (reverse): ['gas.ncmat', 'crystal.ncmat', 'broken.ncmat', 'Al_sg225.ncmat']
-Caught expected NCBadInput('Invalid sort key "foo" (must be "name" or one of: elements, atoms, nelements, formula, mass, absxs, scatxs, cohxs, incohxs, density, numdens, temp, state, crystal, crystalsystem, sg, natoms, a, b, c, alpha, beta, gamma, volume, braggthreshold, dyninfo, customsections, nphases)')
-Newer properties OK
 as_dict keys: ['name', 'fullkey', 'factory', 'source', 'priority', 'hidden', 'datatype', 'path', 'description', 'comments', 'props', 'error']
 matching_lines: ['A small Al crystal.', 'Mentions Togo.']
 matching_lines (regex): []
-Progress reporting OK
+Entries OK
+Al_sg225: DataBrowser(2 entries from 2 factories) ['Al_sg225.ncmat', 'stdlib::Al_sg225.ncmat']
+virtual: DataBrowser(4 entries from 1 factory) ['Al_sg225.ncmat', 'broken.ncmat', 'crystal.ncmat', 'gas.ncmat']
+slice: DataBrowser(2 entries from 1 factory) ['broken.ncmat', 'crystal.ncmat']
+*.NCMAT: DataBrowser(4 entries from 1 factory) ['Al_sg225.ncmat', 'broken.ncmat', 'crystal.ncmat', 'gas.ncmat']
+stdlib::Be*: DataBrowser(4 entries from 1 factory) ['Be3N2_sg206_BerylliumNitride.ncmat', 'BeF2_sg152_Beryllium_Fluoride.ncmat', 'BeO_sg186.ncmat', 'Be_sg194.ncmat']
+regex: DataBrowser(5 entries from 1 factory) ['B4C_sg166_BoronCarbide.ncmat', 'BeF2_sg152_Beryllium_Fluoride.ncmat', 'BeO_sg186.ncmat', 'Be_sg194.ncmat', 'Bi_sg166.ncmat']
+two patterns: DataBrowser(2 entries from 1 factory) ['crystal.ncmat', 'gas.ncmat']
+search togo: DataBrowser(1 entry from 1 factory) ['crystal.ncmat']
+search togo small: DataBrowser(1 entry from 1 factory) ['crystal.ncmat']
+search regex: DataBrowser(1 entry from 1 factory) ['crystal.ncmat']
+mixed search: DataBrowser(1 entry from 1 factory) ['crystal.ncmat']
+where He: DataBrowser(2 entries from 1 factory) ['Al_sg225.ncmat', 'gas.ncmat']
+where several: DataBrowser(1 entry from 1 factory) ['crystal.ncmat']
+where None: DataBrowser(1 entry from 1 factory) ['crystal.ncmat']
+where fct: DataBrowser(2 entries from 1 factory) ['Al_sg225.ncmat', 'gas.ncmat']
+where debyetemps: DataBrowser(1 entry from 1 factory) ['crystal.ncmat']
+filter: DataBrowser(1 entry from 1 factory) ['gas.ncmat']
+sorted absxs: DataBrowser(4 entries from 1 factory) ['Al_sg225.ncmat', 'gas.ncmat', 'crystal.ncmat', 'broken.ncmat']
+sorted sg reverse: DataBrowser(4 entries from 1 factory) ['crystal.ncmat', 'Al_sg225.ncmat', 'broken.ncmat', 'gas.ncmat']
+sorted name reverse: DataBrowser(4 entries from 1 factory) ['gas.ncmat', 'crystal.ncmat', 'broken.ncmat', 'Al_sg225.ncmat']
+sorted fct: DataBrowser(4 entries from 1 factory) ['gas.ncmat', 'broken.ncmat', 'crystal.ncmat', 'Al_sg225.ncmat']
+chain: DataBrowser(2 entries from 1 factory) ['gas.ncmat', 'Al_sg225.ncmat']
+constructor: DataBrowser(1 entry from 1 factory) ['crystal.ncmat']
+Selection OK
+==> dump():
+==> 4 entries from "virtual" (virtual, priority=130):
+    Al_sg225.ncmat  Helium gas. Second line.
+    broken.ncmat
+    crystal.ncmat   A small Al crystal.
+    gas.ncmat       Helium gas. Second line.
+==> dump(comments=True) of search:
+==> 1 entry from "virtual" (virtual, priority=130):
+    crystal.ncmat
+        # A small Al crystal.
+        #
+        # Mentions Togo.
+
+==> dump(props=True,linewidth=60):
+==> 1 entry from "virtual" (virtual, priority=130):
+    crystal.ncmat  A small Al crystal.
+        elements={'Al'}  atoms={'Al'}  nelements=1
+        formula='Al'  mass=26.9815  absxs=0.231
+        scatxs=1.39667  cohxs=1.49485  incohxs=0.0082
+        density=2.69865  numdens=0.0602324  temp=293.15
+        state='solid'  crystal=True  crystalsystem='cubic'
+        sg=225  natoms=4  a=4.04958  b=4.04958  c=4.04958
+        alpha=90  beta=90  gamma=90  volume=66.4095
+        braggthreshold=4.67605  debyetemps={'Al':400}
+        msds={'Al':0.0103838}  dyninfo={'vdosdebye'}
+        customsections={}  nphases=1
+==> format_listing(highlight=...,truncate=False):
+==> 2 entries from "virtual" (virtual, priority=130):
+    [Al_sg225.ncmat]  [Helium gas. Second line.]
+        | [Helium gas.]
+    [gas.ncmat]       [Helium gas. Second line.]
+        | [Helium gas.]
+==> table(fmt='text'):
+NAME            FORMULA   SG  DENSITY    DYNINFO  DESCRIPTION
+Al_sg225.ncmat       He    -   0.0005    freegas  Helium gas. Second line.
+gas.ncmat            He    -   0.0005    freegas  Helium gas. Second line.
+crystal.ncmat        Al  225  2.69865  vdosdebye  A small Al crystal.
+broken.ncmat          -    -        -          -
+==> table(fmt='csv'):
+name,formula,sg,absxs,dyninfo,description
+Al_sg225.ncmat,He,,0.00747,freegas,Helium gas. Second line.
+gas.ncmat,He,,0.00747,freegas,Helium gas. Second line.
+crystal.ncmat,Al,225,0.231,vdosdebye,A small Al crystal.
+broken.ncmat,,,,,
+==> table(fmt='html'):
+<table class="ncrystal-browse">
+<thead>
+<tr><th>name</th><th>formula</th><th>sg</th><th>density</th><th>dyninfo</th><th>description</th></tr>
+</thead>
+<tbody>
+<tr><td>Al_sg225.ncmat</td><td>He</td><td></td><td>0.0005</td><td>freegas</td><td>Helium gas. Second line.</td></tr>
+<tr><td>gas.ncmat</td><td>He</td><td></td><td>0.0005</td><td>freegas</td><td>Helium gas. Second line.</td></tr>
+<tr><td>crystal.ncmat</td><td>Al</td><td>225</td><td>2.69865</td><td>vdosdebye</td><td>A small Al crystal.</td></tr>
+<tr><td>broken.ncmat</td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody>
+</table>
+==> table(fmt="json"):
+[{'name': 'Al_sg225.ncmat', 'formula': 'He', 'density': 0.0005},
+ {'name': 'broken.ncmat', 'formula': None, 'density': None},
+ {'name': 'crystal.ncmat', 'formula': 'Al', 'density': 2.6986455177},
+ {'name': 'gas.ncmat', 'formula': 'He', 'density': 0.0005}]
+==> info():
+==> crystal.ncmat
+    Description   : A small Al crystal.
+    Full key      : virtual::crystal.ncmat
+    Source        : virtual (factory "virtual", priority 130)
+    Data type     : ncmat
+    On-disk path  : -
+  Physics properties:
+    elements={'Al'}  atoms={'Al'}  nelements=1  formula='Al'  mass=26.9815
+    absxs=0.231  scatxs=1.39667  cohxs=1.49485  incohxs=0.0082  density=2.69865
+    numdens=0.0602324  temp=293.15  state='solid'  crystal=True
+    crystalsystem='cubic'  sg=225  natoms=4  a=4.04958  b=4.04958  c=4.04958
+    alpha=90  beta=90  gamma=90  volume=66.4095  braggthreshold=4.67605
+    debyetemps={'Al':400}  msds={'Al':0.0103838}  dyninfo={'vdosdebye'}
+    customsections={}  nphases=1
+  Header comments:
+    # A small Al crystal.
+    #
+    # Mentions Togo.
+  Usage examples:
+    # Plot cross sections:
+    nctool "crystal.ncmat"
+    # Show full content:
+    ncrystal browse -x "crystal.ncmat"
+    # Load in Python:
+    python3 -c 'import NCrystal as NC; NC.load("crystal.ncmat").dump()'
+Suggestions: ['crystal.ncmat'] []
+Output OK
+Caught expected NCBadInput('Unknown TextData factory: "nonexistent"')
+Caught expected NCBadInput('Unknown TextData factory: "nonexistent"')
+Caught expected NCBadInput('Invalid regular expression "(": missing ), unterminated subpattern at position 0')
+Caught expected NCBadInput('Unknown name "foo" in where expression "foo > 1"')
+Caught expected NCBadInput('Invalid where expression "elements.__class__" (private attributes are not allowed)')
+Caught expected NCBadInput('Invalid where expression "absxs >": invalid syntax')
+Caught expected NCBadInput('Error evaluating where expression "absxs/0 > 1": float division by zero')
+Caught expected NCBadInput('Error evaluating where expression "elements.foo": \'frozenset\' object has no attribute \'foo\'')
+Caught expected NCBadInput('Invalid sort key "foo" (must be "name" or one of: elements, atoms, nelements, formula, mass, absxs, scatxs, cohxs, incohxs, density, numdens, temp, state, crystal, crystalsystem, sg, natoms, a, b, c, alpha, beta, gamma, volume, braggthreshold, dyninfo, customsections, nphases)')
+Caught expected NCBadInput('Invalid column "foo" (must be "description" or one of: elements, atoms, nelements, formula, mass, absxs, scatxs, cohxs, incohxs, density, numdens, temp, state, crystal, crystalsystem, sg, natoms, a, b, c, alpha, beta, gamma, volume, braggthreshold, debyetemps, msds, dyninfo, customsections, nphases)')
+Caught expected NCBadInput('Invalid table format: "xml" (must be "text", "csv", "json", or "html")')
+Caught expected NCBadInput('Physics properties are not available, since the DataBrowser was created with physics=False')
+Errors OK
+Lazy loading OK
   mem.lau: datatype=lau comments=None descr='' path(basename)=None error=None
      sg=225 crystalsystem=cubic formula=Al a=4.04958 braggthreshold=4.67605 dyninfo=['vdosdebye']
   mem.laz: datatype=laz comments=None descr='' path(basename)=None error=None
@@ -50,10 +198,3 @@ Progress reporting OK
      sg=225 crystalsystem=cubic formula=Al a=4.04958 braggthreshold=4.67605 dyninfo=['vdosdebye']
 LAZ/LAU data OK
 Factory thread handling OK
-Caught expected NCBadInput('Unknown TextData factory: "nonexistent"')
-Caught expected NCBadInput('Invalid regular expression "(": missing ), unterminated subpattern at position 0')
-Caught expected NCBadInput('Unknown name "foo" in where expression "foo > 1"')
-Caught expected NCBadInput('Invalid where expression "elements.__class__" (private attributes are not allowed)')
-Caught expected NCBadInput('Invalid where expression "absxs >": invalid syntax')
-Caught expected NCBadInput('Error evaluating where expression "absxs/0 > 1": float division by zero')
-Caught expected NCBadInput('Where conditions require entries loaded with load=True')

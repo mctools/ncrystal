@@ -243,8 +243,11 @@ def parseArgs( progname, arglist, return_parser = False ):
     from . import browse as nb
     from .exceptions import NCBadInput
     try:
-        nb.filter_entries( [], patterns = args.pattern, search = args.search,
-                           regex = args.regex, where = args.where )
+        if args.regex:
+            nb._compile_words( args.pattern, True )
+        nb._compile_words( args.search, args.regex )
+        for w in args.where:
+            nb._WhereExpr( w )
     except NCBadInput as e:
         parser.error( _cli_msg( str(e) ) )
     args.search_re = nb._compile_words( args.search, args.regex )
@@ -380,168 +383,24 @@ def _linewidth():
         return max( 80, shutil.get_terminal_size().columns )
     return 80
 
-_no_truncate = [False]
-
-def _truncate( s, n ):
-    if _no_truncate[0]:
-        return s
-    return s if len(s) <= n else s[:max(0,n-3)].rstrip() + '...'
-
-def _collect( args ):
+def _browser( args ):
+    #Create DataBrowser with selection according to the arguments:
     from . import browse as nb
     from .exceptions import NCBadInput
-    load = bool( args.where or args.props or args.json or args.info
-                 or [ c for c in args.columns if c != 'description' ]
-                 or ( args.sort and args.sort != 'name' ) )
-    progress = _Progress( 'Loading materials' ) if load else None
-    entries = nb.browse( args.factory, load = load,
-                         progress = progress.update if progress else None )
-    if progress:
-        progress.done()
-    args.all_entries = entries#for suggestions
+    progress = _Progress( 'Loading materials' )
+    b = nb.DataBrowser( factory = args.factory, progress = progress.update )
+    args.all_browser = b#for suggestions
     try:
-        return nb.filter_entries( entries, patterns = args.pattern,
-                                  search = args.search, regex = args.regex,
-                                  where = args.where )
+        sel = b.match( *args.pattern, regex = args.regex )
+        sel = sel.search( *args.search, regex = args.regex )
+        sel = sel.where( *args.where )
+        if args.sort:
+            sel = sel.sorted( args.sort, reverse = args.reverse )
     except NCBadInput as e:
         raise NCBadInput( _cli_msg( str(e) ) ) from e
-
-def _print_props( entry, linewidth, indent = 8 ):
-    pre = ' '*indent
-    if entry.props is None:
-        print(_truncate(f'{pre}[could not load: {entry.error}]',
-                        linewidth))
-        return
-    import textwrap
-
-    from .browse import _fmt_prop
-    parts = [ f'{k}={_fmt_prop(v)}' for k,v in entry.props.as_dict().items() ]
-    for line in textwrap.wrap( '  '.join(parts), width = linewidth - indent,
-                               break_long_words = False,
-                               break_on_hyphens = False ):
-        print(f'{pre}{line}')
-
-def _table_value( entry, col ):
-    if col == 'description':
-        return entry.description
-    if entry.props is None:
-        return '-'
-    v = getattr( entry.props, col )
-    if v is None:
-        return '-'
-    if isinstance( v, frozenset ):
-        return ','.join( sorted(v) ) if v else '-'
-    if isinstance( v, dict ):
-        return ','.join( f'{k}:{x:g}' for k,x in v.items() ) if v else '-'
-    if isinstance( v, float ):
-        return '%g'%v
-    return str(v)
-
-def _table_json( entry, cols ):
-    d = dict( name = entry.display_name )
-    props = ( entry.props.as_dict( json_compatible = True )
-              if entry.props is not None else None )
-    for c in cols:
-        if c == 'description':
-            d[c] = entry.description
-        else:
-            d[c] = props[c] if props is not None else None
-    return d
-
-def _csv_value( v ):
-    #Full precision (repr) floats, empty for unavailable values:
-    if v is None:
-        return ''
-    if isinstance( v, list ):
-        return ','.join( str(e) for e in v )
-    if isinstance( v, dict ):
-        return ','.join( f'{k}:{x!r}' for k,x in v.items() )
-    if isinstance( v, float ):
-        return repr(v)
-    return str(v)
-
-def _print_csv( entries, args ):
-    import csv
-    import io
-    buf = io.StringIO()
-    w = csv.writer( buf, lineterminator = '\n' )
-    w.writerow( [ 'name' ] + args.columns )
-    for e in entries:
-        d = _table_json( e, args.columns )
-        w.writerow( [ d['name'] ] + [ _csv_value(d[c]) for c in args.columns ] )
-    print( buf.getvalue(), end = '' )
-
-def _print_table( entries, args ):
-    #NB: Rows are never truncated (no data should be lost), except for the
-    #free-text description column which is shortened to fit if possible.
-    if not entries:
-        _print_no_matches( args )
-        return
-    cols = args.columns
-    header = [ 'NAME' ] + [ c.upper() for c in cols ]
-    rows = [ [ e.display_name ] + [ _table_value(e,c) for c in cols ]
-             for e in entries ]
-    def width( k ):
-        return max( len(r[k]) for r in rows + [header] )
-    if 'description' in cols:
-        kd = 1 + cols.index('description')
-        other = sum( width(k) + 2 for k in range(len(header)) if k != kd )
-        room = max( 20, _linewidth() - other )
-        for r in rows:
-            r[kd] = _truncate( r[kd], room )
-    widths = [ width(k) for k in range(len(header)) ]
-    def fmt( r ):
-        return '  '.join( ( v.ljust(w) if k==0 or cols[k-1]=='description'
-                            else v.rjust(w) )
-                          for k,(v,w) in enumerate(zip(r,widths)) ).rstrip()
-    print( fmt(header) )
-    for r in rows:
-        print( fmt(r) )
-
-def _print_info( entries, args ):
-    if not entries:
-        _print_no_matches( args )
-        return
-    import textwrap
-    linewidth = _linewidth()
-    for n, e in enumerate( entries ):
-        if n:
-            print()
-        name = e.display_name
-        print(f'==> {name}')
-        srcdescr = ( f'{e.source} (factory "{e.factory}",'
-                     f' priority {e.priority})' )
-        fields = [ ('Description', e.description or '-'),
-                   ('Full key', e.fullkey),
-                   ('Source', srcdescr),
-                   ('Data type', e.datatype or '-'),
-                   ('On-disk path', e.path or '-') ]
-        if e.hidden:
-            fields.append( ('Hidden', ( 'yes, by a higher priority entry'
-                                        ' with the same name' ) ) )
-        for k, v in fields:
-            ll = textwrap.wrap( v, width = linewidth - 20,
-                                break_long_words = False,
-                                break_on_hyphens = False ) or ['']
-            print(f'    {k:<14}: {ll[0]}')
-            for x in ll[1:]:
-                print(f'{"":20}{x}')
-        print('  Physics properties:')
-        _print_props( e, linewidth, indent = 4 )
-        comments = _strip_empty( e.comments )
-        if comments:
-            print('  Header comments:')
-            for ll in comments:
-                print(f'    # {ll}'.rstrip())
-        print('  Usage examples:')
-        pycmd = ( f'python3 -c \'import NCrystal as NC;'
-                  f' NC.load("{name}").dump()\'' )
-        for d, c in [ ( 'Plot cross sections', f'nctool "{name}"' ),
-                      ( 'Show full content',
-                        f'ncrystal browse -x "{name}"' ),
-                      ( 'Load in Python', pycmd ) ]:
-            print(f'    # {d}:')
-            print(f'    {c}')
+    finally:
+        progress.done()
+    return sel
 
 def _print_no_matches( args ):
     print('No matching data found.')
@@ -555,98 +414,21 @@ def _print_no_matches( args ):
 
 def _suggestions( args ):
     #Suggest similar names if (plain) name patterns alone matched nothing:
-    from .browse import _is_glob, filter_entries
+    from .browse import _is_glob
     patterns = [ p for p in args.pattern if not _is_glob(p) ]
     if args.regex or not patterns or patterns != args.pattern:
         return []
-    entries = getattr( args, 'all_entries', [] )
-    if filter_entries( entries, patterns = patterns ):
+    b = args.all_browser
+    if b.match( *patterns ):
         return []
-    import difflib
-    def stem( n ):
-        return n.rsplit('.',1)[0].lower() if '.' in n else n.lower()
-    #Compare with full names (without extension), and with their parts
-    #(e.g. "diamond" in "C_sg227_Diamond.ncmat"):
-    cands = {}
-    for e in entries:
-        st = stem(e.name)
-        cands.setdefault( st, e.name )
-        for part in st.split('_'):
-            if len(part) >= 4:
-                cands.setdefault( part, e.name )
     res = []
     for p in patterns:
-        for m in difflib.get_close_matches( stem(p), list(cands), n = 3,
-                                            cutoff = 0.7 ):
-            if cands[m] not in res:
-                res.append( cands[m] )
+        res += [ n for n in b.suggestions(p) if n not in res ]
     return res
-
-def _strip_empty( lines ):
-    lines = list( lines or [] )
-    while lines and not lines[0].strip():
-        lines.pop(0)
-    while lines and not lines[-1].strip():
-        lines.pop()
-    return lines
-
-def _print_listing( items, args ):
-    linewidth = _linewidth()
-    hl = _Highlighter( args.search_re, _use_color( args.color ) )
-    groups = []
-    for i in items:
-        key = ( i.factory, i.source, i.priority )
-        if not groups or groups[-1][0] != key:
-            groups.append( ( key, [] ) )
-        groups[-1][1].append( i )
-    for (factname, source, priority), group in groups:
-        n = len(group)
-        src = f' ({source}, priority={priority})' if source else (
-            f' (priority={priority})' )
-        print(f'==> {n} entr{"y" if n==1 else "ies"} from "{factname}"'
-              f'{src}:')
-        namew = min( 40, max( len(i.display_name) for i in group ) )
-        for i in group:
-            name = i.display_name
-            extra = ''
-            if i.hidden:
-                extra = ' (hidden)'
-            descr = i.description
-            #NB: Truncate before highlighting, so color codes do not count:
-            padding = ' '*( max(0,namew-len(name)) )
-            if descr and not args.comments:
-                room = linewidth - 4 - max(namew,len(name)) - 2 - len(extra)
-                line = ( f'    {hl(name)}{padding}  '
-                         f'{hl(_truncate(descr,room))}{extra}' )
-            else:
-                line = f'    {hl(name)}{extra}'
-            print(line.rstrip())
-            matching = ( i.matching_lines( args.search, regex = args.regex )
-                         if args.search else [] )
-            for ll in matching:
-                if not args.comments:
-                    print('        | '+hl(_truncate(ll,linewidth-10)))
-            if args.props:
-                _print_props( i, linewidth )
-            if args.comments:
-                comments = _strip_empty( i.comments )
-                for ll in comments:
-                    print(f'        # {hl(ll)}'.rstrip())
-                if comments:
-                    print()
-    if not items:
-        _print_no_matches( args )
 
 @cli_entry_point
 def main( progname, arglist ):
     args = parseArgs( progname, arglist )
-    _no_truncate[0] = args.no_truncate
-    try:
-        _main_impl( args )
-    finally:
-        _no_truncate[0] = False
-
-def _main_impl( args ):
     if args.extract:
         from .core import createTextData
         print( createTextData( args.extract ).rawData, end='' )
@@ -655,38 +437,36 @@ def _main_impl( args ):
         from .plugins import browsePlugins
         browsePlugins( dump = True )
         return
-    items = _collect( args )
-    if args.sort:
-        from .browse import sort_entries
-        items = sort_entries( items, args.sort, reverse = args.reverse )
+    sel = _browser( args )
+    truncate = not args.no_truncate
     if args.count:
-        print( len(items) )
-        return
-    if args.info:
-        _print_info( items, args )
+        print( len(sel) )
         return
     if args.path:
-        for i in items:
-            if i.path:
-                print( i.path )
-        return
-    if args.json and args.table:
-        import json
-        print( json.dumps( [ _table_json(i,args.columns) for i in items ],
-                           indent = 1 ) )
-        return
-    if args.json:
-        import json
-        print( json.dumps( [ i.as_dict() for i in items ], indent = 1 ) )
-        return
-    if args.csv:
-        _print_csv( items, args )
-        return
-    if args.table:
-        _print_table( items, args )
+        for e in sel:
+            if e.path:
+                print( e.path )
         return
     if args.names:
-        for i in items:
-            print( i.display_name )
+        for n in sel.names():
+            print( n )
         return
-    _print_listing( items, args )
+    if args.json and not args.table:
+        print( sel.to_json(), end = '' )
+        return
+    if not sel:
+        _print_no_matches( args )
+        return
+    if args.info:
+        print( sel.info( linewidth = _linewidth() ), end = '' )
+        return
+    if args.table:
+        fmt = 'csv' if args.csv else ( 'json' if args.json else 'text' )
+        print( sel.table( args.columns, fmt = fmt, truncate = truncate,
+                          linewidth = _linewidth() ), end = '' )
+        return
+    hl = _Highlighter( args.search_re, _use_color( args.color ) )
+    print( sel.format_listing( comments = args.comments,
+                               props = args.props, truncate = truncate,
+                               linewidth = _linewidth(), highlight = hl ),
+           end = '' )
