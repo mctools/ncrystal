@@ -1,4 +1,11 @@
 v4.4.7 (work in progress)
+     * Fix another unaudited a-=b*c shape, this time in
+       NCSABIntegrator.cc's analyseEnergyPoint: the Simpson-like
+       beta-crossing correction "prev_betaxs.first -= db_real*(1.0/3.0)"
+       is on the same footing as the a*b-c shapes fixed elsewhere this
+       sweep -- fixed with explicit std::fma. Grepped the rest of the
+       file for the same pattern; nothing else unaudited remains. Full
+       sb -t --long green, zero reference-log changes.
      * Fix one more unaudited a*b-c shape found in the same sweep:
        NCSABRefSampler.cc's extension-probability calculation computed
        "4.0*(ext_xs_E*E_div_kT - ext_xs_Ecell*E_div_kT_cell)" -- fixed with
