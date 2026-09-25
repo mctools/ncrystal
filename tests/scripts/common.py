@@ -53,3 +53,10 @@ def testcf( c ):
 testcf( [('Al',0.99),('Cr',0.005),('B10',0.005)] )
 testcf( [('Al',0.9),('Cr',0.1)])
 testcf( [('Al',1/3),('Cr',2/3)])
+
+#ncpprint (must go via nc_common.print and support do_sort):
+_d = {'b':[1,2],'a':{'z':1,'y':2}}
+for _ds in (False,True):
+    with nc_common.capture_print_ctxmgr() as _cap:
+        nc_common.ncpprint(_d,do_sort=_ds)
+    print(f'ncpprint(do_sort={_ds}):',repr(''.join(_cap.data)))
