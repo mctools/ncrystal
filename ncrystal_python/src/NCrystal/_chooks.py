@@ -957,8 +957,12 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             cbopt_c = _str2cstr(callback_options)
         raw_str = _raw_flexmmcrun( cstr_query, cbopt_c, cb_c )
         if cb_errors:
-            #Rethrow exception from callback function
+            #Rethrow exception from callback function (None means it
+            #returned 'error' without raising):
             user_callback_exception = cb_errors[0]
+            if user_callback_exception is None:
+                raise NCCalcError('MiniMC callback function requested'
+                                  ' abort (returned "error")')
             raise user_callback_exception
         return decode_query_result(raw_str)
 

@@ -92,6 +92,15 @@ def main():
     print(res.output_metadata['tallied']['count'],n_tot[0])
     assert res.output_metadata['tallied']['count']==n_tot[0]
 
+    #Callback requesting abort by returning 'error' (without raising):
+    from NCrystalDev.exceptions import NCCalcError
+    with ensure_error(NCCalcError,'MiniMC callback function requested'
+                      ' abort (returned "error")'):
+        mmcrun( "Al_sg225.ncmat", scenario='2Aa on 2cm 2e5 times',
+                callback = lambda data : 'error',
+                enginecfg = 'nthreads=2;tally=e',
+                callback_options='basket_type=basic;cachelen=1e4' )
+
     #Test a few other things:
     cb_opt = ['std']
     n_tot[0] = 0

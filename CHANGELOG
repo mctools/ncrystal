@@ -79,6 +79,8 @@ v4.4.7 (work in progress)
        These changes shift some VDOS/kernel-derived results, typically
        in the last few significant digits (sabxs reference shifts up to
        ~1%, concentrated in low-vdoslux Li2O test cases), without any
+     * Python: a MiniMC callback function returning "error" now results in a
+       proper NCCalcError rather than a TypeError from "raise None".
      * Python: fix internal _msg._setMsgHandler(None), which installed a
        broken callback rather than restoring the C++ default handler.
      * Python: fix internal ncpprint(..,do_sort=True) (called non-existent
