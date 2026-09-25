@@ -23,19 +23,48 @@ namespace NC = NCrystal;
 
 #ifdef NCRYSTAL_DISABLE_THREADS
 
-void NC::FactoryThreadPool::enable( ThreadCount ) {}
+#include "NCrystal/internal/utils/NCString.hh"
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace FactoryThreadPool {
+    namespace detail {
+      namespace {
+        //Threads are never used, but a user configuration is still
+        //tracked, for consistency with the normal case:
+        std::atomic<bool>& userConfiguredFlag()
+        {
+          static std::atomic<bool> b( ncgetenv_int64( "FACTORY_THREADS",
+                                                      -1 ) >= 0 );
+          return b;
+        }
+      }
+      void beginTemporaryThreads( ThreadCount ) {}
+      void endTemporaryThreads() {}
+    }
+  }
+}
+
+void NC::FactoryThreadPool::enable( ThreadCount )
+{
+  detail::userConfiguredFlag().store( true );
+}
+void NC::FactoryThreadPool::queue( voidfct_t job ) { job(); }
+NC::FactoryThreadPool::detail::FactoryJobsHandler
+NC::FactoryThreadPool::detail::getFactoryJobsHandler() { return {}; }
 NC::ThreadCount NC::FactoryThreadPool::currentThreadCount()
 {
   return ThreadCount{ 1 };
 }
+bool NC::FactoryThreadPool::userConfigured()
+{
+  return detail::userConfiguredFlag().load();
+}
 bool NC::FactoryThreadPool::threadsAvailable() { return false; }
-void NC::FactoryThreadPool::queue( voidfct_t job ) { job(); }
-NC::FactoryThreadPool::detail::FactoryJobsHandler
-NC::FactoryThreadPool::detail::getFactoryJobsHandler() { return {}; }
 
 #else
 
 #include "NCThreadPool.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 
 namespace NCRYSTAL_NAMESPACE {
   namespace FactoryThreadPool {
@@ -59,18 +88,6 @@ namespace NCRYSTAL_NAMESPACE {
           db.fjh = std::move(fjh);
         }
 
-        std::atomic<unsigned>& getNThreadsTotal()
-        {
-          static std::atomic<unsigned> n(1);
-          return n;
-        }
-
-        std::atomic<bool>& getFactThreadsCalledAB()
-        {
-          static std::atomic<bool> called(false);
-          return called;
-        }
-
         ThreadPool::ThreadPool& getTP() {
           static ThreadPool::ThreadPool tp;
           return tp;
@@ -80,60 +97,123 @@ namespace NCRYSTAL_NAMESPACE {
         {
           return getTP().getPendingJob();
         }
-      }//end anon namespace
 
-    }//end detail namespace
-  }
+        //State of the thread-pool configuration:
+        struct State {
+          std::mutex mtx;
+          std::atomic<unsigned> nthreads_total{1};
+          std::atomic<bool> user_configured{false};
+          //Set once the env var no longer needs to be checked:
+          std::atomic<bool> envvar_done{false};
+          unsigned ntemp_users = 0;//protected by mtx
+        };
 
-  namespace detail {
-    //NOTICE: This thread-safe function will be called by NCFactImpl.cc and is
-    //fwd declared there:
-    bool factThreadsEnableCalledExplicitly()
-    {
-      return FactoryThreadPool::detail::getFactThreadsCalledAB().load();
+        State& getState()
+        {
+          static State s;
+          return s;
+        }
+
+        //Change number of threads, without any bookkeeping of who
+        //requested it (must be called with State::mtx locked):
+        void setThreadsUnlocked( ThreadCount nthreads )
+        {
+          if ( nthreads.indicatesAutoDetect() )
+            nthreads
+              = ThreadCount{ std::thread::hardware_concurrency() };
+          const unsigned nt = nthreads.get();
+          const unsigned n_extra = nt >= 2 ? nt - 1 : 0;
+          setFJH( detail::FactoryJobsHandler{ nullptr, nullptr } );
+          getTP().changeNumberOfThreads( n_extra );
+          if ( n_extra > 0 )
+            setFJH( detail::FactoryJobsHandler{
+                ::NC::FactoryThreadPool::queue,
+                ::NC::FactoryThreadPool::detail::detail_get_pending_job
+              } );
+          getState().nthreads_total.store( n_extra + 1 );
+        }
+
+        //Apply the NCRYSTAL_FACTORY_THREADS env var if set, unless done
+        //already, or if enable(..) was called first (which takes
+        //precedence):
+        void ensureEnvVarProcessed()
+        {
+          auto& st = getState();
+          if ( st.envvar_done.load() )
+            return;
+          NCRYSTAL_LOCK_GUARD( st.mtx );
+          if ( st.envvar_done.load() )
+            return;
+          st.envvar_done.store( true );
+          std::int64_t n = ncgetenv_int64( "FACTORY_THREADS", -1 );
+          if ( n < 0 )
+            return;
+          st.user_configured.store( true );
+          const auto nclamped
+            = static_cast<unsigned>( n > 9999 ? 9999 : n );
+          setThreadsUnlocked( ThreadCount{ nclamped } );
+        }
+      }
     }
   }
 }
 
 void NC::FactoryThreadPool::enable( ThreadCount nthreads )
 {
-  if ( nthreads.indicatesAutoDetect() )
-    nthreads = ThreadCount{ std::thread::hardware_concurrency() };
-
-  detail::getFactThreadsCalledAB().store(true);
-  unsigned n_extra_threads = nthreads.get() >= 2 ? nthreads.get() - 1 : 0;
-  {
-    detail::setFJH( detail::FactoryJobsHandler{ nullptr, nullptr } );
-    //detail::setFactoryJobsHandler(nullptr,nullptr);
-    detail::getTP().changeNumberOfThreads( n_extra_threads );
-    if ( n_extra_threads > 0 )
-      detail::setFJH( detail::FactoryJobsHandler{
-          ::NC::FactoryThreadPool::queue,
-          ::NC::FactoryThreadPool::detail::detail_get_pending_job
-        } );
-    detail::getNThreadsTotal().store( n_extra_threads + 1 );
-  }
+  auto& st = detail::getState();
+  NCRYSTAL_LOCK_GUARD( st.mtx );
+  st.envvar_done.store( true );//explicit calls take precedence
+  st.user_configured.store( true );
+  detail::setThreadsUnlocked( nthreads );
 }
-
-NC::ThreadCount NC::FactoryThreadPool::currentThreadCount()
-{
-  return ThreadCount{ detail::getNThreadsTotal().load() };
-}
-
-bool NC::FactoryThreadPool::threadsAvailable() { return true; }
 
 void NC::FactoryThreadPool::queue( voidfct_t job )
 {
+  detail::ensureEnvVarProcessed();
   detail::getTP().queue( std::move(job) );
 }
 
 NC::FactoryThreadPool::detail::FactoryJobsHandler
 NC::FactoryThreadPool::detail::getFactoryJobsHandler()
 {
+  ensureEnvVarProcessed();
   auto& db = getFJH();
   NCRYSTAL_LOCK_GUARD(db.mtx);
   FactoryJobsHandler fjh = db.fjh;
   return fjh;
+}
+
+NC::ThreadCount NC::FactoryThreadPool::currentThreadCount()
+{
+  detail::ensureEnvVarProcessed();
+  return ThreadCount{ detail::getState().nthreads_total.load() };
+}
+
+bool NC::FactoryThreadPool::userConfigured()
+{
+  detail::ensureEnvVarProcessed();
+  return detail::getState().user_configured.load();
+}
+
+bool NC::FactoryThreadPool::threadsAvailable() { return true; }
+
+void NC::FactoryThreadPool::detail::beginTemporaryThreads(
+  ThreadCount n )
+{
+  ensureEnvVarProcessed();
+  auto& st = getState();
+  NCRYSTAL_LOCK_GUARD( st.mtx );
+  if ( st.ntemp_users++ == 0 && !st.user_configured.load() )
+    setThreadsUnlocked( n );
+}
+
+void NC::FactoryThreadPool::detail::endTemporaryThreads()
+{
+  auto& st = getState();
+  NCRYSTAL_LOCK_GUARD( st.mtx );
+  nc_assert_always( st.ntemp_users > 0 );
+  if ( --st.ntemp_users == 0 && !st.user_configured.load() )
+    setThreadsUnlocked( ThreadCount{ 1 } );
 }
 
 #endif

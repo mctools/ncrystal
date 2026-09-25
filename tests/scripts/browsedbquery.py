@@ -82,32 +82,49 @@ def show( title, data ):
     print(f'==> {title}:')
     pprint.pp( rounded(data), width = 78 )
 
-def test_factorythreads():
-    ft = q('factorythreads')
-    assert set(ft) == set(['threads_available','nthreads'])
-    avail = ft['threads_available']
-    assert ft['nthreads'] == 1
-    NC.enableFactoryThreads(4)
-    assert q('factorythreads')['nthreads'] == ( 4 if avail else 1 )
-    NC.enableFactoryThreads(1)
-    assert q('factorythreads')['nthreads'] == 1
-    #A pending NCRYSTAL_FACTORY_THREADS setting is applied by the query
-    #(the env var is only processed once per process, hence subprocess):
+def run_scenario( name, code, envval = None ):
+    #Run code in fresh process (the NCRYSTAL_FACTORY_THREADS env var is
+    #only read once per process), printing the factorythreads state:
     import subprocess
     import sys
 
     from NCTestUtils.env import ncsetenv
-    ncsetenv('FACTORY_THREADS','3')
+    full = ( 'import NCrystalDev as NC\n'
+             'from NCrystalDev.misc import evaluate_query as q\n'
+             'def ft():\n'
+             '    d = q(["util","factorythreads"])\n'
+             '    return d["nthreads"], d["user_configured"]\n'
+             'def load(n):\n'
+             '    q(["util","browsedb","stdlib","nthreads=%i"%n])\n'
+             + code )
+    ncsetenv('FACTORY_THREADS',envval)
     try:
-        code = ( 'import NCrystalDev.misc as m;'
-                 'print(m.evaluate_query(["util",'
-                 '"factorythreads"])["nthreads"])' )
-        rv = subprocess.run( [ sys.executable, '-c', code ],
+        rv = subprocess.run( [ sys.executable, '-c', full ],
                              capture_output = True, text = True,
                              check = True )
     finally:
         ncsetenv('FACTORY_THREADS',None)
-    assert int(rv.stdout.strip()) == ( 3 if avail else 1 )
+    return rv.stdout.strip()
+
+def test_factorythreads():
+    ft = q('factorythreads')
+    assert set(ft) == set(['threads_available','nthreads','user_configured'])
+    avail = ft['threads_available']
+    def n( nthreads ):
+        return str( nthreads if avail else 1 )
+    #Nothing configured: loading with temporary threads leaves no trace, but
+    #an explicit disabling is respected:
+    res = run_scenario('A','print(ft()); load(4); print(ft());'
+                       ' NC.enableFactoryThreads(1); load(4); print(ft())')
+    assert res.split() == ['(1,','False)','(1,','False)','(1,','True)']
+    #Env var is respected (also 0, which means disabled):
+    res = run_scenario('B','print(ft()); load(8); print(ft())','3')
+    assert res.split() == [ f'({n(3)},', 'True)' ]*2
+    res = run_scenario('C','print(ft()); load(8); print(ft())','0')
+    assert res.split() == [ '(1,', 'True)' ]*2
+    #Explicit calls before the env var is read take precedence:
+    res = run_scenario('D','NC.enableFactoryThreads(2); print(ft())','3')
+    assert res.split() == [ f'({n(2)},', 'True)' ]
     print('Factory thread queries OK')
 
 def main():
@@ -180,7 +197,9 @@ def main():
     bad(badchunk+'I=2, N=2','browsedb','virtual','2','2')
     bad(badchunk+'I=0, N=0','browsedb','virtual','0','0')
     bad(('Invalid browsedb query (usage: ["util","browsedb",FACTNAME,'
-         '(I,N,)("cheap")])'),'browsedb','virtual','1')
+         '(I,N,)("cheap",)("nthreads=N")])'),'browsedb','virtual','1')
+    bad('Invalid nthreads in browsedb query: "x"',
+        'browsedb','virtual','nthreads=x')
     bad('Invalid chunk index I in browsedb query: "a"',
         'browsedb','virtual','a','2')
     bad(('Invalid util query: ["util","browsefactories","virtual"] (no'

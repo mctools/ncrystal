@@ -1,0 +1,15 @@
+Initial state:
+  nthreads=1 (1 without thread support) userConfigured=0
+Nested temporary threads:
+  nthreads=4 (1 without thread support) userConfigured=0
+  nthreads=4 (1 without thread support) userConfigured=0
+  nthreads=4 (1 without thread support) userConfigured=0
+  nthreads=1 (1 without thread support) userConfigured=0
+Explicitly disabled:
+  nthreads=1 (1 without thread support) userConfigured=1
+  nthreads=1 (1 without thread support) userConfigured=1
+  nthreads=1 (1 without thread support) userConfigured=1
+Explicitly enabled, also during temporary threads:
+  nthreads=3 (1 without thread support) userConfigured=1
+  nthreads=3 (1 without thread support) userConfigured=1
+  nthreads=1 (1 without thread support) userConfigured=1

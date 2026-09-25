@@ -148,6 +148,7 @@ Factory thread queries OK
 Caught expected NCBadInput('Unknown TextData factory in browsedb query: "nonexistent"')
 Caught expected NCBadInput('Invalid chunk specification in browsedb query (must have 0<=I<N): I=2, N=2')
 Caught expected NCBadInput('Invalid chunk specification in browsedb query (must have 0<=I<N): I=0, N=0')
-Caught expected NCBadInput('Invalid browsedb query (usage: ["util","browsedb",FACTNAME,(I,N,)("cheap")])')
+Caught expected NCBadInput('Invalid browsedb query (usage: ["util","browsedb",FACTNAME,(I,N,)("cheap",)("nthreads=N")])')
+Caught expected NCBadInput('Invalid nthreads in browsedb query: "x"')
 Caught expected NCBadInput('Invalid chunk index I in browsedb query: "a"')
 Caught expected NCBadInput('Invalid util query: ["util","browsefactories","virtual"] (no arguments should come after: ["util","browsefactories"])')

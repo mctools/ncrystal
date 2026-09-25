@@ -31,8 +31,7 @@ Example:
       print( e.fullkey, e.description )
 
 The data is provided by the C++ layer (via the JSON queries
-["util","browsedb",...]), which also loads materials in parallel when
-requested.
+["util","browsedb",...]), which also loads materials in parallel.
 """
 
 __all__ = [ 'DataEntry', 'PhysicsProps', 'browse', 'filter_entries', 'find',
@@ -229,11 +228,13 @@ def browse( factory = None, *, load = False, nthreads = 'auto',
 
     If load=True, all materials are loaded, and their physics properties are
     available via the .props attribute of the entries. This is done in
-    parallel via NCrystal's factory threads: if nthreads (an integer, or
-    "auto") is higher than the current number of factory threads, the
-    number is temporarily increased. If quiet=True, messages from NCrystal
-    during loading are suppressed. If progress is a function, it will be
-    called as progress(ndone,ntotal) during loading.
+    parallel with nthreads threads (an integer, or "auto"), which are only
+    used temporarily, and only if the user did not already configure
+    NCrystal's factory threads (via enableFactoryThreads or the
+    NCRYSTAL_FACTORY_THREADS env var, which are then respected). If
+    quiet=True, messages from NCrystal during loading are suppressed. If
+    progress is a function, it will be called as progress(ndone,ntotal)
+    during loading.
     """
     counts = list_factories()
     if factory is not None and factory not in counts:
@@ -242,11 +243,11 @@ def browse( factory = None, *, load = False, nthreads = 'auto',
     facts = [ f for f,n in counts.items()
               if n and ( factory is None or f == factory ) ]
     ntotal = sum( counts[f] for f in facts )
-    cheap = () if load else ('cheap',)
+    extra = ( ( f'nthreads={nthreads}', ) if load else ('cheap',) )
     entries, ndone = [], 0
     from ._msg import _suppress_msgs_ctx
     msgctx = _suppress_msgs_ctx() if ( load and quiet ) else _nullctx()
-    with _FactoryThreads( nthreads if load else 1 ), msgctx:
+    with msgctx:
         for f in facts:
             #Smaller chunks if progress reporting is needed:
             nchunks = ( 1 if progress is None
@@ -254,7 +255,7 @@ def browse( factory = None, *, load = False, nthreads = 'auto',
             for i in range( nchunks ):
                 if progress is not None:
                     progress( ndone, ntotal )
-                data = _q( 'browsedb', f, str(i), str(nchunks), *cheap )
+                data = _q( 'browsedb', f, str(i), str(nchunks), *extra )
                 entries += [ DataEntry(d) for d in data ]
                 ndone += len(data)
     if progress is not None:
@@ -359,29 +360,6 @@ class _nullctx:
         pass
     def __exit__( self, *a ):
         pass
-
-class _FactoryThreads:
-    #Temporarily increase the number of factory threads (if needed).
-    def __init__( self, nthreads ):
-        self.__n, self.__orig = nthreads, None
-    def __enter__( self ):
-        n = self.__n
-        if n != 'auto' and int(n) <= 1:
-            return
-        state = _q('factorythreads')
-        if not state['threads_available']:
-            return
-        import os
-        want = ( os.cpu_count() or 1 ) if n == 'auto' else int(n)
-        if want > state['nthreads']:
-            from .core import enableFactoryThreads
-            self.__orig = state['nthreads']
-            enableFactoryThreads( want )
-    def __exit__( self, *a ):
-        if self.__orig is not None:
-            from .core import enableFactoryThreads
-            enableFactoryThreads( self.__orig )
-            self.__orig = None
 
 def _sortkey( e ):
     p = e.priority

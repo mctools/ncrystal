@@ -794,47 +794,13 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-namespace NCRYSTAL_NAMESPACE {
-  namespace detail {
-#ifndef NCRYSTAL_DISABLE_THREADS
-    bool factThreadsEnableCalledExplicitly();//fwd declare fct from NCFactThreads.cc
-
-    namespace {
-      void factThreads_checkEnvVar()
-      {
-        static std::atomic<bool> first(true);
-        bool btrue(true);
-        if ( !first.compare_exchange_strong(btrue,false) )
-          return;
-        std::int64_t nthreads_raw = ncgetenv_int64("FACTORY_THREADS",-1);
-        if ( nthreads_raw >= 0 && !factThreadsEnableCalledExplicitly()) {
-          auto nthreads = ThreadCount{ nthreads_raw > 9999
-                                       ? 9999
-                                       : static_cast<unsigned>(nthreads_raw) };
-          FactoryThreadPool::enable( nthreads );
-        }
-      }
-    }
-#else
-    namespace { void factThreads_checkEnvVar() {} }
-#endif
-  }
-}
-
-void NCF::processFactoryThreadsEnvVar()
-{
-  ::NC::detail::factThreads_checkEnvVar();
-}
-
 NC::shared_obj<const NC::Info> NCF::createInfo( const InfoRequest& cfg )
 {
-  ::NC::detail::factThreads_checkEnvVar();
   return infoDB().loadPluginsAndCreate( { cfg } );
 }
 
 NC::ProcImpl::ProcPtr NCF::createScatter( const ScatterRequest& cfg )
 {
-  ::NC::detail::factThreads_checkEnvVar();
   auto p = scatterDB().loadPluginsAndCreate( { cfg } );
   nc_assert( p!=nullptr );
   if ( p->processType() != ProcessType::Scatter )
@@ -845,7 +811,6 @@ NC::ProcImpl::ProcPtr NCF::createScatter( const ScatterRequest& cfg )
 
 NC::ProcImpl::ProcPtr NCF::createAbsorption( const AbsorptionRequest& cfg )
 {
-  ::NC::detail::factThreads_checkEnvVar();
   auto p = absorptionDB().loadPluginsAndCreate( { cfg } );
   nc_assert( p!=nullptr );
   if ( p->processType() != ProcessType::Absorption )
@@ -856,7 +821,6 @@ NC::ProcImpl::ProcPtr NCF::createAbsorption( const AbsorptionRequest& cfg )
 
 NC::shared_obj<const NC::Info> NCF::createInfo( const MatCfg& cfg )
 {
-  ::NC::detail::factThreads_checkEnvVar();
   ///////////////////////////////////////////////////////////////////////////////////////////////
   // First deal with phase-choices (before all other things, which is in line
   // with the documentation's promise that the effect of phase-choice parameter
@@ -936,7 +900,6 @@ NC::shared_obj<const NC::Info> NCF::createInfo( const MatCfg& cfg )
 
 NC::ProcImpl::ProcPtr NCF::createScatter( const MatCfg& cfg )
 {
-  ::NC::detail::factThreads_checkEnvVar();
   if ( cfg.hasDensityOverride() )
     return createScatter( cfg.cloneWithoutDensityState() );//never matters for a process
   MatCfg::PhaseChoices phaseChoices = cfg.getPhaseChoices();
@@ -955,7 +918,6 @@ NC::ProcImpl::ProcPtr NCF::createScatter( const MatCfg& cfg )
 
 NC::ProcImpl::ProcPtr NCF::createAbsorption( const MatCfg& cfg )
 {
-  ::NC::detail::factThreads_checkEnvVar();
   if ( cfg.hasDensityOverride() )
     return createAbsorption( cfg.cloneWithoutDensityState() );//never matters for a process
 

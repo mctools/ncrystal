@@ -1943,6 +1943,11 @@ def enableFactoryThreads( nthreads = 'auto' ):
     pool, while for instance calling enableFactoryThreads(8) will result in 7
     secondary worker threads being allocated.
 
+    Factory threads can also be enabled by setting the NCRYSTAL_FACTORY_THREADS
+    environment variable, which is only read once (the first time the thread
+    pool is used or queried). Explicit calls to this function take precedence
+    over the environment variable.
+
     """
     nt = 9999 if nthreads=='auto' else min(9999,max(1,int(nthreads)))
     _rawfct['ncrystal_enable_factory_threadpool'](nt)

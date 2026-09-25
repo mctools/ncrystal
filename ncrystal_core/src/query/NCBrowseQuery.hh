@@ -32,11 +32,13 @@ namespace NCRYSTAL_NAMESPACE {
     //
     //["util","browsedb"]: dict of TextData factory names and their
     //  number of browsable entries.
-    //["util","browsedb",FACTNAME,(I,N,)("cheap")]: list with a dict per
-    //  entry of the factory (optionally only the I'th of N contiguous
-    //  chunks). Unless "cheap", each entry is loaded with createInfo
-    //  (in parallel if factory threads are enabled), and physics
-    //  properties (or a load error) are included.
+    //["util","browsedb",FACTNAME,(I,N,)("cheap",)("nthreads=N")]:
+    //  list with a dict per entry of the factory (optionally only the
+    //  I'th of N contiguous chunks). Unless "cheap", each entry is
+    //  loaded with createInfo (in parallel if factory threads are
+    //  enabled), and physics properties (or a load error) are included.
+    //  With "nthreads=N" (N can be "auto"), N threads are temporarily
+    //  used for loading, unless the user configured factory threads.
     //["util","browsefactories"]: names of all factories, by type.
     //
     //The args are the query items following the "browsedb" key.

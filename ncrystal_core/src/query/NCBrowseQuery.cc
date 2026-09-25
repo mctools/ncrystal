@@ -25,8 +25,10 @@
 #include "NCrystal/factories/NCMatCfg.hh"
 #include "NCrystal/misc/NCCompositionUtils.hh"
 #include "NCrystal/internal/fact_utils/NCFactoryJobs.hh"
+#include "NCrystal/threads/NCFactThreads.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCString.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #include <map>
 #include <set>
 #include <sstream>
@@ -306,19 +308,33 @@ void NC::BrowseQuery::browseDB( std::ostream& os,
   const std::string factname = args.front().trimmed().to_string();
   args.erase( args.begin() );
   bool cheap = false;
-  if ( !args.empty() && args.back().trimmed() == "cheap" ) {
-    cheap = true;
-    args.pop_back();
+  Optional<ThreadCount> nthreads;
+  std::vector<StrView> numargs;
+  for ( auto& a : args ) {
+    auto t = a.trimmed();
+    if ( t == "cheap" ) {
+      cheap = true;
+    } else if ( t.startswith("nthreads=") ) {
+      auto v = t.substr(9);
+      if ( v == "auto" ) {
+        nthreads = ThreadCount::auto_detect();
+      } else {
+        const unsigned n = parseUInt( v, "nthreads" );
+        nthreads = ThreadCount{ std::min<unsigned>( 9999u, n ) };
+      }
+    } else {
+      numargs.push_back( t );
+    }
   }
   unsigned ichunk = 0;
   unsigned nchunks = 1;
-  if ( args.size() == 2 ) {
-    ichunk = parseUInt( args.at(0), "chunk index I" );
-    nchunks = parseUInt( args.at(1), "number of chunks N" );
-  } else if ( !args.empty() ) {
+  if ( numargs.size() == 2 ) {
+    ichunk = parseUInt( numargs.at(0), "chunk index I" );
+    nchunks = parseUInt( numargs.at(1), "number of chunks N" );
+  } else if ( !numargs.empty() ) {
     NCRYSTAL_THROW( BadInput, "Invalid browsedb query (usage:"
                     " [\"util\",\"browsedb\",FACTNAME,"
-                    "(I,N,)(\"cheap\")])" );
+                    "(I,N,)(\"cheap\",)(\"nthreads=N\")])" );
   }
   if ( !( nchunks >= 1 && ichunk < nchunks ) )
     NCRYSTAL_THROW2( BadInput, "Invalid chunk specification in browsedb"
@@ -340,6 +356,31 @@ void NC::BrowseQuery::browseDB( std::ostream& os,
 
   VectS results( iend - ibegin );
   {
+    //Temporarily use requested number of threads (unless the user
+    //configured the thread-pool), for the lifetime of this object:
+    struct TempThreads : NoCopyMove {
+      bool active;
+      TempThreads( Optional<ThreadCount> n ) : active( n.has_value() )
+      {
+        if ( active )
+          FactoryThreadPool::detail::beginTemporaryThreads( n.value() );
+      }
+      ~TempThreads()
+      {
+        if ( !active )
+          return;
+        //Destructors must not throw (we might be here due to an exception):
+        try {
+          FactoryThreadPool::detail::endTemporaryThreads();
+        } catch (...) {
+          try {
+            NCRYSTAL_WARN("Problems encountered while ending temporary"
+                          " usage of threads");
+          } catch (...) {
+          }
+        }
+      }
+    } tempThreads( cheap ? NullOpt : nthreads );
     //NB: Jobs run in parallel only if factory threads are enabled:
     FactoryJobs jobs;
     for ( auto i : ncrange( ibegin, iend ) ) {

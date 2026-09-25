@@ -23,7 +23,6 @@
 
 #include "NCrystal/internal/query/NCQuery.hh"
 #include "NCBrowseQuery.hh"
-#include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/threads/NCFactThreads.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
@@ -252,13 +251,12 @@ namespace NCRYSTAL_NAMESPACE {
         if ( nargs != 0 )
           invalid("no arguments should come after:"
                   " [\"util\",\"factorythreads\"]");
-        //Apply any pending NCRYSTAL_FACTORY_THREADS setting first, so
-        //the returned state is the actual one (and so the setting is
-        //not later ignored if the caller calls FactoryThreadPool::enable):
-        FactImpl::processFactoryThreadsEnvVar();
+        //NB: These also apply any NCRYSTAL_FACTORY_THREADS setting:
         streamJSONDictEntry( os, "threads_available",
                              FactoryThreadPool::threadsAvailable(),
                              JSONDictPos::FIRST );
+        streamJSONDictEntry( os, "user_configured",
+                             FactoryThreadPool::userConfigured() );
         const auto nt = FactoryThreadPool::currentThreadCount().get();
         streamJSONDictEntry( os, "nthreads",
                              static_cast<unsigned>( nt ),
