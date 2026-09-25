@@ -61,7 +61,7 @@ Code is split into small components, one directory each in `ncrystal_core/src/<c
 
 ## C++ style for new code
 
-Target C++11, two-space indent, max 72 columns, `//` comments only (never `/*..*/`), `m_` prefix for data members, short variable names. Code should be concise and efficient, and give identical results across platforms (no `long double`). Project idioms:
+Target C++11, two-space indent, max 80 columns (not a strict rule: may be exceeded, but only very rarely, where wrapping would really hurt readability), `//` comments only (never `/*..*/`), `m_` prefix for data members, short variable names. Code should be concise and efficient, and give identical results across platforms (no `long double`). Project idioms:
 
 - Types: `VectD` (`std::vector<double>`), `PairDD`, `kInfinity`, `Span` (C++11 `std::span`, accepts a `VectD`), `Optional<T>` (like `std::optional`, use `NullOpt`, `.emplace()`, `.has_value()`, `.value()`).
 - `NCDefs.hh` and `NCMem.hh` (pulled in essentially everywhere indirectly) already include a large set of standard headers (`<limits>`, `<cmath>`, `<vector>`, `<algorithm>`, `<memory>`, `<type_traits>`, ... -- check them before assuming a `#include` is needed). Don't add a redundant explicit include for something they already provide.
