@@ -18,70 +18,65 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+//Sibling of app_benchsabsample, benchmarking crossSectionIsotropic instead of
+//sampleScatterIsotropic (i.e. cross-section evaluation rather than scattering
+//sampling). If ekin_eV is a single value, every call hits the same energy; if
+//given as "lo:hi", each call uses a different energy, log-uniformly cycled
+//across [lo,hi] over nsample calls, to also exercise the energy-grid lookup
+//(as opposed to always hitting the same cached bin/index).
+
 #include "NCrystal/factories/NCFactImpl.hh"
 #include "NCrystal/internal/utils/NCStrView.hh"
 #include <iostream>
-
 
 namespace NC = NCrystal;
 
 int main( int argc, char** argv )
 {
   //Parse args:
-  if ( argc!=4 && argc!=5 ) {
-    std::cout << "Please provide args: [cfgstr] [ekin_eV] [nsample] [ekin_hi_eV]"
-              << std::endl;
-    std::cout << "(ekin_hi_eV is optional: if given, a fresh energy is drawn"
-                 " log-uniformly in [ekin_eV,ekin_hi_eV] for every sample,"
-                 " rather than reusing the single ekin_eV value throughout)."
+  if ( argc!=4 ) {
+    std::cout << "Please provide args: [cfgstr] [ekin_eV|lo_eV:hi_eV] [nsample]"
               << std::endl;
     return 1;
   }
   const std::string cfgstr(argv[1]);
 
-  auto opt_ekin = NC::StrView(argv[2]).toDbl();
-  nc_assert_always(opt_ekin.has_value());
-  const NC::NeutronEnergy ekin{ NC::DoValidate, opt_ekin.value() };
+  const NC::StrView ekinarg(argv[2]);
+  double ekin_lo, ekin_hi;
+  auto isep = ekinarg.find(':');
+  if ( isep == NC::StrView::npos ) {
+    auto opt_ekin = ekinarg.toDbl();
+    nc_assert_always(opt_ekin.has_value());
+    ekin_lo = ekin_hi = opt_ekin.value();
+  } else {
+    auto opt_lo = ekinarg.substr(0,isep).toDbl();
+    auto opt_hi = ekinarg.substr(isep+1).toDbl();
+    nc_assert_always(opt_lo.has_value()&&opt_hi.has_value());
+    ekin_lo = opt_lo.value();
+    ekin_hi = opt_hi.value();
+    nc_assert_always(ekin_lo>0.0&&ekin_hi>=ekin_lo);
+  }
 
   auto opt_nsample = NC::StrView(argv[3]).toUInt64();
   nc_assert_always(opt_nsample.has_value());
   const std::uint64_t nsample = opt_nsample.value();
 
-  NC::Optional<double> opt_ekin_hi;
-  if ( argc==5 ) {
-    auto v = NC::StrView(argv[4]).toDbl();
-    nc_assert_always(v.has_value());
-    nc_assert_always(v.value()>=ekin.dbl());
-    opt_ekin_hi = v.value();
-  }
-
   auto scatter = NC::FactImpl::createScatter(cfgstr);
-  auto rng = NC::getRNG();
 
-  if ( !opt_ekin_hi.has_value() ) {
-    std::cout<<"Sampling "<<nsample<<" times at ekin = "<<ekin<<std::endl;
-    NC::CachePtr cache;
-    for ( std::uint64_t i = 0; i < nsample; ++i )
-      (void)scatter->sampleScatterIsotropic(cache,rng,ekin);
-    return 0;
-  }
-
-  //Fresh (log-uniform) random energy per call rather than reusing one fixed
-  //ekin throughout: a single repeated ekin always lands in the same
-  //cell/grid region, which is unrepresentative of an actual simulation (and
-  //can make some costs -- e.g. anything that only runs once per distinct
-  //region and is then effectively free on every subsequent identical call --
-  //look artificially cheap in a profile).
-  const double ekin_lo = ekin.dbl();
-  const double ekin_hi = opt_ekin_hi.value();
-  std::cout<<"Sampling "<<nsample<<" times at ekin = "
+  std::cout<<"Evaluating cross-sections "<<nsample<<" times at ekin = "
            <<ekin_lo<<" .. "<<ekin_hi<<" eV"<<std::endl;
-  const double logratio = std::log(ekin_hi/ekin_lo);
+
   NC::CachePtr cache;
+  double xssum = 0.0;//accumulate to prevent the call from being optimised away
+  const bool varyekin = ( ekin_hi > ekin_lo );
+  const double logratio = ( varyekin
+                            ? std::log(ekin_hi/ekin_lo) / nsample
+                            : 0.0 );
   for ( std::uint64_t i = 0; i < nsample; ++i ) {
-    const NC::NeutronEnergy ekin_i{ NC::DoValidate,
-      ekin_lo*std::exp(logratio*rng->generate()) };
-    (void)scatter->sampleScatterIsotropic(cache,rng,ekin_i);
+    const NC::NeutronEnergy ekin{ NC::DoValidate,
+      varyekin ? ekin_lo*std::exp(logratio*i) : ekin_lo };
+    xssum += scatter->crossSectionIsotropic(cache,ekin).dbl();
   }
+  std::cout<<"(sum of evaluated cross-sections: "<<xssum<<")"<<std::endl;
   return 0;
 }
