@@ -241,12 +241,17 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr auto sv_browsedb = StrView::make("browsedb");
       constexpr auto sv_browsefacts = StrView::make("browsefactories");
       constexpr auto sv_factthreads = StrView::make("factorythreads");
+      constexpr auto sv_atomdb = StrView::make("atomdb");
       if ( key == sv_list ) {
         if ( nargs != 0 )
           invalid("no arguments should come after: [\"util\",\"list\"]");
         os<<"[\"wl2ekin\", \"ekin2wl\", \"mathval\", \"fmadiagnose\","
           " \"kinutils\", \"browsedb\", \"browsefactories\","
-          " \"factorythreads\"]";
+          " \"factorythreads\", \"atomdb\"]";
+      } else if ( key == sv_atomdb ) {
+        if ( nargs != 0 )
+          invalid("no arguments should come after: [\"util\",\"atomdb\"]");
+        BrowseQuery::atomDB( os );
       } else if ( key == sv_factthreads ) {
         if ( nargs != 0 )
           invalid("no arguments should come after:"

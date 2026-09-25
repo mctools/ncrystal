@@ -197,4 +197,51 @@ Lazy loading OK
   disk.laz: datatype=laz comments=None descr='' path(basename)=disk.laz error=None
      sg=225 crystalsystem=cubic formula=Al a=4.04958 braggthreshold=4.67605 dyninfo=['vdosdebye']
 LAZ/LAU data OK
+atomdb fields: ['z', 'a', 'label', 'element', 'natural', 'mass', 'cohsl', 'cohxs', 'incohxs', 'scatxs', 'absxs']
+He + b10 (case-insensitive): ['He', 'He3', 'He4', 'B10']
+glob: ['Li', 'Li6', 'Li7']
+where: ['Gd', 'Sm', 'Eu', 'Cd']
+where fct: ['H', 'H1', 'H2', 'H3']
+sorted fct: ['H3', 'H2', 'H1', 'H']
+slice: ['H1', 'H2'] item: Al
+==> text table:
+LABEL  Z   A  ELEMENT  NATURAL     MASS    COHSL       COHXS  INCOHXS   SCATXS    ABSXS
+He     2   0       He     True   4.0026  3.26548        1.34        0     1.34  0.00747
+He3    2   3       He    False  3.01603     5.74     4.14032      1.6  5.74032     5333
+He4    2   4       He    False   4.0026     3.26      1.3355        0   1.3355        0
+B10    5  10        B    False  10.0129     -0.1  0.00125664        3  3.00126     3835
+==> text table (columns):
+LABEL     MASS    ABSXS
+He      4.0026  0.00747
+He3    3.01603     5333
+He4     4.0026        0
+B10    10.0129     3835
+==> csv:
+label,a,cohsl,incohxs,absxs
+He,0,3.26548,0.0,0.00747
+He3,3,5.739999999999999,1.6,5333.0
+He4,4,3.2600000000000002,0.0,0.0
+B10,10,-0.1,3.0,3835.0
+==> html:
+<table class="ncrystal-browse">
+<thead>
+<tr><th>label</th><th>natural</th><th>absxs</th></tr>
+</thead>
+<tbody>
+<tr><td>He</td><td>True</td><td>0.00747</td></tr>
+<tr><td>He3</td><td>False</td><td>5333</td></tr>
+<tr><td>He4</td><td>False</td><td>0</td></tr>
+<tr><td>B10</td><td>False</td><td>3835</td></tr>
+</tbody>
+</table>
+==> json:
+[{'label': 'He', 'element': 'He', 'cohxs': 1.3399972911},
+ {'label': 'He3', 'element': 'He', 'cohxs': 4.1403175245},
+ {'label': 'He4', 'element': 'He', 'cohxs': 1.3355036034},
+ {'label': 'B10', 'element': 'B', 'cohxs': 0.0012566370614}]
+Caught expected NCBadInput('Unknown name "foo" in where expression "foo > 1"')
+Caught expected NCBadInput('Invalid sort key "foo" (must be one of: z, a, label, element, natural, mass, cohsl, cohxs, incohxs, scatxs, absxs)')
+Caught expected NCBadInput('Invalid column "label" (must be one of: z, a, element, natural, mass, cohsl, cohxs, incohxs, scatxs, absxs)')
+Caught expected NCBadInput('Invalid table format: "xml" (must be "text", "csv", "json", or "html")')
+AtomDB OK
 Factory thread handling OK

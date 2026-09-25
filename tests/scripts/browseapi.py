@@ -300,6 +300,64 @@ def test_lazlau():
     NC.enableRelativePaths(False)
     print('LAZ/LAU data OK')
 
+def test_atomdb():
+    import json
+
+    import NCrystalDev._common as nc_common
+    #The static database is only queried once (and cached):
+    nqueries = [0]
+    orig_q = nb._q
+    def counting_q( *args ):
+        nqueries[0] += ( args == ('atomdb',) )
+        return orig_q( *args )
+    nb._q = counting_q
+    try:
+        d = nb.query_atomdb()
+        assert json.loads( nb.query_atomdb(as_json=True) ) == d
+        nb.AtomDBBrowser('He')
+        nb.AtomDBBrowser().where('absxs > 1')
+        assert nqueries[0] <= 1
+    finally:
+        nb._q = orig_q
+    #Returned data is a copy (modifying it does not affect the cache):
+    d[0]['mass'] = -1.0
+    assert nb.query_atomdb()[0]['mass'] > 0.0
+    print('atomdb fields:',[ n for n,_ in nb.atomdb_fields_doc() ])
+    a = nb.AtomDBBrowser()
+    assert len(a) == len(d) and repr(a) == f'AtomDBBrowser({len(d)} entries)'
+    print('He + b10 (case-insensitive):',nb.AtomDBBrowser('He','b10').names())
+    print('glob:',a.match('Li*').names())
+    print('where:',a.where('absxs > 1000 and natural')
+          .sorted('absxs',reverse=True).names())
+    print('where fct:',a.where(lambda e : e['z'] == 1).names())
+    print('sorted fct:',a.match('H').sorted(lambda e : -e['a']).names())
+    print('slice:',a.match('H')[1:3].names(),'item:',a.match('Al')[0]['label'])
+    sel = nb.AtomDBBrowser('He','B10')
+    print('==> text table:')
+    sel.dump()
+    print('==> text table (columns):')
+    print(sel.table('mass,absxs'),end='')
+    print('==> csv:')
+    print(sel.to_csv('a,cohsl,incohxs,absxs'),end='')#no mass: FP
+    print('==> html:')
+    print(sel.to_html('natural,absxs'),end='')
+    print('==> json:')
+    nc_common.ncpprint( json.loads( sel.to_json('element,cohxs') ) )
+    assert sel.to_dicts()[1]['label'] == 'He3'
+    def bad( msg, fct ):
+        with ensure_error(NC.NCBadInput,msg):
+            fct()
+    names = ', '.join( n for n,_ in nb.atomdb_fields_doc() )
+    bad('Unknown name "foo" in where expression "foo > 1"',
+        lambda : a.where('foo > 1'))
+    bad('Invalid sort key "foo" (must be one of: '+names+')',
+        lambda : a.sorted('foo'))
+    bad('Invalid column "label" (must be one of: '
+        + names.replace('label, ','') + ')', lambda : a.table('label'))
+    bad('Invalid table format: "xml" (must be "text", "csv", "json", or'
+        ' "html")',lambda : a.table(fmt='xml'))
+    print('AtomDB OK')
+
 def test_threads():
     #Factory threads are only changed temporarily (NB: must be last, since
     #it configures factory threads):
@@ -334,6 +392,7 @@ def main():
     test_errors()
     test_lazy_loading()
     test_lazlau()
+    test_atomdb()
     test_threads()
 
 if __name__ == '__main__':

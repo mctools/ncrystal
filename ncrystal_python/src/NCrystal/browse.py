@@ -40,10 +40,17 @@ Physics properties (see physics_props_doc()) are loaded when first needed.
 The underlying data is provided by the C++ layer (via JSON queries), which
 also loads materials in parallel. It is available directly via the
 query_data() function.
+
+Similarly, the AtomDBBrowser class (and query_atomdb() function) provides
+access to NCrystal's database of isotopes and natural elements:
+
+  a = nb.AtomDBBrowser('He','B')           #elements and their isotopes
+  print( a.where('absxs > 100').table() )
 """
 
-__all__ = [ 'DataBrowser', 'DataEntry', 'PhysicsProps', 'list_all_factories',
-            'list_factories', 'physics_props_doc', 'query_data' ]
+__all__ = [ 'AtomDBBrowser', 'DataBrowser', 'DataEntry', 'PhysicsProps',
+            'atomdb_fields_doc', 'list_all_factories', 'list_factories',
+            'physics_props_doc', 'query_atomdb', 'query_data' ]
 
 def list_factories():
     """Returns a dictionary with the names of all TextData factories and the
@@ -590,6 +597,163 @@ class DataBrowser:
                                  f' or one of: {", ".join(allowed[:-1])})')
         return cols
 
+def query_atomdb( *, as_json = False ):
+    """Returns the data of all entries in NCrystal's database of isotopes and
+    natural elements, as a list of dictionaries (see atomdb_fields_doc() for
+    the keys). If as_json=True, a JSON string is returned instead."""
+    data = _atomdb_data()
+    if as_json:
+        import json
+        return json.dumps( data )
+    return [ dict(d) for d in data ]#copies, so the cache is not modified
+
+def atomdb_fields_doc():
+    """Returns list of (name,description) of the fields available for entries
+    in the AtomDBBrowser (and in its "where" expressions)."""
+    return list( _atomdb_docs )
+
+class AtomDBBrowser:
+    """Browse NCrystal's database of isotopes and natural elements, in the same
+    way as with "ncrystal browse --atomdb". Entries are dictionaries with the
+    fields described by atomdb_fields_doc(). Selection methods (match, where,
+    sorted, and slicing) return new AtomDBBrowser objects, and the entries can
+    be shown with table(), to_csv(), to_json(), and to_html()."""
+
+    def __init__( self, *patterns, where = () ):
+        """Browse all entries (or those selected by patterns and where
+        conditions, as with the corresponding methods)."""
+        rows = [ dict( ( k, d[k] ) for k,_ in _atomdb_docs )
+                 for d in _atomdb_data() ]
+        self._rows = tuple( rows )
+        b = self.match( *patterns ).where( *_aslist( where ) )
+        self._rows = b._rows
+
+    def _derived( self, rows ):
+        b = object.__new__( AtomDBBrowser )
+        b._rows = tuple( rows )
+        return b
+
+    def match( self, *patterns ):
+        """Select entries matching at least one of the patterns: an element
+        name (e.g. "He", selecting the natural element and all its isotopes),
+        a label (e.g. "He3"), or a glob pattern (e.g. "H*"). Matching is
+        case-insensitive."""
+        if not patterns:
+            return self
+        import fnmatch
+        def ok( d, p ):
+            p = p.lower()
+            if _is_glob( p ):
+                return fnmatch.fnmatchcase( d['label'].lower(), p )
+            return p in ( d['label'].lower(), ( d['element'] or '' ).lower() )
+        return self._derived( [ d for d in self._rows
+                                if any( ok( d, p ) for p in patterns ) ] )
+
+    def where( self, *conditions ):
+        """Select entries fulfilling all conditions, which are either functions
+        taking the entry dictionary, or Python expressions (strings) using the
+        field names (e.g. "absxs > 100 and not natural")."""
+        names = [ n for n,_ in _atomdb_docs ]
+        fcts = [ ( w if callable(w) else _WhereExpr( w, names ) )
+                 for w in conditions ]
+        return self._derived( [ d for d in self._rows
+                                if all( _eval_where( f, d ) for f in fcts ) ] )
+
+    def sorted( self, key, *, reverse = False ):
+        """Sort by a field name (see atomdb_fields_doc()) or a function taking
+        the entry dictionary."""
+        if not callable( key ):
+            names = [ n for n,_ in _atomdb_docs ]
+            if key not in names:
+                from .exceptions import NCBadInput
+                raise NCBadInput(f'Invalid sort key "{key}" (must be one of:'
+                                 f' {", ".join(names)})')
+            k = key
+            def key( d ):
+                return d[k]
+        return self._derived( sorted( self._rows, key = key,
+                                      reverse = reverse ) )
+
+    def __len__( self ):
+        return len( self._rows )
+
+    def __bool__( self ):
+        return bool( self._rows )
+
+    def __iter__( self ):
+        return ( dict(d) for d in self._rows )
+
+    def __getitem__( self, idx ):
+        if isinstance( idx, slice ):
+            return self._derived( self._rows[idx] )
+        return dict( self._rows[idx] )
+
+    def __repr__( self ):
+        n = len(self)
+        return f'AtomDBBrowser({n} entr{"y" if n==1 else "ies"})'
+
+    def names( self ):
+        """List of labels of the selected entries."""
+        return [ d['label'] for d in self._rows ]
+
+    def table( self, columns = None, *, fmt = 'text' ):
+        """Returns table with the label and the given columns (a list or a
+        comma-separated string, default is all fields). The format (fmt) is
+        "text", "csv" (with full numerical precision), "json", or "html"."""
+        names = [ n for n,_ in _atomdb_docs if n != 'label' ]
+        if columns is None:
+            cols = names
+        else:
+            cols = ( [ c.strip() for c in columns.split(',') if c.strip() ]
+                     if isinstance( columns, str ) else list( columns ) )
+            for c in cols:
+                if c not in names:
+                    from .exceptions import NCBadInput
+                    raise NCBadInput(f'Invalid column "{c}" (must be one'
+                                     f' of: {", ".join(names)})')
+        header = [ 'label' ] + cols
+        if fmt == 'json':
+            import json
+            return json.dumps( [ dict( (c,d[c]) for c in header )
+                                 for d in self._rows ], indent = 1 ) + '\n'
+        def val( v ):
+            if isinstance( v, float ):
+                return repr(v) if fmt == 'csv' else '%g'%v
+            return str(v)
+        rows = [ [ val( d[c] ) for c in header ] for d in self._rows ]
+        if fmt == 'text':
+            return _fmt_text_table( [ h.upper() for h in header ], rows,
+                                    leftcols = set([0]), desccol = None,
+                                    truncate = False, linewidth = 80 )
+        if fmt == 'csv':
+            return _fmt_csv( header, rows )
+        if fmt == 'html':
+            return _fmt_html( header, rows )
+        from .exceptions import NCBadInput
+        raise NCBadInput(f'Invalid table format: "{fmt}" (must be "text",'
+                         ' "csv", "json", or "html")')
+
+    def dump( self, columns = None ):
+        """Print table( columns )."""
+        from ._common import print
+        print( self.table( columns ), end = '' )
+
+    def to_csv( self, columns = None ):
+        """Same as table(columns,fmt="csv")."""
+        return self.table( columns, fmt = 'csv' )
+
+    def to_html( self, columns = None ):
+        """Same as table(columns,fmt="html")."""
+        return self.table( columns, fmt = 'html' )
+
+    def to_json( self, columns = None ):
+        """Same as table(columns,fmt="json")."""
+        return self.table( columns, fmt = 'json' )
+
+    def to_dicts( self ):
+        """List of dictionaries (copies) with all fields of the entries."""
+        return [ dict(d) for d in self._rows ]
+
 ###############################################################################
 # Implementation details:
 
@@ -645,12 +809,35 @@ def _crystal_system( sg ):
 
 _dict_props = ('debyetemps','msds')#not sortable
 
+_atomdb_docs = [
+    ('z', 'atomic number'),
+    ('a', 'mass number (0 for natural elements)'),
+    ('label', 'label, e.g. "Al" or "He3" (isotopes of H: "H2", "H3")'),
+    ('element', ( 'element name, e.g. "He" (also for isotopes, None if not'
+                  ' a single element)' )),
+    ('natural', 'True for natural elements, False for isotopes'),
+    ('mass', 'atomic mass [amu]'),
+    ('cohsl', 'bound coherent scattering length [fm]'),
+    ('cohxs', 'bound coherent scattering cross section [barn]'),
+    ('incohxs', 'bound incoherent scattering cross section [barn]'),
+    ('scatxs', 'bound scattering cross section [barn]'),
+    ('absxs', 'absorption cross section at 2200m/s [barn]'),
+]
+
 _where_funcs = dict( len = len, min = min, max = max, any = any, all = all,
                      abs = abs, round = round, set = set, sorted = sorted )
 
 def _q( *args ):
     from .misc import evaluate_query
     return evaluate_query( ['util'] + list(args) )
+
+_atomdb_cache = [None]
+def _atomdb_data():
+    #The atom database is static, so the query is only needed once (NB:
+    #callers must not modify the returned dicts):
+    if _atomdb_cache[0] is None:
+        _atomdb_cache[0] = tuple( _q( 'atomdb' ) )
+    return _atomdb_cache[0]
 
 def _aslist( x ):
     return [ x ] if isinstance( x, str ) or callable( x ) else list( x )
@@ -832,26 +1019,54 @@ def _table_json( entry, cols ):
             d[c] = props[c] if props is not None else None
     return d
 
-def _format_table( b, cols, *, truncate, linewidth ):
+def _fmt_text_table( header, rows, *, leftcols, desccol, truncate,
+                     linewidth ):
     #NB: Rows are never truncated (no data should be lost), except for the
     #free-text description column which is shortened to fit if possible.
+    rows = [ list(r) for r in rows ]
+    def width( k ):
+        return max( len(r[k]) for r in rows + [header] )
+    if desccol is not None:
+        other = sum( width(k) + 2 for k in range(len(header)) if k != desccol )
+        room = max( 20, linewidth - other )
+        for r in rows:
+            r[desccol] = _truncate( r[desccol], room, truncate )
+    widths = [ width(k) for k in range(len(header)) ]
+    def fmt( r ):
+        return '  '.join( ( v.ljust(w) if k in leftcols else v.rjust(w) )
+                          for k,(v,w) in enumerate(zip(r,widths)) ).rstrip()
+    return ''.join( fmt(r) + '\n' for r in [header] + rows )
+
+def _fmt_csv( header, rows ):
+    import csv
+    import io
+    buf = io.StringIO()
+    w = csv.writer( buf, lineterminator = '\n' )
+    for r in [ header ] + list( rows ):
+        w.writerow( r )
+    return buf.getvalue()
+
+def _fmt_html( header, rows ):
+    import html
+    def row( cells, tag ):
+        return ( '<tr>' + ''.join( f'<{tag}>{html.escape(c)}</{tag}>'
+                                   for c in cells ) + '</tr>\n' )
+    out = [ '<table class="ncrystal-browse">\n<thead>\n', row( header, 'th' ),
+            '</thead>\n<tbody>\n' ]
+    out += [ row( r, 'td' ) for r in rows ]
+    out.append( '</tbody>\n</table>\n' )
+    return ''.join( out )
+
+def _format_table( b, cols, *, truncate, linewidth ):
     header = [ 'NAME' ] + [ c.upper() for c in cols ]
     rows = [ [ e.display_name ] + [ _table_value(e,c) for c in cols ]
              for e in b ]
-    def width( k ):
-        return max( len(r[k]) for r in rows + [header] )
-    if 'description' in cols:
-        kd = 1 + cols.index('description')
-        other = sum( width(k) + 2 for k in range(len(header)) if k != kd )
-        room = max( 20, linewidth - other )
-        for r in rows:
-            r[kd] = _truncate( r[kd], room, truncate )
-    widths = [ width(k) for k in range(len(header)) ]
-    def fmt( r ):
-        return '  '.join( ( v.ljust(w) if k==0 or cols[k-1]=='description'
-                            else v.rjust(w) )
-                          for k,(v,w) in enumerate(zip(r,widths)) ).rstrip()
-    return ''.join( fmt(r) + '\n' for r in [header] + rows )
+    leftcols = set( [0] + [ k+1 for k,c in enumerate(cols)
+                            if c == 'description' ] )
+    desccol = 1 + cols.index('description') if 'description' in cols else None
+    return _fmt_text_table( header, rows, leftcols = leftcols,
+                            desccol = desccol, truncate = truncate,
+                            linewidth = linewidth )
 
 def _csv_value( v ):
     #Full precision (repr) floats, empty for unavailable values:
@@ -866,29 +1081,17 @@ def _csv_value( v ):
     return str(v)
 
 def _format_csv( b, cols ):
-    import csv
-    import io
-    buf = io.StringIO()
-    w = csv.writer( buf, lineterminator = '\n' )
-    w.writerow( [ 'name' ] + cols )
+    rows = []
     for e in b:
         d = _table_json( e, cols )
-        w.writerow( [ d['name'] ] + [ _csv_value(d[c]) for c in cols ] )
-    return buf.getvalue()
+        rows.append( [ d['name'] ] + [ _csv_value(d[c]) for c in cols ] )
+    return _fmt_csv( [ 'name' ] + cols, rows )
 
 def _format_html( b, cols ):
-    import html
-    def row( cells, tag ):
-        return ( '<tr>' + ''.join( f'<{tag}>{html.escape(c)}</{tag}>'
-                                   for c in cells ) + '</tr>\n' )
-    out = [ '<table class="ncrystal-browse">\n<thead>\n',
-            row( [ 'name' ] + cols, 'th' ), '</thead>\n<tbody>\n' ]
-    for e in b:
-        vals = [ ( '' if v == '-' else v )
-                 for v in ( _table_value(e,c) for c in cols ) ]
-        out.append( row( [ e.display_name ] + vals, 'td' ) )
-    out.append( '</tbody>\n</table>\n' )
-    return ''.join( out )
+    rows = [ [ e.display_name ] + [ ( '' if v == '-' else v ) for v in
+                                    ( _table_value(e,c) for c in cols ) ]
+             for e in b ]
+    return _fmt_html( [ 'name' ] + cols, rows )
 
 def _format_info( b, *, linewidth ):
     import textwrap
@@ -1007,7 +1210,7 @@ def _fmt_prop( v ):
 class _WhereExpr:
     #Where expression, compiled after checking that only known names and no
     #private attributes are used (basic safety, and to catch typos early).
-    def __init__( self, expr ):
+    def __init__( self, expr, names = None ):
         import ast
 
         from .exceptions import NCBadInput
@@ -1016,7 +1219,9 @@ class _WhereExpr:
         except SyntaxError as e:
             raise NCBadInput(f'Invalid where expression "{expr}":'
                              f' {e.msg}') from e
-        allowed = set( n for n,d in _propdocs ) | set( _where_funcs )
+        if names is None:
+            names = [ n for n,d in _propdocs ]
+        allowed = set( names ) | set( _where_funcs )
         for node in ast.walk( tree ):
             if isinstance( node, ast.Name ) and node.id not in allowed:
                 raise NCBadInput(f'Unknown name "{node.id}" in where'
@@ -1026,10 +1231,12 @@ class _WhereExpr:
                                  ' attributes are not allowed)')
         self.expr = expr
         self.__code = compile( tree, '<where>', 'eval' )
-    def __call__( self, props ):
+    def __call__( self, obj ):
+        #obj is a PhysicsProps object or a dict:
         ns = dict( _where_funcs )
         ns['__builtins__'] = {}
-        return eval( self.__code, ns, props.as_dict() )
+        d = obj.as_dict() if hasattr( obj, 'as_dict' ) else dict( obj )
+        return eval( self.__code, ns, d )
 
 def _eval_where( fct, props ):
     #Expressions failing due to unavailable values (None) are considered

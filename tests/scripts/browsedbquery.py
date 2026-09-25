@@ -179,6 +179,19 @@ def main():
 
     test_factorythreads()
 
+    #Atom database:
+    adb = q('atomdb')
+    assert len(adb) > 300 and all( set(e) == set(['z','a','label','element',
+                                                  'natural',
+                                                  'mass','cohsl','cohxs',
+                                                  'incohxs','scatxs','absxs'])
+                                   for e in adb )
+    #All entries (natural elements and isotopes) are elements:
+    assert all( e['element'] and e['label'].startswith(e['element'])
+                for e in adb )
+    show('atomdb entries for H2, He3, Al',
+         [ e for e in adb if e['label'] in ('H2','He3','Al') ])
+
     def bad( msg, *args ):
         with ensure_error(NC.NCBadInput,msg):
             q(*args)
@@ -194,6 +207,8 @@ def main():
         'browsedb','virtual','nthreads=x')
     bad('Invalid chunk index I in browsedb query: "a"',
         'browsedb','virtual','a','2')
+    bad(('Invalid util query: ["util","atomdb","x"] (no arguments should'
+         ' come after: ["util","atomdb"])'),'atomdb','x')
     bad(('Invalid util query: ["util","browsefactories","virtual"] (no'
          ' arguments should come after: ["util","browsefactories"])'),
         'browsefactories','virtual')

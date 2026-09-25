@@ -201,10 +201,45 @@ Overview queries OK
 Chunked queries OK
 Loading with factory threads OK
 Factory thread queries OK
+==> atomdb entries for H2, He3, Al:
+[{'z': 1,
+  'a': 2,
+  'label': 'H2',
+  'element': 'H',
+  'natural': False,
+  'mass': 2.0141017781,
+  'cohsl': 6.671,
+  'cohxs': 5.5923165358,
+  'incohxs': 2.05,
+  'scatxs': 7.6423165358,
+  'absxs': 0.000519},
+ {'z': 2,
+  'a': 3,
+  'label': 'He3',
+  'element': 'He',
+  'natural': False,
+  'mass': 3.0160293227,
+  'cohsl': 5.74,
+  'cohxs': 4.1403175245,
+  'incohxs': 1.6,
+  'scatxs': 5.7403175245,
+  'absxs': 5333.0},
+ {'z': 13,
+  'a': 0,
+  'label': 'Al',
+  'element': 'Al',
+  'natural': True,
+  'mass': 26.981538408,
+  'cohsl': 3.449,
+  'cohxs': 1.4948453085,
+  'incohxs': 0.0082,
+  'scatxs': 1.5030453085,
+  'absxs': 0.231}]
 Caught expected NCBadInput('Unknown TextData factory in browsedb query: "nonexistent"')
 Caught expected NCBadInput('Invalid chunk specification in browsedb query (must have 0<=I<N): I=2, N=2')
 Caught expected NCBadInput('Invalid chunk specification in browsedb query (must have 0<=I<N): I=0, N=0')
 Caught expected NCBadInput('Invalid browsedb query (usage: ["util","browsedb",FACTNAME,(I,N,)("cheap",)("nthreads=N")])')
 Caught expected NCBadInput('Invalid nthreads in browsedb query: "x"')
 Caught expected NCBadInput('Invalid chunk index I in browsedb query: "a"')
+Caught expected NCBadInput('Invalid util query: ["util","atomdb","x"] (no arguments should come after: ["util","atomdb"])')
 Caught expected NCBadInput('Invalid util query: ["util","browsefactories","virtual"] (no arguments should come after: ["util","browsefactories"])')

@@ -99,7 +99,8 @@ Caught expected NCBadInput('Invalid JSON query key: "foo"')
  'kinutils',
  'browsedb',
  'browsefactories',
- 'factorythreads']
+ 'factorythreads',
+ 'atomdb']
 ===========================================
 ============= CLI >>util wl2ekin 1.8<< ====================
 0.025248212841

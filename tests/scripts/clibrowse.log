@@ -1,9 +1,9 @@
 ============= CLI >>browse --help<< =============
 usage: ncrystal_browse [-h] [-s WORD] [-E] [-f NAME] [-w EXPR] [--props]
                        [--columns KEYS] [--sort KEY] [--reverse] [--json]
-                       [--csv] [--no-truncate] [-c] [--info] [--count]
-                       [--path] [--names] [-x DATANAME] [--plugins]
-                       [--color WHEN]
+                       [--csv] [--html] [--atomdb] [--no-truncate] [-c]
+                       [--info] [--count] [--path] [--names] [-x DATANAME]
+                       [--plugins] [--color WHEN]
                        [PATTERN ...]
 
 Browse and search the data available to NCrystal (e.g. files in the
@@ -59,6 +59,14 @@ options:
                         output.
   --csv                 Output the table of --columns or --sort in CSV format
                         (with full numerical precision).
+  --html                Output the table of --columns or --sort (or of
+                        --atomdb) in HTML format.
+  --atomdb              Browse NCrystal's database of isotopes and natural
+                        elements instead. PATTERNs select elements (including
+                        their isotopes), specific isotopes, or glob patterns,
+                        and -w, --sort, --columns, --csv, --json, --html,
+                        --count, and --names can be used with the fields
+                        listed below.
   --no-truncate         Never shorten long descriptions or other text to fit
                         the line width.
   -c, --comments        Show full NCMAT header comments.
@@ -102,6 +110,8 @@ examples:
   ncrystal_browse --props Al_sg225.ncmat  # show the physics properties
   ncrystal_browse -w "'B' in elements" --sort absxs --reverse
   ncrystal_browse -f stdlib --columns formula,sg,density
+  ncrystal_browse --atomdb He B10     # data for elements and isotopes
+  ncrystal_browse --atomdb -w "absxs > 1000" --sort absxs
 
 physics properties available in --where expressions (and --props):
   elements       : set of element names, e.g. {"Al","O"}
@@ -140,6 +150,20 @@ physics properties available in --where expressions (and --props):
                    "freegas", and "sterile"
   customsections : set of names of @CUSTOM_ sections in NCMAT data
   nphases        : number of phases (1 for single-phase materials)
+
+fields available with --atomdb (in --where, --sort, and --columns):
+  z       : atomic number
+  a       : mass number (0 for natural elements)
+  label   : label, e.g. "Al" or "He3" (isotopes of H: "H2", "H3")
+  element : element name, e.g. "He" (also for isotopes, None if not a single
+            element)
+  natural : True for natural elements, False for isotopes
+  mass    : atomic mass [amu]
+  cohsl   : bound coherent scattering length [fm]
+  cohxs   : bound coherent scattering cross section [barn]
+  incohxs : bound incoherent scattering cross section [barn]
+  scatxs  : bound scattering cross section [barn]
+  absxs   : absorption cross section at 2200m/s [barn]
 
 --where expressions are Python expressions using the properties above,
 comparison and boolean operators, set/string/number literals, and the
@@ -312,6 +336,72 @@ mycrystal.ncmat  4.04958  66.4095      Al:400  Al:0.0103838  26.9815  1.49485
 mytestmat.ncmat        -        -           -             -  1.00798  1.75679
 notncmat.laz           -        -           -             -        -        -
 othermat.ncmat         -        -           -             -  15.9993   4.2317
+============= CLI >>browse -f virtual --sort sg --columns formula --html<< =============
+<table class="ncrystal-browse">
+<thead>
+<tr><th>name</th><th>formula</th><th>sg</th></tr>
+</thead>
+<tbody>
+<tr><td>mycrystal.ncmat</td><td>Al</td><td>225</td></tr>
+<tr><td>Al_sg225.ncmat</td><td>O</td><td></td></tr>
+<tr><td>mytestmat.ncmat</td><td>H</td><td></td></tr>
+<tr><td>notncmat.laz</td><td></td><td></td></tr>
+<tr><td>othermat.ncmat</td><td>O</td><td></td></tr>
+</tbody>
+</table>
+============= CLI >>browse --atomdb He b10<< =============
+LABEL  Z   A  ELEMENT  NATURAL     MASS    COHSL       COHXS  INCOHXS   SCATXS    ABSXS
+He     2   0       He     True   4.0026  3.26548        1.34        0     1.34  0.00747
+He3    2   3       He    False  3.01603     5.74     4.14032      1.6  5.74032     5333
+He4    2   4       He    False   4.0026     3.26      1.3355        0   1.3355        0
+B10    5  10        B    False  10.0129     -0.1  0.00125664        3  3.00126     3835
+============= CLI >>browse --atomdb -w 'absxs > 1000 and natural' --sort absxs --reverse --columns mass,absxs<< =============
+LABEL     MASS  ABSXS
+Gd     157.251  49700
+Sm      150.35   5922
+Eu     151.965   4530
+Cd      112.41   2520
+============= CLI >>browse --atomdb 'Li*' --names<< =============
+Li
+Li6
+Li7
+============= CLI >>browse --atomdb Li --csv --columns a,cohsl,absxs<< =============
+label,a,cohsl,absxs
+Li,0,-1.9,70.5
+Li6,6,2.0,940.0
+Li7,7,-2.22,0.0454
+============= CLI >>browse --atomdb Li6 --html --columns absxs<< =============
+<table class="ncrystal-browse">
+<thead>
+<tr><th>label</th><th>absxs</th></tr>
+</thead>
+<tbody>
+<tr><td>Li6</td><td>940</td></tr>
+</tbody>
+</table>
+============= CLI >>browse --atomdb H --json --columns a<< =============
+[
+ {
+  "label": "H",
+  "a": 0
+ },
+ {
+  "label": "H1",
+  "a": 1
+ },
+ {
+  "label": "H2",
+  "a": 2
+ },
+ {
+  "label": "H3",
+  "a": 3
+ }
+]
+============= CLI >>browse --atomdb xyz<< =============
+No matching entries found.
+============= CLI >>browse --atomdb -w 'absxs > 1e9' --count<< =============
+0
 ============= CLI >>browse -f virtual --info mycrystal notncmat<< =============
 ==> mycrystal.ncmat
     Description   : A small crystal.
@@ -555,6 +645,14 @@ Caught expected ArgumentError('Invalid sort key "foo" (must be "name" or one of:
 Caught expected ArgumentError('--reverse requires --sort.')
 ============= CLI >>browse --names --count<< =============
 Caught expected ArgumentError('Do not specify both --names and --count.')
+============= CLI >>browse --atomdb -s x<< =============
+Caught expected ArgumentError('--search can not be used together with --atomdb.')
+============= CLI >>browse --html<< =============
+Caught expected ArgumentError('--html requires --columns or --sort.')
+============= CLI >>browse --atomdb --columns foo<< =============
+Caught expected ArgumentError('Invalid column "foo" (must be one of: z, a, element, natural, mass, cohsl, cohxs, incohxs, scatxs, absxs)')
+============= CLI >>browse --atomdb -w 'sg > 1'<< =============
+Caught expected ArgumentError('Unknown name "sg" in --where expression "sg > 1" (see --help for available properties)')
 ============= CLI >>browse --info --json<< =============
 Caught expected ArgumentError('Do not specify both --info and --json.')
 ============= CLI >>browse --info --props<< =============

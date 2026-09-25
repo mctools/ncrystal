@@ -40,10 +40,14 @@ namespace NCRYSTAL_NAMESPACE {
     //  With "nthreads=N" (N can be "auto"), N threads are temporarily
     //  used for loading, unless the user configured factory threads.
     //["util","browsefactories"]: names of all factories, by type.
+    //["util","atomdb"]: list with a dict per entry in the database of
+    //  isotopes and natural elements (with mass, scattering lengths and
+    //  cross sections).
     //
     //The args are the query items following the "browsedb" key.
     void browseDB( std::ostream&, const std::vector<StrView>& args );
     void browseFactories( std::ostream& );
+    void atomDB( std::ostream& );
 
   }
 

@@ -70,9 +70,13 @@ def parseArgs( progname, arglist, return_parser = False ):
       %(prog)s --props Al_sg225.ncmat  # show the physics properties
       %(prog)s -w "'B' in elements" --sort absxs --reverse
       %(prog)s -f stdlib --columns formula,sg,density
+      %(prog)s --atomdb He B10     # data for elements and isotopes
+      %(prog)s --atomdb -w "absxs > 1000" --sort absxs
     """).strip()
     epilog += ( '\n\nphysics properties available in --where expressions'
                 ' (and --props):\n' + _propdocs_str() + '\n\n' )
+    epilog += ( 'fields available with --atomdb (in --where, --sort, and'
+                ' --columns):\n' + _atomdbdocs_str() + '\n\n' )
     epilog += textwrap.fill(
         '--where expressions are Python expressions using the properties'
         ' above, comparison and boolean operators, set/string/number'
@@ -135,6 +139,17 @@ def parseArgs( progname, arglist, return_parser = False ):
                         help=('Output the table of --columns or --sort in'
                               ' CSV format (with full numerical'
                               ' precision).'))
+    parser.add_argument('--html', action='store_true',
+                        help=('Output the table of --columns or --sort (or'
+                              ' of --atomdb) in HTML format.'))
+    parser.add_argument('--atomdb', action='store_true',
+                        help=('Browse NCrystal\'s database of isotopes and'
+                              ' natural elements instead. PATTERNs select'
+                              ' elements (including their isotopes),'
+                              ' specific isotopes, or glob patterns, and'
+                              ' -w, --sort, --columns, --csv, --json,'
+                              ' --html, --count, and --names can be used'
+                              ' with the fields listed below.'))
     parser.add_argument('--no-truncate', action='store_true',
                         help=('Never shorten long descriptions or other'
                               ' text to fit the line width.'))
@@ -189,10 +204,12 @@ def parseArgs( progname, arglist, return_parser = False ):
                     or args.comments or args.names or args.where
                     or args.props or args.columns or args.sort
                     or args.json or args.count or args.path
-                    or args.info or args.csv ):
+                    or args.info or args.csv or args.html
+                    or args.atomdb ):
         parser.error('--extract and --plugins can not be combined'
                      ' with other options.')
-    outmodes = [ o for o,v in [ ('--csv',args.csv),
+    outmodes = [ o for o,v in [ ('--html',args.html),
+                                ('--csv',args.csv),
                                 ('--info',args.info),
                                 ('--names',args.names),
                                 ('--count',args.count),
@@ -201,6 +218,9 @@ def parseArgs( progname, arglist, return_parser = False ):
     if len(outmodes) > 1:
         parser.error(f'Do not specify both {outmodes[0]} and'
                      f' {outmodes[1]}.')
+    if args.atomdb:
+        _validate_atomdb_args( parser, args )
+        return args
     if args.names and ( args.comments or args.props ):
         parser.error('Do not specify --names together with --comments'
                      ' or --props.')
@@ -220,6 +240,8 @@ def parseArgs( progname, arglist, return_parser = False ):
                      ' --comments, or --props.')
     if args.csv and not table:
         parser.error('--csv requires --columns or --sort.')
+    if args.html and not table:
+        parser.error('--html requires --columns or --sort.')
     if args.reverse and not args.sort:
         parser.error('--reverse requires --sort.')
     from .browse import physics_props_doc
@@ -253,6 +275,57 @@ def parseArgs( progname, arglist, return_parser = False ):
     args.search_re = nb._compile_words( args.search, args.regex )
     return args
 
+def _validate_atomdb_args( parser, args ):
+    bad = [ o for o,v in [ ('--search',args.search), ('--regex',args.regex),
+                           ('--factory',args.factory), ('--props',args.props),
+                           ('--comments',args.comments),
+                           ('--info',args.info), ('--path',args.path),
+                           ('--no-truncate',args.no_truncate) ] if v ]
+    if bad:
+        parser.error(f'{bad[0]} can not be used together with --atomdb.')
+    if args.reverse and not args.sort:
+        parser.error('--reverse requires --sort.')
+    from . import browse as nb
+    from .exceptions import NCBadInput
+    names = [ n for n,d in nb.atomdb_fields_doc() ]
+    args.columns = [ c.strip() for c in ( args.columns or '' ).split(',')
+                     if c.strip() ]
+    colnames = [ n for n in names if n != 'label' ]
+    for c in args.columns:
+        if c not in colnames:
+            parser.error(f'Invalid column "{c}" (must be one of:'
+                         f' {", ".join(colnames)})')
+    if args.sort and args.sort not in names:
+        parser.error(f'Invalid sort key "{args.sort}" (must be one of:'
+                     f' {", ".join(names)})')
+    if args.sort and args.sort != 'label' and args.sort not in args.columns:
+        if args.columns:
+            args.columns.append( args.sort )
+    try:
+        for w in args.where:
+            nb._WhereExpr( w, names )
+    except NCBadInput as e:
+        parser.error( _cli_msg( str(e) ) )
+
+def _atomdb_main( args ):
+    from . import browse as nb
+    a = nb.AtomDBBrowser( *args.pattern, where = args.where )
+    if args.sort:
+        a = a.sorted( args.sort, reverse = args.reverse )
+    if args.count:
+        print( len(a) )
+        return
+    if args.names:
+        for n in a.names():
+            print( n )
+        return
+    fmt = ( 'csv' if args.csv else ( 'json' if args.json else
+                                     ( 'html' if args.html else 'text' ) ) )
+    if not a and fmt == 'text':
+        print('No matching entries found.')
+        return
+    print( a.table( args.columns or None, fmt = fmt ), end = '' )
+
 def _where_fct_names():
     from .browse import _where_funcs
     return list( _where_funcs )
@@ -263,6 +336,20 @@ def _cli_msg( msg ):
     if msg.startswith('Unknown name '):
         msg += ' (see --help for available properties)'
     return msg
+
+def _atomdbdocs_str():
+    from .browse import atomdb_fields_doc
+    return _docs_str( atomdb_fields_doc() )
+
+def _docs_str( pd ):
+    import textwrap
+    w = max( len(n) for n,d in pd )
+    out = []
+    for n,d in pd:
+        ll = textwrap.wrap( d, width = 76 - w - 5 )
+        out.append( f'  {n.ljust(w)} : {ll[0]}' )
+        out += [ ' '*(w+5)+e for e in ll[1:] ]
+    return '\n'.join(out)
 
 def _propdocs_str():
     import textwrap
@@ -437,6 +524,9 @@ def main( progname, arglist ):
         from .plugins import browsePlugins
         browsePlugins( dump = True )
         return
+    if args.atomdb:
+        _atomdb_main( args )
+        return
     sel = _browser( args )
     truncate = not args.no_truncate
     if args.count:
@@ -461,7 +551,8 @@ def main( progname, arglist ):
         print( sel.info( linewidth = _linewidth() ), end = '' )
         return
     if args.table:
-        fmt = 'csv' if args.csv else ( 'json' if args.json else 'text' )
+        fmt = ( 'csv' if args.csv else ( 'json' if args.json else
+                                         ( 'html' if args.html else 'text' ) ) )
         print( sel.table( args.columns, fmt = fmt, truncate = truncate,
                           linewidth = _linewidth() ), end = '' )
         return

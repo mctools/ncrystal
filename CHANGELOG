@@ -100,8 +100,10 @@ v4.4.7 (work in progress)
      * New JSON queries ["util","browsedb",...] and ["util","browsefactories"]
        providing listings of available data with NCMAT header comments and
        physics properties (loaded in parallel if factory threads are
-       enabled), and ["util","factorythreads"] providing the factory
-       thread-pool state.
+       enabled), ["util","factorythreads"] providing the factory thread-pool
+       state, and ["util","atomdb"] providing the database of isotopes and
+       natural elements (also browsable with "ncrystal browse --atomdb" and
+       NCrystal.browse.AtomDBBrowser).
      * C API: error state (ncrystal_error, ncrystal_lasterror, ...) is now
        kept per thread, so errors are no longer reported in the wrong thread
        when the C API (or the Python API) is used from several threads.

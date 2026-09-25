@@ -167,6 +167,17 @@ def test_physics():
     run('-w','crystalsystem=="cubic" and braggthreshold > 4','-f','virtual')
     run('-w','max(debyetemps.values()) > 300','-f','virtual')#None is false
     run('-f','virtual','--columns','a,volume,debyetemps,msds,mass,cohxs')
+    #HTML tables and atomdb:
+    run('-f','virtual','--sort','sg','--columns','formula','--html')
+    run('--atomdb','He','b10')
+    run('--atomdb','-w','absxs > 1000 and natural','--sort','absxs',
+        '--reverse','--columns','mass,absxs')
+    run('--atomdb','Li*','--names')
+    run('--atomdb','Li','--csv','--columns','a,cohsl,absxs')#no mass: FP
+    run('--atomdb','Li6','--html','--columns','absxs')
+    run('--atomdb','H','--json','--columns','a')
+    run('--atomdb','xyz')
+    run('--atomdb','-w','absxs > 1e9','--count')
     #Info view:
     run('-f','virtual','--info','mycrystal','notncmat')
     run('--info','stdlib::Al_sg225',sanitize_paths=True)#hidden entry
@@ -236,6 +247,14 @@ def test_physics():
              + propnames_sortable + ')', '--sort','foo')
     bad_args('--reverse requires --sort.','--reverse')
     bad_args('Do not specify both --names and --count.','--names','--count')
+    bad_args('--search can not be used together with --atomdb.',
+             '--atomdb','-s','x')
+    bad_args('--html requires --columns or --sort.','--html')
+    bad_args(('Invalid column "foo" (must be one of: z, a, element, natural,'
+              ' mass, cohsl, cohxs, incohxs, scatxs, absxs)'),
+             '--atomdb','--columns','foo')
+    bad_args(('Unknown name "sg" in --where expression "sg > 1" (see --help'
+              ' for available properties)'),'--atomdb','-w','sg > 1')
     bad_args('Do not specify both --info and --json.','--info','--json')
     bad_args(('Do not specify --info together with --comments, --props,'
               ' --columns, or --sort.'),'--info','--props')
