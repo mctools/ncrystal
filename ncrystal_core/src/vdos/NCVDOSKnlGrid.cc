@@ -253,9 +253,14 @@ NC::VDOS::determineAlphaBetaGridFromGn( const GnExpansion& gnexpn,
     nc_assert_always( bvals_view.size() == gnprojvals_view.size() );
   }
 
-  //Reduce number of points:
+  //Reduce number of points. gnprojvals_view ultimately derives from
+  //FastConvolve's FFT-based convolutions, so use the noise-robust variant:
+  //second differences of nearby values are exactly the kind of calculation
+  //that turns even tiny (last-few-ULP) cross-platform noise in y into a
+  //genuinely different discrete point being selected. See
+  //docs/claude_session_vdos_fma_reprod.md.
   std::tie(bvals, gnprojvals)
-    = reducePtsByEquidistribution( bvals_view, gnprojvals_view, nbeta );
+    = reducePtsByEquidistributionRobust( bvals_view, gnprojvals_view, nbeta );
   nc_assert_always( bvals.size() >= 2 );
   nc_assert_always( bvals.size() <= nbeta );
   nc_assert_always( bvals.size() == gnprojvals.size() );
@@ -568,8 +573,11 @@ NC::VDOS::setupE0ABGrid( const GnExpansion& gnexpn, unsigned npts )
   trimTailByIntegral( grid, contrib, 1e-9 );
 
   nc_assert_always( grid.size() == contrib.size() );
+  //contrib is likewise a sum of several FastConvolve-derived spectra, so use
+  //the noise-robust variant here too (see comment at the other call site
+  //above, in determineAlphaBetaGridFromGn):
   if ( npts < grid.size() )
-    std::tie(grid, contrib) = reducePtsByEquidistribution( grid, contrib, npts );
+    std::tie(grid, contrib) = reducePtsByEquidistributionRobust( grid, contrib, npts );
   nc_assert_always( grid.size() <= npts );
   nc_assert_always( grid.size() == contrib.size() );
   nc_assert_always( grid.front() >= 0.0 );
