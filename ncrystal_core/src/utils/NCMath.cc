@@ -927,15 +927,23 @@ NC::reducePtsByEquidistribution(Span<const double> x,
   }
 
   //Cumulative integral at each input point:
+  //d's accumulation below uses std::fma explicitly rather than plain "+=":
+  //that plain form is exactly the "a += b*c" shape a compiler may silently
+  //fuse into a hardware FMA depending on target/flags (contracted by default
+  //on AArch64, not on baseline x86-64), which then perturbs cum[] at a level
+  //that can flip a near-tie in the point selection below into a genuinely
+  //different (not just last-bit) grid point -- see
+  //docs/devel_fma_attribute.md. Using std::fma explicitly makes the result
+  //identical (the true, singly-rounded fused value) on every platform.
   VectD cum(n);
   cum.front() = 0.0;
   StableSumKahan csum;
   for (std::size_t i = 0; i + 1 < n; ++i) {
     double d = w_uniform * invL;
     if (w_lin > 0.0)
-      d += w_lin * vectAt(dlin, i);
+      d = std::fma(w_lin, vectAt(dlin, i), d);
     if (w_log > 0.0)
-      d += w_log * vectAt(dlog, i);
+      d = std::fma(w_log, vectAt(dlog, i), d);
     csum.add(d * vectAt(width, i));
     vectAt(cum, i + 1) = csum.sum();
   }
@@ -1109,15 +1117,16 @@ NC::reducePtsByEquidistributionRobust(Span<const double> x,
     w_log = 0.0;
   }
 
+  //See reducePtsByEquidistribution for why std::fma is used explicitly here:
   VectD cum(n);
   cum.front() = 0.0;
   StableSumKahan csum;
   for (std::size_t i = 0; i + 1 < n; ++i) {
     double d = w_uniform * invL;
     if (w_lin > 0.0)
-      d += w_lin * vectAt(dlin, i);
+      d = std::fma(w_lin, vectAt(dlin, i), d);
     if (w_log > 0.0)
-      d += w_log * vectAt(dlog, i);
+      d = std::fma(w_log, vectAt(dlog, i), d);
     csum.add(d * vectAt(width, i));
     vectAt(cum, i + 1) = csum.sum();
   }
