@@ -852,7 +852,7 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
             #NB: We could instead consider converting to bytes rather than str
             #in case msgtype==2 (raw output):
             pyhandler( _cstr2str(msg), int(msgtype) )
-        if not handler:
+        if not pyhandler:
             keepalive=(None,None,ctypes.cast(None, _MSGHANDLERFCTTYPE))
         else:
             keepalive=(pyhandler,handler,_MSGHANDLERFCTTYPE(handler))#keep refs!

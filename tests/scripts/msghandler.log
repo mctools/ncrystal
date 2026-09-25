@@ -1,0 +1,6 @@
+--- Custom handler:
+Custom handler got: [(1, 'NCMATLoader: Loading NCMAT data which has Debye temperatures for elements with VDOS curves available (this might give sub-optimal MSD values).')]
+--- C++ default handler (set via None):
+NCrystal WARNING: NCMATLoader: Loading NCMAT data which has Debye temperatures for elements with VDOS curves available (this might give sub-optimal MSD values).
+--- Python default handler:
+NCrystal WARNING: NCMATLoader: Loading NCMAT data which has Debye temperatures for elements with VDOS curves available (this might give sub-optimal MSD values).
