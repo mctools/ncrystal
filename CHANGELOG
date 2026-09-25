@@ -79,6 +79,9 @@ v4.4.7 (work in progress)
        These changes shift some VDOS/kernel-derived results, typically
        in the last few significant digits (sabxs reference shifts up to
        ~1%, concentrated in low-vdoslux Li2O test cases), without any
+     * Python: after a failed attempt to load the NCrystal shared library,
+       later attempts fail with the same error again, rather than returning a
+       broken internal state.
      * Python: generateCfgStrDoc('print') and browseFiles(dump=True) now
        print via the NCrystal print function, so their output can be
        redirected like other NCrystal output.

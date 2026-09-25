@@ -31,8 +31,12 @@ def _get_raw_cfcts():
     if _rawfcts[0] is None:
         from ._locatelib import get_libpath_and_namespace
         _rawfcts[0] = False
-        thelib, namespace = get_libpath_and_namespace()
-        _rawfcts[0] = _load(thelib, namespace)
+        try:
+            thelib, namespace = get_libpath_and_namespace()
+            _rawfcts[0] = _load(thelib, namespace)
+        except BaseException:
+            _rawfcts[0] = None#fail again (not return False) on next call
+            raise
         assert _rawfcts[0] is not None
         _namespace[0] = namespace or ''
     return _rawfcts[0]

@@ -16,3 +16,6 @@
       a.b/c.d/libNCrystal-foo.dylib -> namespace 'foo'
            a.b/c.d/NCrystal-foo.dll -> namespace 'foo'
                a.b/c.d/NCrystal.dll -> namespace ''
+Loading bogus library twice:
+call 0: OSError
+call 1: OSError
