@@ -1,4 +1,41 @@
 v4.4.7 (work in progress)
+     * Rewrite NC::stable_exp/stable_expm1 (NCMath.cc) to no longer call
+       std::exp/std::log/std::expm1/std::log1p at all: the previous
+       implementation refined a libm call with one Newton-Raphson step, which
+       is very accurate but still depends on the platform's libm for its
+       starting point, so is not actually guaranteed reproducible across
+       platforms. Replaced with a portable, from-scratch implementation
+       (standard Cody-Waite range reduction x=n*ln(2)+r via std::fma with a
+       split ln(2) constant, a 14th-order std::fma Horner-scheme Taylor
+       expansion of expm1(r) for the reduced range |r|<=ln(2)/2, then
+       std::ldexp -- exact, pure exponent adjustment -- to reconstruct);
+       stable_exp(x) is now 1.0+stable_expm1(x) for x>=0 (exact: an addition
+       of same-signed quantities, no cancellation) and 1.0/stable_exp(-x) for
+       x<0 (the "1+expm1(x)" identity alone loses all precision once exp(x)
+       drops below ulp(1), regardless of how accurately expm1 itself is
+       computed -- confirmed empirically, e.g. 1+expm1(-199.3) rounds to 0.0
+       vs the true ~1.4e-87 -- sidestepped with the same reciprocal trick
+       this file's existing exp_approx/exp_negarg_approx already use).
+       Verified bit-identical between a plain and an -mfma-forced build
+       across a dense grid spanning [-700,700] (as expected: every
+       floating-point combination step is either an explicit std::fma or an
+       exact operation), and against tests/src/app_stablemathfct's
+       mpmath-derived 60-digit references (all within 1-2 ULP, comfortably
+       inside its existing 8 ULP bar; an earlier iterative-doubling-based
+       range reduction was tried first and rejected here, since each
+       doubling step roughly doubles the running relative error, compounding
+       ~15 such steps into several ULP and failing that bar for |x|>~10).
+       Motivated by tracing exactly which libm calls are reachable when
+       constructing and evaluating a VDOSEval (relevant to the still-open
+       sabxs residual noted above): turned out to be only these two
+       functions, via stable_tanh/stable_sinh/the safe_x{cothx,3cothx,
+       divsinhx}/safe_rec_expm1 helpers in NCVDOSEval.cc, all otherwise pure
+       arithmetic already. Does not by itself close that residual -- an
+       -mfma-forced rebuild shows it unmasks a different, still-unaudited
+       divergence elsewhere in the pipeline (a different, larger sabxs case
+       now fails first) -- but is real, independently-justified hardening of
+       a hitherto-not-fully-reproducible pair of functions used throughout
+       the VDOS/SAB code, kept regardless.
      * Harden reducePtsByEquidistribution and reducePtsByEquidistributionRobust
        (NCMath.cc) against a previously-unaudited FMA-contraction hazard: both
        accumulated their combined density as "d += w_lin*dlin[i]; d +=
