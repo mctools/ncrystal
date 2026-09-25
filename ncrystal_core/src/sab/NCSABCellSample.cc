@@ -183,8 +183,8 @@ NC::PairDD NCS::FullCellSampler::sampleAlphaBeta( RNG& rng )
 
   const double t = std::sqrt(rng.generate());
   const double beta = ( offset
-                        ? ( c.b1*(1.0-t) + t*c.b2 )
-                        : ( c.b1*t + (1.0-t)*c.b2 ) );
+                        ? nclerp( c.b1, c.b2, t )
+                        : nclerp( c.b2, c.b1, t ) );
   return { alpha, ncclamp(beta, c.b1, c.b2) };
 }
 

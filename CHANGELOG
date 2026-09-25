@@ -1,4 +1,21 @@
 v4.4.7 (work in progress)
+     * Fix the same unaudited "rng.generate()*2.0-1.0" shape (isotropic
+       mu sampling near kinematic end-points / small-a rejection
+       sampling) found repeated verbatim in five places:
+       NCElIncXS.cc, NCSABExtended.cc, NCSABSampler.cc,
+       NCSABProcessor.cc and NCFreeGasUtils.hh -- fixed each with
+       explicit std::fma. Unlike the other fixes this sweep these feed
+       a randomly sampled scattering cosine directly, so a platform
+       difference here would show up as a difference in the exact
+       sampled outcome for a given RNG stream, not just a rounding
+       artefact in an intermediate value. Full sb -t --long green,
+       zero reference-log changes.
+     * Fix an unaudited "a*(1-t)+b*t" lerp shape in
+       NCSABCellSample.cc's FullCellSampler::sampleAlphaBeta (linear
+       interpolation of the sampled beta value across a cell) --
+       switched to the project's existing audited nclerp() helper
+       instead of hand-rolling the fma-fusable form again. Full sb -t
+       --long green, zero reference-log changes.
      * Fix another unaudited a-=b*c shape, this time in
        NCSABIntegrator.cc's analyseEnergyPoint: the Simpson-like
        beta-crossing correction "prev_betaxs.first -= db_real*(1.0/3.0)"
