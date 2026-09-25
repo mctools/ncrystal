@@ -148,3 +148,4 @@ Decoding cfg 'phases<0.4*C_sg227_Diamond.ncmat&0.6*C_sg227_Diamond.ncmat>;temp=3
     'density': {'type': 'scalefactor', 'value': 1.0}}
 Caught expected NCFileNotFound('Could not find data: "foobarnonexistent.ncmat"')
 Caught expected NCBadInput('Syntax error - invalid value "warm" provided for parameter "temp"')
+generateCfgStrDoc("print") output redirected OK

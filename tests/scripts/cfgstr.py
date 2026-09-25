@@ -59,5 +59,19 @@ def main():
                       ' "warm" provided for parameter "temp"'):
         nc_cfgstr.decodeCfg('stdlib::Al_sg225.ncmat;temp=warm')
 
+def test_print_redirection():
+    #generateCfgStrDoc('print') must use the (redirectable) NCrystal print:
+    import contextlib
+    import io
+
+    from NCrystalDev._common import capture_print_ctxmgr
+    leaked = io.StringIO()
+    with contextlib.redirect_stdout(leaked), capture_print_ctxmgr() as cap:
+        nc_cfgstr.generateCfgStrDoc('print')
+    assert not leaked.getvalue(), 'output bypassed NCrystal print'
+    assert ''.join(cap.data) == nc_cfgstr.generateCfgStrDoc('txt_full') + '\n'
+    print('generateCfgStrDoc("print") output redirected OK')
+
 if __name__ == '__main__':
     main()
+    test_print_redirection()

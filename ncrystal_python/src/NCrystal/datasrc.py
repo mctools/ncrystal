@@ -190,6 +190,7 @@ def browseFiles(dump=False,factory=None):
         res.append( FileListEntry(name=n,source=s,factName=f,priority=p) )
     res.sort(key=sortkey)
     if dump:
+        from ._common import print
         seen_names=set()
         def groupfct( e ):
             return (e.factName,e.source,e.priority)
@@ -204,7 +205,7 @@ def browseFiles(dump=False,factory=None):
             n=len(pending) - 1
             pending[0] = pending[0]%('%s files'%n if n!=1 else '%s file'%n )
             for line in pending:
-                print (line)
+                print(line)
             pending.clear()
         for e in res:
             group = groupfct(e)

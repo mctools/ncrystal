@@ -64,6 +64,7 @@ def generateCfgStrDoc( mode = "print" ):
     from ._chooks import _get_raw_cfcts
     _=_get_raw_cfcts()['nc_gencfgdoc'](modeint)
     if mode == 'print':
+        from ._common import print
         print(_)
     elif mode == 'python':
         import json

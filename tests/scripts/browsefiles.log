@@ -312,3 +312,4 @@ stdlib::Zr_sg194.ncmat
 stdlib::void.ncmat
 
 All good: Consistent sorting order observed!
+browseFiles(dump=True) output redirected OK
