@@ -27,6 +27,7 @@ import NCrystalDev as NC
 import NCrystalDev.cli as nc_cli
 from NCrystalDev._common import capture_print_ctxmgr
 from NCTestUtils.common import ensure_error
+import os
 import re
 import shlex
 
@@ -65,11 +66,55 @@ def run( *args, show = True ):
     #Location of stdlib depends on installation:
     out = re.sub(r'from "stdlib" \(.*, priority=',
                  'from "stdlib" (<stdlib-location>, priority=', out)
+    out = out.replace('\x1b','<ESC>')#make color codes visible in log
     if show:
         print(out,end='')
     return out
 
+_color_envvars = ('NO_COLOR','FORCE_COLOR','CLICOLOR_FORCE',
+                  'GREP_COLORS','TERM')
+
+def setenv( **kw ):
+    for k,v in kw.items():
+        if v is None:
+            os.environ.pop(k,None)
+        else:
+            os.environ[k] = v
+
+def test_colors():
+    #NB: Output is captured, so "auto" mode means no colors unless forced.
+    run('-s','togo','-s','my','-f','virtual')
+    run('-s','togo','-s','my','-f','virtual','--color=always')
+    run('-s','togo','-f','virtual','-c','--colour=yes')
+    run('-s','togo','-f','virtual','--color=never')
+    run('-s','togo','--color','mytestmat')#plain --color means auto
+    setenv( FORCE_COLOR = '1' )
+    run('-s','togo','-f','virtual')
+    setenv( NO_COLOR = '1' )
+    run('-s','togo','-f','virtual')
+    run('-s','togo','-f','virtual','--color=always')
+    setenv( NO_COLOR = None, FORCE_COLOR = None,
+            GREP_COLORS = 'sl=1:ms=01;32:ln=35' )
+    run('-s','togo','-f','virtual','--color=always')
+    setenv( GREP_COLORS = None )
+    import argparse
+    with ensure_error(argparse.ArgumentError,
+                      "argument --color/--colour: invalid choice: 'blue'"
+                      " (choose from 'always', 'auto', 'force', 'if-tty',"
+                      " 'never', 'no', 'none', 'tty', 'yes')"):
+        run('--color=blue')
+
 def main():
+    #Colors in output must not depend on the environment of the test:
+    orig_env = dict( (k,os.environ.get(k)) for k in _color_envvars )
+    setenv( **dict( (k,None) for k in _color_envvars ) )
+    try:
+        main_impl()
+        test_colors()
+    finally:
+        setenv( **orig_env )
+
+def main_impl():
     NC.removeAllDataSources()
     NC.enableStandardDataLibrary()
     NC.registerInMemoryFileData('mytestmat.ncmat',_ncmat_withcomments)

@@ -94,8 +94,24 @@ def parseArgs( progname, arglist, return_parser = False ):
                               ' (or on-demand created) data.'))
     parser.add_argument('--plugins', action='store_true',
                         help='List the currently loaded plugins.')
+    parser.add_argument('--color','--colour', type=str,
+                        default='auto', metavar='WHEN',
+                        choices=sorted(_color_choices),
+                        help=('Whether to highlight --search hits with colors'
+                              ' (like grep): "always", "never", or "auto"'
+                              ' (the default, only when printing to a'
+                              ' terminal). In "auto" mode the NO_COLOR,'
+                              ' FORCE_COLOR, CLICOLOR_FORCE, and TERM(=dumb)'
+                              ' env vars are respected, and the color can be'
+                              ' changed via GREP_COLORS (e.g. "mt=01;32").'
+                              ' Like for grep, WHEN must be given as'
+                              ' --color=WHEN, and a plain --color means'
+                              ' --color=auto.'))
     if return_parser:
         return parser
+    #Like grep, a plain --color (without "=WHEN") means --color=auto:
+    arglist = [ ( '--color=auto' if a in ('--color','--colour') else a )
+                for a in arglist ]
     args = parser.parse_args( arglist )
     nmodes = sum( bool(e) for e in ( args.extract, args.plugins ) )
     if nmodes > 1:
@@ -107,6 +123,64 @@ def parseArgs( progname, arglist, return_parser = False ):
     if args.names and args.comments:
         parser.error('Do not specify both --names and --comments.')
     return args
+
+#Same options and synonyms as GNU grep:
+_color_choices = { 'always' : True, 'yes' : True, 'force' : True,
+                   'never' : False, 'no' : False, 'none' : False,
+                   'auto' : None, 'tty' : None, 'if-tty' : None }
+
+def _use_color( when ):
+    #Decide whether to use ANSI color codes. NB: These env vars are general
+    #conventions (not NCrystal specific), so are never namespaced.
+    v = _color_choices[when]
+    if v is not None:
+        return v
+    import os
+    import sys
+    env = os.environ
+    if env.get('NO_COLOR'):
+        return False
+    if any( env.get(k,'0') not in ('','0')
+            for k in ('FORCE_COLOR','CLICOLOR_FORCE') ):
+        return True
+    if env.get('TERM') == 'dumb':
+        return False
+    from ._common import _builtin_print, get_ncrystal_print_fct
+    if get_ncrystal_print_fct() is not _builtin_print():
+        return False#output redirected (e.g. captured via cli.run)
+    if not ( hasattr(sys.stdout,'isatty') and sys.stdout.isatty() ):
+        return False
+    if sys.platform == 'win32' and not ( 'WT_SESSION' in env
+                                         or 'TERM' in env ):
+        return False#classic Windows consoles might not handle ANSI codes
+    return True
+
+def _match_sgr():
+    #SGR code for matches, default and GREP_COLORS handling like GNU grep.
+    import os
+    sgr = '01;31'
+    for part in os.environ.get('GREP_COLORS','').split(':'):
+        k,_,v = part.partition('=')
+        if k in ('mt','ms') and v and all( c.isdigit() or c==';' for c in v ):
+            sgr = v
+    return sgr
+
+class _Highlighter:
+    #Wraps (case-insensitive) occurrences of the words in color codes.
+    def __init__( self, words, enabled ):
+        self.__re = None
+        if enabled and words:
+            import re
+            ws = sorted( set( words ), key = lambda w : (-len(w),w) )
+            self.__re = re.compile( '|'.join( re.escape(w) for w in ws ),
+                                    re.IGNORECASE )
+            self.__start = f'\x1b[{_match_sgr()}m\x1b[K'
+            self.__end = '\x1b[m\x1b[K'
+    def __call__( self, s ):
+        if not self.__re or not s:
+            return s
+        return self.__re.sub( lambda m : self.__start + m.group(0)
+                              + self.__end, s )
 
 def create_argparser_for_sphinx( progname ):
     return parseArgs( progname, [], return_parser = True )
@@ -214,6 +288,7 @@ def _strip_empty( lines ):
 
 def _print_listing( items, args ):
     linewidth = _linewidth()
+    hl = _Highlighter( args.search, _use_color( args.color ) )
     groups = []
     for i in items:
         e = i.entry
@@ -233,20 +308,22 @@ def _print_listing( items, args ):
             if i.hidden:
                 extra = ' (hidden)'
             descr = _short_descr( i.comments )
+            #NB: Truncate before highlighting, so color codes do not count:
+            padding = ' '*( max(0,namew-len(name)) )
             if descr and not args.comments:
                 room = linewidth - 4 - max(namew,len(name)) - 2 - len(extra)
-                line = ( f'    {name.ljust(namew)}  '
-                         f'{_truncate(descr,room)}{extra}' )
+                line = ( f'    {hl(name)}{padding}  '
+                         f'{hl(_truncate(descr,room))}{extra}' )
             else:
-                line = f'    {name}{extra}'
+                line = f'    {hl(name)}{extra}'
             print(line.rstrip())
             for ll in getattr(i,'matching_lines',[]):
                 if not args.comments:
-                    print(_truncate(f'        | {ll}',linewidth))
+                    print('        | '+hl(_truncate(ll,linewidth-10)))
             if args.comments:
                 comments = _strip_empty( i.comments )
                 for ll in comments:
-                    print(f'        # {ll}'.rstrip())
+                    print(f'        # {hl(ll)}'.rstrip())
                 if comments:
                     print()
     if not items:

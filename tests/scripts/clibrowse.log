@@ -1,6 +1,6 @@
 ============= CLI >>browse --help<< =============
 usage: ncrystal_browse [-h] [-s WORD] [-f NAME] [-c] [--names] [-x DATANAME]
-                       [--plugins]
+                       [--plugins] [--color WHEN]
                        [PATTERN ...]
 
 Browse and search the data files available to NCrystal (e.g. files in the
@@ -39,6 +39,15 @@ options:
                         NCrystal cfg-strings. This can therefore also be used
                         to inspect in-memory (or on-demand created) data.
   --plugins             List the currently loaded plugins.
+  --color, --colour WHEN
+                        Whether to highlight --search hits with colors (like
+                        grep): "always", "never", or "auto" (the default, only
+                        when printing to a terminal). In "auto" mode the
+                        NO_COLOR, FORCE_COLOR, CLICOLOR_FORCE, and TERM(=dumb)
+                        env vars are respected, and the color can be changed
+                        via GREP_COLORS (e.g. "mt=01;32"). Like for grep, WHEN
+                        must be given as --color=WHEN, and a plain --color
+                        means --color=auto.
 
 examples:
   ncrystal_browse                     # list all files
@@ -158,3 +167,48 @@ Caught expected NCFileNotFound('Could not find data: "nonexistent.ncmat"')
 Caught expected ArgumentError('--extract and --plugins can not be combined with other options.')
 ============= CLI >>browse --names -c<< =============
 Caught expected ArgumentError('Do not specify both --names and --comments.')
+============= CLI >>browse -s togo -s my -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        | My test material (for testing only).
+        | Some more comments mentioning Togo and VDOS.
+============= CLI >>browse -s togo -s my -f virtual --color=always<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    <ESC>[01;31m<ESC>[Kmy<ESC>[m<ESC>[Ktestmat.ncmat  <ESC>[01;31m<ESC>[KMy<ESC>[m<ESC>[K test material (for testing only). Second line of desc...
+        | <ESC>[01;31m<ESC>[KMy<ESC>[m<ESC>[K test material (for testing only).
+        | Some more comments mentioning <ESC>[01;31m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
+============= CLI >>browse -s togo -f virtual -c --colour=yes<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat
+        # My test material (for testing only).
+        # Second line of description which is long enough that it will have to be
+        # truncated in the listing.
+        #
+        # Some more comments mentioning <ESC>[01;31m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
+
+============= CLI >>browse -s togo -f virtual --color=never<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        | Some more comments mentioning Togo and VDOS.
+============= CLI >>browse -s togo --color mytestmat<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        | Some more comments mentioning Togo and VDOS.
+============= CLI >>browse -s togo -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        | Some more comments mentioning <ESC>[01;31m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
+============= CLI >>browse -s togo -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        | Some more comments mentioning Togo and VDOS.
+============= CLI >>browse -s togo -f virtual --color=always<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        | Some more comments mentioning <ESC>[01;31m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
+============= CLI >>browse -s togo -f virtual --color=always<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        | Some more comments mentioning <ESC>[01;32m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
+============= CLI >>browse --color=blue<< =============
+Caught expected ArgumentError("argument --color/--colour: invalid choice: 'blue' (choose from 'always', 'auto', 'force', 'if-tty', 'never', 'no', 'none', 'tty', 'yes')")
