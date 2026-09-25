@@ -378,6 +378,13 @@ namespace NCRYSTAL_NAMESPACE {
         // (fixme: sablux should modify 1e10 in range [1e6,1e17])
         const double threshold = ncclamp( 1.0/(1e10*result.nTouchedCells),
                                           1e-30,1e-6 );
+        //Hoisted out of the per-cell loop below: taperBand is a compile-time
+        //constant, so std::log(taperBand) (and the 2x multiple of it used
+        //to normalise the taper's "t") is loop-invariant -- no need to
+        //recompute it for every cell that lands in the tapering band:
+        constexpr double taperBand = 10.0;
+        const double logTaperBand = std::log(taperBand);
+        const double twoLogTaperBand = 2.0*logTaperBand;
 
         for ( auto it = survCells.begin(); it!=itLastTouchedE; ++it) {
           nc_assert( E_div_kT >= it->e_touch );
@@ -415,7 +422,6 @@ namespace NCRYSTAL_NAMESPACE {
             //few cells within the band pay for the real per-cell
             //integration, tapered smoothly to 0 as they approach the lower
             //edge of the band. See docs/claude_session_vdos_fma_reprod.md.
-            constexpr double taperBand = 10.0;
             if ( fullCellIntegral < cutoffref/taperBand ) {
               contrib = 0.0;//safely below threshold, don't waste time
             } else {
@@ -426,8 +432,8 @@ namespace NCRYSTAL_NAMESPACE {
               contrib = crossedRes.sum();
               if ( fullCellIntegral < cutoffref*taperBand ) {
                 const double t = ncclamp( ( std::log(fullCellIntegral/cutoffref)
-                                            + std::log(taperBand) )
-                                          / ( 2.0*std::log(taperBand) ), 0.0, 1.0 );
+                                            + logTaperBand )
+                                          / twoLogTaperBand, 0.0, 1.0 );
                 //Quintic smootherstep (Ken Perlin): 0 and 1 derivatives
                 //vanish at both ends, so no kink at the band edges either.
                 //Explicit std::fma for the inner Horner steps (unaudited
