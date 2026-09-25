@@ -852,19 +852,40 @@ double NC::VDOS::estimateSpectrumCrossing( double x0, double binwidth,
     const double x = xAt(i)-xmid;
     const double y = std::log(spec[i]);
     const double x2 = x*x;
-    S0 += 1.0; S1 += x; S2 += x2; S3 += x2*x; S4 += x2*x2;
-    T0 += y; T1 += x*y; T2 += x2*y;
+    //S3/S4/T1/T2's accumulation is exactly the a+=b*c shape a compiler may
+    //silently fuse under -mfma; explicit std::fma below (S0/S1/S2/T0 have
+    //no adjacent multiply to fuse, so are left as plain +=). This whole
+    //function is the estimateSpectrumCrossing least-squares fit already
+    //known (see NCVDOSGn.cc's applyCrossingTaper caller) to shift by
+    //several tenths of an index unit between an -mfma and a plain build --
+    //that was previously only tapered around, not fixed at the root:
+    S0 += 1.0; S1 += x; S2 += x2;
+    S3 = std::fma( x2, x, S3 );
+    S4 = std::fma( x2, x2, S4 );
+    T0 += y;
+    T1 = std::fma( x, y, T1 );
+    T2 = std::fma( x2, y, T2 );
   }
   if ( S0 < 5.0 )
     return twoPointFallback(true);
-  //Solve [S0 S1 S2; S1 S2 S3; S2 S3 S4]*[a;b;c] = [T0;T1;T2] via
-  //Cramer's rule:
-  const double D  = S0*(S2*S4-S3*S3) - S1*(S1*S4-S3*S2) + S2*(S1*S3-S2*S2);
+  //Solve [S0 S1 S2; S1 S2 S3; S2 S3 S4]*[a;b;c] = [T0;T1;T2] via Cramer's
+  //rule. Every 2x2 minor below is an a*b-c*d shape, and every determinant
+  //is then itself a 3-term sum of products -- all explicit std::fma, for
+  //the same reason as the accumulation loop above (and reusing the minors
+  //shared between D/Da/Db/Dc, which the original unaudited form did not):
+  const double m00  = std::fma( S2, S4, -(S3*S3) );
+  const double m01  = std::fma( S1, S4, -(S3*S2) );
+  const double m02  = std::fma( S1, S3, -(S2*S2) );
+  const double m01T = std::fma( T1, S4, -(S3*T2) );
+  const double m02T = std::fma( T1, S3, -(S2*T2) );
+  const double m12T = std::fma( S1, T2, -(T1*S2) );
+  const double m02TT= std::fma( S2, T2, -(T1*S3) );
+  const double D  = std::fma( S2, m02,  std::fma( -S1, m01,  S0*m00 ) );
   if ( !( ncabs(D) > 0.0 ) )
     return twoPointFallback(true);
-  const double Da = T0*(S2*S4-S3*S3) - S1*(T1*S4-S3*T2) + S2*(T1*S3-S2*T2);
-  const double Db = S0*(T1*S4-S3*T2) - T0*(S1*S4-S3*S2) + S2*(S1*T2-T1*S2);
-  const double Dc = S0*(S2*T2-T1*S3) - S1*(S1*T2-T1*S2) + T0*(S1*S3-S2*S2);
+  const double Da = std::fma( S2, m02T, std::fma( -S1, m01T, T0*m00 ) );
+  const double Db = std::fma( S2, m12T, std::fma( -T0, m01,  S0*m01T) );
+  const double Dc = std::fma( T0, m02,  std::fma( -S1, m12T, S0*m02TT) );
   const double a = Da/D, b = Db/D, c = Dc/D;
   const double target = std::log(yval) - a;//solve c*xc^2+b*xc-target=0
   double xcross;
@@ -874,7 +895,7 @@ double NC::VDOS::estimateSpectrumCrossing( double x0, double binwidth,
       return twoPointFallback(true);
     xcross = target/b;
   } else {
-    const double disc = b*b + 4.0*c*target;
+    const double disc = std::fma( 4.0*c, target, b*b );
     if ( !(disc >= 0.0) )
       return twoPointFallback(true);
     const double sq = std::sqrt(disc);

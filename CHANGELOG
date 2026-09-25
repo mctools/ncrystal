@@ -1,4 +1,22 @@
 v4.4.7 (work in progress)
+     * Fix the root cause of a cross-platform divergence in
+       NC::VDOS::estimateSpectrumCrossing (NCVDOSUtils.cc) that had
+       previously only been tapered around, not actually fixed:
+       NCVDOSGn.cc's applyCrossingTaper caller already documented that "the
+       [crossing] estimate can shift by several tenths of an index unit
+       between an -mfma and a plain build", handled there by widening a
+       taper region rather than addressing the cause. The cause: this
+       function's least-squares quadratic fit (solved via Cramer's rule)
+       had its S3/S4/T1/T2 accumulation and all six 2x2 determinant minors
+       (also feeding a 3-term outer sum of products) as unaudited a+-b*c
+       shapes -- plus the quadratic-formula discriminant. Fixed with
+       explicit std::fma throughout, reusing minors shared between
+       D/Da/Db/Dc that the original unaudited form recomputed. Verified
+       directly: a standalone default-vs--mfma comparison across 2000
+       trials of a synthetic Gaussian-tail spectrum (the exact shape this
+       function's docstring says it targets) is now bit-identical, where
+       it was not audited/verified before. Full sb -t --long green, zero
+       reference-log changes.
      * Fix another unaudited a*b-c shape found while continuing the
        performance/reproducibility pass into the VDOS side of the pipeline:
        NCVDOSToScatKnl.cc's fillSABFromVDOS computed the high-phonon-order
