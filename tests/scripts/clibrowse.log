@@ -1,6 +1,6 @@
 ============= CLI >>browse --help<< =============
-usage: ncrystal_browse [-h] [-s WORD] [-f NAME] [-c] [--names] [-x DATANAME]
-                       [--plugins] [--color WHEN]
+usage: ncrystal_browse [-h] [-s WORD] [-E] [-f NAME] [-c] [--names]
+                       [-x DATANAME] [--plugins] [--color WHEN]
                        [PATTERN ...]
 
 Browse and search the data files available to NCrystal (e.g. files in the
@@ -28,6 +28,10 @@ options:
                         NCMAT header comments (case-insensitive). Can be
                         specified multiple times, in which case all words must
                         be present. Matching comment lines are shown.
+  -E, --regex           Interpret search WORDs and PATTERNs as (case-
+                        insensitive) Python regular expressions, which match
+                        anywhere in the text, with ^ and $ matching at line
+                        boundaries (e.g. -E -s "boron|b4c").
   -f, --factory NAME    Only show files delivered by the named factory (e.g.
                         "stdlib" or "virtual").
   -c, --comments        Show full NCMAT header comments of the files.
@@ -54,6 +58,7 @@ examples:
   ncrystal_browse Al                  # files with "al" in the name
   ncrystal_browse "*_sg225*"          # files matching a glob pattern
   ncrystal_browse -s vdos -s togo     # search names and header comments
+  ncrystal_browse -E -s "boron|b4c"   # search with regular expression
   ncrystal_browse -c Al_sg225.ncmat   # show header comments of a file
   ncrystal_browse -x Al_sg225.ncmat   # show full content of a file
   ncrystal_browse --plugins           # list loaded plugins
@@ -104,6 +109,22 @@ No matching files found.
 ==> 1 file from "stdlib" (<stdlib-location>, priority=120):
     stdlib::Al_sg225.ncmat  Aluminium (Al, fcc, cubic, SG-225 / Fm-3m) (hidden)
         | A. Togo and I. Tanaka, Scripta Materialia 108 (2015) 1-5
+============= CLI >>browse -s 'togo|nomatch' -f virtual<< =============
+No matching files found.
+Note: Search WORDs are matched literally. Use -E/--regex for regular expressions (e.g. -E -s "boron|b4c").
+============= CLI >>browse -E -s 'togo|nomatch' -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        | Some more comments mentioning Togo and VDOS.
+============= CLI >>browse -E -s 'test.*only' -s '^ *some' -f virtual<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        | My test material (for testing only).
+        | Some more comments mentioning Togo and VDOS.
+============= CLI >>browse -E --names '^my.*mat' 'othermat\.ncmat$' '^other$'<< =============
+mytestmat.ncmat
+othermat.ncmat
+============= CLI >>browse --names 'my.*mat'<< =============
 ============= CLI >>browse -c -f virtual<< =============
 ==> 4 files from "virtual" (virtual, priority=130):
     Al_sg225.ncmat
@@ -167,6 +188,8 @@ Caught expected NCFileNotFound('Could not find data: "nonexistent.ncmat"')
 Caught expected ArgumentError('--extract and --plugins can not be combined with other options.')
 ============= CLI >>browse --names -c<< =============
 Caught expected ArgumentError('Do not specify both --names and --comments.')
+============= CLI >>browse -E -s '('<< =============
+Caught expected ArgumentError('Invalid regular expression "(": missing ), unterminated subpattern at position 0')
 ============= CLI >>browse -s togo -s my -f virtual<< =============
 ==> 1 file from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
@@ -210,5 +233,9 @@ Caught expected ArgumentError('Do not specify both --names and --comments.')
 ==> 1 file from "virtual" (virtual, priority=130):
     mytestmat.ncmat  My test material (for testing only). Second line of desc...
         | Some more comments mentioning <ESC>[01;32m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
+============= CLI >>browse -E -s 'tog|nothing' -s ogo -f virtual --color=always<< =============
+==> 1 file from "virtual" (virtual, priority=130):
+    mytestmat.ncmat  My test material (for testing only). Second line of desc...
+        | Some more comments mentioning <ESC>[01;31m<ESC>[KTogo<ESC>[m<ESC>[K and VDOS.
 ============= CLI >>browse --color=blue<< =============
 Caught expected ArgumentError("argument --color/--colour: invalid choice: 'blue' (choose from 'always', 'auto', 'force', 'if-tty', 'never', 'no', 'none', 'tty', 'yes')")

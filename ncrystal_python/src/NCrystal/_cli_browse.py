@@ -57,6 +57,7 @@ def parseArgs( progname, arglist, return_parser = False ):
       %(prog)s Al                  # files with "al" in the name
       %(prog)s "*_sg225*"          # files matching a glob pattern
       %(prog)s -s vdos -s togo     # search names and header comments
+      %(prog)s -E -s "boron|b4c"   # search with regular expression
       %(prog)s -c Al_sg225.ncmat   # show header comments of a file
       %(prog)s -x Al_sg225.ncmat   # show full content of a file
       %(prog)s --plugins           # list loaded plugins
@@ -76,6 +77,12 @@ def parseArgs( progname, arglist, return_parser = False ):
                               '-insensitive). Can be specified multiple'
                               ' times, in which case all words must be'
                               ' present. Matching comment lines are shown.'))
+    parser.add_argument('-E','--regex', action='store_true',
+                        help=('Interpret search WORDs and PATTERNs as'
+                              ' (case-insensitive) Python regular'
+                              ' expressions, which match anywhere in the text,'
+                              ' with ^ and $ matching at line boundaries'
+                              ' (e.g. -E -s "boron|b4c").'))
     parser.add_argument('-f','--factory', type=str, default=None,
                         metavar='NAME',
                         help=('Only show files delivered by the named'
@@ -122,6 +129,17 @@ def parseArgs( progname, arglist, return_parser = False ):
                      ' with other options.')
     if args.names and args.comments:
         parser.error('Do not specify both --names and --comments.')
+    import re
+    def compile_re( s ):
+        try:
+            #MULTILINE: ^ and $ match at line boundaries, like for grep:
+            return re.compile( s if args.regex else re.escape(s),
+                               re.IGNORECASE | re.MULTILINE )
+        except re.error as e:
+            parser.error(f'Invalid regular expression "{s}": {e}')
+    args.search_re = [ compile_re(w) for w in args.search ]
+    args.pattern_re = ( [ compile_re(p) for p in args.pattern ]
+                        if args.regex else None )
     return args
 
 #Same options and synonyms as GNU grep:
@@ -166,21 +184,28 @@ def _match_sgr():
     return sgr
 
 class _Highlighter:
-    #Wraps (case-insensitive) occurrences of the words in color codes.
-    def __init__( self, words, enabled ):
-        self.__re = None
-        if enabled and words:
-            import re
-            ws = sorted( set( words ), key = lambda w : (-len(w),w) )
-            self.__re = re.compile( '|'.join( re.escape(w) for w in ws ),
-                                    re.IGNORECASE )
-            self.__start = f'\x1b[{_match_sgr()}m\x1b[K'
-            self.__end = '\x1b[m\x1b[K'
+    #Wraps all (non-empty) matches of the compiled regexes in color codes.
+    def __init__( self, regexes, enabled ):
+        self.__res = list( regexes ) if enabled else []
+        self.__start = f'\x1b[{_match_sgr()}m\x1b[K'
+        self.__end = '\x1b[m\x1b[K'
     def __call__( self, s ):
-        if not self.__re or not s:
+        if not self.__res or not s:
             return s
-        return self.__re.sub( lambda m : self.__start + m.group(0)
-                              + self.__end, s )
+        spans = sorted( m.span() for r in self.__res for m in r.finditer(s)
+                        if m.end() > m.start() )
+        merged = []
+        for a,b in spans:
+            if merged and a <= merged[-1][1]:
+                merged[-1][1] = max( merged[-1][1], b )
+            else:
+                merged.append( [a,b] )
+        out, pos = [], 0
+        for a,b in merged:
+            out += [ s[pos:a], self.__start, s[a:b], self.__end ]
+            pos = b
+        out.append( s[pos:] )
+        return ''.join(out)
 
 def create_argparser_for_sphinx( progname ):
     return parseArgs( progname, [], return_parser = True )
@@ -196,11 +221,13 @@ def _linewidth():
 def _is_glob( pattern ):
     return any( c in pattern for c in '*?[' )
 
-def _name_matches( entry, pattern ):
-    import fnmatch
-    p = pattern.lower()
+def _name_matches( entry, pattern, pattern_re = None ):
     #Patterns with '::' are matched against the full key (e.g. stdlib::Al..):
-    s = ( entry.fullKey if '::' in p else entry.name ).lower()
+    s = entry.fullKey if '::' in pattern else entry.name
+    if pattern_re is not None:
+        return bool( pattern_re.search( s ) )
+    import fnmatch
+    p, s = pattern.lower(), s.lower()
     return fnmatch.fnmatchcase( s, p ) if _is_glob( p ) else ( p in s )
 
 def _header_comments( entry ):
@@ -210,7 +237,10 @@ def _header_comments( entry ):
     from ._ncmatimpl import _extractInitialHeaderCommentsFromNCMATData as f
     from .core import createTextData
     try:
-        return f( createTextData( entry.fullKey ).rawData )
+        data = createTextData( entry.fullKey ).rawData
+        #Only the part before the first section is needed:
+        idx = data.find('\n@')
+        return f( data if idx == -1 else data[:idx+1] )
     except Exception: # noqa BLE001
         #Unreadable data should not prevent browsing other files:
         return None
@@ -261,19 +291,21 @@ def _collect( args ):
     if args.factory is not None:
         items = [ i for i in items if i.entry.factName == args.factory ]
     if args.pattern:
+        prs = args.pattern_re or [ None ]*len(args.pattern)
         items = [ i for i in items
-                  if any( _name_matches( i.entry, p ) for p in args.pattern ) ]
-    words = [ w.lower() for w in args.search ]
+                  if any( _name_matches( i.entry, p, pr )
+                          for p, pr in zip( args.pattern, prs ) ) ]
+    regexes = args.search_re
     for i in items:
         i.matching_lines = []
-    if words:
+    if regexes:
         selected = []
         for i in items:
             lines = i.comments or []
-            text = '\n'.join( [ i.entry.name ] + lines ).lower()
-            if all( w in text for w in words ):
+            text = '\n'.join( [ i.entry.name ] + lines )
+            if all( r.search( text ) for r in regexes ):
                 i.matching_lines = [ ll.strip() for ll in lines
-                                     if any( w in ll.lower() for w in words ) ]
+                                     if any( r.search(ll) for r in regexes ) ]
                 selected.append( i )
         items = selected
     return items
@@ -288,7 +320,7 @@ def _strip_empty( lines ):
 
 def _print_listing( items, args ):
     linewidth = _linewidth()
-    hl = _Highlighter( args.search, _use_color( args.color ) )
+    hl = _Highlighter( args.search_re, _use_color( args.color ) )
     groups = []
     for i in items:
         e = i.entry
@@ -328,6 +360,10 @@ def _print_listing( items, args ):
                     print()
     if not items:
         print('No matching files found.')
+        if not args.regex and any( c in w for w in args.search + args.pattern
+                                   for c in '|^$+()\\{}' ):
+            print('Note: Search WORDs are matched literally. Use -E/--regex'
+                  ' for regular expressions (e.g. -E -s "boron|b4c").')
 
 @cli_entry_point
 def main( progname, arglist ):

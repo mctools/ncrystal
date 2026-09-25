@@ -82,10 +82,11 @@ v4.4.7 (work in progress)
      * New command-line tool "ncrystal browse" (also ncrystal_browse) for
        browsing and searching available data files and plugins. Compared to
        the --browse, --extract and --plugins flags of nctool (which are kept
-       for now) it can filter by name patterns and data source, search in the
-       header comments of NCMAT files (e.g. "ncrystal browse -s togo", with
-       grep-like colored highlighting of hits controlled by --color=WHEN),
-       show those comments, and shows a short description of each NCMAT file.
+       for now) it shows a short description of each NCMAT file, can filter
+       by data source and name patterns (substrings, globs, or with -E regular
+       expressions), and can search in and show the header comments of NCMAT
+       files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
+       colored highlighting of hits (controlled by --color=WHEN).
      * Python: fix infinite loop when extracting NCMAT header comments
        consisting only of empty comment lines.
      * Python: Info.dyninfos no longer fails (with an AttributeError) for

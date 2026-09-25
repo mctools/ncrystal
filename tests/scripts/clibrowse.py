@@ -97,6 +97,8 @@ def test_colors():
             GREP_COLORS = 'sl=1:ms=01;32:ln=35' )
     run('-s','togo','-f','virtual','--color=always')
     setenv( GREP_COLORS = None )
+    #Regex highlighting, with overlapping matches merged:
+    run('-E','-s','tog|nothing','-s','ogo','-f','virtual','--color=always')
     import argparse
     with ensure_error(argparse.ArgumentError,
                       "argument --color/--colour: invalid choice: 'blue'"
@@ -133,6 +135,12 @@ def main_impl():
     run('-s','TOGO','-s','vdos','-f','virtual')
     run('-s','togo','-s','nonexistentword')
     run('-s','togo','-f','stdlib','Al_sg225')
+    #Literal vs. regex search and patterns:
+    run('-s','togo|nomatch','-f','virtual')
+    run('-E','-s','togo|nomatch','-f','virtual')
+    run('-E','-s','test.*only','-s','^ *some','-f','virtual')
+    run('-E','--names','^my.*mat','othermat\\.ncmat$','^other$')
+    run('--names','my.*mat')
     run('-c','-f','virtual')
     run('-c','stdlib::Al_sg225')
     run('-x','mytestmat.ncmat')
@@ -149,6 +157,10 @@ def main_impl():
     with ensure_error(argparse.ArgumentError,
                       'Do not specify both --names and --comments.'):
         run('--names','-c')
+    with ensure_error(argparse.ArgumentError,
+                      'Invalid regular expression "(": missing ),'
+                      ' unterminated subpattern at position 0'):
+        run('-E','-s','(')
 
 if __name__ == '__main__':
     main()
