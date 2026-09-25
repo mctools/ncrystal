@@ -1,4 +1,12 @@
 v4.4.7 (work in progress)
+     * Hoist a loop-invariant std::log(taperBand) call (taperBand is a
+       compile-time constant) out of sIntegralAtE's per-cell loop --
+       unrelated to fma, just plain redundant recomputation on every cell
+       that lands in the tapering band, found while re-profiling after the
+       fixes below made sIntegralAtE the single largest remaining
+       self-time hotspot (~17-19%) across every material tried. Bit-
+       identical by construction (same values, computed once instead of
+       per-cell); sb -t --long confirms zero reference-log changes.
      * Extend the SAB cell-integration performance pass below:
        NCSABProcessor.cc's sIntegralAtE had an unaudited plain-Horner
        quintic smootherstep (t*t*t*(t*(t*6.0-15.0)+10.0), evaluated per
