@@ -1,4 +1,21 @@
 v4.4.7 (work in progress)
+     * Wire NC::fastLowerBoundIdx/fastUpperBoundIdx (see the previous
+       entry) into the three call sites profiling identified as the
+       actual dominant cost of a SAB scatter sample: SABProcessor's
+       phaseSpaceIntegral and sampleAlphaBeta (both search m_eGrid), and
+       PCHIPInterp::eval (used for the smooth cross-section
+       interpolation some configs use instead of phaseSpaceIntegral's
+       plain grid search). Also switched phaseSpaceIntegral's own
+       "y0*(1.0-r)+r*y1" to the already-audited nclerp() while there.
+       Measured with sb_ncdev_benchsabsample (comp=inelas, random
+       energy per call, 30M samples/trial, 8 trials each): ~15% faster
+       for Polyethylene_CH2.ncmat (8563ms -> 7293ms, clean non-
+       overlapping ranges), ~5% for Al_sg225.ncmat. End to end with
+       sb_ncdev_minimcbench (full simulation loop, not just sampling):
+       ~8% faster for Polyethylene_CH2.ncmat (5990ms -> 5516ms).
+       Full sb -t --long green, zero reference-log changes (the search
+       always returns the same index as before; the nclerp switch was
+       separately confirmed not to change any reference log either).
      * Add NC::fastLowerBoundIdx/fastUpperBoundIdx (NCFastSearch.hh):
        drop-in replacements for std::lower_bound/std::upper_bound on a
        sorted array of double, written so the inner comparison compiles

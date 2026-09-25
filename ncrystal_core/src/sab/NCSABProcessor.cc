@@ -25,6 +25,7 @@
 #include "NCrystal/internal/sab/NCSABIdx.hh"
 #include "NCrystal/internal/utils/NCMixedDataVector.hh"
 #include "NCrystal/internal/utils/NCTinyVector.hh"
+#include "NCrystal/internal/utils/NCFastSearch.hh"
 #include "NCrystal/internal/utils/NCFileUtils.hh"
 #include "NCrystal/internal/utils/NCSpline.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
@@ -1170,14 +1171,13 @@ namespace NCRYSTAL_NAMESPACE {
 #endif
         }
         //linear interpolation:
-        auto it = std::lower_bound(x.begin(), x.end(), t);
-        std::size_t i = static_cast<std::size_t>(it - x.begin()); // 1..n-1
+        std::size_t i = fastLowerBoundIdx(x.data(), x.size(), t); // 1..n-1
         nc_assert( i>0 );
         nc_assert( i<x.size() );
         double x0 = x[i-1], x1 = x[i];
         double y0 = y[i-1], y1 = y[i];
         double r = (t - x0) / (x1 - x0);//fixme: cache more! (if not in smooth mode)
-        return y0 * (1.0-r) + r * y1;
+        return nclerp( y0, y1, r );
       }
 
       ScatterOutcomeIsotropic
@@ -1214,11 +1214,10 @@ namespace NCRYSTAL_NAMESPACE {
         double E_div_kT_overlay;
         {
           nc_assert(m_eGrid.size()>=2);
-          auto it = std::lower_bound(m_eGrid.begin(), m_eGrid.end(), E_div_kT);
-          if ( it == m_eGrid.end() )
-            it = std::prev(it);
-          idx_E_overlay = static_cast<std::size_t>(it - m_eGrid.begin());
-          E_div_kT_overlay = *it;
+          idx_E_overlay = fastLowerBoundIdx(m_eGrid.data(), m_eGrid.size(), E_div_kT);
+          if ( idx_E_overlay == m_eGrid.size() )
+            --idx_E_overlay;
+          E_div_kT_overlay = m_eGrid[idx_E_overlay];
         }
         nc_assert(m_sampleIdx.size()==m_eGrid.size());
         std::int32_t sampleIdx = vectAt(m_sampleIdx,idx_E_overlay);
