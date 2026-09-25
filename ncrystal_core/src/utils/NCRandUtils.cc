@@ -607,9 +607,14 @@ double NC::randKPowX( double k, double lnk, double R )
     const double c1 = 0.5 * R * ( 1.0 - R );
     constexpr double inv12 = 1.0/12.0;
     constexpr double inv24 = 1.0/24.0;
-    const double c2 = ((4.0*R - 3.0)*R - 1.0)*R*inv12;
-    const double c3 = (((-6.0*R + 4.0)*R + 1.0)*R + 1.0)*R*inv24;
-    return ncclamp( c0+u*(c1+u*(c2+u*c3)), 0.0, 1.0 );
+    //Horner's method with std::fma for extra reproducibility (unaudited
+    //a*b-c/a*b+c shapes otherwise -- see docs/devel_fma_attribute.md):
+    const double c2 = std::fma( std::fma(4.0,R,-3.0), R, -1.0 )*R*inv12;
+    const double c3 = std::fma( std::fma( std::fma(-6.0,R,4.0), R, 1.0 ),
+                                R, 1.0 )*R*inv24;
+    const double inner1 = std::fma( u, c3, c2 );
+    const double inner2 = std::fma( u, inner1, c1 );
+    return ncclamp( std::fma( u, inner2, c0 ), 0.0, 1.0 );
   }
 
   //Case where k is not near 1 and lnk is not near 0.
