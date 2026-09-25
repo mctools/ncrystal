@@ -1,5 +1,6 @@
 ============= CLI >>browse --help<< =============
-usage: ncrystal_browse [-h] [-s WORD] [-E] [-f NAME] [-w EXPR] [--props] [-c]
+usage: ncrystal_browse [-h] [-s WORD] [-E] [-f NAME] [-w EXPR] [--props]
+                       [--columns KEYS] [--sort KEY] [--reverse] [--json] [-c]
                        [--names] [-x DATANAME] [--plugins] [--color WHEN]
                        [PATTERN ...]
 
@@ -42,6 +43,15 @@ options:
                         in which case all expressions must be true.
   --props               Show the physics properties of each file (i.e. the
                         values available in --where expressions).
+  --columns KEYS        Show a table with the given comma-separated physics
+                        properties (and "description") of each file, instead
+                        of the usual listing.
+  --sort KEY            Show a table sorted by KEY, which is "name" or a
+                        physics property (which is then also shown). Files
+                        without a value are listed last.
+  --reverse             Reverse the order of --sort.
+  --json                Output all information about the selected files
+                        (including physics properties) as JSON.
   -c, --comments        Show full NCMAT header comments of the files.
   --names               Only print the names of the files, one per line
                         (useful for scripting).
@@ -73,6 +83,8 @@ examples:
   ncrystal_browse -w "'B' in elements and absxs > 100"
   ncrystal_browse -w "'vdos' in dyninfo" -w "crystal and sg == 225"
   ncrystal_browse --props Al_sg225.ncmat  # show the properties of a file
+  ncrystal_browse -w "'B' in elements" --sort absxs --reverse
+  ncrystal_browse -f stdlib --columns formula,sg,density
 
 physics properties available in --where expressions (and --props):
   elements  : set of element names, e.g. {"Al","O"}
@@ -232,6 +244,60 @@ LiquidWaterH2O_T293.6K.ncmat
     Al_sg225.ncmat
     mycrystal.ncmat  A small crystal.
     othermat.ncmat
+============= CLI >>browse -f virtual --columns formula,sg,density,dyninfo,description<< =============
+NAME             FORMULA   SG  DENSITY    DYNINFO  DESCRIPTION
+Al_sg225.ncmat         O    -        2  vdosdebye
+mycrystal.ncmat       Al  225  2.69865  vdosdebye  A small crystal.
+mytestmat.ncmat        H    -        1  vdosdebye  My test material (for test...
+notncmat.laz           -    -        -          -
+othermat.ncmat         O    -        2  vdosdebye
+============= CLI >>browse -f virtual --sort density --reverse<< =============
+NAME             DENSITY
+mycrystal.ncmat  2.69865
+Al_sg225.ncmat         2
+othermat.ncmat         2
+mytestmat.ncmat        1
+notncmat.laz           -
+============= CLI >>browse -f virtual --sort sg<< =============
+NAME              SG
+mycrystal.ncmat  225
+Al_sg225.ncmat     -
+mytestmat.ncmat    -
+notncmat.laz       -
+othermat.ncmat     -
+============= CLI >>browse -f virtual --sort name --reverse<< =============
+NAME
+othermat.ncmat
+notncmat.laz
+mytestmat.ncmat
+mycrystal.ncmat
+Al_sg225.ncmat
+============= CLI >>browse -f virtual mycrystal --json<< =============
+[{'name': 'mycrystal.ncmat',
+  'fullkey': 'virtual::mycrystal.ncmat',
+  'factory': 'virtual',
+  'source': 'virtual',
+  'priority': 130,
+  'hidden': False,
+  'datatype': 'ncmat',
+  'description': 'A small crystal.',
+  'comments': ['A small crystal.'],
+  'props': {'elements': ['Al'],
+            'atoms': ['Al'],
+            'nelements': 1,
+            'formula': 'Al',
+            'absxs': 0.231,
+            'scatxs': 1.396668642,
+            'density': 2.698645518,
+            'numdens': 0.06023238256,
+            'temp': 293.15,
+            'state': 'solid',
+            'crystal': True,
+            'sg': 225,
+            'natoms': 4,
+            'dyninfo': ['vdosdebye'],
+            'nphases': 1},
+  'error': None}]
 ============= CLI >>browse -w 'foo > 1'<< =============
 Caught expected ArgumentError('Unknown name "foo" in --where expression "foo > 1" (see --help for available properties)')
 ============= CLI >>browse -w 'open("x")'<< =============
@@ -240,6 +306,16 @@ Caught expected ArgumentError('Unknown name "open" in --where expression "open("
 Caught expected ArgumentError('Invalid --where expression "elements.__class__" (private attributes are not allowed)')
 ============= CLI >>browse -w 'absxs >'<< =============
 Caught expected ArgumentError('Invalid --where expression "absxs >": invalid syntax')
+============= CLI >>browse --columns sg,foo<< =============
+Caught expected ArgumentError('Invalid column "foo" (must be "description" or one of: elements, atoms, nelements, formula, absxs, scatxs, density, numdens, temp, state, crystal, sg, natoms, dyninfo, nphases)')
+============= CLI >>browse --sort foo<< =============
+Caught expected ArgumentError('Invalid sort key "foo" (must be "name" or one of: elements, atoms, nelements, formula, absxs, scatxs, density, numdens, temp, state, crystal, sg, natoms, dyninfo, nphases)')
+============= CLI >>browse --reverse<< =============
+Caught expected ArgumentError('--reverse requires --sort.')
+============= CLI >>browse --columns sg --props<< =============
+Caught expected ArgumentError('Do not specify --props together with --columns or --sort.')
+============= CLI >>browse --json --names<< =============
+Caught expected ArgumentError('Do not specify --json together with --columns, --sort, --names, --comments, or --props.')
 ============= CLI >>browse -w 'absxs/0 > 1' -f virtual<< =============
 Caught expected NCBadInput('Error evaluating --where expression "absxs/0 > 1": float division by zero')
 ============= CLI >>browse -c stdlib::Al_sg225<< =============

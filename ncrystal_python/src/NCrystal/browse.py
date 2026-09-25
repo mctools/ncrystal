@@ -35,7 +35,8 @@ The data is provided by the C++ layer (via the JSON queries
 """
 
 __all__ = [ 'DataEntry', 'PhysicsProps', 'browse', 'filter_entries', 'find',
-            'list_all_factories', 'list_factories', 'physics_props_doc' ]
+            'list_all_factories', 'list_factories', 'physics_props_doc',
+            'sort_entries' ]
 
 def list_factories():
     """Returns a dictionary with the names of all TextData factories and the
@@ -91,9 +92,13 @@ class PhysicsProps:
         )
         self.__compos = compos
 
-    def as_dict( self ):
-        """The properties as a (new) dictionary."""
-        return dict( self.__d )
+    def as_dict( self, json_compatible = False ):
+        """The properties as a (new) dictionary. If json_compatible=True,
+        sets are replaced with sorted lists."""
+        if not json_compatible:
+            return dict( self.__d )
+        return dict( ( k, sorted(v) if isinstance(v,frozenset) else v )
+                     for k,v in self.__d.items() )
 
     @property
     def composition( self ):
@@ -203,6 +208,21 @@ class DataEntry:
         return [ ll.strip() for ll in ( self.__comments or [] )
                  if any( r.search(ll) for r in res ) ]
 
+    def as_dict( self ):
+        """JSON-compatible dictionary with all information about the
+        entry (props is None if not loaded)."""
+        p = self.__props
+        return dict( name = self.name, fullkey = self.fullkey,
+                     factory = self.factory, source = self.source,
+                     priority = self.priority, hidden = self.hidden,
+                     datatype = self.datatype,
+                     description = self.description,
+                     comments = ( list(self.__comments)
+                                  if self.__comments is not None else None ),
+                     props = ( p.as_dict( json_compatible = True )
+                               if p is not None else None ),
+                     error = self.error )
+
     def textdata( self ):
         """Returns the NCrystal.TextData object of the entry."""
         from .core import createTextData
@@ -306,6 +326,29 @@ def filter_entries( entries, *, patterns = (), search = (), regex = False,
                 continue
         res.append( e )
     return res
+
+def sort_entries( entries, key, *, reverse = False ):
+    """Returns list of entries sorted by the given key, which is either
+    "name" or the name of a physics property (which requires loaded
+    entries). Entries without a value (None, e.g. materials which could not
+    be loaded, or with an unavailable property) are always placed last.
+    Sets are compared by their sorted contents."""
+    names = [ n for n,d in _propdocs ]
+    if key != 'name' and key not in names:
+        from .exceptions import NCBadInput
+        raise NCBadInput(f'Invalid sort key "{key}" (must be "name" or one of:'
+                         f' {", ".join(names)})')
+    def value( e ):
+        if key == 'name':
+            return e.display_name
+        if e.props is None:
+            return None
+        v = getattr( e.props, key )
+        return tuple(sorted(v)) if isinstance( v, frozenset ) else v
+    have = [ e for e in entries if value(e) is not None ]
+    missing = [ e for e in entries if value(e) is None ]
+    #NB: sorted(..) is stable, so ties keep their original order:
+    return sorted( have, key = value, reverse = reverse ) + missing
 
 def find( *patterns, search = (), regex = False, where = (),
           factory = None, load = None, nthreads = 'auto', quiet = True,

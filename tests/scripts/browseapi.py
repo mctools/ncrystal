@@ -128,6 +128,25 @@ def main():
     find(where=lambda p : p.state == 'gas',factory='virtual')
     find('gas',where='absxs < 1',factory='virtual')
 
+    #Sorting and dicts:
+    loaded = nb.browse('virtual',load=True)
+    print('sorted by absxs:',names(nb.sort_entries(loaded,'absxs')))
+    print('sorted by sg (reverse):',
+          names(nb.sort_entries(loaded,'sg',reverse=True)))
+    print('sorted by name (reverse):',
+          names(nb.sort_entries(loaded,'name',reverse=True)))
+    with ensure_error(NC.NCBadInput,'Invalid sort key "foo" (must be "name"'
+                      ' or one of: elements, atoms, nelements, formula,'
+                      ' absxs, scatxs, density, numdens, temp, state,'
+                      ' crystal, sg, natoms, dyninfo, nphases)'):
+        nb.sort_entries(loaded,'foo')
+    d = [ e for e in loaded if e.name == 'crystal.ncmat' ][0].as_dict()
+    print('as_dict keys:',list(d))
+    assert d['props']['dyninfo'] == ['vdosdebye'] and d['error'] is None
+    assert d['description'] == 'A small Al crystal.'
+    d = [ e for e in loaded if e.name == 'broken.ncmat' ][0].as_dict()
+    assert d['props'] is None and d['error']
+
     e = nb.find('crystal')[0]
     print('matching_lines:',e.matching_lines(['togo','A SMALL']))
     print('matching_lines (regex):',e.matching_lines('to+go$',regex=True))

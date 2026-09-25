@@ -133,6 +133,23 @@ def test_physics():
     run('-w','"scatknl" in dyninfo and "O" in elements','-f','stdlib',
         'Liquid','--names')
     run('-w','elements <= {"Al","O"} and nphases==1','-f','virtual')
+    #Tables, sorting and JSON:
+    run('-f','virtual','--columns','formula,sg,density,dyninfo,description')
+    run('-f','virtual','--sort','density','--reverse')
+    run('-f','virtual','--sort','sg')#unavailable values last
+    run('-f','virtual','--sort','name','--reverse')
+    import json
+    out = run('-f','virtual','mycrystal','--json',show=False)
+    def rounded( x ):
+        if isinstance( x, float ):
+            return float( '%.10g'%x )
+        if isinstance( x, list ):
+            return [ rounded(e) for e in x ]
+        if isinstance( x, dict ):
+            return dict( (k,rounded(v)) for k,v in x.items() )
+        return x
+    import pprint
+    pprint.pp( rounded( json.loads(out) ) )
     import argparse
     def bad_where( expr, errmsg ):
         with ensure_error(argparse.ArgumentError,errmsg):
@@ -146,6 +163,21 @@ def test_physics():
                                      ' "elements.__class__" (private'
                                      ' attributes are not allowed)'))
     bad_where('absxs >', 'Invalid --where expression "absxs >": invalid syntax')
+    def bad_args( errmsg, *args ):
+        with ensure_error(argparse.ArgumentError,errmsg):
+            run(*args)
+    propnames = ('elements, atoms, nelements, formula, absxs, scatxs,'
+                 ' density, numdens, temp, state, crystal, sg, natoms,'
+                 ' dyninfo, nphases')
+    bad_args('Invalid column "foo" (must be "description" or one of: '
+             + propnames + ')', '--columns','sg,foo')
+    bad_args('Invalid sort key "foo" (must be "name" or one of: '
+             + propnames + ')', '--sort','foo')
+    bad_args('--reverse requires --sort.','--reverse')
+    bad_args('Do not specify --props together with --columns or --sort.',
+             '--columns','sg','--props')
+    bad_args(('Do not specify --json together with --columns, --sort,'
+              ' --names, --comments, or --props.'),'--json','--names')
     with ensure_error(NC.NCBadInput,'Error evaluating --where expression'
                       ' "absxs/0 > 1": float division by zero'):
         run('-w','absxs/0 > 1','-f','virtual')

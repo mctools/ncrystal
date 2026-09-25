@@ -31,6 +31,11 @@ find{'where': ['crystal', 'sg==225', 'natoms>3'], 'factory': 'virtual'}: ['cryst
 find{'where': 'sg > 200', 'factory': 'virtual'}: ['crystal.ncmat']
 find{'where': '<function>', 'factory': 'virtual'}: ['Al_sg225.ncmat', 'gas.ncmat']
 find('gas',){'where': 'absxs < 1', 'factory': 'virtual'}: ['gas.ncmat']
+sorted by absxs: ['Al_sg225.ncmat', 'gas.ncmat', 'crystal.ncmat', 'broken.ncmat']
+sorted by sg (reverse): ['crystal.ncmat', 'Al_sg225.ncmat', 'broken.ncmat', 'gas.ncmat']
+sorted by name (reverse): ['gas.ncmat', 'crystal.ncmat', 'broken.ncmat', 'Al_sg225.ncmat']
+Caught expected NCBadInput('Invalid sort key "foo" (must be "name" or one of: elements, atoms, nelements, formula, absxs, scatxs, density, numdens, temp, state, crystal, sg, natoms, dyninfo, nphases)')
+as_dict keys: ['name', 'fullkey', 'factory', 'source', 'priority', 'hidden', 'datatype', 'description', 'comments', 'props', 'error']
 matching_lines: ['A small Al crystal.', 'Mentions Togo.']
 matching_lines (regex): []
 Progress reporting OK

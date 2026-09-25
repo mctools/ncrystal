@@ -66,6 +66,8 @@ def parseArgs( progname, arglist, return_parser = False ):
       %(prog)s -w "'B' in elements and absxs > 100"
       %(prog)s -w "'vdos' in dyninfo" -w "crystal and sg == 225"
       %(prog)s --props Al_sg225.ncmat  # show the properties of a file
+      %(prog)s -w "'B' in elements" --sort absxs --reverse
+      %(prog)s -f stdlib --columns formula,sg,density
     """).strip()
     epilog += ( '\n\nphysics properties available in --where expressions'
                 ' (and --props):\n' + _propdocs_str() + '\n\n' )
@@ -111,6 +113,21 @@ def parseArgs( progname, arglist, return_parser = False ):
                         help=('Show the physics properties of each file (i.e.'
                               ' the values available in --where expressions).'
                               ))
+    parser.add_argument('--columns', type=str, default=None, metavar='KEYS',
+                        help=('Show a table with the given comma-separated'
+                              ' physics properties (and "description")'
+                              ' of each file, instead of the usual listing.'))
+    parser.add_argument('--sort', type=str, default=None, metavar='KEY',
+                        help=('Show a table sorted by KEY, which is "name"'
+                              ' or a physics property (which is then also'
+                              ' shown). Files without a value are listed'
+                              ' last.'))
+    parser.add_argument('--reverse', action='store_true',
+                        help='Reverse the order of --sort.')
+    parser.add_argument('--json', action='store_true',
+                        help=('Output all information about the selected'
+                              ' files (including physics properties) as'
+                              ' JSON.'))
     parser.add_argument('-c','--comments', action='store_true',
                         help='Show full NCMAT header comments of the files.')
     parser.add_argument('--names', action='store_true',
@@ -149,12 +166,39 @@ def parseArgs( progname, arglist, return_parser = False ):
         parser.error('Do not specify both --extract and --plugins.')
     if nmodes and ( args.pattern or args.search or args.factory
                     or args.comments or args.names or args.where
-                    or args.props ):
+                    or args.props or args.columns or args.sort
+                    or args.json ):
         parser.error('--extract and --plugins can not be combined'
                      ' with other options.')
     if args.names and ( args.comments or args.props ):
         parser.error('Do not specify --names together with --comments'
                      ' or --props.')
+    table = bool( args.columns or args.sort )
+    others = [ o for o,v in [ ('--names',args.names),
+                              ('--comments',args.comments),
+                              ('--props',args.props) ] if v ]
+    if table and others:
+        parser.error(f'Do not specify {others[0]} together with --columns'
+                     ' or --sort.')
+    if args.json and ( table or others ):
+        parser.error('Do not specify --json together with --columns,'
+                     ' --sort, --names, --comments, or --props.')
+    if args.reverse and not args.sort:
+        parser.error('--reverse requires --sort.')
+    from .browse import physics_props_doc
+    propnames = [ n for n,d in physics_props_doc() ]
+    args.columns = [ c.strip() for c in ( args.columns or '' ).split(',')
+                     if c.strip() ]
+    for c in args.columns:
+        if c not in propnames + ['description']:
+            parser.error(f'Invalid column "{c}" (must be "description" or'
+                         f' one of: {", ".join(propnames)})')
+    if args.sort and args.sort not in propnames + ['name']:
+        parser.error(f'Invalid sort key "{args.sort}" (must be "name" or'
+                     f' one of: {", ".join(propnames)})')
+    if args.sort and args.sort != 'name' and args.sort not in args.columns:
+        args.columns.append( args.sort )
+    args.table = table
     #Validate patterns, search words and --where expressions up front, so
     #problems are reported as usage errors:
     from . import browse as nb
@@ -303,7 +347,9 @@ def _truncate( s, n ):
 def _collect( args ):
     from . import browse as nb
     from .exceptions import NCBadInput
-    load = bool( args.where or args.props )
+    load = bool( args.where or args.props or args.json
+                 or [ c for c in args.columns if c != 'description' ]
+                 or ( args.sort and args.sort != 'name' ) )
     progress = _Progress( 'Loading materials' ) if load else None
     entries = nb.browse( args.factory, load = load,
                          progress = progress.update if progress else None )
@@ -329,6 +375,47 @@ def _print_props( entry, linewidth ):
                                break_long_words = False,
                                break_on_hyphens = False ):
         print(f'        {line}')
+
+def _table_value( entry, col ):
+    if col == 'description':
+        return entry.description
+    if entry.props is None:
+        return '-'
+    v = getattr( entry.props, col )
+    if v is None:
+        return '-'
+    if isinstance( v, frozenset ):
+        return ','.join( sorted(v) ) if v else '-'
+    if isinstance( v, float ):
+        return '%g'%v
+    return str(v)
+
+def _print_table( entries, args ):
+    #NB: Rows are never truncated (no data should be lost), except for the
+    #free-text description column which is shortened to fit if possible.
+    if not entries:
+        print('No matching files found.')
+        return
+    cols = args.columns
+    header = [ 'NAME' ] + [ c.upper() for c in cols ]
+    rows = [ [ e.display_name ] + [ _table_value(e,c) for c in cols ]
+             for e in entries ]
+    def width( k ):
+        return max( len(r[k]) for r in rows + [header] )
+    if 'description' in cols:
+        kd = 1 + cols.index('description')
+        other = sum( width(k) + 2 for k in range(len(header)) if k != kd )
+        room = max( 20, _linewidth() - other )
+        for r in rows:
+            r[kd] = _truncate( r[kd], room )
+    widths = [ width(k) for k in range(len(header)) ]
+    def fmt( r ):
+        return '  '.join( ( v.ljust(w) if k==0 or cols[k-1]=='description'
+                            else v.rjust(w) )
+                          for k,(v,w) in enumerate(zip(r,widths)) ).rstrip()
+    print( fmt(header) )
+    for r in rows:
+        print( fmt(r) )
 
 def _strip_empty( lines ):
     lines = list( lines or [] )
@@ -400,6 +487,16 @@ def main( progname, arglist ):
         browsePlugins( dump = True )
         return
     items = _collect( args )
+    if args.sort:
+        from .browse import sort_entries
+        items = sort_entries( items, args.sort, reverse = args.reverse )
+    if args.json:
+        import json
+        print( json.dumps( [ i.as_dict() for i in items ], indent = 1 ) )
+        return
+    if args.table:
+        _print_table( items, args )
+        return
     if args.names:
         for i in items:
             print( i.display_name )
