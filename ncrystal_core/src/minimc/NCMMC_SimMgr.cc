@@ -259,38 +259,48 @@ NCMMC::SimMgr::Impl::launchSim( ThreadCount nthreads, std::uint64_t seed)
     workers_threads.reserve( worker_functions.size() );
     NCRYSTAL_DEBUGMMCMSG( "In main thread "<<std::this_thread::get_id()
                           <<" about to launch worker threads." );
-    for ( auto& workfct : worker_functions ) {
-      workers_threads.push_back(std::thread([&workfct,
-                                             bmgr_copy,
-                                             &thread_exception,
-                                             &thread_exception_mtx]()
-      {
-        std::exception_ptr err_ptr;
-        try {
-          NCRYSTAL_DEBUGMMCMSG( "Work in thread "<<std::this_thread::get_id()
-                                <<" begins");
-          workfct();
-          NCRYSTAL_DEBUGMMCMSG( "Work in thread "<<std::this_thread::get_id()
-                                <<" ends");
-        } catch (...) {
-          err_ptr = std::current_exception();
-        }
-        if ( err_ptr ) {
-          //First of all, halt everything to wind down other threads:
-          NCRYSTAL_DEBUGMMCMSG( "Exception detected in thread "
-                                <<std::this_thread::get_id()
-                                <<". Halting source.");
-          bmgr_copy->haltError();
-          //Now move exception to shared location (in case multiple threads
-          //store something, we will just rethrow the first of them)
-          NCRYSTAL_LOCK_GUARD(thread_exception_mtx);
-          if (!thread_exception)
-            thread_exception = std::move(err_ptr);
-          NCRYSTAL_DEBUGMMCMSG( "Work in thread "<<std::this_thread::get_id()
-                                <<" ends after exception");
+    try {
+      for ( auto& workfct : worker_functions ) {
+        workers_threads.push_back(std::thread([&workfct,
+                                               bmgr_copy,
+                                               &thread_exception,
+                                               &thread_exception_mtx]()
+        {
+          std::exception_ptr err_ptr;
+          try {
+            NCRYSTAL_DEBUGMMCMSG( "Work in thread "<<std::this_thread::get_id()
+                                  <<" begins");
+            workfct();
+            NCRYSTAL_DEBUGMMCMSG( "Work in thread "<<std::this_thread::get_id()
+                                  <<" ends");
+          } catch (...) {
+            err_ptr = std::current_exception();
+          }
+          if ( err_ptr ) {
+            //First of all, halt everything to wind down other threads:
+            NCRYSTAL_DEBUGMMCMSG( "Exception detected in thread "
+                                  <<std::this_thread::get_id()
+                                  <<". Halting source.");
+            bmgr_copy->haltError();
+            //Now move exception to shared location (in case multiple threads
+            //store something, we will just rethrow the first of them)
+            NCRYSTAL_LOCK_GUARD(thread_exception_mtx);
+            if (!thread_exception)
+              thread_exception = std::move(err_ptr);
+            NCRYSTAL_DEBUGMMCMSG( "Work in thread "<<std::this_thread::get_id()
+                                  <<" ends after exception");
 
-        }
-      }));
+          }
+        }));
+      }
+    } catch (...) {
+      //Could not launch all threads (e.g. std::system_error). Halt and
+      //join those already running before rethrowing, since destroying
+      //joinable std::thread objects would terminate the process:
+      bmgr_copy->haltError();
+      for ( auto& t : workers_threads )
+        t.join();
+      throw;
     }
 
     //join threads:
