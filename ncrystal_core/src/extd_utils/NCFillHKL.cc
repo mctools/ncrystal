@@ -148,21 +148,39 @@ namespace NCRYSTAL_NAMESPACE {
 namespace NCRYSTAL_NAMESPACE {
   namespace {
     constexpr const double fsquarecut_lowest_possible_value = 1.0e-300;
-  }
-  namespace detail {
-    HKLList calculateHKLPlanesWithSymEqRefl( const StructureInfo&,
-                                             const AtomInfoList&,
-                                             FillHKLCfg,
-                                             bool no_forceunitdebyewallerfactor );
+
+    [[noreturn]] void throwCombinatoricsTooGreat( double dcutoff )
+    {
+      NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach"
+                      " dcutoff = "<<dcutoff<<" Aa (you can try"
+                      " to increase the target value with the dcutoff"
+                      " parameter)");
+    }
+
+    //For now we allow selection of a particular hkl value via an env var (a
+    //hacky workarond required for certain validation plots - we should support
+    //this in NCMatCfg instead):
+    Optional<HKL> selectedHKLFromEnv()
+    {
+      Optional<HKL> res;
+      std::string selecthklcfg = ncgetenv("FILLHKL_SELECTHKL");
+      if ( !selecthklcfg.empty() ) {
+        VectS parts;
+        split(parts,selecthklcfg,0,',');
+        nc_assert_always(parts.size()==3);
+        res = HKL( str2int(parts.at(0)),
+                   str2int(parts.at(1)),
+                   str2int(parts.at(2)) );
+      }
+      return res;
+    }
 
     struct PreCalc {
       SmallVector<SmallVector<Vector,32>,4> atomic_pos;//atomic coordinates
       SmallVectD csl;//coherent scattering length
       SmallVectD msd;//mean squared displacement
-      SmallVectD cache_factors;
       int max_h, max_k, max_l;
       SmallVectD whkl_thresholds;
-      SmallVectD whkl;
       PairDD ksq_preselect_interval;
       PairDD dcut_interval;
     };
@@ -196,7 +214,6 @@ namespace NCRYSTAL_NAMESPACE {
 
       nc_assert_always(res.msd.size()==res.atomic_pos.size());
       nc_assert_always(res.msd.size()==res.csl.size());
-      res.cache_factors.resize(res.csl.size(),0.0);
 
       //cache some thresholds for efficiency (see locations where it is used
       //for more comments):
@@ -207,8 +224,6 @@ namespace NCRYSTAL_NAMESPACE {
         else
           res.whkl_thresholds.push_back(kInfinity);//use inf when not true that fsqcut^2 << fsq
       }
-
-      res.whkl.resize(res.msd.size(),1.0);//init with unit factors in case of forceunitdebyewallerfactor
 
       auto clampNormal = [](double x)
       {
@@ -224,151 +239,74 @@ namespace NCRYSTAL_NAMESPACE {
       res.dcut_interval = { clampNormal(cfg.dcutoff), clampNormal(cfg.dcutoffup) };
       return res;
     }
-  }
-}
 
-NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
-                                    const AtomInfoList& atomList,
-                                    FillHKLCfg cfg )
-{
-  if ( atomList.empty() )
-    NCRYSTAL_THROW(BadInput,"calculateHKLPlanes needs a non-empty AtomInfoList");
-  for ( auto& ai : atomList ) {
-    if ( !ai.msd().has_value() ) {
-      //NB: strictly not needed if coherent scat len of that entry is vanishing,
-      //but for now we keep the requirement of always needing msd just to be
-      //consistent (we could reconsider this):
-      NCRYSTAL_THROW(BadInput,"calculateHKLPlanes needs an AtomInfoList"
-                     " which includes mean-squared-displacements of all atoms");
-    }
-  }
+    class FSquaredCalc {
+      //Calculates |F|^2 for HKL points. First call setKSq with the squared
+      //length of the wave vector (i.e. the d-spacing) of the HKL point(s),
+      //which updates the Debye-Waller factors, and then call calc(..) for any
+      //number of HKL points with that ksq value (e.g. symmetry-equivalent
+      //ones).
+    public:
+      FSquaredCalc( const PreCalc& pc, double fsquarecut,
+                    bool no_forceunitdebyewallerfactor )
+        : m_pc(pc),
+          m_fsquarecut(fsquarecut),
+          m_use_dw(no_forceunitdebyewallerfactor)
+      {
+        m_cache_factors.resize(m_pc.csl.size(),0.0);
+        //init with unit factors in case of forceunitdebyewallerfactor:
+        m_whkl.resize(m_pc.msd.size(),1.0);
+      }
 
-  nc_assert_always(cfg.dcutoff>0.0&&cfg.dcutoff<cfg.dcutoffup);
+      bool empty() const { return m_whkl.empty(); }//all elements have bcoh=0?
 
-  const bool env_ignorefsqcut = ncgetenv_bool("FILLHKL_IGNOREFSQCUT");
-  if (env_ignorefsqcut)
-    cfg.fsquarecut = 0.0;
-
-  if ( cfg.fsquarecut>=0.0 )
-    cfg.fsquarecut = ncmax(cfg.fsquarecut,fsquarecut_lowest_possible_value);
-
-  bool no_forceunitdebyewallerfactor;
-  if ( cfg.use_unit_debye_waller_factor.has_value() ) {
-    //Caller requested behaviour:
-    no_forceunitdebyewallerfactor = ! cfg.use_unit_debye_waller_factor.value();
-  } else {
-    //Fall-back to global default behaviour (which can be modified with env
-    //var for historic reasons):
-    no_forceunitdebyewallerfactor = !(ncgetenv_bool("FILLHKL_FORCEUNITDEBYEWALLERFACTOR"));
-  }
-
-  if ( structureInfo.spacegroup != 0 )
-    return detail::calculateHKLPlanesWithSymEqRefl( structureInfo,
-                                                    atomList,
-                                                    std::move(cfg),
-                                                    no_forceunitdebyewallerfactor );
-
-  //For now we allow selection of a particular hkl value via an env var (a hacky
-  //workarond required for certain validation plots - we should support this in
-  //NCMatCfg instead).
-  bool do_select = false;
-  int select_h(0),select_k(0),select_l(0);
-  std::string selecthklcfg = ncgetenv("FILLHKL_SELECTHKL");
-  if (!selecthklcfg.empty()) {
-    do_select = true;
-    VectS parts;
-    split(parts,selecthklcfg,0,',');
-    nc_assert_always(parts.size()==3);
-    select_h = str2int(parts.at(0));
-    select_k = str2int(parts.at(1));
-    select_l = str2int(parts.at(2));
-  }
-
-  const RotMatrix rec_lat = getReciprocalLatticeRot( structureInfo );
-
-  auto cache = detail::fillHKLPreCalc( structureInfo, atomList, cfg);
-
-  //We now conduct a brute-force loop over h,k,l indices, adding calculated info
-  //in the following containers along the way:
-
-  //Breaking O(N^2) complexity in compatibility searches by using map (the key
-  //is an integer composed from Fsquared and d-spacing, and although clashes are
-  //allowed, it should only clash rarely or efficiency is compromised):
-
-  HKLList hkllist;
-  if ( cache.whkl.empty() )
-    return hkllist;//all elements have bcoh=0?
-
-#ifdef NCRYSTAL_NCMAT_USE_MEMPOOL
-  MemPool pool(10000000);
-  MemPoolAllocator<void> poolalloc(&pool);
-  FamMap fsq2hklidx(poolalloc);
-#else
-  FamMap fsq2hklidx;
-#endif
-
-  for( int loop_h=0;loop_h<=cache.max_h;++loop_h ) {
-    for( int loop_k=(loop_h?-cache.max_k:0);loop_k<=cache.max_k;++loop_k ) {
-      for( int loop_l=-cache.max_l;loop_l<=cache.max_l;++loop_l ) {
-        const Vector hkl(loop_h,loop_k,loop_l);
-
-        //calculate waveVector, wave number and dspacing:
-        Vector waveVector = rec_lat*hkl;
-        const double ksq = waveVector.mag2();
-        if ( !valueInInterval(cache.ksq_preselect_interval,ksq))
-          continue;
-
-        if (no_forceunitdebyewallerfactor) nclikely {
-          fillHKL_getWhkl(cache.whkl, ksq, cache.msd);
+      //Returns false if |F|^2 is guaranteed to be below fsquarecut:
+      bool setKSq( double ksq )
+      {
+        if (m_use_dw) nclikely {
+          fillHKL_getWhkl(m_whkl, ksq, m_pc.msd);
         }
-
-        //calculate |F|^2
         double real_or_imag_upper_limit(0.0);
-        for( unsigned i=0; i < cache.whkl.size(); ++i ) {
-          if ( cache.whkl[i] > cache.whkl_thresholds[i]) {
-            cache.cache_factors[i] = 0.0;
+        for( unsigned i=0; i < m_whkl.size(); ++i ) {
+          if ( m_whkl[i] > m_pc.whkl_thresholds[i]) {
+            m_cache_factors[i] = 0.0;
             continue;//Abort early to save exp/cos/sin calls. Note that
                      //O(fsquarecut) here corresponds to O(fsquarecut^2)
                      //contributions to final FSquared - for which we demand
                      //>fsquarecut below. We only do this when fsquarecut<1e-2
                      //(see calculations for whkl_thresholds above).
           } else {
-            double factor = cache.csl[i]*std::exp(-cache.whkl[i]);
-            cache.cache_factors[i] = factor;
-            //Assuming cos(phase)*factor=sin(phase)*factor=|factor| gives us a cheap upper limit on
-            //fsquared:
-            real_or_imag_upper_limit += cache.atomic_pos[i].size()*ncabs( factor );
+            double factor = m_pc.csl[i]*std::exp(-m_whkl[i]);
+            m_cache_factors[i] = factor;
+            //Assuming cos(phase)*factor=sin(phase)*factor=|factor| gives us a
+            //cheap upper limit on fsquared:
+            real_or_imag_upper_limit += m_pc.atomic_pos[i].size()*ncabs( factor );
           }
         }
-
         //If the upper limit on fsq is below fsquarecut, we can skip already and
         //avoid needless calculations further down:
-        if(real_or_imag_upper_limit*real_or_imag_upper_limit*2.0<cfg.fsquarecut)
-          continue;
+        return !(real_or_imag_upper_limit*real_or_imag_upper_limit*2.0<m_fsquarecut);
+      }
 
-        if ( loop_h==0 && loop_k==0 && loop_l<=0)
-          continue;
-
-        if ( do_select && (loop_h!=select_h||loop_k!=select_k||loop_l!=select_l) )
-            continue;
-
+      double calc( const Vector& hkl ) const
+      {
         //Time to calculate phases and sum up contributions. Use numerically
         //stable summation, for better results on low-symmetry crystals (the
         //main cost here is anyway the phase calculations, not the summation):
         StableSum real, imag;
-        for( unsigned i=0 ; i < cache.whkl.size(); ++i ) {
-          double factor = cache.cache_factors[i];
+        for( unsigned i=0 ; i < m_whkl.size(); ++i ) {
+          double factor = m_cache_factors[i];
           if (!factor)
             continue;
           StableSum cpsum, spsum;
-          for ( auto& pos : cache.atomic_pos[i] ) {
-            //Phase is hkl.dot(pos)*2pi. We speed up the expensive
-            //calculation of sin+cos by a factor of 3 by shifting the phase to
-            //[0,2pi] (easily done by simply NOT multiplying with 2pi) and using
-            //our own fast sincos_02pi through sincos_2pix. Since typically 99%
-            //of the hkl initialisation time is spent calculating sin+cos here,
-            //that actually translates into an overall speedup of a factor of 3
-            //(measured in NCrystal v2.7.0)!
+          for ( auto& pos : m_pc.atomic_pos[i] ) {
+            //Phase is hkl.dot(pos)*2pi. We speed up the expensive calculation
+            //of sin+cos by a factor of 3 by shifting the phase to [0,2pi]
+            //(easily done by simply NOT multiplying with 2pi) and using our
+            //own fast sincos_02pi through sincos_2pix. Since typically 99% of
+            //the hkl initialisation time is spent calculating sin+cos here,
+            //that actually translates into an overall speedup of a factor of
+            //3 (measured in NCrystal v2.7.0)!
             const double phase_div2pi = hkl.dot(pos);
             auto spcp = sincos_2pix(phase_div2pi);
             cpsum.add(spcp.cos);
@@ -377,76 +315,146 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
           real.add(cpsum.sum() * factor);
           imag.add(spsum.sum() * factor);
         }
+        return ncsquare( real.sum() ) + ncsquare( imag.sum() );
+      }
 
-        const double FSquared = ncsquare( real.sum() ) + ncsquare( imag.sum() );
+      //Upper limit on |F|^2 (all contributions in phase, no Debye-Waller
+      //factors):
+      double fsquaredUpperLimit() const
+      {
+        double f = 0.0;
+        for ( auto i : ncrange( m_pc.csl.size() ) )
+          f += ncabs( m_pc.csl[i] ) * m_pc.atomic_pos[i].size();
+        return ncsquare( f );
+      }
 
-        //skip weak or impossible reflections:
-        if(FSquared<cfg.fsquarecut)
-          continue;
+    private:
+      const PreCalc& m_pc;
+      double m_fsquarecut;
+      bool m_use_dw;
+      SmallVectD m_cache_factors;
+      SmallVectD m_whkl;
+    };
 
-        //Calculate d-spacing and recheck cut:
-        const double kval = std::sqrt( ksq );
-        const double invkval = 1.0 / kval;
-        const double dspacing = k2Pi * invkval;
+    HKLList calculateHKLPlanesNoSym( const StructureInfo& structureInfo,
+                                     const AtomInfoList& atomList,
+                                     const FillHKLCfg& cfg,
+                                     bool no_forceunitdebyewallerfactor,
+                                     bool env_ignorefsqcut )
+    {
+      //Without space group, planes are grouped into families by (FSquared,
+      //dspacing) values.
+      const Optional<HKL> do_select = selectedHKLFromEnv();
+      const RotMatrix rec_lat = getReciprocalLatticeRot( structureInfo );
+      const auto precalc = fillHKLPreCalc( structureInfo, atomList, cfg );
+      FSquaredCalc fsqcalc( precalc, cfg.fsquarecut,
+                            no_forceunitdebyewallerfactor );
 
-        if ( !valueInInterval( cache.dcut_interval, dspacing ) )
-          continue;
+      HKLList hkllist;
+      if ( fsqcalc.empty() )
+        return hkllist;//all elements have bcoh=0?
 
-        //Key for our fsq2hklidx multimap:
-        FamKeyType searchkey(keygen(FSquared,dspacing));
+      //Breaking O(N^2) complexity in compatibility searches by using map (the
+      //key is an integer composed from Fsquared and d-spacing, and although
+      //clashes are allowed, it should only clash rarely or efficiency is
+      //compromised):
+#ifdef NCRYSTAL_NCMAT_USE_MEMPOOL
+      MemPool pool(10000000);
+      MemPoolAllocator<void> poolalloc(&pool);
+      FamMap fsq2hklidx(poolalloc);
+#else
+      FamMap fsq2hklidx;
+#endif
 
-        FamMap::iterator itSearchLB = fsq2hklidx.lower_bound(searchkey);
-        FamMap::iterator itSearch(itSearchLB), itSearchE(fsq2hklidx.end());
-        bool isnewfamily = true;
-        for ( ; itSearch!=itSearchE && itSearch->first == searchkey; ++itSearch ) {
-          nc_assert(itSearch->second<hkllist.size());
-          HKLInfo& hi = hkllist[itSearch->second];
-          if ( ncabs(FSquared-hi.fsquared) < cfg.merge_tolerance*(FSquared+hi.fsquared )
-               && ncabs(dspacing-hi.dspacing) < cfg.merge_tolerance*(dspacing+hi.dspacing ) )
-            {
-              //Compatible with existing family, simply add HKL point to it.
-              hi.multiplicity += 2;
-              nc_assert(hi.explicitValues->list.has_value<std::vector<HKL>>());
-              hi.explicitValues->list.get<std::vector<HKL>>().emplace_back(loop_h,loop_k,loop_l);
-              isnewfamily = false;
-              break;
+      //Brute-force loop over h,k,l indices (skipping half, since (h,k,l) and
+      //(-h,-k,-l) are always in the same family):
+      for( int loop_h=0;loop_h<=precalc.max_h;++loop_h ) {
+        for( int loop_k=(loop_h?-precalc.max_k:0);loop_k<=precalc.max_k;++loop_k ) {
+          for( int loop_l=-precalc.max_l;loop_l<=precalc.max_l;++loop_l ) {
+            if ( loop_h==0 && loop_k==0 && loop_l<=0)
+              continue;
+
+            const Vector hkl(loop_h,loop_k,loop_l);
+
+            //calculate waveVector, wave number and dspacing:
+            Vector waveVector = rec_lat*hkl;
+            const double ksq = waveVector.mag2();
+            if ( !valueInInterval(precalc.ksq_preselect_interval,ksq))
+              continue;
+
+            if ( !fsqcalc.setKSq( ksq ) )
+              continue;
+
+            if ( do_select.has_value()
+                 && !( HKL(loop_h,loop_k,loop_l) == do_select.value() ) )
+              continue;
+
+            const double FSquared = fsqcalc.calc( hkl );
+
+            //skip weak or impossible reflections:
+            if(FSquared<cfg.fsquarecut)
+              continue;
+
+            //Calculate d-spacing and recheck cut:
+            const double dspacing = k2Pi / std::sqrt( ksq );
+
+            if ( !valueInInterval( precalc.dcut_interval, dspacing ) )
+              continue;
+
+            //Key for our fsq2hklidx multimap:
+            FamKeyType searchkey(keygen(FSquared,dspacing));
+
+            FamMap::iterator itSearchLB = fsq2hklidx.lower_bound(searchkey);
+            FamMap::iterator itSearch(itSearchLB), itSearchE(fsq2hklidx.end());
+            bool isnewfamily = true;
+            for ( ; itSearch!=itSearchE && itSearch->first == searchkey; ++itSearch ) {
+              nc_assert(itSearch->second<hkllist.size());
+              HKLInfo& hi = hkllist[itSearch->second];
+              if ( ncabs(FSquared-hi.fsquared) < cfg.merge_tolerance*(FSquared+hi.fsquared )
+                   && ncabs(dspacing-hi.dspacing) < cfg.merge_tolerance*(dspacing+hi.dspacing ) )
+                {
+                  //Compatible with existing family, simply add HKL point to it.
+                  hi.multiplicity += 2;
+                  nc_assert(hi.explicitValues->list.has_value<std::vector<HKL>>());
+                  hi.explicitValues->list.get<std::vector<HKL>>().emplace_back(loop_h,loop_k,loop_l);
+                  isnewfamily = false;
+                  break;
+                }
             }
-        }
-        if (isnewfamily) {
-          //Not fitting in existing group, set up new.
-          if ( hkllist.size()>1000000 && !env_ignorefsqcut )//guard against crazy setups
-            NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach"
-                            " dcutoff = "<<cfg.dcutoff<<" Aa (you can try"
-                            " to increase the target value with the dcutoff"
-                            " parameter)");
-          HKLInfo hi;
-          hi.hkl = HKL{ loop_h, loop_k, loop_l };
-          hi.multiplicity = 2;
-          hi.fsquared = FSquared;
-          hi.dspacing = dspacing;
-          hi.explicitValues = ncmake_unique<HKLInfo::ExplicitVals>();
-          hi.explicitValues->list.emplace<std::vector<HKL>>();
-          hi.explicitValues->list.get<std::vector<HKL>>().reserve(24);//shrinked below
-          hi.explicitValues->list.get<std::vector<HKL>>().emplace_back(loop_h,loop_k,loop_l);
-          fsq2hklidx.insert(itSearchLB,FamMap::value_type(searchkey,hkllist.size()));
-          hkllist.emplace_back(std::move(hi));
-        }
-      }//loop_l
-    }//loop_k
-  }//loop_h
+            if (isnewfamily) {
+              //Not fitting in existing group, set up new.
+              if ( hkllist.size()>1000000 && !env_ignorefsqcut )//guard against crazy setups
+                throwCombinatoricsTooGreat( cfg.dcutoff );
+              HKLInfo hi;
+              hi.hkl = HKL{ loop_h, loop_k, loop_l };
+              hi.multiplicity = 2;
+              hi.fsquared = FSquared;
+              hi.dspacing = dspacing;
+              hi.explicitValues = ncmake_unique<HKLInfo::ExplicitVals>();
+              hi.explicitValues->list.emplace<std::vector<HKL>>();
+              hi.explicitValues->list.get<std::vector<HKL>>().reserve(24);//shrinked below
+              hi.explicitValues->list.get<std::vector<HKL>>().emplace_back(loop_h,loop_k,loop_l);
+              fsq2hklidx.insert(itSearchLB,FamMap::value_type(searchkey,hkllist.size()));
+              hkllist.emplace_back(std::move(hi));
+            }
+          }//loop_l
+        }//loop_k
+      }//loop_h
 
-  //Sort explicit HKL entries and use first as representative index:
-  for ( auto& hi : hkllist ) {
-    auto& v = hi.explicitValues->list.get<std::vector<HKL>>();
-    std::sort(v.begin(),v.end());
-    v.shrink_to_fit();
-    hi.hkl = v.front();
+      //Sort explicit HKL entries and use first as representative index:
+      for ( auto& hi : hkllist ) {
+        auto& v = hi.explicitValues->list.get<std::vector<HKL>>();
+        std::sort(v.begin(),v.end());
+        v.shrink_to_fit();
+        hi.hkl = v.front();
+      }
+
+      //NB: Not sorting by dspace (InfoBuilder will anyway do it and it is
+      //slightly complicated to do consistently).
+      hkllist.shrink_to_fit();
+      return hkllist;
+    }
   }
-
-  //NB: Not sorting by dspace (InfoBuilder will anyway do it and it is slightly
-  //complicated to do consistently).
-  hkllist.shrink_to_fit();
-  return hkllist;
 }
 
 namespace NCRYSTAL_NAMESPACE {
@@ -505,10 +513,7 @@ namespace NCRYSTAL_NAMESPACE {
         //Ultimate fallback:
         auto it_and_inserted = m_seenFallBack.insert(v);
         if ( m_seenFallBack.size() == 100000000 && m_dcutoff != -1.0 )
-          NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach"
-                          " dcutoff = "<<m_dcutoff<<" Aa (you can try"
-                          " to increase the target value with the dcutoff"
-                          " parameter)");
+          throwCombinatoricsTooGreat( m_dcutoff );
         return it_and_inserted.second;
       }
 
@@ -542,203 +547,183 @@ namespace NCRYSTAL_NAMESPACE {
   }
 }
 
-NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& structureInfo,
-                                                         const AtomInfoList& atomList,
-                                                         FillHKLCfg cfg,
-                                                         bool no_forceunitdebyewallerfactor )
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+    HKLList calculateHKLPlanesWithSymEqRefl( const StructureInfo& structureInfo,
+                                             const AtomInfoList& atomList,
+                                             const FillHKLCfg& cfg,
+                                             bool no_forceunitdebyewallerfactor,
+                                             bool env_ignorefsqcut )
+    {
+      nc_assert_always(structureInfo.spacegroup!=0);
+      //Caller sets fsquarecut to 0.0 and then clamps it:
+      nc_assert( !env_ignorefsqcut
+                 || cfg.fsquarecut <= fsquarecut_lowest_possible_value );
+
+      const RotMatrix rec_lat = getReciprocalLatticeRot( structureInfo );
+      EqRefl sym( structureInfo.spacegroup,
+                  usesRhombohedralAxes( structureInfo.spacegroup,
+                                        structureInfo.alpha ) );
+      auto sym_findrepval = [&sym]( int hh, int kk, int ll )
+      {
+        //NB: Tried to get eqv hkl with smallest min(|h|,|k|,|l|) instead to
+        //avoid using the large cache in symSeenTracker, but profiling showed
+        //this to cause a slowdown of 50% over the entire data library (in both
+        //rel and dbg builds!).
+        return sym.getEquivalentReflectionsRepresentativeValue(hh,kk,ll);
+      };
+
+      SymHKLSeenTracker symSeenTracker( env_ignorefsqcut ? -1.0 : cfg.dcutoff );
+
+      //Make sure to always skip the (0,0,0) group:
+      symSeenTracker.isFirstCheck(sym_findrepval(0,0,0));
+
+      Optional<HKL> do_select = selectedHKLFromEnv();
+      if ( do_select.has_value() ) {
+        do_select = sym_findrepval( do_select.value().h,
+                                    do_select.value().k,
+                                    do_select.value().l );
+        //Pure efficiency improvement, mark *some* of the other values as
+        //already seen (not all, due to the std::set fallback in
+        //symSeenTrackar):
+        symSeenTracker.optimiseForSelection( do_select.value() );
+      }
+
+      const auto precalc = fillHKLPreCalc( structureInfo, atomList, cfg );
+      FSquaredCalc fsqcalc( precalc, cfg.fsquarecut,
+                            no_forceunitdebyewallerfactor );
+
+      HKLList hkllist;
+      if ( fsqcalc.empty() )
+        return hkllist;//all elements have bcoh=0?
+
+      //Self-check that the structure has the symmetry assumed by EqRefl for
+      //the space group, by calculating F2 for all planes of groups with low
+      //hkl indices. Differences above 1% (or tiny F2) indicate e.g. a wrong
+      //space group:
+      const double f2max = fsqcalc.fsquaredUpperLimit();
+      constexpr int symcheck_maxhkl = 4;
+
+      //We now conduct a brute-force loop over h,k,l indices, adding calculated
+      //info in the following containers along the way. For reasons of symmetry
+      //we ignore roughly half (but not all since the sym_key's might have sign
+      //flips).
+
+      for( int loop_h = 0 ; loop_h <= precalc.max_h; ++loop_h ) {
+        for( int loop_k = (loop_h?-precalc.max_k:0); loop_k <= precalc.max_k; ++loop_k ) {
+          for( int loop_l = -precalc.max_l; loop_l <= precalc.max_l; ++loop_l ) {
+
+            auto sym_key = sym_findrepval( loop_h, loop_k, loop_l );
+            if (!symSeenTracker.isFirstCheck(sym_key))
+              continue;//Already seen this sym_key once.
+
+            //calculate waveVector at the cost of a matrix multiplication, and
+            //preselect on its squared magnitude:
+            const Vector hkl(sym_key.h,sym_key.k,sym_key.l);
+            Vector waveVector = rec_lat*hkl;
+            const double ksq = waveVector.mag2();
+            if ( ! valueInInterval( precalc.ksq_preselect_interval , ksq ) )
+              continue;
+
+            if ( !fsqcalc.setKSq( ksq ) )
+              continue;
+
+            const double FSquared = fsqcalc.calc( hkl );
+
+            //skip weak or impossible reflections:
+            if(FSquared<cfg.fsquarecut)
+              continue;
+
+            //Calculate d-spacing and recheck cut:
+            const double dspacing = k2Pi / std::sqrt( ksq );
+
+            if ( !valueInInterval( precalc.dcut_interval, dspacing ) )
+              continue;
+
+            if ( do_select.has_value() && !(sym_key == do_select.value()) )
+              continue;
+
+            if ( hkllist.size()> 1000000 && !env_ignorefsqcut )//guard against crazy setups
+              throwCombinatoricsTooGreat( cfg.dcutoff );
+
+            if ( hkllist.size() == decltype(hkllist)::nsmall+1 )
+              hkllist.reserve_hint( 4096 );
+
+            hkllist.emplace_back();
+            auto& entry = hkllist.back();
+            entry.dspacing = dspacing;
+            entry.fsquared = FSquared;
+            auto sym_list = sym.getEquivalentReflections( sym_key );
+            entry.hkl = sym_list.front();
+            entry.multiplicity = sym_list.size() * 2;
+            if ( std::abs(sym_key.h) <= symcheck_maxhkl
+                 && std::abs(sym_key.k) <= symcheck_maxhkl
+                 && std::abs(sym_key.l) <= symcheck_maxhkl ) {
+              for ( auto& e : sym_list ) {
+                const double f2 = fsqcalc.calc( Vector( e.h, e.k, e.l ) );
+                if ( ncabs( f2 - FSquared ) > 0.01*ncmax( FSquared, 1e-4*f2max ) )
+                  NCRYSTAL_THROW2(BadInput,"Crystal structure is not consistent"
+                                  " with space group "<<structureInfo.spacegroup
+                                  <<" (the planes "<<sym_key.h<<","<<sym_key.k
+                                  <<","<<sym_key.l<<" and "<<e.h<<","<<e.k<<","
+                                  <<e.l<<" should be symmetry-equivalent but"
+                                  " have |F|^2 values of "<<FSquared<<" and "
+                                  <<f2<<" barn)");
+              }
+            }
+          }//loop_l
+        }//loop_k
+      }//loop_h
+
+      //NB: Not sorting by dspace (InfoBuilder will anyway do it and it is
+      //slightly complicated to do consistently).
+
+      hkllist.shrink_to_fit();
+      return hkllist;
+    }
+  }
+}
+
+NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
+                                    const AtomInfoList& atomList,
+                                    FillHKLCfg cfg )
 {
-  nc_assert_always(structureInfo.spacegroup!=0);
-
-  const bool env_ignorefsqcut = ncgetenv_bool("FILLHKL_IGNOREFSQCUT");
-  //Caller sets fsquarecut to 0.0 and then clamps it:
-  nc_assert( !env_ignorefsqcut
-             || cfg.fsquarecut <= fsquarecut_lowest_possible_value );
-
-  const RotMatrix rec_lat = getReciprocalLatticeRot( structureInfo );
-  EqRefl sym( structureInfo.spacegroup,
-              usesRhombohedralAxes( structureInfo.spacegroup,
-                                    structureInfo.alpha ) );
-  auto sym_findrepval = [&sym]( int hh, int kk, int ll )
-  {
-    //NB: Tried to get eqv hkl with smallest min(|h|,|k|,|l|) instead to avoid
-    //using the large cache in symSeenTracker, but profiling showed this to
-    //cause a slowdown of 50% over the entire data library (in both rel and dbg
-    //builds!).
-    return sym.getEquivalentReflectionsRepresentativeValue(hh,kk,ll);
-  };
-
-  SymHKLSeenTracker symSeenTracker( env_ignorefsqcut ? -1.0 : cfg.dcutoff );
-
-  //Make sure to always skip the (0,0,0) group:
-  symSeenTracker.isFirstCheck(sym_findrepval(0,0,0));
-
-  //For now we allow selection of a particular hkl value via an env var (a hacky
-  //workarond required for certain validation plots - we should support this in
-  //NCMatCfg instead).
-  Optional<HKL> do_select;
-  std::string selecthklcfg = ncgetenv("FILLHKL_SELECTHKL");
-  if ( !selecthklcfg.empty() ) {
-    VectS parts;
-    split(parts,selecthklcfg,0,',');
-    nc_assert_always(parts.size()==3);
-    do_select = sym_findrepval( str2int(parts.at(0)),
-                                str2int(parts.at(1)),
-                                str2int(parts.at(2)) );
-    //Pure efficiency improvement, mark *some* of the other values as already
-    //seen (not all, due to the std::set fallback in symSeenTrackar):
-    symSeenTracker.optimiseForSelection( do_select.value() );
+  if ( atomList.empty() )
+    NCRYSTAL_THROW(BadInput,"calculateHKLPlanes needs a non-empty AtomInfoList");
+  for ( auto& ai : atomList ) {
+    if ( !ai.msd().has_value() ) {
+      //NB: strictly not needed if coherent scat len of that entry is vanishing,
+      //but for now we keep the requirement of always needing msd just to be
+      //consistent (we could reconsider this):
+      NCRYSTAL_THROW(BadInput,"calculateHKLPlanes needs an AtomInfoList"
+                     " which includes mean-squared-displacements of all atoms");
+    }
   }
 
-  auto cache = detail::fillHKLPreCalc( structureInfo, atomList, cfg);
+  nc_assert_always(cfg.dcutoff>0.0&&cfg.dcutoff<cfg.dcutoffup);
 
-  HKLList hkllist;
-  if ( cache.whkl.empty() )
-    return hkllist;//all elements have bcoh=0?
-  //hkllist.reserve( 4096 );
+  const bool env_ignorefsqcut = ncgetenv_bool("FILLHKL_IGNOREFSQCUT");
+  if (env_ignorefsqcut)
+    cfg.fsquarecut = 0.0;
 
-  //Calculate |F|^2 for a given hkl, using cache.cache_factors (which only
-  //depend on the d-spacing, so are the same for symmetry-equivalent hkl):
-  auto calcFSquared = [&cache]( const Vector& hkl )
-  {
-    //Use numerically stable summation, for better results on low-symmetry
-    //crystals (the main cost here is anyway the phase calculations, not the
-    //summation):
-    StableSum real, imag;
-    for( unsigned i=0 ; i < cache.whkl.size(); ++i ) {
-      double factor = cache.cache_factors[i];
-      if (!factor)
-        continue;
-      StableSum cpsum, spsum;
-      for ( auto& pos : cache.atomic_pos[i] ) {
-        //Phase is hkl.dot(pos)*2pi. We speed up the expensive calculation of
-        //sin+cos by a factor of 3 by shifting the phase to [0,2pi] (easily
-        //done by simply NOT multiplying with 2pi) and using our own fast
-        //sincos_02pi through sincos_2pix. Since typically 99% of the hkl
-        //initialisation time is spent calculating sin+cos here, that actually
-        //translates into an overall speedup of a factor of 3 (measured in
-        //NCrystal v2.7.0)!
-        const double phase_div2pi = hkl.dot(pos);
-        auto spcp = sincos_2pix(phase_div2pi);
-        cpsum.add(spcp.cos);
-        spsum.add(spcp.sin);
-      }
-      real.add(cpsum.sum() * factor);
-      imag.add(spsum.sum() * factor);
-    }
-    return ncsquare( real.sum() ) + ncsquare( imag.sum() );
-  };
+  if ( cfg.fsquarecut>=0.0 )
+    cfg.fsquarecut = ncmax(cfg.fsquarecut,fsquarecut_lowest_possible_value);
 
-  //Self-check that the structure has the symmetry assumed by EqRefl for the
-  //space group, by calculating F2 for all planes of groups with low hkl
-  //indices. Differences above 1% (or tiny F2) indicate e.g. a wrong space
-  //group:
-  double f2max = 0.0;//upper limit on F2 (all contributions in phase):
-  for ( auto i : ncrange( cache.csl.size() ) )
-    f2max += ncabs( cache.csl[i] ) * cache.atomic_pos[i].size();
-  f2max = ncsquare( f2max );
-  constexpr int symcheck_maxhkl = 4;
+  bool no_forceunitdebyewallerfactor;
+  if ( cfg.use_unit_debye_waller_factor.has_value() ) {
+    //Caller requested behaviour:
+    no_forceunitdebyewallerfactor = ! cfg.use_unit_debye_waller_factor.value();
+  } else {
+    //Fall-back to global default behaviour (which can be modified with env
+    //var for historic reasons):
+    no_forceunitdebyewallerfactor = !(ncgetenv_bool("FILLHKL_FORCEUNITDEBYEWALLERFACTOR"));
+  }
 
-  //We now conduct a brute-force loop over h,k,l indices, adding calculated info
-  //in the following containers along the way. For reasons of symmetry we ignore
-  //roughly half (but not all since the sym_key's might have sign flips).
-
-  for( int loop_h = 0 ; loop_h <= cache.max_h; ++loop_h ) {
-    for( int loop_k = (loop_h?-cache.max_k:0); loop_k <= cache.max_k; ++loop_k ) {
-      for( int loop_l = -cache.max_l; loop_l <= cache.max_l; ++loop_l ) {
-
-        auto sym_key = sym_findrepval( loop_h, loop_k, loop_l );
-        if (!symSeenTracker.isFirstCheck(sym_key))
-          continue;//Already seen this sym_key once.
-
-        //calculate waveVector at the cost of a matrix multiplication, and
-        //preselect on its squared magnitude:
-        const Vector hkl(sym_key.h,sym_key.k,sym_key.l);
-        Vector waveVector = rec_lat*hkl;
-        const double ksq = waveVector.mag2();
-        if ( ! valueInInterval( cache.ksq_preselect_interval , ksq ) )
-          continue;
-
-        if (no_forceunitdebyewallerfactor) nclikely {
-          fillHKL_getWhkl( cache.whkl, ksq, cache.msd);
-        }
-
-        //calculate |F|^2
-        double real_or_imag_upper_limit(0.0);
-        for( unsigned i=0; i < cache.whkl.size(); ++i ) {
-          if ( cache.whkl[i] > cache.whkl_thresholds[i]) {
-            cache.cache_factors[i] = 0.0;
-            continue;//Abort early to save exp/cos/sin calls. Note that
-                     //O(fsquarecut) here corresponds to O(fsquarecut^2)
-                     //contributions to final FSquared - for which we demand
-                     //>fsquarecut below. We only do this when fsquarecut<1e-2
-                     //(see calculations for whkl_thresholds above).
-          } else {
-            double factor = cache.csl[i]*std::exp(-cache.whkl[i]);
-            cache.cache_factors[i] = factor;
-            //Assuming cos(phase)*factor=sin(phase)*factor=|factor| gives us a cheap upper limit on
-            //fsquared:
-            real_or_imag_upper_limit += cache.atomic_pos[i].size()*ncabs( factor );
-          }
-        }
-
-        //If the upper limit on fsq is below fsquarecut, we can skip already and
-        //avoid needless calculations further down:
-        if(real_or_imag_upper_limit*real_or_imag_upper_limit*2.0<cfg.fsquarecut)
-          continue;
-
-        const double FSquared = calcFSquared( hkl );
-
-        //skip weak or impossible reflections:
-        if(FSquared<cfg.fsquarecut)
-          continue;
-
-        //Calculate d-spacing and recheck cut:
-        const double dspacing = k2Pi / std::sqrt( ksq );
-
-        if ( !valueInInterval( cache.dcut_interval, dspacing ) )
-          continue;
-
-        if ( do_select.has_value() && !(sym_key == do_select.value()) )
-            continue;
-
-        if ( hkllist.size()> 1000000 && !env_ignorefsqcut )//guard against crazy setups
-          NCRYSTAL_THROW2(CalcError,"Combinatorics too great to reach"
-                          " dcutoff = "<<cfg.dcutoff<<" Aa (you can try"
-                          " to increase the target value with the dcutoff"
-                          " parameter)");
-
-        if ( hkllist.size() == decltype(hkllist)::nsmall+1 )
-          hkllist.reserve_hint( 4096 );
-
-        hkllist.emplace_back();
-        auto& entry = hkllist.back();
-        entry.dspacing = dspacing;
-        entry.fsquared = FSquared;
-        auto sym_list = sym.getEquivalentReflections( sym_key );
-        entry.hkl = sym_list.front();
-        entry.multiplicity = sym_list.size() * 2;
-        if ( std::abs(sym_key.h) <= symcheck_maxhkl
-             && std::abs(sym_key.k) <= symcheck_maxhkl
-             && std::abs(sym_key.l) <= symcheck_maxhkl ) {
-          for ( auto& e : sym_list ) {
-            const double f2 = calcFSquared( Vector( e.h, e.k, e.l ) );
-            if ( ncabs( f2 - FSquared ) > 0.01*ncmax( FSquared, 1e-4*f2max ) )
-              NCRYSTAL_THROW2(BadInput,"Crystal structure is not consistent"
-                              " with space group "<<structureInfo.spacegroup
-                              <<" (the planes "<<sym_key.h<<","<<sym_key.k
-                              <<","<<sym_key.l<<" and "<<e.h<<","<<e.k<<","
-                              <<e.l<<" should be symmetry-equivalent but"
-                              " have |F|^2 values of "<<FSquared<<" and "
-                              <<f2<<" barn)");
-          }
-        }
-      }//loop_l
-    }//loop_k
-  }//loop_h
-
-  //NB: Not sorting by dspace (InfoBuilder will anyway do it and it is slightly
-  //complicated to do consistently).
-
-  hkllist.shrink_to_fit();
-  return hkllist;
+  if ( structureInfo.spacegroup != 0 )
+    return calculateHKLPlanesWithSymEqRefl( structureInfo, atomList, cfg,
+                                            no_forceunitdebyewallerfactor,
+                                            env_ignorefsqcut );
+  return calculateHKLPlanesNoSym( structureInfo, atomList, cfg,
+                                  no_forceunitdebyewallerfactor,
+                                  env_ignorefsqcut );
 }
