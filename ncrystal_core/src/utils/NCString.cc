@@ -341,10 +341,24 @@ NC::PairSS NC::decomposeStrWithTrailingDigits( const std::string& ss )
 #if ( defined(_WIN32) || defined(WIN32) )
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
-#  include "NCFileUtilsWin.hh"
 #endif
 
 namespace NCRYSTAL_NAMESPACE {
+
+#if ( defined(_WIN32) || defined(WIN32) )
+  //Forward declarations of the UTF-8<->UTF-16 conversion helpers defined in
+  //the sibling NCFileUtilsWin.cc (same component/dep.txt scope), reused
+  //below rather than duplicated. Deliberately not routed via a shared
+  //header (not even the private NCFileUtilsWin.hh next to that .cc): this
+  //keeps the exposed surface of Windows-specific utility code to a bare
+  //minimum, since these two functions are needed by only this one other
+  //file:
+  namespace details {
+    std::wstring winimpl_str2wstr( const std::string& );
+    std::string winimpl_wstr2str( const std::wstring& );
+  }
+#endif
+
   namespace {
 
 #if ( defined(_WIN32) || defined(WIN32) )
@@ -368,11 +382,11 @@ namespace NCRYSTAL_NAMESPACE {
     //value (e.g. a path containing accented or CJK characters) -- NCrystal's
     //convention is UTF-8 for all strings everywhere, converting to/from
     //the native encoding only at the fileutils boundary. Reusing
-    //WinFileUtils::winimpl_str2wstr/winimpl_wstr2str (NCFileUtilsWin.cc)
-    //for that conversion rather than duplicating it here:
+    //details::winimpl_str2wstr/winimpl_wstr2str (NCFileUtilsWin.cc) for
+    //that conversion rather than duplicating it here:
     Optional<std::string> platform_getenv( const char* name )
     {
-      const std::wstring name_w = WinFileUtils::winimpl_str2wstr( name );
+      const std::wstring name_w = details::winimpl_str2wstr( name );
       const DWORD needed = GetEnvironmentVariableW( name_w.c_str(), nullptr, 0 );
       if ( needed == 0 )
         return NullOpt;//unset (or, rarely, a genuine API error -- treated the same)
@@ -382,7 +396,7 @@ namespace NCRYSTAL_NAMESPACE {
       if ( written == 0 )
         return NullOpt;
       buf.resize( written );
-      return WinFileUtils::winimpl_wstr2str( buf );
+      return details::winimpl_wstr2str( buf );
     }
 #else
     Optional<std::string> platform_getenv( const char* name )

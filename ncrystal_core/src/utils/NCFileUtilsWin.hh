@@ -27,14 +27,6 @@
 namespace NCRYSTAL_NAMESPACE {
 
   namespace WinFileUtils {
-    //UTF-8 <-> UTF-16 conversion (via MultiByteToWideChar/WideCharToMultiByte
-    //with CP_UTF8), needed whenever a native wide-string Win32 API must be
-    //fed or read from NCrystal's usual UTF-8 strings. Exposed here (rather
-    //than kept file-local) so other code in this component (e.g. the
-    //GetEnvironmentVariableW-based env var lookup in NCString.cc) can reuse
-    //it instead of duplicating the conversion:
-    std::wstring winimpl_str2wstr( const std::string& );
-    std::string winimpl_wstr2str( const std::wstring& );
     bool file_exists( const std::string& );
     std::ifstream open_ifstream_from_path( const std::string&,
                                            std::ios_base::openmode
