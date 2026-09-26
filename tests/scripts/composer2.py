@@ -75,6 +75,75 @@ def main():
     c.load().dump()
 
 
+def test_verify_origin_and_triclinic():
+    #verify_crystal_structure must not reject valid structures just because
+    #spglib standardises with a different origin (arbitrary for P1 and polar
+    #space groups) or to a different (reduced) triclinic basis:
+    print('\n\n  ================> verify_crystal_structure\n\n')
+    def verify( cell, atoms, sg ):
+        c = NC.NCMATComposer()
+        a, b, cc, al, be, ga = cell
+        c.set_cellsg( a=a, b=b, c=cc, alpha=al, beta=be, gamma=ga,
+                      spacegroup = sg )
+        c.set_atompos( atoms )
+        c.allow_fallback_dyninfo()
+        c.verify_crystal_structure( quiet = True )
+    tricl = (5.1,6.3,7.2,81,97,103)#mixed acute/obtuse angles
+    p1 = [('Al',0.13,0.71,0.29),('O',0.62,0.05,0.93),('Fe',0.41,0.38,0.57)]
+    verify( tricl, p1, 1 )
+    pm1 = [('Al',0.1,0.2,0.3),('Al',0.9,0.8,0.7),
+           ('O',0.35,0.05,0.6),('O',0.65,0.95,0.4)]
+    verify( tricl, pm1, 2 )
+    p = 4.05/2**0.5 #cell where spglib keeps the basis but shifts the origin:
+    verify( (p,p,p,60,60,60), [('Ni',0.0424,0.8626,0.7802),
+                               ('Al',0.0126,0.2354,0.7916)], 1 )
+    fcc = [('Al',0,0,0),('Al',0,.5,.5),('Al',.5,0,.5),('Al',.5,.5,0)]
+    verify( (4.05,)*3+(90,)*3,
+            [ (e,(x+.123)%1,(y+.456)%1,(z+.789)%1) for e,x,y,z in fcc ], 225 )
+    print('Valid structures verified OK')
+    #Wrong space groups must still be rejected:
+    for cell, atoms, sg in ( ( tricl, p1, 2 ),
+                             ( (4.05,)*3+(90,)*3, fcc, 229 ) ):
+        with ensure_error(NC.NCBadInput):
+            verify( cell, atoms, sg )
+
+def test_refine_corrections():
+    #refine_crystal_structure must only report corrections when spglib
+    #actually moves atoms, not for mere basis changes (e.g. triclinic
+    #reduction, primitive to centred cells) or origin shifts. Anisotropic
+    #properties can only be kept if the basis is unchanged.
+    print('\n\n  ================> refine corrections\n\n')
+    from NCrystalDev._ncmatimpl import _spglib_refine_cell
+    def refine( cell, atoms ):
+        c = NC.NCMATComposer()
+        a, b, cc, al, be, ga = cell
+        c.set_cellsg( a=a, b=b, c=cc, alpha=al, beta=be, gamma=ga )
+        c.set_atompos( atoms )
+        d = _spglib_refine_cell( c.as_spglib_cell()[0] )
+        return d['sgno'], d['warnings'], d['can_keep_anisotropic_properties']
+    p = 4.05/2**0.5
+    fcc = [('Al',0,0,0),('Al',0,.5,.5),('Al',.5,0,.5),('Al',.5,.5,0)]
+    for descr, cell, atoms, expect in (
+            ( 'P1, triclinic basis change', (5.1,6.3,7.2,81,97,103),
+              [('Al',0.13,0.71,0.29),('O',0.62,0.05,0.93),
+               ('Fe',0.41,0.38,0.57)], (1,[],False) ),
+            ( 'P1, repeated reductions', (p,p,p,60,60,60),
+              [('Al',0.24,0.54,0.38),('O',0.62,0.06,0.94),
+               ('Fe',0.40,0.83,0.11)], (1,[],False) ),
+            ( 'Imm2, from primitive cell', (p,p,p,60,60,60),
+              [('Al',.3,.1,.7),('O',.9,.5,.2)], (44,[],False) ),
+            ( 'fcc, shifted origin', (4.05,)*3+(90,)*3,
+              [ (e,(x+.1)%1,(y+.2)%1,(z+.3)%1) for e,x,y,z in fcc ],
+              (225,[],True) ),
+            ( 'fcc, displaced atom', (4.05,)*3+(90,)*3,
+              [('Al',0.001,0,0)]+fcc[1:],
+              (225,[('Structure received minor corrections by spglib'
+                     ' (at the 0.1% level)')],True) ) ):
+        res = refine( cell, atoms )
+        print(f'{descr}: SG-{res[0]} warnings={res[1]} keep_aniso={res[2]}')
+        assert res == expect, (descr,res)
 
 if __name__ == '__main__':
     main()
+    test_verify_origin_and_triclinic()
+    test_refine_corrections()

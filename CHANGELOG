@@ -87,6 +87,15 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * NCMATComposer.refine_crystal_structure (and thus cif2ncmat) now
+       compares structures in the same basis when spglib transforms the
+       unit cell (e.g. triclinic reduction, primitive to centred cells),
+       so it no longer reports bogus "major corrections" in such cases.
+     * NCMATComposer.verify_crystal_structure no longer rejects valid
+       triclinic structures in a non-reduced basis (e.g. all P1 cells with
+       mixed acute/obtuse angles) or structures where spglib merely picks a
+       different origin. The latter is also no longer reported as "major
+       corrections" by refine_crystal_structure (and thus cif2ncmat).
      * SiO2-beta_sg180_BetaQuartz.ncmat: symmetrise O z-coordinates to exact
        1/2, 1/6, 5/6 (were based on a rounded .8333). Negligible physics
        impact (coherent elastic cross sections change by <3e-5).

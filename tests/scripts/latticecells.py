@@ -268,11 +268,8 @@ def other_settings( cellpars, atoms ):
                                           symprec = 1e-5 )
     nl = spglib.niggli_reduce( cell[0] )
     npos = [ np.array(p) @ cell[0] @ np.linalg.inv(nl) for p in cell[1] ]
-    #NB: No spacegroup for P1, since the NCMATComposer's spglib verification
-    #does not allow for the arbitrary origin of such structures:
     for vname, vl, vp, vn, sg in ( ( 'std', ds.std_lattice, ds.std_positions,
-                                     ds.std_types,
-                                     ds.number if ds.number != 1 else None ),
+                                     ds.std_types, ds.number ),
                                    ( 'prim', pl, pp, pn, None ),
                                    ( 'niggli', nl, npos, cell[2], None ) ):
         vatoms = [ ( num2elem[int(n)], )+tuple( float(x)%1.0 for x in p )

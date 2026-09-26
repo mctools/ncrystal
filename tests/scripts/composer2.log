@@ -287,3 +287,21 @@ ProcComposition(4 components, isotropic)
 >>> Absorption process (object tree):
 
 AbsOOV(sigma_2200=0.231barn)
+
+
+  ================> verify_crystal_structure
+
+
+Valid structures verified OK
+Caught expected NCBadInput('Failed to verify crystal structure with spglib. Expected SG-2, got SG-1 (P1).')
+Caught expected NCBadInput('Failed to verify crystal structure with spglib. Expected SG-229, got SG-225 (Fm-3m).')
+
+
+  ================> refine corrections
+
+
+P1, triclinic basis change: SG-1 warnings=[] keep_aniso=False
+P1, repeated reductions: SG-1 warnings=[] keep_aniso=False
+Imm2, from primitive cell: SG-44 warnings=[] keep_aniso=False
+fcc, shifted origin: SG-225 warnings=[] keep_aniso=True
+fcc, displaced atom: SG-225 warnings=['Structure received minor corrections by spglib (at the 0.1% level)'] keep_aniso=True

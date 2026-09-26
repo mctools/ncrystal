@@ -28,6 +28,7 @@ Internal implementation details for NCMAT utilities in ncmat.py
 __all__ = []
 import copy
 import math
+from itertools import product as _itertools_product
 
 from . import _common as _nc_common
 from . import core as _nc_core
@@ -742,6 +743,10 @@ class NCMATComposerImpl:
         else:
             if sgnumber != d['sgno']:
                 raise _nc_core.NCBadInput(f'Failed to verify crystal structure with spglib. Expected SG-{sgnumber}, got SG-{d["sgno"]} ({d["sgsymb_hm"]}).')
+            if sgnumber in (1,2):
+                #Triclinic: any basis is valid (spglib would standardise to a
+                #reduced cell), and detecting the space group is sufficient.
+                return
             rdl = _reldiff_cellparams( cellsg, d['cellparams_snapped'] )
             rda = _reldiff_atompos( spglib_cell, d['refined_cell'] )
             #rd = None if (rdl is None or rda is None) else max(rdl,rda)
@@ -1801,7 +1806,9 @@ def _reldiff_cellparams( c1, c2 ):
 
 def _reldiff_atompos( spglib_cell1, spglib_cell2 ):
     #input in spglib cell format, returns largest dist between positions, or
-    #None if not the same type+number of atoms.
+    #None if not the same type+number of atoms. A common translation of all
+    #positions (i.e. a different choice of origin, which is arbitrary for
+    #e.g. P1 or polar space groups) is not considered a difference.
 
     for c in ( spglib_cell1, spglib_cell2 ):
         assert c is not None
@@ -1814,36 +1821,82 @@ def _reldiff_atompos( spglib_cell1, spglib_cell2 ):
     if sorted(idxlist1) != sorted(idxlist2) or len(idxlist1)!=len(idxlist2):
         return None
 
-    def calc_maxdistsq( l1, l2 ):
-        n = len(l1)
-        assert n == len(l2)
+    def calc_maxdistsq( l1, l2, shift, abort_above ):
+        #Max over l1 (shifted) of the squared distance to the nearest point in
+        #l2. Returns None as soon as it is known to be above abort_above.
         distsqmax = 0.0
         for e1 in l1:
-            dsqmin_e1 = None
-            for e2 in l2:
-                _ = _unit_cell_point_distsq(e1,e2)
-                if dsqmin_e1 is None or _ < dsqmin_e1:
-                    dsqmin_e1 = _
-                    if _ == 0.0:
-                        break
-            assert dsqmin_e1 is not None
+            e1 = ( e1[0]+shift[0], e1[1]+shift[1], e1[2]+shift[2] )
+            dsqmin_e1 = min( _unit_cell_point_distsq(e1,e2) for e2 in l2 )
+            if abort_above is not None and dsqmin_e1 > abort_above:
+                return None
             distsqmax = max( dsqmin_e1, distsqmax )
         return distsqmax
 
-    max_distsq_seen = None
+    bytype = {}
     for idx in sorted(set(idxlist1)):
-        def fixp( p ):
-            return (_remap_fract_pos(p[0]),
-                    _remap_fract_pos(p[1]),
-                    _remap_fract_pos(p[2]))
-        l1 = sorted( fixp(p) for i,p in zip(idxlist1,allpos1) if i == idx )#nb: fragile sort order!
-        l2 = sorted( fixp(p) for i,p in zip(idxlist2,allpos2) if i == idx )#nb: fragile sort order!
-        d = calc_maxdistsq( l1, l2 )
-        if d is None:
-            return None
-        if max_distsq_seen is None or d > max_distsq_seen:
-            max_distsq_seen = d
-    return math.sqrt(max_distsq_seen) if max_distsq_seen is not None else None
+        bytype[idx] = tuple(
+            [ tuple(float(x) for x in p) for i,p in zip(idxlist,allpos)
+              if i == idx ] for idxlist, allpos in ( (idxlist1,allpos1),
+                                                     (idxlist2,allpos2) ) )
+    #Candidate shifts: those mapping one atom of the least abundant type onto
+    #an atom of the same type:
+    l1r, l2r = min( bytype.values(), key = lambda ll : len(ll[0]) )
+    best = None
+    for q in l2r:
+        shift = tuple( e2-e1 for e1,e2 in zip(l1r[0],q) )
+        worst = 0.0
+        for l1, l2 in bytype.values():
+            d = calc_maxdistsq( l1, l2, shift, best )
+            if d is None:
+                break
+            worst = max( worst, d )
+        else:
+            if best is None or worst < best:
+                best = worst
+    return math.sqrt(best) if best is not None else None
+
+def _spglib_std_transform( spglib_cell, symprec ):
+    #Get the transformation (P,p,centring translations) used by spglib to
+    #standardise a cell (x_std = P.x + p), or None if it can not be handled
+    #(e.g. a supercell as input).
+    from ._numpy import _ensure_numpy
+    np = _ensure_numpy()
+    ds = _import_spglib().get_symmetry_dataset( spglib_cell, symprec = symprec )
+    if not ds:
+        return None
+    def get( k ):
+        return getattr( ds, k ) if hasattr( ds, k ) else ds[k]
+    P = np.asarray( get('transformation_matrix'), dtype = float )
+    p = np.asarray( get('origin_shift'), dtype = float )
+    detinv = abs( np.linalg.det( np.linalg.inv( P ) ) )
+    ncentr = round( detinv )
+    if ncentr < 1 or abs( detinv - ncentr ) > 1e-6:
+        return None
+    #Lattice points of the input lattice inside the standard cell:
+    centr = []
+    for n in _itertools_product( range(ncentr), repeat = 3 ):
+        t = ( P @ np.asarray(n,dtype=float) ) % 1.0
+        if not any( _unit_cell_point_distsq(t,c) < 1e-12 for c in centr ):
+            centr.append( t )
+    if len(centr) != ncentr:
+        return None
+    return P, p, centr
+
+def _spglib_apply_std_transform( spglib_cell, transform ):
+    #Express cell in the basis and origin given by the transformation.
+    from ._numpy import _ensure_numpy
+    np = _ensure_numpy()
+    P, p, centr = transform
+    lattice, positions, types = spglib_cell
+    pos, typ = [], []
+    for x, i in zip( positions, types ):
+        xs = P @ np.asarray( x, dtype = float ) + p
+        for t in centr:
+            pos.append( tuple( float(e) for e in (xs+t) % 1.0 ) )
+            typ.append( i )
+    lattice_std = np.linalg.inv( P ).T @ np.asarray( lattice, dtype = float )
+    return lattice_std, pos, typ
 
 def _import_spglib( *, sysexit = False ):
     try:
@@ -1922,16 +1975,26 @@ def _spglib_refine_cell( spglib_cell, symprec = 0.01 ):
     p_orig = _lattice_vectors_to_params( *spglib_cell[0], as_dict = True )
 
     warnings, msgs = [], []
-    refined_cell, symdata = _impl_spglib_refine_cell( spglib_cell, symprec=symprec, warnings=warnings, msgs=msgs )
+    trackinfo = { 'cell' : spglib_cell, 'same_basis' : True }
+    refined_cell, symdata = _impl_spglib_refine_cell( spglib_cell, symprec=symprec, warnings=warnings, msgs=msgs, trackinfo = trackinfo )
 
-    #check difference from first to final, to warn/msg about corrections:
+    #check difference from first to final, to warn/msg about corrections
+    #(comparing in the same basis, since spglib might transform the cell):
     p_final = _lattice_vectors_to_params( *refined_cell[0], as_dict = True )
     _,p_final = _snap_lattice_params( p_final )
     sgno, sgsymb_hm = _spglib_extractsg( symdata )
+    cell_cmp, same_basis = trackinfo['cell'], trackinfo['same_basis']
+    if cell_cmp is None:
+        cell_cmp = spglib_cell#could not track, compare as-is
+    else:
+        p_orig = _lattice_vectors_to_params( *cell_cmp[0], as_dict = True )
     rdl = _reldiff_cellparams( p_orig, p_final )
-    rda = _reldiff_atompos( spglib_cell, refined_cell )
+    rda = _reldiff_atompos( cell_cmp, refined_cell )
     rd = None if (rdl is None or rda is None) else max(rdl,rda)
-    discard_aniso = False
+    #Anisotropic properties refer to the original axes:
+    discard_aniso = not same_basis
+    if not same_basis:
+        msgs.append('Unit cell was transformed to the standard setting by spglib')
     if rd is None or rd > 1e-2:
         discard_aniso = True
         _ = 'possibly due to conversion from primitive cell' if rd is None else f'at the {100.0*rd:g}% level'
@@ -1957,10 +2020,22 @@ def _spglib_refine_cell( spglib_cell, symprec = 0.01 ):
              'msgs': msgs,
              'can_keep_anisotropic_properties': not discard_aniso }
 
-def _impl_spglib_refine_cell( spglib_cell, *, symprec, warnings, msgs, nrepeat = 0 ):
+def _impl_spglib_refine_cell( spglib_cell, *, symprec, warnings, msgs,
+                              trackinfo, nrepeat = 0 ):
+    #trackinfo['cell'] is the original cell, which is transformed along with
+    #spglib_cell (so it can be compared with the final cell in the same basis).
     spglib = _import_spglib()
 
     orig_cell = spglib_cell
+    if trackinfo['cell'] is not None:
+        tr = _spglib_std_transform( orig_cell, symprec )
+        if tr is None:
+            trackinfo['cell'] = None
+        else:
+            trackinfo['cell'] = _spglib_apply_std_transform( trackinfo['cell'],
+                                                             tr )
+            trackinfo['same_basis'] = ( trackinfo['same_basis']
+                                        and _np_is_identity( tr[0] ) )
 
     orig_cell_copy = copy.deepcopy( orig_cell )#copy is just a safeguard
     refined_cell = spglib.standardize_cell( orig_cell_copy, symprec = symprec )
@@ -1978,10 +2053,15 @@ def _impl_spglib_refine_cell( spglib_cell, *, symprec, warnings, msgs, nrepeat =
         warnings += snaplog[:]
         refined_cell = tuple( [ _cellparams_to_spglib_lattice( p ) ] + list(refined_cell[1:]) )
         if nrepeat <= 3:
-            return _impl_spglib_refine_cell( refined_cell, symprec = symprec, warnings=warnings, msgs=msgs, nrepeat = nrepeat + 1 )
+            return _impl_spglib_refine_cell( refined_cell, symprec = symprec, warnings=warnings, msgs=msgs, trackinfo = trackinfo, nrepeat = nrepeat + 1 )
 
     return refined_cell, symdata
 
+
+def _np_is_identity( m ):
+    #nb: spglib transformation matrices can have tiny numerical noise
+    return all( abs( m[i][j] - (1.0 if i==j else 0.0) ) < 1e-9
+                for i in range(3) for j in range(3) )
 
 def _remap_fract_pos_pt(xyz):
     return ( _remap_fract_pos(xyz[0]),
