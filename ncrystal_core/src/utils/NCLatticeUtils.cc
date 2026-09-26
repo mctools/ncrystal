@@ -267,9 +267,19 @@ void NC::checkAndCompleteLatticeAngles( unsigned sg, double& alpha, double& beta
     gamma = 120;
     return;
   case Monoclinic:
+    //Only the setting with unique axis b is supported (in particular by the
+    //EqRefl class, which assumes it):
+    if ( ( alpha>0 && alpha!=90 ) || ( gamma>0 && gamma!=90 ) )
+      NCRYSTAL_THROW2(BadInput,"Spacegroup ("<<sg<<") requires alpha=gamma=90"
+                      " (only monoclinic settings with unique axis b are"
+                      " supported)");
+    if ( !( beta>0 && beta<180 ) )
+      NCRYSTAL_THROW2(BadInput,"Spacegroup ("<<sg<<") requires beta to be"
+                      " set (and to a value < 180).");
+    alpha = gamma = 90;
+    return;
   case Triclinic:
-    //Although we might be able to do something more specific, we will for now.
-    //simply require all three angles to be set with values <180
+    //Simply require all three angles to be set with values <180
     if ( !( alpha>0 && alpha<180 ) || !( beta>0 && beta<180 ) || !( gamma>0 && gamma<180 ) )
       NCRYSTAL_THROW2(BadInput,"Spacegroup ("<<sg<<") requires all three angles to be set (and to values < 180).");
     return;

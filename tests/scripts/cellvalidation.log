@@ -2,3 +2,6 @@ SG-191 with gamma=120: loaded with gamma=120
 Caught expected NCBadInput('Spacegroup (191) requires alpha=beta=90 and gamma=120')
 Caught expected NCBadInput('Spacegroup (191) requires alpha=beta=90 and gamma=120')
 Caught expected NCBadInput('Spacegroup (191) requires alpha=beta=90 and gamma=120')
+SG-4 with unique axis b: loaded with beta=100
+Caught expected NCBadInput('Spacegroup (4) requires alpha=gamma=90 (only monoclinic settings with unique axis b are supported)')
+Caught expected NCBadInput('Spacegroup (4) requires alpha=gamma=90 (only monoclinic settings with unique axis b are supported)')

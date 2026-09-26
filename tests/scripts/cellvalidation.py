@@ -55,8 +55,22 @@ def test_hexagonal_angles():
                            ' and gamma=120' ):
             load( '3 3 5', f'90 90 {gamma}', 191, [('Al','0 0 0')] )
 
+def test_monoclinic_angles():
+    #Only monoclinic settings with unique axis b are supported (others were
+    #once accepted, but with wrong symmetry-equivalent reflections):
+    atoms = [('Al','0.1 0.2 0.3'),('Al','0.9 0.7 0.7')]
+    si = load( '5 6 7', '90 100 90', 4, atoms ).structure_info
+    print(f'SG-4 with unique axis b: loaded with beta={si["beta"]:g}')
+    for angles in ( '90 90 100', '100 90 90' ):
+        with ensure_error( NC.NCBadInput,
+                           'Spacegroup (4) requires alpha=gamma=90 (only'
+                           ' monoclinic settings with unique axis b are'
+                           ' supported)' ):
+            load( '5 6 7', angles, 4, atoms )
+
 def main():
     test_hexagonal_angles()
+    test_monoclinic_angles()
 
 if __name__ == '__main__':
     main()
