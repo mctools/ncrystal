@@ -208,9 +208,18 @@ function( mctools_detect_extra_cflags resvar )
       list( APPEND flags "-fp-model=precise" )
     endif()
   endif()
-  check_c_compiler_flag( "-fno-math-errno" tmp )
-  if ( tmp )
-    list( APPEND flags "-fno-math-errno" )
+  #GCC/Clang-only flag. Excluded for MSVC explicitly rather than relying on
+  #check_c_compiler_flag alone to catch it: cl.exe's "D9002: ignoring unknown
+  #option" is a driver-level warning, not a compiler diagnostic, so it is not
+  #escalated to an error by check_c_compiler_flag's usual -Werror-equivalent
+  #trick, and the check therefore reports (false) success on MSVC, silently
+  #adding a meaningless flag to every compile (confirmed via a real
+  #build_windows CI log showing exactly that D9002 warning):
+  if ( NOT "x${CMAKE_C_COMPILER_ID}" STREQUAL "xMSVC" )
+    check_c_compiler_flag( "-fno-math-errno" tmp )
+    if ( tmp )
+      list( APPEND flags "-fno-math-errno" )
+    endif()
   endif()
   set(
     "${cachevar}" "${flags}"
