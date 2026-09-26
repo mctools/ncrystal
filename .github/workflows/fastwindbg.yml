@@ -15,6 +15,7 @@ name: fastwindbg
 # Delete this file once the crash is understood/fixed.
 
 on:
+  push:
   workflow_dispatch:
 
 jobs:
