@@ -34,6 +34,19 @@ namespace NC=NCrystal;
 namespace NCRYSTAL_NAMESPACE {
   namespace VDOS {
     namespace {
+      //Temporary diagnostic: prints a fixed message from its destructor, so
+      //placing one right after a given local lets us tell -- via the order
+      //breadcrumbs stop appearing in -- whether a crash happens during that
+      //local's own destruction (this guard's dtor never runs) or only later
+      //in the unwind (this guard's dtor does run, printing, before the crash
+      //happens elsewhere):
+      struct ScopeExitMsg {
+        const char* m_msg;
+        bool m_verbose;
+        ScopeExitMsg( const char* msg, bool verbose ) : m_msg(msg), m_verbose(verbose) {}
+        ~ScopeExitMsg() { if (m_verbose) NCRYSTAL_MSG(m_msg); }
+      };
+
       struct ABRangeInfo {
         Rectangle full;
         Rectangle overlap;
@@ -84,6 +97,11 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
                               Optional<NeutronEnergy> targetEmax_requested )
 {
   static bool s_verbose = ncgetenv_bool("DEBUG_PHONON");
+  //Declared first so it destructs LAST (i.e. only once every other local in
+  //this function, including vdoseval below, has already been destroyed):
+  ScopeExitMsg scopeexit_final( "VDOS expansion: fully unwound, about to"
+                                " actually return control to caller",
+                                s_verbose );
 
   //Hidden unofficial env-vars used for special debugging purposes:
   static const bool dump_vdosabranges = ncgetenv_bool("HACK_DUMP_VDOSABRANGES");
@@ -128,6 +146,10 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
 
   //Initialise evaluators:
   VDOSEval vdoseval(vdosdata);
+  //Declared right after vdoseval, so it destructs right *before* vdoseval's
+  //own destructor runs:
+  ScopeExitMsg scopeexit_prevdoseval( "VDOS expansion: about to destroy"
+                                      " vdoseval", s_verbose );
   const double kT = vdoseval.kT();
   const double invkT = 1.0/kT;
   const double gamma0 = vdoseval.calcGamma0();
