@@ -338,11 +338,54 @@ NC::PairSS NC::decomposeStrWithTrailingDigits( const std::string& ss )
   return { ss.substr(0,nn), ss.substr(nn) };
 }
 
+#if ( defined(_WIN32) || defined(WIN32) )
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
+#endif
+
 namespace NCRYSTAL_NAMESPACE {
   namespace {
+
+#if ( defined(_WIN32) || defined(WIN32) )
+    //Deliberately using the raw Win32 GetEnvironmentVariable API here
+    //rather than std::getenv: the CRT's own environment table (which
+    //std::getenv reads from) is populated once per CRT module instance
+    //and only kept in sync by that *same* instance's own putenv/_putenv_s
+    //calls -- it does not pick up SetEnvironmentVariable changes made by
+    //a different CRT instance (confirmed to matter in practice: a
+    //Debug-built NCrystal.dll loaded into a Release-built Python
+    //interpreter -- exactly what our Windows Debug CI leg exercises --
+    //never saw an env var set via Python's os.environ, since Python's
+    //setter and this DLL's std::getenv end up backed by two different
+    //CRT modules there). GetEnvironmentVariable instead always reads the
+    //single, true, OS-maintained per-process value, independent of which
+    //CRT (if any) last wrote it:
+    Optional<std::string> platform_getenv( const char* name )
+    {
+      const DWORD needed = GetEnvironmentVariableA( name, nullptr, 0 );
+      if ( needed == 0 )
+        return NullOpt;//unset (or, rarely, a genuine API error -- treated the same)
+      std::string buf( static_cast<std::size_t>(needed), '\0' );
+      const DWORD written = GetEnvironmentVariableA( name, &buf[0],
+                                                      static_cast<DWORD>(buf.size()) );
+      if ( written == 0 )
+        return NullOpt;
+      buf.resize( written );
+      return buf;
+    }
+#else
+    Optional<std::string> platform_getenv( const char* name )
+    {
+      const char * v = std::getenv( name );
+      if ( !v )
+        return NullOpt;
+      return std::string(v);
+    }
+#endif
+
     struct GetEnvResult {
       std::string varname;
-      const char * val;
+      Optional<std::string> val;
     };
     GetEnvResult raw_getenv( std::string& v )
     {
@@ -358,7 +401,7 @@ namespace NCRYSTAL_NAMESPACE {
       res.varname = "NCRYSTAL_";
 #endif
       res.varname += v;
-      res.val = std::getenv( res.varname.c_str() );
+      res.val = platform_getenv( res.varname.c_str() );
       return res;
     }
   }
@@ -369,44 +412,44 @@ namespace NCRYSTAL_NAMESPACE {
 std::string NC::ncgetenv(std::string v, std::string defval)
 {
   auto res = raw_getenv(v);
-  return res.val ? std::string(res.val) : defval;
+  return res.val.has_value() ? res.val.value() : defval;
 }
 
 double NC::ncgetenv_dbl(std::string v, double defval )
 {
   auto res = raw_getenv(v);
-  if (!res.val)
+  if (!res.val.has_value())
     return defval;
   double result;
-  if ( !safe_str2dbl(res.val, result ) )
+  if ( !safe_str2dbl(res.val.value(), result ) )
     NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "
                     <<res.varname
                     <<" (expected a floating point number but got \""
-                    <<res.val<<"\").");
+                    <<res.val.value()<<"\").");
   return result;
 }
 
 int NC::ncgetenv_int(std::string v, int defval )
 {
   auto res = raw_getenv(v);
-  if (!res.val)
+  if (!res.val.has_value())
     return defval;
   int result;
-  if ( !safe_str2int(res.val, result ) )
+  if ( !safe_str2int(res.val.value(), result ) )
     NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<res.varname
-                    <<" (expected an integral number but got \""<<res.val<<"\").");
+                    <<" (expected an integral number but got \""<<res.val.value()<<"\").");
   return result;
 }
 
 std::int64_t NC::ncgetenv_int64(std::string v, std::int64_t defval )
 {
   auto res = raw_getenv(v);
-  if (!res.val)
+  if (!res.val.has_value())
     return defval;
   std::int64_t result;
-  if ( !safe_str2int(res.val, result ) )
+  if ( !safe_str2int(res.val.value(), result ) )
     NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "<<res.varname
-                    <<" (expected an integral number but got \""<<res.val<<"\").");
+                    <<" (expected an integral number but got \""<<res.val.value()<<"\").");
   return result;
 }
 
@@ -414,9 +457,9 @@ std::int64_t NC::ncgetenv_int64(std::string v, std::int64_t defval )
 bool NC::ncgetenv_bool(std::string v)
 {
   auto res = raw_getenv(v);
-  if (!res.val)
+  if (!res.val.has_value())
     return false;
-  std::string evs(res.val);
+  std::string evs(res.val.value());
   if (evs.size()==1) {
     if (evs[0]=='0')
       return false;
