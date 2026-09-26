@@ -87,6 +87,9 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * SiO2-beta_sg180_BetaQuartz.ncmat: symmetrise O z-coordinates to exact
+       1/2, 1/6, 5/6 (were based on a rounded .8333). Negligible physics
+       impact (coherent elastic cross sections change by <3e-5).
      * New test (latticecells.py) validating many synthetic unit cells and
        all stdlib crystals against metric-tensor calculations and spglib.
      * Fix Debug-build assertion failure when FILLHKL_IGNOREFSQCUT is set.

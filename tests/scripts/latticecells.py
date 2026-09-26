@@ -47,10 +47,6 @@ ncsetenv('FILLHKL_IGNOREFSQCUT','1')
 
 _msd = { 'Al': 0.009, 'O': 0.013, 'Fe': 0.005, 'V': 0.007, 'Ni': 0.006 }
 
-#Files with (slightly) rounded atomic positions, where the planes in a group
-#of symmetry-equivalent planes do not have exactly identical F2 values:
-_approx_symmetric_files = { 'SiO2-beta_sg180_BetaQuartz.ncmat' : 2e-3 }
-
 def metric_tensor( a, b, c, alpha, beta, gamma ):
     ca, cb, cg = ( math.cos(math.radians(x)) for x in (alpha,beta,gamma) )
     return np.array( [ [ a*a, a*b*cg, a*c*cb ],
@@ -145,7 +141,7 @@ def safe_dcutoff( cellpars, nplanes ):
             return 0.5*(d1+d2)
     raise RuntimeError('no gap found')
 
-def check_cell( name, info, dcut, f2_reltol = 1e-9 ):
+def check_cell( name, info, dcut ):
     #Checks volume, density, and every individual plane against independent
     #calculations. Returns number of planes.
     si = info.structure_info
@@ -162,7 +158,7 @@ def check_cell( name, info, dcut, f2_reltol = 1e-9 ):
     f2max = max( f2 for _,f2 in ref.values() )
     symeqv = info.hklIsSymEqvGroup()
     def f2eq( x, y ):
-        return abs( x - y ) < f2_reltol*max(1e-3*f2max,y)
+        return abs( x - y ) < 1e-9*max(1e-3*f2max,y)
     def merge_compatible( x, y ):
         #NCrystal's criterion for grouping planes into one family, when not
         #using symmetry (relative tolerance 1e-6):
@@ -386,15 +382,11 @@ def test_stdlib():
         dcut = safe_dcutoff( cellpars, 150 )
         info = load_info( NC.createTextData(f'stdlib::{fe.name}').rawData,
                           dcut )
-        f2tol = _approx_symmetric_files.get( fe.name )
-        if f2tol:
-            print(f'  NB: {fe.name} has only approximately symmetric'
-                  ' atom positions')
-        check_cell( fe.name, info, dcut, f2_reltol = f2tol or 1e-9 )
+        check_cell( fe.name, info, dcut )
         atoms = [ ( ai.atomData.displayLabel(), )+tuple(p)
                   for ai in info.atominfos for p in ai.positions ]
         ds = spglib.get_symmetry_dataset( spglib_cell( cellpars, atoms )[0],
-                                          symprec = 1e-3 if f2tol else 1e-5 )
+                                          symprec = 1e-5 )
         assert ds.number == info.structure_info['spacegroup'], fe.name
         check_symmetry_groups( fe.name, info, ds )
         n += 1
