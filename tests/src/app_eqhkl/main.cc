@@ -33,7 +33,7 @@ int main(int argc,char**argv) {
     maxhkl=10;
     show_all_equrefl = true;
   }
-  std::vector<int> sgs = {1,3,16,75,89,143,149,168,177,195,207};
+  std::vector<int> sgs = {1,3,16,75,89,143,149,150,168,177,195,207};
 
   for (unsigned isg = 0; isg<sgs.size(); ++isg) {
     int sg = sgs.at(isg);

@@ -22,19 +22,11 @@
 
 # NEEDS: numpy spglib
 
-# Validates the handling of unit cells for many synthetic cells, trigonal space
-# groups in the -31m and -3m1 Laue classes (which were once confused), and all
-# crystals in the standard data library. See also long_latticecells.py.
+# Validates the handling of unit cells (including symmetry-equivalent planes)
+# for random structures in all 230 space groups.
 
 import NCTestUtils.enable_fpe  # noqa: F401
 import NCTestUtils.latticecells as lc
 
-
-def main():
-    lc.test_synthetic()
-    lc.test_stdlib()
-    lc.test_spacegroups( ( 149, 150, 151, 152, 153, 154, 157, 156,
-                           159, 158, 162, 164, 163, 165 ) )
-
 if __name__ == '__main__':
-    main()
+    lc.test_spacegroups( range( 1, 231 ) )

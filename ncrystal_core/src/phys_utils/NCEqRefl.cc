@@ -69,9 +69,24 @@ struct NC::EqRefl::Helper {
 
   static ERL calc_Trigonal_149_167(int h, int k, int l)
   {
+    //Laue class -3m1 (and -3m for rhombohedral groups in hexagonal axes):
     ERL e; e.add(h,k,l);
     e.add(h+k,-h,-l); e.add(k,-h-k,l); e.add(k,h,-l); e.add(h+k,-k,l); e.add(h,-h-k,-l);
     return e;
+  }
+
+  static ERL calc_Trigonal_31m(int h, int k, int l)
+  {
+    //Laue class -31m (SG 149, 151, 153, 157, 159, 162, 163):
+    ERL e; e.add(h,k,l);
+    e.add(h+k,-h,-l); e.add(k,-h-k,l); e.add(k,h,l); e.add(h+k,-k,-l); e.add(h,-h-k,l);
+    return e;
+  }
+
+  static bool isTrigonal_31m( int sg )
+  {
+    return ( sg==149 || sg==151 || sg==153 || sg==157 || sg==159
+             || sg==162 || sg==163 );
   }
 
   static ERL calc_Hexagonal_168_176(int h, int k, int l)
@@ -135,7 +150,9 @@ NC::EqRefl::EqRefl(int sg)
   } else {
     if (sg<195) {
       if (sg<168)
-        m_calc = &Helper::calc_Trigonal_149_167;
+        m_calc = ( Helper::isTrigonal_31m(sg)
+                   ? &Helper::calc_Trigonal_31m
+                   : &Helper::calc_Trigonal_149_167 );
       else if (sg<177)
         m_calc = &Helper::calc_Hexagonal_168_176;
       else
