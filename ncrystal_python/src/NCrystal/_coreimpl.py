@@ -40,15 +40,19 @@ class divdos_methods:
             with NCrystal.plot.plot_vdos_Gn, and any plotkwargs are passed along
             to that function
             """
-            assert 1 <= n <= 99999 and ( nmax is None or n<=nmax<=99999 )
-            n2 = int( nmax if nmax is not None else n )
+            from .vdos import _check_gn_order, extractGn
+            n = _check_gn_order( n )
+            n2 = _check_gn_order( nmax ) if nmax is not None else n
+            if n2 < n:
+                from .exceptions import NCBadInput
+                raise NCBadInput(f'Invalid nmax={nmax!r} (must not be less'
+                                 f' than n={n})')
             from .plot import plot_vdos_Gn
-            from .vdos import extractGn
             def f(_n):
                 return extractGn( n=_n, vdos = _self, mass_amu = _self.atomData.averageMassAMU(),
                                   temperature = _self.temperature, expand_egrid = True,
                                   scatxs = 1.0 if without_xsect else _self.atomData.scatteringXS() )
-            plot_vdos_Gn( [ (list(f(i))+[i]) for i in range(int(n),n2+1) ], **plotkwargs )
+            plot_vdos_Gn( [ (list(f(i))+[i]) for i in range(n,n2+1) ], **plotkwargs )
         return plot_Gn
 
     @staticmethod
@@ -59,9 +63,8 @@ class divdos_methods:
             without_xsect is True, the result will not be multiplied by the
             bound scattering cross section.
             """
-            assert 1 <= n <= 99999
             from .vdos import extractGn as _extgn
-            return _extgn( _self, n=int(n),
+            return _extgn( _self, n=n,
                            mass_amu=_self.atomData.averageMassAMU(),
                            temperature=_self.temperature,
                            scatxs = 1.0 if without_xsect else _self.atomData.scatteringXS(),

@@ -87,6 +87,9 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Python Gn functions (extractGn, DynamicInfo.extract_Gn/plot_Gn and
+       the sjolanderGn plot option) now reject non-integral orders with an
+       NCBadInput error, instead of silently truncating them (2.5 gave G2).
      * Fix UnboundLocalError instead of NCBadInput when AnyTextData (and thus
        e.g. directLoad) is given a path to a non-existing file.
      * Exceptions in jobs run by the factory thread pool are now transferred

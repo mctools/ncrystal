@@ -1,3 +1,11 @@
+Caught expected NCBadInput('Invalid Gn order n=2.5 (must be an integer in 1..99999)')
+Caught expected NCBadInput('Invalid Gn order n=0 (must be an integer in 1..99999)')
+Caught expected NCBadInput('Invalid Gn order n=100000 (must be an integer in 1..99999)')
+Caught expected NCBadInput("Invalid Gn order n='x' (must be an integer in 1..99999)")
+Caught expected NCBadInput('Invalid Gn order n=None (must be an integer in 1..99999)')
+Caught expected NCBadInput('Invalid Gn order n=1.5 (must be an integer in 1..99999)')
+Caught expected NCBadInput('Invalid Gn order n=2.5 (must be an integer in 1..99999)')
+Caught expected NCBadInput('Invalid nmax=2 (must not be less than n=3)')
 
 --------------------------------------------------------------------------------
 Investigating "stdlib::Au_sg225.ncmat;temp=10K;comp=inelas;vdoslux=0" / Au

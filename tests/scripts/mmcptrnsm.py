@@ -64,8 +64,8 @@ def main(do_plot, do_update):
                   callback = cb )
 
     tallied_stats = res.output_metadata['tallied']
-    print('Total neutrons tallied (count):',int(tallied_stats['count']))
-    print('Total neutrons tallied (sumw):',int(tallied_stats['weight']))
+    print('Total neutrons tallied (count):',tallied_stats['count'])
+    print(f"Total neutrons tallied (sumw): {tallied_stats['weight']:.8g}")
 
     h = hist_e0_transm.to_hist1d()
     #normalise to expected sum(weight)/bin in absence of interactions:

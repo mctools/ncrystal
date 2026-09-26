@@ -81,12 +81,12 @@ def main(do_plot, do_update):
         hists[k] = h.to_hist1d()
 
     print()
-    print('Total neutrons tallied (count):',int(tallied_stats['count']))
-    print('Total neutrons tallied (sumw):',int(tallied_stats['weight']))
+    print('Total neutrons tallied (count):',tallied_stats['count'])
+    print(f"Total neutrons tallied (sumw): {tallied_stats['weight']:.8g}")
     print('Total neutrons tallied in E(fwd) hist (sumw)',
-          int(hists['e_fwd'].contents.sum()))
+          f"{hists['e_fwd'].contents.sum():.8g}")
     print('Total neutrons tallied in E(back) hist (sumw)',
-          int(hists['e_back'].contents.sum()))
+          f"{hists['e_back'].contents.sum():.8g}")
 
 
     #Find refs:

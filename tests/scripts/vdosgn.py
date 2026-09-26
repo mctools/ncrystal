@@ -24,6 +24,7 @@
 
 import mpmath
 import NCrystalDev as NC
+from NCTestUtils.common import ensure_error
 from NCTestUtils.pwlindistmoments import PWLinDistMoments
 
 mp = mpmath.mp
@@ -63,7 +64,27 @@ def test(cfgstr):
             PWLinDistMoments(mp,egrid,d).dump(7,fp_format='%.7g',title=f'G{n}')
             #di.plot_Gn(n,without_xsect=True)
 
+def test_gn_order():
+    #Non-integral orders were once silently truncated (n=2.5 gave G2):
+    info = NC.createInfo('stdlib::Al_sg225.ncmat;vdoslux=0')
+    di = info.dyninfos[0]
+    g2 = di.extract_Gn(2)
+    g2f = di.extract_Gn(2.0)
+    assert all( (a==b).all() for a,b in zip(g2,g2f) )
+    for bad in ( 2.5, 0, 100000, 'x', None ):
+        with ensure_error(NC.NCBadInput):
+            di.extract_Gn(bad)
+    import NCrystalDev.vdos as ncvdos
+    vd = ( di.vdosOrigEgrid(), di.vdosOrigDensity() )
+    with ensure_error(NC.NCBadInput):
+        ncvdos.extractGn( vd, n=1.5, mass_amu=27.0, temperature=293.15 )
+    with ensure_error(NC.NCBadInput):
+        di.plot_Gn(3,nmax=2.5)
+    with ensure_error(NC.NCBadInput):
+        di.plot_Gn(3,nmax=2)
+
 def main():
+    test_gn_order()
     PWLinDistMoments.unit_test(mp)
     import NCTestUtils.enable_testdatapath # noqa F401
     for filename in ('Au_sg225',
