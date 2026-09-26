@@ -1,0 +1,6 @@
+GaSe_sg194_GalliumSelenide.ncmat         [dcutoff=0.4]: 604 families with space group, 583 without
+AlN_sg186_AluminumNitride.ncmat          [dcutoff=0.15]: 2123 families with space group, 1913 without
+BeF2_sg152_Beryllium_Fluoride.ncmat      [dcutoff=0.3]: 1487 families with space group, 1487 without
+BaO_sg225_BariumOxide.ncmat              [dcutoff=0.35]: 137 families with space group, 83 without
+NaF_sg225_SodiumFlouride.ncmat           [dcutoff=0.19]: 401 families with space group, 189 without
+Al_sg225.ncmat                           [dcutoff=0.3]: 95 families with space group, 62 without

@@ -19,3 +19,10 @@ stdlib::PbS_sg225_LeadSulfide.ncmat;dcutoff=0.3;dcutoffup=5.0000001 : 248 HKL gr
 stdlib::PbS_sg225_LeadSulfide.ncmat;dcutoff=0.3;dcutoffup=4.9999999 : 248 HKL groups, Bragg threshold 6.854533336 Aa
 Invalid/out-of-range requests OK (6 planes with d>=1Aa)
 All OK
+==== HKL families without space group ====
+Al_sg225.ncmat (dcutoff=0.2): 4328 hkl points in 138 families (267 symmetry families, 59 with varying F2), OK
+GaSe_sg194_GalliumSelenide.ncmat (dcutoff=0.4): 5287 hkl points in 583 families (604 symmetry families, 548 with varying F2), OK
+BaO_sg225_BariumOxide.ncmat (dcutoff=0.35): 2019 hkl points in 83 families (137 symmetry families, 23 with varying F2), OK
+Al2O3_sg167_Corundum.ncmat (dcutoff=0.5): 1261 hkl points in 218 families (241 symmetry families, 211 with varying F2), OK
+UF6_sg62_UraniumHexaflouride.ncmat (dcutoff=0.8): 1718 hkl points in 502 families (502 symmetry families, 479 with varying F2), OK
+All OK

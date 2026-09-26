@@ -87,6 +87,12 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * HKL families for crystals without space group are now grouped by a
+       sort-and-sweep over d-spacing, rather than via binned map keys which
+       could split families at rounding boundaries. Buffered hkl points are
+       merged in chunks of max 16MB, roughly halving peak memory usage. The
+       d-spacing and F2 values of such families are now the averages of those
+       of their members (thus preserving the summed F2 of merged planes).
      * HKL plane generation with space group symmetry is 10-25% faster, by
        preselecting on d-spacing before symmetry lookups (identical results).
      * Info::hklListPartialCalc now rejects NaN d-spacing limits, and returns

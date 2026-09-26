@@ -59,6 +59,18 @@ namespace NCRYSTAL_NAMESPACE {
                                   // comparisons when composing hkl families
                                   // (this is only used when a space group
                                   // number is NOT available).
+    // Why 1e-6: Rounding noise between symmetry-equivalent planes reaches
+    // ~4e-11 (relative) in F2 for weak reflections near fsquarecut (d agrees
+    // to ~1e-16), so 1e-12 splits true families in 25 stdlib materials.
+    // Lower values gain almost nothing (1e-10 separates only ~30 accidental
+    // near-coincidences in the whole stdlib, with no CPU or memory effect),
+    // and families anyway get the average values of their members.
+
+    std::size_t max_buffered_points = 0;// Max hkl points buffered before they
+                                        // are merged into families (0 means
+                                        // 16MB worth). Only used when a space
+                                        // group number is NOT available, and
+                                        // mostly intended for testing.
 
     //For specialised expert usage only, all Debye Waller factors can be forced
     //to be unity. If not set, the default is false unless overridden by an

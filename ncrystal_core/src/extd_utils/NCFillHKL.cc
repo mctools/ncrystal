@@ -29,100 +29,6 @@
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
-  //map keys used during search for hkl families.
-  typedef unsigned FamKeyType;
-  FamKeyType keygen(double fsq, double dsp) {
-    //for most typical fsquared and dsp numbers, this will encode 3 significant
-    //digits of fsq and dsp and their exponents into 4 separate bit areas. In
-    //princple, the exponents could "overflow" internally for some obscure cases,
-    //but that should be so rare as to not ruin our performance (the important
-    //point is that (fsq,dsp) pairs that differ more than O(1e-3) should get
-    //different keys, but that otherwise they should almost always not):
-    nc_assert(fsq>0.0&&dsp>0.0);
-    const int exponent_fsq = std::ceil(std::log10(fsq));
-    const double mantissa_fsq = fsq * pow(10,-exponent_fsq);
-    const int exponent_dsp = std::ceil(std::log10(dsp));
-    const double mantissa_dsp = dsp * pow(10,-exponent_dsp);
-    return unsigned(mantissa_fsq*1000+0.5)*4000000
-      + unsigned(mantissa_dsp*1000+0.5)*4000
-      + ncmax(3000+exponent_fsq*30 + exponent_dsp,0) ;
-  }
-}
-
-#if ( defined(__clang__) || !defined(__GNUC__) || __GNUC__ >= 5 )
-//Use mempool in C++11 (but not gcc 4.x.y)
-#  define NCRYSTAL_NCMAT_USE_MEMPOOL
-#endif
-
-#ifdef NCRYSTAL_NCMAT_USE_MEMPOOL
-#include <stdexcept>
-#include <type_traits>
-#include <scoped_allocator>
-namespace NCRYSTAL_NAMESPACE {
-  //We use a simple expanding-only memory pool for the temporary multimap used
-  //to detect hkl families. This results in better cache locality and should
-  //hopefully reduce memory fragmentation. TODO: Consider moving this pool
-  //infrastructure to common utilities.
-  class MemPool {
-  public:
-    explicit MemPool(std::size_t s) : m_size(s), m_offset(s+1) { m_chunks.reserve(64); }
-    MemPool(MemPool const &) = delete;
-    MemPool & operator=(MemPool const &) = delete;
-    ~MemPool() { for (auto& e: m_chunks) ::operator delete(e); }
-    void deallocate(void *, std::size_t) {}//ignore
-    void * allocate(std::size_t n, std::size_t alignment)
-    {
-      nc_assert(n&&n<m_size);
-      m_offset = ((m_offset + alignment - 1) / alignment ) * alignment;//move up to alignment
-      if (m_offset + n > m_size) {//must grow
-        m_chunks.push_back(m_data = static_cast<unsigned char *>(::operator new(m_size)));
-        m_offset = 0;
-      }
-      void * result = m_data + m_offset;
-      m_offset += n;
-      return result;
-    }
-  private:
-    unsigned char * m_data;
-    std::size_t const m_size;
-    std::size_t m_offset;
-    std::vector<unsigned char*> m_chunks;
-  };
-
-  template <typename T>
-  struct MemPoolAllocator {
-    //Boiler-plate needed to make stl container use our MemPool:
-    template <typename U> friend struct MemPoolAllocator;
-    using value_type = T;
-    using pointer = T *;
-    using propagate_on_container_copy_assignment = std::true_type;
-    using propagate_on_container_move_assignment = std::true_type;
-    using propagate_on_container_swap = std::true_type;
-    explicit MemPoolAllocator(MemPool * a) : m_pool(a) {}
-    template <typename U> MemPoolAllocator(MemPoolAllocator<U> const & rhs) : m_pool(rhs.m_pool) {}
-    pointer allocate(std::size_t n)
-    {
-      return static_cast<pointer>(m_pool->allocate(n * sizeof(T), alignof(T)));
-    }
-    void deallocate(pointer /*p*/, std::size_t /*n*/)
-    {
-      //if MemPool deallocate was not no-op, we should call it here: m_pool->deallocate(p, n * sizeof(T));
-    }
-    template <typename U> bool operator==(MemPoolAllocator<U> const & rhs) const { return m_pool == rhs.m_pool; }
-    template <typename U> bool operator!=(MemPoolAllocator<U> const & rhs) const { return m_pool != rhs.m_pool; }
-  private:
-    MemPool * m_pool;
-  };
-  typedef std::multimap<FamKeyType, size_t, std::less<const FamKeyType>,
-                        std::scoped_allocator_adaptor<MemPoolAllocator<std::pair<const FamKeyType, size_t>>>> FamMap;
-}
-#else
-namespace NCRYSTAL_NAMESPACE {
-  typedef std::multimap<FamKeyType,size_t> FamMap;
-}
-#endif
-
-namespace NCRYSTAL_NAMESPACE {
   namespace {
     using SmallVectD = SmallVector<double,64>;//64 atomic positions is usually (but not always) enough.
 
@@ -336,6 +242,18 @@ namespace NCRYSTAL_NAMESPACE {
       SmallVectD m_whkl;
     };
 
+    //Estimated number of hkl points (in the half-space) with dspacing in
+    //[dcutoff,dcutoffup]: The reciprocal lattice has a density of V points
+    //per Aa^-3 (d*=1/d convention), so this is V times half the volume of the
+    //spherical shell with radii 1/dcutoffup and 1/dcutoff:
+    double estimateNHKLPoints( const StructureInfo& si, const FillHKLCfg& cfg )
+    {
+      const double kmin = 1.0 / cfg.dcutoffup;
+      const double kmax = 1.0 / cfg.dcutoff;
+      return ( 2.0 * kPi / 3.0 ) * si.volume * ( kmax*kmax*kmax
+                                                   - kmin*kmin*kmin );
+    }
+
     HKLList calculateHKLPlanesNoSym( const StructureInfo& structureInfo,
                                      const AtomInfoList& atomList,
                                      const FillHKLCfg& cfg,
@@ -343,7 +261,11 @@ namespace NCRYSTAL_NAMESPACE {
                                      bool env_ignorefsqcut )
     {
       //Without space group, planes are grouped into families by (FSquared,
-      //dspacing) values.
+      //dspacing) values. Accepted hkl points are buffered, and whenever the
+      //buffer is full (and at the end) sorted by dspacing and merged into the
+      //families in a single sweep. The grouping thus does not depend on the
+      //loop order or any binning of values, and the memory used for buffering
+      //is bounded (in practice a single buffer suffices for most crystals):
       const Optional<HKL> do_select = selectedHKLFromEnv();
       const RotMatrix rec_lat = getReciprocalLatticeRot( structureInfo );
       const auto precalc = fillHKLPreCalc( structureInfo, atomList, cfg );
@@ -354,17 +276,119 @@ namespace NCRYSTAL_NAMESPACE {
       if ( fsqcalc.empty() )
         return hkllist;//all elements have bcoh=0?
 
-      //Breaking O(N^2) complexity in compatibility searches by using map (the
-      //key is an integer composed from Fsquared and d-spacing, and although
-      //clashes are allowed, it should only clash rarely or efficiency is
-      //compromised):
-#ifdef NCRYSTAL_NCMAT_USE_MEMPOOL
-      MemPool pool(10000000);
-      MemPoolAllocator<void> poolalloc(&pool);
-      FamMap fsq2hklidx(poolalloc);
-#else
-      FamMap fsq2hklidx;
-#endif
+      struct Pt { double d; double fsq; HKL hkl; };
+      const std::size_t nbufmax = ( cfg.max_buffered_points
+                                    ? cfg.max_buffered_points
+                                    : (16u<<20) / sizeof(Pt) );
+      std::vector<Pt> pts;
+      {
+        //Reserve for the estimated number of points (the F2 cut typically
+        //removes some), or 0.5MB if the estimate is not available:
+        const double est = estimateNHKLPoints( structureInfo, cfg );
+        pts.reserve( static_cast<std::size_t>(
+                       est > 0.0
+                       ? ncmin( 1.05 * est + 64.0, double(nbufmax) )
+                       : double( std::min<std::size_t>( nbufmax,
+                                                   (1u<<19) / sizeof(Pt) ) ) ) );
+      }
+
+      //(reference dspacing, index in hkllist) of families from previous
+      //buffers, sorted by dspacing:
+      std::vector<std::pair<double,std::size_t>> famidx;
+
+      //Families are matched against the values of their first member, but
+      //finally get the average values of all members, calculated as first +
+      //mean(member-first). The differences are exact (Sterbenz lemma), so the
+      //result is in practice independent of the order of members, is exactly
+      //the common value if all members agree, and never leaves their range:
+      std::vector<PairDD> famdevsums;//(d,fsq) sums of member-first
+
+      const double tol = cfg.merge_tolerance;
+      auto isCompatible = [tol]( const Pt& p, const HKLInfo& hi )
+      {
+        return ( ncabs( p.d - hi.dspacing ) < tol * ( p.d + hi.dspacing )
+                 && ncabs( p.fsq - hi.fsquared ) < tol * ( p.fsq + hi.fsquared ) );
+      };
+
+      auto mergeBuffer = [&]( bool last )
+      {
+        std::sort( pts.begin(), pts.end(),
+                   []( const Pt& a, const Pt& b )
+                   {
+                     if ( a.d != b.d )
+                       return a.d < b.d;
+                     if ( a.fsq != b.fsq )
+                       return a.fsq < b.fsq;
+                     return a.hkl < b.hkl;
+                   } );
+        //Families created in this sweep have increasing dspacing, so those
+        //compatible in dspacing with a given point are always a suffix of
+        //hkllist, starting at iwin (which never decreases):
+        const std::size_t nfam_prev = hkllist.size();
+        std::size_t iwin = nfam_prev;
+        for ( auto& p : pts ) {
+          const std::size_t nofam = std::numeric_limits<std::size_t>::max();
+          std::size_t ifam = nofam;
+          if ( !famidx.empty() ) {
+            //Families from previous buffers first (conservative search
+            //window, isCompatible has the final say):
+            auto it = std::lower_bound( famidx.begin(), famidx.end(),
+                                        p.d * ( 1.0 - 3.0 * tol ),
+                                        []( const std::pair<double,
+                                            std::size_t>& e, double d )
+                                        { return e.first < d; } );
+            const double dmax = p.d * ( 1.0 + 3.0 * tol );
+            for ( ; it != famidx.end() && it->first <= dmax; ++it ) {
+              if ( isCompatible( p, hkllist[it->second] ) ) {
+                ifam = it->second;
+                break;
+              }
+            }
+          }
+          if ( ifam == nofam ) {
+            while ( iwin < hkllist.size()
+                    && !( ncabs( p.d - hkllist[iwin].dspacing )
+                          < tol * ( p.d + hkllist[iwin].dspacing ) ) )
+              ++iwin;
+            for ( auto i : ncrange( iwin, hkllist.size() ) ) {
+              if ( isCompatible( p, hkllist[i] ) ) {
+                ifam = i;
+                break;
+              }
+            }
+          }
+          if ( ifam != nofam ) {
+            //Compatible with existing family, simply add HKL point to it.
+            HKLInfo& hi = hkllist[ifam];
+            hi.multiplicity += 2;
+            hi.explicitValues->list.get<std::vector<HKL>>().push_back( p.hkl );
+            famdevsums[ifam].first += p.d - hi.dspacing;
+            famdevsums[ifam].second += p.fsq - hi.fsquared;
+            continue;
+          }
+          //Not fitting in existing group, set up new.
+          if ( hkllist.size()>1000000 && !env_ignorefsqcut )//guard against crazy setups
+            throwCombinatoricsTooGreat( cfg.dcutoff );
+          hkllist.emplace_back();
+          HKLInfo& hi = hkllist.back();
+          hi.multiplicity = 2;
+          hi.fsquared = p.fsq;
+          hi.dspacing = p.d;
+          hi.explicitValues = ncmake_unique<HKLInfo::ExplicitVals>();
+          hi.explicitValues->list.emplace<std::vector<HKL>>();
+          hi.explicitValues->list.get<std::vector<HKL>>().push_back( p.hkl );
+          famdevsums.emplace_back( 0.0, 0.0 );
+        }
+        pts.clear();
+        if ( last )
+          return;
+        //Update famidx with the new families (already sorted by dspacing):
+        const auto nidx_prev = famidx.size();
+        for ( auto i : ncrange( nfam_prev, hkllist.size() ) )
+          famidx.emplace_back( hkllist[i].dspacing, i );
+        std::inplace_merge( famidx.begin(), famidx.begin() + nidx_prev,
+                            famidx.end() );
+      };
 
       //Brute-force loop over h,k,l indices (skipping half, since (h,k,l) and
       //(-h,-k,-l) are always in the same family):
@@ -401,45 +425,25 @@ namespace NCRYSTAL_NAMESPACE {
             if ( !valueInInterval( precalc.dcut_interval, dspacing ) )
               continue;
 
-            //Key for our fsq2hklidx multimap:
-            FamKeyType searchkey(keygen(FSquared,dspacing));
-
-            FamMap::iterator itSearchLB = fsq2hklidx.lower_bound(searchkey);
-            FamMap::iterator itSearch(itSearchLB), itSearchE(fsq2hklidx.end());
-            bool isnewfamily = true;
-            for ( ; itSearch!=itSearchE && itSearch->first == searchkey; ++itSearch ) {
-              nc_assert(itSearch->second<hkllist.size());
-              HKLInfo& hi = hkllist[itSearch->second];
-              if ( ncabs(FSquared-hi.fsquared) < cfg.merge_tolerance*(FSquared+hi.fsquared )
-                   && ncabs(dspacing-hi.dspacing) < cfg.merge_tolerance*(dspacing+hi.dspacing ) )
-                {
-                  //Compatible with existing family, simply add HKL point to it.
-                  hi.multiplicity += 2;
-                  nc_assert(hi.explicitValues->list.has_value<std::vector<HKL>>());
-                  hi.explicitValues->list.get<std::vector<HKL>>().emplace_back(loop_h,loop_k,loop_l);
-                  isnewfamily = false;
-                  break;
-                }
-            }
-            if (isnewfamily) {
-              //Not fitting in existing group, set up new.
-              if ( hkllist.size()>1000000 && !env_ignorefsqcut )//guard against crazy setups
-                throwCombinatoricsTooGreat( cfg.dcutoff );
-              HKLInfo hi;
-              hi.hkl = HKL{ loop_h, loop_k, loop_l };
-              hi.multiplicity = 2;
-              hi.fsquared = FSquared;
-              hi.dspacing = dspacing;
-              hi.explicitValues = ncmake_unique<HKLInfo::ExplicitVals>();
-              hi.explicitValues->list.emplace<std::vector<HKL>>();
-              hi.explicitValues->list.get<std::vector<HKL>>().reserve(24);//shrinked below
-              hi.explicitValues->list.get<std::vector<HKL>>().emplace_back(loop_h,loop_k,loop_l);
-              fsq2hklidx.insert(itSearchLB,FamMap::value_type(searchkey,hkllist.size()));
-              hkllist.emplace_back(std::move(hi));
-            }
+            pts.push_back( Pt{ dspacing, FSquared,
+                               HKL( loop_h, loop_k, loop_l ) } );
+            if ( pts.size() >= nbufmax )
+              mergeBuffer( false );
           }//loop_l
         }//loop_k
       }//loop_h
+      mergeBuffer( true );
+
+      //Use average values:
+      nc_assert_always( famdevsums.size() == hkllist.size() );
+      for ( auto i : ncrange( hkllist.size() ) ) {
+        HKLInfo& hi = hkllist[i];
+        const double n = 0.5 * hi.multiplicity;
+        hi.dspacing += famdevsums[i].first / n;
+        hi.fsquared += famdevsums[i].second / n;
+      }
+      famdevsums.clear();
+      famdevsums.shrink_to_fit();
 
       //Sort explicit HKL entries and use first as representative index:
       for ( auto& hi : hkllist ) {
