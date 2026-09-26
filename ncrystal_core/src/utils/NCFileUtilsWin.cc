@@ -57,67 +57,65 @@ namespace NC = NCrystal;
 namespace NCRYSTAL_NAMESPACE {
   namespace WinFileUtils {
 
-    namespace {
-      std::wstring winimpl_str2wstr( const std::string& src )
-      {
-        const char * in_data = &src[0];
-        nc_assert_always( src.size() < INT_MAX );
-        int in_size = static_cast<int>(src.size());
-        std::wstring res;
-        if ( !in_size )
-          return res;
-        int out_size = MultiByteToWideChar( CP_UTF8,
-                                            0,//Must be 0 for utf8
-                                            in_data, in_size,
-                                            nullptr, //dest buffer (nullptr for dry-run)
-                                            0//dest buffer size (0 means
-                                             //"dry-run" + return needed size).
-                                            );
-        const char * errmsg = "Failed to convert UTF-8 string to UTF-16";
-        if (!out_size)
-          NCRYSTAL_THROW(BadInput,errmsg);
-        res.resize( out_size );
-        wchar_t * out_data = &res[0];
-        //Same, but with out_data/out_size provided:
-        out_size = MultiByteToWideChar( CP_UTF8, 0,
-                                        in_data, in_size,
-                                        out_data, out_size );
-        if ( out_size != res.size() )
-          NCRYSTAL_THROW(BadInput,errmsg);
+    std::wstring winimpl_str2wstr( const std::string& src )
+    {
+      const char * in_data = &src[0];
+      nc_assert_always( src.size() < INT_MAX );
+      int in_size = static_cast<int>(src.size());
+      std::wstring res;
+      if ( !in_size )
         return res;
-      }
+      int out_size = MultiByteToWideChar( CP_UTF8,
+                                          0,//Must be 0 for utf8
+                                          in_data, in_size,
+                                          nullptr, //dest buffer (nullptr for dry-run)
+                                          0//dest buffer size (0 means
+                                           //"dry-run" + return needed size).
+                                          );
+      const char * errmsg = "Failed to convert UTF-8 string to UTF-16";
+      if (!out_size)
+        NCRYSTAL_THROW(BadInput,errmsg);
+      res.resize( out_size );
+      wchar_t * out_data = &res[0];
+      //Same, but with out_data/out_size provided:
+      out_size = MultiByteToWideChar( CP_UTF8, 0,
+                                      in_data, in_size,
+                                      out_data, out_size );
+      if ( out_size != res.size() )
+        NCRYSTAL_THROW(BadInput,errmsg);
+      return res;
+    }
 
-      std::string winimpl_wstr2str( const std::wstring& src )
-      {
-        const wchar_t * in_data = &src[0];
-        nc_assert_always( (std::size_t) src.size() < (std::size_t)INT_MAX );
-        int in_size = static_cast<int>(src.size());
-        std::string res;
-        if ( !in_size )
-          return res;
-        int out_size = WideCharToMultiByte( CP_UTF8,
-                                            0,//Must be 0 for utf8
-                                            in_data, in_size,
-                                            nullptr, //dest buffer (nullptr for dry-run)
-                                            0,//dest buffer size (0 means "dry-run"
-                                            //returning, needed size)
-                                            nullptr,//Must be null for utf8
-                                            nullptr//Must be null for utf8
-                                            );
-        const char * errmsg = "Failed to convert UTF-16 string to UTF-8";
-        if (!out_size)
-          NCRYSTAL_THROW(BadInput,errmsg);
-        res.resize( out_size );
-        char * out_data = &res[0];
-        //Same, but with out_data/out_size provided:
-        out_size = WideCharToMultiByte( CP_UTF8, 0,
-                                        in_data, in_size,
-                                        out_data, out_size,
-                                        nullptr, nullptr);
-        if ( out_size != static_cast<int>(res.size()) )
-          NCRYSTAL_THROW(BadInput,errmsg);
+    std::string winimpl_wstr2str( const std::wstring& src )
+    {
+      const wchar_t * in_data = &src[0];
+      nc_assert_always( (std::size_t) src.size() < (std::size_t)INT_MAX );
+      int in_size = static_cast<int>(src.size());
+      std::string res;
+      if ( !in_size )
         return res;
-      }
+      int out_size = WideCharToMultiByte( CP_UTF8,
+                                          0,//Must be 0 for utf8
+                                          in_data, in_size,
+                                          nullptr, //dest buffer (nullptr for dry-run)
+                                          0,//dest buffer size (0 means "dry-run"
+                                          //returning, needed size)
+                                          nullptr,//Must be null for utf8
+                                          nullptr//Must be null for utf8
+                                          );
+      const char * errmsg = "Failed to convert UTF-16 string to UTF-8";
+      if (!out_size)
+        NCRYSTAL_THROW(BadInput,errmsg);
+      res.resize( out_size );
+      char * out_data = &res[0];
+      //Same, but with out_data/out_size provided:
+      out_size = WideCharToMultiByte( CP_UTF8, 0,
+                                      in_data, in_size,
+                                      out_data, out_size,
+                                      nullptr, nullptr);
+      if ( out_size != static_cast<int>(res.size()) )
+        NCRYSTAL_THROW(BadInput,errmsg);
+      return res;
     }
 
     bool file_exists( const std::string& path )
