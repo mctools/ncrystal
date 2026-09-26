@@ -252,6 +252,19 @@ void NCV::VDOSGnData::interpolateDensityMany( Span<const double> energy,
     buf_ix[i] = static_cast<double>(ix);
   }
 
+#ifndef NDEBUG
+  //vdosGnInterpolateDensityRun below indexes spec[ix]/spec[ix+1] for every
+  //ix in buf_ix[beg,end) without any bounds check of its own (it only gets
+  //a count, not the spectrum's size) -- verify here, from the caller's
+  //side, that every value it will read is exactly what it is assumed to
+  //be: an index in [0,m_spec_size_minus_2], leaving spec[ix+1] safely
+  //within m_spec (size m_spec_size_minus_2+2):
+  for (std::size_t i = beg; i < end; ++i) {
+    nc_assert( buf_ix[i] >= 0.0 );
+    nc_assert( buf_ix[i] <= static_cast<double>(m_spec_size_minus_2) );
+  }
+#endif
+
   vdosGnInterpolateDensityRun( op + beg, buf_f + beg, buf_ix + beg,
                                m_spec.data(), end - beg );
 
