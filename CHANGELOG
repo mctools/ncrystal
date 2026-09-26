@@ -87,6 +87,8 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Detection of coinciding atom positions now also works across unit
+       cell boundaries and for positions not adjacent in sorted lists.
      * Monoclinic space groups now require alpha=gamma=90 in @CELL (only the
        unique axis b setting is supported, other settings previously gave
        wrong symmetry-equivalent reflections).

@@ -121,18 +121,6 @@ namespace NCRYSTAL_NAMESPACE {
           if (rh[1]!=lh[1]) return rh[1] < lh[1];
           return rh[2] < lh[2];
         }
-        bool atominfo_pos_compare_yfirst( const NC::AtomInfo::Pos& rh, const NC::AtomInfo::Pos& lh )
-        {
-          if (rh[1]!=lh[1]) return rh[1] < lh[1];
-          if (rh[0]!=lh[0]) return rh[0] < lh[0];
-          return rh[2] < lh[2];
-        }
-        bool atominfo_pos_compare_zfirst( const NC::AtomInfo::Pos& rh, const NC::AtomInfo::Pos& lh )
-        {
-          if (rh[2]!=lh[2]) return rh[2] < lh[2];
-          if (rh[1]!=lh[1]) return rh[1] < lh[1];
-          return rh[0] < lh[0];
-        }
         void atominfo_pos_remap( double& x ) {
           const double xorig = x;
           if ( x<0.0 )
@@ -144,13 +132,39 @@ namespace NCRYSTAL_NAMESPACE {
           if (x==0.0)
             x=0.0;//remaps -0 to 0
         }
-        void detect_duplicate_positions(  const AtomInfo::AtomPositions& plist ) {
-          const double pos_tolerance = 0.0001;//NB: Best if value matches the one in NCrystal/cifutils.py!
-          for (std::size_t i = 1; i < plist.size(); ++i) {
-            const AtomInfo::Pos& p1 = plist.at(i-1);
-            const AtomInfo::Pos& p2 = plist.at(i);
-            if ( ncabs(p1[0]-p2[0])<pos_tolerance && ncabs(p1[1]-p2[1])<pos_tolerance && ncabs(p1[2]-p2[2])<pos_tolerance )
-              NCRYSTAL_THROW2(BadInput,"The same atom position used more than once: ("<<p1[0]<<", "<<p1[1]<<", "<<p1[2]<<")");
+        void detect_duplicate_positions( AtomInfo::AtomPositions& plist ) {
+          //Throws if two positions (all in [0,1)) are closer than a tolerance
+          //in all three coordinates, taking periodicity into account (so
+          //e.g. x=0.99999 and x=0.0 are close). Sorts plist by x, and then
+          //sweeps over it, comparing each position to those with nearby x
+          //(also across the x=1 boundary).
+          const double tol = 0.0001;//NB: Best if value matches the one in NCrystal/cifutils.py!
+          std::sort( plist.begin(), plist.end(), atominfo_pos_compare );
+          auto check = [tol]( const AtomInfo::Pos& p1, const AtomInfo::Pos& p2 )
+          {
+            for ( auto k : ncrange( 3 ) ) {
+              const double d = ncabs( p1[k] - p2[k] );
+              if ( ncmin( d, 1.0 - d ) >= tol )
+                return;
+            }
+            NCRYSTAL_THROW2(BadInput,"The same atom position used more than"
+                            " once: ("<<p1[0]<<", "<<p1[1]<<", "<<p1[2]<<")"
+                            " and ("<<p2[0]<<", "<<p2[1]<<", "<<p2[2]<<")");
+          };
+          const std::size_t n = plist.size();
+          for ( auto i : ncrange( n ) ) {
+            const auto& p = vectAt( plist, i );
+            for ( auto j : ncrange( i+1, n ) ) {
+              if ( vectAt( plist, j )[0] - p[0] >= tol )
+                break;
+              check( p, vectAt( plist, j ) );
+            }
+            //Across the x=1 boundary (x close to 1 vs. x close to 0):
+            for ( auto j : ncrange( i ) ) {
+              if ( vectAt( plist, j )[0] + 1.0 - p[0] >= tol )
+                break;
+              check( p, vectAt( plist, j ) );
+            }
           }
         }
       }//details
@@ -205,14 +219,7 @@ namespace NCRYSTAL_NAMESPACE {
 
           }
 
-          //Ensure only one atom exists at a given position, within a tolerance. To make
-          //sure this works we sort three times after x, y and z coordinates
-          //respectively, and compare neighbouring elements each time:
-          std::sort(all_positions.begin(),all_positions.end(),details::atominfo_pos_compare);
-          details::detect_duplicate_positions(all_positions);
-          std::sort(all_positions.begin(),all_positions.end(),details::atominfo_pos_compare_yfirst);
-          details::detect_duplicate_positions(all_positions);
-          std::sort(all_positions.begin(),all_positions.end(),details::atominfo_pos_compare_zfirst);
+          //Ensure only one atom exists at a given position, within a tolerance:
           details::detect_duplicate_positions(all_positions);
         }
 

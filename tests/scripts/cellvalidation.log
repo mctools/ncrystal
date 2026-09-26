@@ -5,3 +5,7 @@ Caught expected NCBadInput('Spacegroup (191) requires alpha=beta=90 and gamma=12
 SG-4 with unique axis b: loaded with beta=100
 Caught expected NCBadInput('Spacegroup (4) requires alpha=gamma=90 (only monoclinic settings with unique axis b are supported)')
 Caught expected NCBadInput('Spacegroup (4) requires alpha=gamma=90 (only monoclinic settings with unique axis b are supported)')
+Coinciding atoms (across x boundary) rejected
+Coinciding atoms (across y and z boundaries) rejected
+Coinciding atoms (not adjacent in x-, y- or z-sorted lists) rejected
+Nearby positions accepted (n_atoms=2)
