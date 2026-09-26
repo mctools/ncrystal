@@ -191,6 +191,37 @@ jobs:
         -DNCRYSTAL_TEST_ENABLE_LONG=ON
         2>&1 | tee ci-logs/configure.log
 
+    #Debug first, and deliberately not aborting the job on failure here
+    #(continue-on-error): the point of running Debug at all right now is
+    #diagnostic -- MSVC's Debug CRT has iterator/heap debugging
+    #(_ITERATOR_DEBUG_LEVEL=2) enabled by default, which turns a plain
+    #out-of-bounds access into an immediate, precise "Debug Assertion
+    #Failed!" (container/index named) instead of Release's bare, mute
+    #access violation. Same multi-config build dir as Release below, just
+    #a different --config, so this needs no separate configure step:
+    - name: Build (Debug)
+      continue-on-error: true
+      run: >
+        cmake
+        --build build
+        --config Debug
+        2>&1 | tee ci-logs/build-Debug.log
+
+    - name: CTest (Debug)
+      continue-on-error: true
+      run: >
+        ctest --test-dir ./build --build-config Debug --no-tests=error --output-on-failure
+        --test-output-size-failed 100000 --test-output-truncation middle
+        2>&1 | tee ci-logs/ctest-Debug.log
+
+    #Copy out now: the Release ctest run below reuses (overwrites) the same
+    #Testing/Temporary/LastTest.log:
+    - name: Save Debug LastTest.log
+      if: always()
+      run: |
+        mkdir -p ci-logs
+        [ -f build/Testing/Temporary/LastTest.log ] && cp build/Testing/Temporary/LastTest.log ci-logs/LastTest-Debug.log || true
+
     - name: Build
       run: >
         cmake
