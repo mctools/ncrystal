@@ -569,7 +569,14 @@ function( mctools_testutils_internal_addtest name cmd_file reflog )
   set_property( TEST "${name}" PROPERTY WORKING_DIRECTORY "${wd}" )
 
   #Set a timeout to prevent hanging jobs and test times getting out of hand
-  #(exact values can be revisited). We allow longer jobs in Debug mode:
-  set_property( TEST "${name}" PROPERTY TIMEOUT "$<IF:$<CONFIG:Debug>,480,240>" )
+  #(exact values can be revisited). We allow longer jobs in Debug mode --
+  #confirmed via a real Windows CI run that 480s was not always enough there
+  #(app_lc's Debug leg hit exactly that timeout after 8 minutes with zero
+  #output; unoptimised MSVC Debug builds, with iterator/heap debugging
+  #enabled by default, can be dramatically slower than Release for
+  #numerically-heavy tests, not just ~2x). Bumped well past what a merely-
+  #slow-but-finishing run would need, so a further timeout here is a much
+  #stronger signal of a genuine hang rather than just Debug-build overhead:
+  set_property( TEST "${name}" PROPERTY TIMEOUT "$<IF:$<CONFIG:Debug>,1500,240>" )
   #TODO: Support tests/costs.txt for adding cost properties to tests?
 endfunction()
