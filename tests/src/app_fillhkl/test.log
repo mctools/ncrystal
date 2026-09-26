@@ -1,0 +1,21 @@
+==== Bragg threshold and partial HKL lists ====
+stdlib::Al_sg225.ncmat;dcutoff=0.3;dcutoffup=5 : 95 HKL groups, Bragg threshold 4.676052206 Aa
+stdlib::Al_sg225.ncmat;dcutoff=0.3;dcutoffup=1.5 : 93 HKL groups, Bragg threshold 2.863485479 Aa
+stdlib::Al_sg225.ncmat;dcutoff=0.3;dcutoffup=0.75 : 84 HKL groups, Bragg threshold 1.431742739 Aa
+stdlib::Al_sg225.ncmat;dcutoff=0.3;dcutoffup=1.4 : 92 HKL groups, Bragg threshold 2.441988622 Aa
+stdlib::Al_sg225.ncmat;dcutoff=0.3;dcutoffup=5.0000001 : 95 HKL groups, Bragg threshold 4.676052206 Aa
+stdlib::Al_sg225.ncmat;dcutoff=0.3;dcutoffup=4.9999999 : 95 HKL groups, Bragg threshold 4.676052206 Aa
+stdlib::AlN_sg186_AluminumNitride.ncmat;dcutoff=0.3;dcutoffup=5 : 311 HKL groups, Bragg threshold 5.386678012 Aa
+stdlib::AlN_sg186_AluminumNitride.ncmat;dcutoff=0.3;dcutoffup=1.5 : 306 HKL groups, Bragg threshold 2.826305581 Aa
+stdlib::AlN_sg186_AluminumNitride.ncmat;dcutoff=0.3;dcutoffup=0.75 : 284 HKL groups, Bragg threshold 1.493995675 Aa
+stdlib::AlN_sg186_AluminumNitride.ncmat;dcutoff=0.3;dcutoffup=1.4 : 305 HKL groups, Bragg threshold 2.693339006 Aa
+stdlib::AlN_sg186_AluminumNitride.ncmat;dcutoff=0.3;dcutoffup=5.0000001 : 311 HKL groups, Bragg threshold 5.386678012 Aa
+stdlib::AlN_sg186_AluminumNitride.ncmat;dcutoff=0.3;dcutoffup=4.9999999 : 311 HKL groups, Bragg threshold 5.386678012 Aa
+stdlib::PbS_sg225_LeadSulfide.ncmat;dcutoff=0.3;dcutoffup=5 : 248 HKL groups, Bragg threshold 6.854533336 Aa
+stdlib::PbS_sg225_LeadSulfide.ncmat;dcutoff=0.3;dcutoffup=1.5 : 243 HKL groups, Bragg threshold 2.9681 Aa
+stdlib::PbS_sg225_LeadSulfide.ncmat;dcutoff=0.3;dcutoffup=0.75 : 223 HKL groups, Bragg threshold 1.48405 Aa
+stdlib::PbS_sg225_LeadSulfide.ncmat;dcutoff=0.3;dcutoffup=1.4 : 242 HKL groups, Bragg threshold 2.723715359 Aa
+stdlib::PbS_sg225_LeadSulfide.ncmat;dcutoff=0.3;dcutoffup=5.0000001 : 248 HKL groups, Bragg threshold 6.854533336 Aa
+stdlib::PbS_sg225_LeadSulfide.ncmat;dcutoff=0.3;dcutoffup=4.9999999 : 248 HKL groups, Bragg threshold 6.854533336 Aa
+Invalid/out-of-range requests OK (6 planes with d>=1Aa)
+All OK

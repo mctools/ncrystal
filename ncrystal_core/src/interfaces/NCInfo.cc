@@ -283,8 +283,9 @@ NC::Optional<NC::NeutronWavelength> NC::Info::getBraggThreshold() const
   for ( auto dlow : { 5.0, 1.5, 0.75 } ) {
     if ( (bt=data.detail_braggthreshold.load()) >= 0.0 )
       return retval(bt);//was filled (by ourselves in a previous loop or by concurrent call)
-    if ( dlow > data.hkl_dlower_and_dupper.value().second )
-      continue;//trivially won't select any planes
+    if ( dlow >= data.hkl_dlower_and_dupper.value().second )
+      continue;//trivially won't select any planes (and dlow=dupper is not
+               //a valid range for the partial calculation)
     if ( dlow <= data.hkl_dlower_and_dupper.value().first ) {
       //Better to break and do full init below
       break;
@@ -310,14 +311,27 @@ NC::Optional<NC::HKLList> NC::Info::hklListPartialCalc( Optional<double> dlower,
   nc_assert(data.hkl_dlower_and_dupper.has_value());
   if ( !data.hkl_ondemand_fct )
     return NullOpt;
-  double dlow = ncmax( dlower.has_value() ? dlower.value() : data.hkl_dlower_and_dupper.value().first,
-                       data.hkl_dlower_and_dupper.value().first );
-  double dupp = ncmin( dupper.has_value() ? dupper.value() : data.hkl_dlower_and_dupper.value().second,
-                       data.hkl_dlower_and_dupper.value().second );
-  if ( ! ( dlow <= dupp ) || std::isnan(dlow) || std::isnan(dupp)  )
-    NCRYSTAL_THROW2(BadInput,"hklListPartialCalc got invalid dspacing range request: ["<<dlow
-                    <<", "<<dupp<<"] (once constrained to ["<<data.hkl_dlower_and_dupper.value().first
-                    <<", "<<data.hkl_dlower_and_dupper.value().second<<"])");
+  //Validate the request before clamping (ncmax/ncmin would hide NaNs):
+  const auto& drange = data.hkl_dlower_and_dupper.value();
+  const double dlow_req = dlower.has_value() ? dlower.value() : drange.first;
+  const double dupp_req = dupper.has_value() ? dupper.value() : drange.second;
+  if ( ! ( dlow_req <= dupp_req ) )
+    NCRYSTAL_THROW2(BadInput,"hklListPartialCalc got invalid dspacing range"
+                    " request: ["<<dlow_req<<", "<<dupp_req<<"]");
+  const double dlow = ncmax( dlow_req, drange.first );
+  const double dupp = ncmin( dupp_req, drange.second );
+  if ( ! ( dlow <= dupp ) )
+    return HKLList();//empty after constraining to [dlower,dupper] of Info
+  if ( dlow == dupp ) {
+    //Generators need dlow<dupp, so widen by one ulp and remove the extra:
+    auto l = data.hkl_ondemand_fct( PairDD( std::nextafter( dlow, 0.0 ),
+                                            dupp ) );
+    HKLList res;
+    for ( auto& e : l )
+      if ( e.dspacing == dlow )
+        res.push_back( std::move(e) );
+    return res;
+  }
   auto hklList = data.hkl_ondemand_fct( PairDD(dlow,dupp) );
   if ( !hklList.empty() && !dupper.has_value() ) {
     //Take this chance to update Bragg threshold / HKLInfoType fields:

@@ -87,6 +87,13 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Info::hklListPartialCalc now rejects NaN d-spacing limits, and returns
+       an empty list rather than throwing for ranges outside the configured
+       [dcutoff,dcutoffup] range. Degenerate [d,d] ranges now return the
+       planes with d-spacing exactly d.
+     * Fix internal assertion failure when requesting the Bragg threshold
+       (e.g. via Info.braggthreshold) of a material with dcutoffup exactly
+       5, 1.5 or 0.75 Aa before the HKL lists were fully initialised.
      * Rhombohedral space groups (146, 148, 155, 160, 161, 166, 167) can now
        also be given in rhombohedral axes (a=b=c, alpha=beta=gamma<120) in
        NCMAT data and NCMATComposer (not in .laz/.lau files).
