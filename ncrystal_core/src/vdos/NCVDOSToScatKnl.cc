@@ -249,6 +249,9 @@ NCV::createScatteringKernel( const VDOSData& vdosdata,
   const auto gnexpn = expandVDOSToGnFcts( vdosdata, vdoslux,
                                           targetEmax_requested);
   //fixmerequest_override_max_order );
+  if (detail::s_verbose)
+    NCRYSTAL_MSG("VDOS2SK expandVDOSToGnFcts done (maxOrder="
+                 <<gnexpn.Gn.maxOrder().value()<<")");
   const auto& Gn_asym = gnexpn.Gn;
 
   //Setup the alpha/beta grids. The grid-spacing is not even, rather it attempts
@@ -280,6 +283,9 @@ NCV::createScatteringKernel( const VDOSData& vdosdata,
   if ( !vdoslux.isLegacy() ) {
     nc_assert_always(alphaGrid.front()==0.0);
   }
+  if (detail::s_verbose)
+    NCRYSTAL_MSG("VDOS2SK alpha/beta grid done (nalpha="
+                 <<alphaGrid.size()<<", nbeta="<<betaGrid.size()<<")");
 
   //All done, now all that remains is to go through the (alpha,beta) pts in the
   //grid and use Sjolander's II.28 equation to calculate S(alpha,beta) there as

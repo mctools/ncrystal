@@ -36,6 +36,7 @@
 #include "NCrystal/internal/sab/NCSABUCN.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/extd_utils/NCProcCompBldr.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 
 namespace NC = NCrystal;
 
@@ -139,11 +140,22 @@ namespace NCRYSTAL_NAMESPACE {
       Utils::ProcCompBldr components;
       //components.clearQueueFct();
 
+      static const bool s_verbose_stdscatfact = ncgetenv_bool("DEBUG_PHONON");
+      if ( s_verbose_stdscatfact )
+        NCRYSTAL_MSG("StdScatFact::produce: entering (inelas="<<inelas<<")");
+
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
       //Crystals: Incoherent-elastic component:
       if ( cfg.get_incoh_elas() && info.isCrystalline() ) {
-        if ( ElIncScatter::hasSufficientInfo(info) )
+        if ( s_verbose_stdscatfact )
+          NCRYSTAL_MSG("StdScatFact::produce: checking ElIncScatter::hasSufficientInfo");
+        if ( ElIncScatter::hasSufficientInfo(info) ) {
+          if ( s_verbose_stdscatfact )
+            NCRYSTAL_MSG("StdScatFact::produce: constructing ElIncScatter");
           components.add(makeSO<ElIncScatter>(info));
+          if ( s_verbose_stdscatfact )
+            NCRYSTAL_MSG("StdScatFact::produce: ElIncScatter constructed");
+        }
       }
 
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -402,7 +414,12 @@ namespace NCRYSTAL_NAMESPACE {
 
       //////////////////////////////////////////////////////////////////////////
       //Wrap it up and return:
-      return components.finalise_scatter();
+      if ( s_verbose_stdscatfact )
+        NCRYSTAL_MSG("StdScatFact::produce: calling finalise_scatter");
+      auto res = components.finalise_scatter();
+      if ( s_verbose_stdscatfact )
+        NCRYSTAL_MSG("StdScatFact::produce: finalise_scatter done, returning");
+      return res;
     }
 
   private:
