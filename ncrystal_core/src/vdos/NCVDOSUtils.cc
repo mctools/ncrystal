@@ -23,6 +23,8 @@
 #include "NCrystal/internal/utils/NCIter.hh"
 #include "NCrystal/internal/utils/NCFastSearch.hh"
 #include "NCrystal/internal/phys_utils/NCKinUtils.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 
 namespace NC=NCrystal;
 
@@ -819,7 +821,11 @@ double NC::VDOS::estimateSpectrumCrossing( double x0, double binwidth,
                                            std::size_t idxLo, std::size_t idxHi,
                                            double yval, std::size_t nExtra )
 {
-  nc_assert( idxHi == idxLo + 1 );
+  //idxHi indexes spec[] directly below (and is used to size the wlo/whi
+  //fit window), so -- unlike the yval-bracket sanity check right after,
+  //which is expensive-ish but harmless if skipped -- this one guards real
+  //memory safety and is worth the always-active check:
+  nc_assert_always( idxHi == idxLo + 1 && idxHi < spec.size() );
   nc_assert( ncmin(spec[idxLo],spec[idxHi]) < yval
             && yval <= ncmax(spec[idxLo],spec[idxHi]) );
   auto xAt = [x0,binwidth](std::size_t i) { return VDOS::equidistantGridPoint(x0,binwidth,i); };
@@ -941,12 +947,17 @@ NC::PairDD NC::VDOS::estimateGnErange( double egrid_lower, double egrid_binwidth
                                        Span<const double> spec,
                                        double relcontriblvl )
 {
-#ifndef NDEBUG
+  static const bool s_verbose_vdosutils = ncgetenv_bool("DEBUG_PHONON");
+  if ( s_verbose_vdosutils )
+    NCRYSTAL_MSG("estimateGnErange: entering (spec.size()="<<spec.size()<<")");
+  //These were previously (incorrectly) wrapped in an #ifndef NDEBUG guard,
+  //silently disabling them in Release builds contrary to the project's own
+  //nc_assert_always convention (always active). spec.size()>=2 in
+  //particular is relied upon below (spec.size()-1, spec[i-1] accesses):
   nc_assert_always( spec.size() >= 2 );
   nc_assert_always( relcontriblvl > 0.0 && relcontriblvl < 1.0 );
   nc_assert_always( std::isfinite(egrid_lower) && egrid_binwidth > 0.0 );
   nc_assert_always( *std::min_element(spec.begin(),spec.end()) >= 0.0 );
-#endif
   auto xAt = [egrid_lower,egrid_binwidth](std::size_t i)
   { return equidistantGridPoint(egrid_lower,egrid_binwidth,i); };
   const double spec_max = *std::max_element( spec.begin(), spec.end() );
