@@ -93,10 +93,42 @@ def test_duplicate_positions():
                [('Al','0 0 0'),('O','0.9998 0 0')] ).structure_info
     print(f'Nearby positions accepted (n_atoms={si["n_atoms"]})')
 
+def test_symmetry_selfcheck():
+    #The structure must have the symmetry assumed by NCrystal for the space
+    #group (checked by comparing F2 of symmetry-equivalent planes):
+    def loadplanes( *args ):
+        return list( load( *args ).hklObjects() )
+    p1 = [('Al','0.1 0.2 0.3'),('O','0.6 0.1 0.8')]
+    print('P1 structure in cubic cell (no SG):',
+          len( loadplanes( '4 4 4', '90 90 90', 0, p1 ) ) > 0 )
+    try:
+        loadplanes( '4 4 4', '90 90 90', 221, p1 )
+    except NC.NCBadInput as e:
+        assert 'Crystal structure is not consistent with space group 221' in str(e)
+        print('P1 structure declared as SG-221 rejected')
+    else:
+        raise RuntimeError('Wrong space group accepted')
+    #One general orbit of P312 (SG-149, Laue class -31m), which must not be
+    #accepted as P321 (SG-150, Laue class -3m1):
+    x, y, z = 0.1, 0.3, 0.2
+    ops = [ (x,y,z), (-y,x-y,z), (-x+y,-x,z),
+            (-y,-x,-z), (-x+y,y,-z), (x,x-y,-z) ]
+    atoms = [ ('Al',' '.join( f'{v%1.0:.12g}' for v in p )) for p in ops ]
+    print('P312 structure as SG-149:',
+          len( loadplanes( '4 4 6', '90 90 120', 149, atoms ) ) > 0 )
+    try:
+        loadplanes( '4 4 6', '90 90 120', 150, atoms )
+    except NC.NCBadInput as e:
+        assert 'Crystal structure is not consistent with space group 150' in str(e)
+        print('P312 structure declared as SG-150 rejected')
+    else:
+        raise RuntimeError('Wrong space group accepted')
+
 def main():
     test_hexagonal_angles()
     test_monoclinic_angles()
     test_duplicate_positions()
+    test_symmetry_selfcheck()
 
 if __name__ == '__main__':
     main()

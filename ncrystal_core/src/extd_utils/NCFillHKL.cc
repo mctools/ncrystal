@@ -594,6 +594,48 @@ NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& st
     return hkllist;//all elements have bcoh=0?
   //hkllist.reserve( 4096 );
 
+  //Calculate |F|^2 for a given hkl, using cache.cache_factors (which only
+  //depend on the d-spacing, so are the same for symmetry-equivalent hkl):
+  auto calcFSquared = [&cache]( const Vector& hkl )
+  {
+    //Use numerically stable summation, for better results on low-symmetry
+    //crystals (the main cost here is anyway the phase calculations, not the
+    //summation):
+    StableSum real, imag;
+    for( unsigned i=0 ; i < cache.whkl.size(); ++i ) {
+      double factor = cache.cache_factors[i];
+      if (!factor)
+        continue;
+      StableSum cpsum, spsum;
+      for ( auto& pos : cache.atomic_pos[i] ) {
+        //Phase is hkl.dot(pos)*2pi. We speed up the expensive calculation of
+        //sin+cos by a factor of 3 by shifting the phase to [0,2pi] (easily
+        //done by simply NOT multiplying with 2pi) and using our own fast
+        //sincos_02pi through sincos_2pix. Since typically 99% of the hkl
+        //initialisation time is spent calculating sin+cos here, that actually
+        //translates into an overall speedup of a factor of 3 (measured in
+        //NCrystal v2.7.0)!
+        const double phase_div2pi = hkl.dot(pos);
+        auto spcp = sincos_2pix(phase_div2pi);
+        cpsum.add(spcp.cos);
+        spsum.add(spcp.sin);
+      }
+      real.add(cpsum.sum() * factor);
+      imag.add(spsum.sum() * factor);
+    }
+    return ncsquare( real.sum() ) + ncsquare( imag.sum() );
+  };
+
+  //Self-check that the structure has the symmetry assumed by EqRefl for the
+  //space group, by calculating F2 for all planes of groups with low hkl
+  //indices. Differences above 1% (or tiny F2) indicate e.g. a wrong space
+  //group:
+  double f2max = 0.0;//upper limit on F2 (all contributions in phase):
+  for ( auto i : ncrange( cache.csl.size() ) )
+    f2max += ncabs( cache.csl[i] ) * cache.atomic_pos[i].size();
+  f2max = ncsquare( f2max );
+  constexpr int symcheck_maxhkl = 4;
+
   //We now conduct a brute-force loop over h,k,l indices, adding calculated info
   //in the following containers along the way. For reasons of symmetry we ignore
   //roughly half (but not all since the sym_key's might have sign flips).
@@ -642,33 +684,7 @@ NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& st
         if(real_or_imag_upper_limit*real_or_imag_upper_limit*2.0<cfg.fsquarecut)
           continue;
 
-        //Time to calculate phases and sum up contributions. Use numerically
-        //stable summation, for better results on low-symmetry crystals (the
-        //main cost here is anyway the phase calculations, not the summation):
-        StableSum real, imag;
-        for( unsigned i=0 ; i < cache.whkl.size(); ++i ) {
-          double factor = cache.cache_factors[i];
-          if (!factor)
-            continue;
-          StableSum cpsum, spsum;
-          for ( auto& pos : cache.atomic_pos[i] ) {
-            //Phase is hkl.dot(pos)*2pi. We speed up the expensive
-            //calculation of sin+cos by a factor of 3 by shifting the phase to
-            //[0,2pi] (easily done by simply NOT multiplying with 2pi) and using
-            //our own fast sincos_02pi through sincos_2pix. Since typically 99%
-            //of the hkl initialisation time is spent calculating sin+cos here,
-            //that actually translates into an overall speedup of a factor of 3
-            //(measured in NCrystal v2.7.0)!
-            const double phase_div2pi = hkl.dot(pos);
-            auto spcp = sincos_2pix(phase_div2pi);
-            cpsum.add(spcp.cos);
-            spsum.add(spcp.sin);
-          }
-          real.add(cpsum.sum() * factor);
-          imag.add(spsum.sum() * factor);
-        }
-
-        const double FSquared = ncsquare( real.sum() ) + ncsquare( imag.sum() );
+        const double FSquared = calcFSquared( hkl );
 
         //skip weak or impossible reflections:
         if(FSquared<cfg.fsquarecut)
@@ -699,6 +715,21 @@ NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& st
         auto sym_list = sym.getEquivalentReflections( sym_key );
         entry.hkl = sym_list.front();
         entry.multiplicity = sym_list.size() * 2;
+        if ( std::abs(sym_key.h) <= symcheck_maxhkl
+             && std::abs(sym_key.k) <= symcheck_maxhkl
+             && std::abs(sym_key.l) <= symcheck_maxhkl ) {
+          for ( auto& e : sym_list ) {
+            const double f2 = calcFSquared( Vector( e.h, e.k, e.l ) );
+            if ( ncabs( f2 - FSquared ) > 0.01*ncmax( FSquared, 1e-4*f2max ) )
+              NCRYSTAL_THROW2(BadInput,"Crystal structure is not consistent"
+                              " with space group "<<structureInfo.spacegroup
+                              <<" (the planes "<<sym_key.h<<","<<sym_key.k
+                              <<","<<sym_key.l<<" and "<<e.h<<","<<e.k<<","
+                              <<e.l<<" should be symmetry-equivalent but"
+                              " have |F|^2 values of "<<FSquared<<" and "
+                              <<f2<<" barn)");
+          }
+        }
       }//loop_l
     }//loop_k
   }//loop_h

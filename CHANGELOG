@@ -87,6 +87,10 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * When a space group is given, NCrystal now checks that the structure
+       actually has the assumed symmetry (by comparing |F|^2 of low-index
+       planes which should be symmetry-equivalent), and otherwise raises
+       an error instead of silently producing wrong Bragg physics.
      * Detection of coinciding atom positions now also works across unit
        cell boundaries and for positions not adjacent in sorted lists.
      * Monoclinic space groups now require alpha=gamma=90 in @CELL (only the
