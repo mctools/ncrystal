@@ -418,6 +418,13 @@ NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
 }
 
 NCV::VDOSGn::~VDOSGn() {
+  //A moved-from VDOSGn (e.g. the husk left behind when GnExpansion's
+  //implicit move constructor is actually invoked, rather than elided via
+  //NRVO -- confirmed to happen on MSVC for expandVDOSToGnFcts's "return
+  //res;" where GCC/Clang instead reliably apply NRVO here) has a null
+  //m_impl and must not be dereferenced below:
+  if ( !m_impl )
+    return;
   if ( m_impl->m_mt_jobs.has_value() ) {
     //End running jobs, so they don't write to suddenly non-existent buffers:
     m_impl->m_mt_jobs.value().waitAll();
