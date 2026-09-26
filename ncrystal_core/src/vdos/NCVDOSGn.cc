@@ -338,10 +338,6 @@ NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
 
   const double gamma0 = vde.calcGamma0();
 
-  if ( s_verbose_vdosgn )
-    NCRYSTAL_MSG("VDOSGn ctor: entering G1-fill loop (nbins="<<nbins
-                 <<", G1spectrum.size()="<<G1spectrum.size()<<")");
-
   for (auto e: enumerate(egrid) ) {
     nc_assert(e.val>=0.0);
     auto g1_vals = vde.evalG1AsymmetricAtEPair( e.val, gamma0 );
@@ -350,9 +346,6 @@ NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
     //Fill at -e.val:
     vectAt(G1spectrum,nbins-e.idx) = g1_vals.first;
   }
-
-  if ( s_verbose_vdosgn )
-    NCRYSTAL_MSG("VDOSGn ctor: G1-fill loop done");
 
   nc_assert_always( valueInInterval(0.0,0.1,m_cfg.truncationThreshold) );
   nc_assert_always( m_cfg.minThinOrder >= -1 );
@@ -389,10 +382,6 @@ NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
     actual_edgelower += std::distance( itB, itFirst ) * binwidth;
     VectD( itFirst, std::next(itLast) ).swap( G1spectrum );
   }
-
-  if ( s_verbose_vdosgn )
-    NCRYSTAL_MSG("VDOSGn ctor: edge-trim done (G1spectrum.size()="
-                 <<G1spectrum.size()<<", g1StartIdx="<<g1StartIdx<<")");
 
   //Place G1:
   if ( m_cfg.legacyConvolve ) {
@@ -670,12 +659,6 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
   }
   nc_assert_always(thinFactor1==thinFactor2);
 
-  if ( s_verbose_vdosgn )
-    NCRYSTAL_MSG("VDOSGn convolve: order="<<order.value()
-                 <<" pre-thinning done (n1="<<input1_spec->size()
-                 <<", n2="<<input2_spec->size()<<", dt_mismatch="
-                 <<(dt_mismatch?"yes":"no")<<")");
-
   VectD phonon_spe;
   double start_energy = p1.getEGridLower() + p2.getEGridLower();
   long startIdx = startIdx1 + startIdx2;//(only used when anchored)
@@ -686,11 +669,6 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
   else
     fastConvolve.convolve( *input1_spec, *input2_spec, phonon_spe, dt );
   auto orig_npts_result = phonon_spe.size();
-
-  if ( s_verbose_vdosgn )
-    NCRYSTAL_MSG("VDOSGn convolve: order="<<order.value()
-                 <<" fastConvolve done (phonon_spe.size()="
-                 <<orig_npts_result<<")");
 
   if ( m_cfg.minTruncOrder >= 0
        && m_cfg.truncationThreshold > 0.0
@@ -801,10 +779,6 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
     start_energy = equidistantGridPoint( start_energy, dt, ifront );
     startIdx += static_cast<long>( ifront );
   }
-  if ( s_verbose_vdosgn )
-    NCRYSTAL_MSG("VDOSGn convolve: order="<<order.value()
-                 <<" truncation/taper block done (phonon_spe.size()="
-                 <<phonon_spe.size()<<")");
 
   int minThinOrder = m_cfg.minThinOrder;
   unsigned thinNBins = m_cfg.thinNBins;
@@ -838,11 +812,6 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
       phonon_spe = thinVector( extraThinFactor, phonon_spe );
     dt *= extraThinFactor;
   }
-  if ( s_verbose_vdosgn )
-    NCRYSTAL_MSG("VDOSGn convolve: order="<<order.value()
-                 <<" extra-thinning block done (phonon_spe.size()="
-                 <<phonon_spe.size()<<", extraThinFactor="
-                 <<extraThinFactor<<")");
 
   if ( anchored )
     start_energy = static_cast<double>(startIdx) * dt;

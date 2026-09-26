@@ -146,12 +146,8 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
   GnExpansion res{ VDOSGn(vdoseval,vdosgn_cfg), alpha2x,
                    NeutronEnergy{0.0}, Rectangle(), {} };
   auto& Gn_asym = res.Gn;
-  if ( s_verbose )
-    NCRYSTAL_MSG("VDOS expansion: VDOSGn constructed (G1 spectrum built)");
 
   Gn_asym.growMaxOrder(max_phonon_order);
-  if ( s_verbose )
-    NCRYSTAL_MSG("VDOS expansion: growMaxOrder("<<max_phonon_order<<") done");
 
   //What are the highest phonon order we allow?
   unsigned order_limit;
@@ -204,13 +200,7 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
 
   while (true) {
     Gn_asym.growMaxOrder(max_phonon_order);
-    if ( s_verbose )
-      NCRYSTAL_MSG("VDOS expansion: growMaxOrder("<<max_phonon_order
-                   <<") done (loop)");
     auto abRange = findAlphaBetaRangeOfOrder(Gn_asym.maxOrder().value());
-    if ( s_verbose )
-      NCRYSTAL_MSG("VDOS expansion: findAlphaBetaRangeOfOrder("
-                   <<Gn_asym.maxOrder().value()<<") done");
     if (!findABExtentWithinKB(abRange,targetEmax_div_kT).isEmpty()) {
       //Could consider larger stepsize, but need to carefully check usage in the
       //following.
@@ -247,9 +237,6 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
     }
   }
   Gn_asym.growMaxOrder(max_phonon_order);
-  if ( s_verbose )
-    NCRYSTAL_MSG("VDOS expansion: main order-growing loop done"
-                 " (max_phonon_order="<<max_phonon_order<<")");
 
   //Record the actual Emax:
   res.suggestedEmax = targetEmax;

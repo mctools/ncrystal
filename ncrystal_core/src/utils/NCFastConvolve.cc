@@ -23,20 +23,12 @@
 #include "NCrystal/internal/utils/NCStableDbl.hh"
 #include "NCrystal/internal/utils/NCTinyVector.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
-#include "NCrystal/internal/utils/NCMsg.hh"
-#include "NCrystal/internal/utils/NCString.hh"
 #include <complex>
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
 
   namespace {
-    //Same NCRYSTAL_DEBUG_PHONON env var as NCVDOSGn.cc/NCVDOSExpand.cc, so a
-    //single env var enables a full breadcrumb trail through the VDOS/SAB
-    //construction pipeline. Temporary instrumentation while bisecting a
-    //Windows-only access violation (STATUS_ACCESS_VIOLATION in the VDOS/SAB
-    //construction path, not yet reproduced locally):
-    static bool s_verbose_fastconvolve = ncgetenv_bool("DEBUG_PHONON");
 
     //Independent of data, we need the same tables of W factors and swap
     //patterns. We make sure we can reuse calculations for these if needed, by
@@ -310,36 +302,21 @@ void NC::FastConvolve::Impl::convolve( const VectD& a1, const VectD& a2,
 #endif
   const int minimum_out_size = a1.size() + a2.size() - 1;
 
-  if ( s_verbose_fastconvolve )
-    NCRYSTAL_MSG("FastConvolve::convolve: entering (a1.size()="<<a1.size()
-                 <<", a2.size()="<<a2.size()<<", minimum_out_size="
-                 <<minimum_out_size<<")");
-
   //Note: We could calculate the next two fft calls concurrently, but it was
   //attempted and did not work as well as instead employing concurrency in
   //NCVDOSGn.cc, so we keep that for now.
 
   std::vector<std::complex<double> > b1(a1.begin(),a1.end());
   fft<true>(b1,minimum_out_size);
-  if ( s_verbose_fastconvolve )
-    NCRYSTAL_MSG("FastConvolve::convolve: fft<true>(b1) done (b1.size()="
-                 <<b1.size()<<")");
   std::vector<std::complex<double> > b2(a2.begin(),a2.end());
   fft<true>(b2,minimum_out_size);
-  if ( s_verbose_fastconvolve )
-    NCRYSTAL_MSG("FastConvolve::convolve: fft<true>(b2) done (b2.size()="
-                 <<b2.size()<<")");
 
   nc_assert(b1.size()==b2.size());
   fastConvolveSpectralMultiply( reinterpret_cast<double*>( b1.data() ),
                                 reinterpret_cast<const double*>( b2.data() ),
                                 b1.size() );
-  if ( s_verbose_fastconvolve )
-    NCRYSTAL_MSG("FastConvolve::convolve: spectral multiply done");
 
   fft<false>(b1,minimum_out_size);
-  if ( s_verbose_fastconvolve )
-    NCRYSTAL_MSG("FastConvolve::convolve: fft<false>(b1) done");
 
   y.resize(minimum_out_size);
   const double k = dt/b1.size();
@@ -494,18 +471,12 @@ void NC::FastConvolve::Impl::fft( std::vector<std::complex<double>> &data,
 
   if( data.size() != (size_t)output_size )
     data.resize(output_size,std::complex<double>());
-  if ( s_verbose_fastconvolve )
-    NCRYSTAL_MSG("FastConvolve::fft: sized (output_size="<<output_size
-                 <<", wtable.size()="<<wtable.size()<<")");
 #if 1
   if ( output_log_size != m_swap->output_log_size )
     m_swap = getFastConvolveCacheMgr().getSwapPattern( output_log_size );
   nc_assert( data.size() == (std::size_t)( 1 << output_log_size ) );
   nc_assert( output_log_size == m_swap->output_log_size );
   applySwaps( m_swap, data );
-  if ( s_verbose_fastconvolve )
-    NCRYSTAL_MSG("FastConvolve::fft: applySwaps done (pattern.size()="
-                 <<m_swap->pattern.size()<<")");
 #else
   //Old, without cached swaps:
   const int output_size_m1 = output_size-1;
@@ -566,9 +537,6 @@ void NC::FastConvolve::Impl::fft( std::vector<std::complex<double>> &data,
       fastConvolveButterflyRun( rawdata_j, rawdata_sympos, raww,
                                 wtable_stride, is_forward, i1 );
     }
-    if ( s_verbose_fastconvolve )
-      NCRYSTAL_MSG("FastConvolve::fft: butterfly stage i="<<i
-                   <<"/"<<output_log_size<<" done");
   }
 }
 

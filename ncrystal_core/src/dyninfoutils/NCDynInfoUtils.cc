@@ -24,8 +24,6 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/vdos/NCVDOSToScatKnl.hh"
 #include "NCrystal/internal/sab/NCSABUtils.hh"
-#include "NCrystal/internal/utils/NCMsg.hh"
-#include "NCrystal/internal/utils/NCString.hh"
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
@@ -157,12 +155,6 @@ namespace NCRYSTAL_NAMESPACE {
         //this is essentially a request to expand the vdos out to that energy:
         nc_assert(input.vdosdata);
         const VDOSData& vd = *input.vdosdata;
-        static const bool s_verbose_dynutils = ncgetenv_bool("DEBUG_PHONON");
-        if ( s_verbose_dynutils )
-          NCRYSTAL_MSG("extractFrom_VDOSNoCache: entering (mass="
-                       <<vd.elementMassAMU().dbl()<<"amu, T="
-                       <<vd.temperature().dbl()<<"K, vdoslux="
-                       <<input.vdoslux.raw()<<")");
 
         VDOS::ScaleGnContributionFct scaleGnFct = nullptr;
         if ( input.vdos2sabExcludeFlag > 0 ) {
@@ -186,17 +178,12 @@ namespace NCRYSTAL_NAMESPACE {
             return ( n >= low && n<= high ) ? scalefact : 1.0;
           };
         }
-        if ( s_verbose_dynutils )
-          NCRYSTAL_MSG("extractFrom_VDOSNoCache: calling createScatteringKernel");
         SABData sabdata
           = SABUtils::transformKernelToStdFormat
           ( createScatteringKernel( vd,
                                     input.vdoslux,
                                     input.requestedEMax,
                                     scaleGnFct ) );
-        if ( s_verbose_dynutils )
-          NCRYSTAL_MSG("extractFrom_VDOSNoCache: createScatteringKernel"
-                       "+transformKernelToStdFormat done");
         return std::make_shared<const SABData>(std::move(sabdata));
       }
 
