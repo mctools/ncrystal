@@ -1,0 +1,4 @@
+SG-191 with gamma=120: loaded with gamma=120
+Caught expected NCBadInput('Spacegroup (191) requires alpha=beta=90 and gamma=120')
+Caught expected NCBadInput('Spacegroup (191) requires alpha=beta=90 and gamma=120')
+Caught expected NCBadInput('Spacegroup (191) requires alpha=beta=90 and gamma=120')

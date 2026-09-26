@@ -261,7 +261,7 @@ void NC::checkAndCompleteLatticeAngles( unsigned sg, double& alpha, double& beta
     return;
   case Trigonal:
   case Hexagonal:
-    if ( ( alpha>0 && alpha!=90 ) || ( beta>0 && beta!=90 ) || ( gamma>120 && gamma!=120 ) )
+    if ( ( alpha>0 && alpha!=90 ) || ( beta>0 && beta!=90 ) || ( gamma>0 && gamma!=120 ) )
       NCRYSTAL_THROW2(BadInput,"Spacegroup ("<<sg<<") requires alpha=beta=90 and gamma=120");
     alpha = beta = 90;
     gamma = 120;
