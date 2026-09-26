@@ -207,17 +207,8 @@ jobs:
         --config Debug
         2>&1 | tee ci-logs/build-Debug.log
 
-    #TEMPORARY (diagnostic only, remove once the Windows access-violation
-    #bug is understood): NCRYSTAL_DEBUG_PHONON=1 turns on the breadcrumb
-    #trail through VDOS/SAB construction added for this bisection. This
-    #will make many otherwise-passing tests here newly "fail" on the
-    #reference-log diff, since it adds extra stdout lines -- expected and
-    #harmless for this diagnostic run; what matters is the breadcrumbs
-    #visible in ci-logs/LastTest*.log for the tests that crash outright:
     - name: CTest (Debug)
       continue-on-error: true
-      env:
-        NCRYSTAL_DEBUG_PHONON: '1'
       run: >
         ctest --test-dir ./build --build-config Debug --no-tests=error --output-on-failure
         --test-output-size-failed 100000 --test-output-truncation middle
@@ -238,10 +229,7 @@ jobs:
         --config Release
         2>&1 | tee ci-logs/build.log
 
-    #Same TEMPORARY diagnostic env var as the Debug CTest step above:
     - name: CTest
-      env:
-        NCRYSTAL_DEBUG_PHONON: '1'
       run: >
         ctest --test-dir ./build --build-config Release --no-tests=error --output-on-failure
         --test-output-size-failed 100000 --test-output-truncation middle
