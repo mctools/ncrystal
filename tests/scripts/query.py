@@ -120,6 +120,8 @@ def main():
     test_cli('util','list')
     test_cli('util','wl2ekin','1.8')
     test_cli('util','ekin2wl','0.025')
+    test_cli('util','eqrefl','149','1,2,3','1,1,0')
+    test_cli('util','eqrefl','150','1,2,3','1,1,0')
 
     with ensure_error(ArgumentError,
                       'the following arguments are required: STR'):

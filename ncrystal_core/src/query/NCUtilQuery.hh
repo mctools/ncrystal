@@ -27,6 +27,7 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/internal/phys_utils/NCKinUtils.hh"
+#include "NCrystal/internal/phys_utils/NCEqRefl.hh"
 #include "NCUtilQuery_FMA.hh"
 #include <chrono>
 
@@ -242,12 +243,43 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr auto sv_browsefacts = StrView::make("browsefactories");
       constexpr auto sv_factthreads = StrView::make("factorythreads");
       constexpr auto sv_atomdb = StrView::make("atomdb");
+      constexpr auto sv_eqrefl = StrView::make("eqrefl");
       if ( key == sv_list ) {
         if ( nargs != 0 )
           invalid("no arguments should come after: [\"util\",\"list\"]");
         os<<"[\"wl2ekin\", \"ekin2wl\", \"mathval\", \"fmadiagnose\","
           " \"kinutils\", \"browsedb\", \"browsefactories\","
-          " \"factorythreads\", \"atomdb\"]";
+          " \"factorythreads\", \"atomdb\", \"eqrefl\"]";
+      } else if ( key == sv_eqrefl ) {
+        //["util","eqrefl",SG,"h1,k1,l1","h2,k2,l2",...]: For each hkl, the
+        //list of reflections considered symmetry-equivalent by NCrystal for
+        //the space group (one of each Friedel pair, -h,-k,-l is implied).
+        auto usage = "correct usage: [\"util\",\"eqrefl\",SG,\"H,K,L\",...]";
+        auto sg = ( nargs >= 2 ? arg(0).toInt32() : NullOpt );
+        if ( !sg.has_value() )
+          invalid( usage );
+        EqRefl eqrefl( sg.value() );
+        os << '[';
+        for ( auto i : ncrange( std::size_t(1), nargs ) ) {
+          auto parts = arg(i).splitTrimmed(',');
+          int hkl[3];
+          for ( auto j : ncrange( 3 ) ) {
+            auto x = ( parts.size() == 3 ? parts.at(j).toInt32() : NullOpt );
+            if ( !x.has_value() )
+              invalid( usage );
+            hkl[j] = x.value();
+          }
+          os << ( i>1 ? ",[" : "[" );
+          bool first = true;
+          for ( auto& e : eqrefl.getEquivalentReflections( hkl[0], hkl[1],
+                                                           hkl[2] ) ) {
+            os << ( first ? "[" : ",[" )
+               << e.h << ',' << e.k << ',' << e.l << ']';
+            first = false;
+          }
+          os << ']';
+        }
+        os << ']';
       } else if ( key == sv_atomdb ) {
         if ( nargs != 0 )
           invalid("no arguments should come after: [\"util\",\"atomdb\"]");

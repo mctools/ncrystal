@@ -20,7 +20,7 @@
 ##                                                                            ##
 ################################################################################
 
-# NEEDS: spglib
+# NEEDS: numpy spglib
 import NCrystalDev as NC
 from NCTestUtils.common import ensure_error
 
@@ -100,12 +100,35 @@ def test_verify_origin_and_triclinic():
     fcc = [('Al',0,0,0),('Al',0,.5,.5),('Al',.5,0,.5),('Al',.5,.5,0)]
     verify( (4.05,)*3+(90,)*3,
             [ (e,(x+.123)%1,(y+.456)%1,(z+.789)%1) for e,x,y,z in fcc ], 225 )
+    #Non-standard settings which are compatible with NCrystal's symmetry
+    #handling (here: permuted orthorhombic axes) must be accepted, while those
+    #that are not (monoclinic unique axis c, tetragonal 4-fold along a) must be
+    #rejected:
+    import random
+
+    import NCTestUtils.cifgen as cg
+    rng = random.Random( 1 )
+    cyclic = [[0,0,1],[1,0,0],[0,1,0]]
+    def verify_struct( s, sg ):
+        verify( s.cellpars, [ (e,*p) for e,p in s.atoms ], sg )
+    verify_struct( cg.transformed_basis(
+        cg.random_structure( rng, 19, nsites = 2 ), cyclic ), 19 )
     print('Valid structures verified OK')
-    #Wrong space groups must still be rejected:
+    #Wrong space groups or settings must be rejected:
     for cell, atoms, sg in ( ( tricl, p1, 2 ),
                              ( (4.05,)*3+(90,)*3, fcc, 229 ) ):
         with ensure_error(NC.NCBadInput):
             verify( cell, atoms, sg )
+    for sg, M in ( ( 4, [[0,1,0],[0,0,1],[1,0,0]] ), ( 76, cyclic ) ):
+        s = cg.transformed_basis( cg.random_structure( rng, sg, nsites = 3 ),
+                                  M )
+        try:
+            verify_struct( s, sg )
+        except NC.NCBadInput as e:
+            assert 'not in a setting where' in str(e)
+            print(f'Non-standard SG-{sg} setting rejected')
+        else:
+            raise RuntimeError('Incompatible setting was accepted')
 
 def test_refine_corrections():
     #refine_crystal_structure must only report corrections when spglib

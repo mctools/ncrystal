@@ -709,7 +709,7 @@ class NCMATComposerImpl:
         d =  _spglib_refine_cell( spglib_cell, symprec = symprec ) if spglib_cell else None
         if not d:
             raise _nc_core.NCBadInput(f'Failed to {"refine" if mode_refine else "verify"} crystal structure with spglib.')
-        assert len(d)==7
+        assert len(d)==8
         if mode_refine and not quiet:
             for m in d['msgs']:
                 _nc_common.print(m)
@@ -747,11 +747,13 @@ class NCMATComposerImpl:
                 #Triclinic: any basis is valid (spglib would standardise to a
                 #reduced cell), and detecting the space group is sufficient.
                 return
-            rdl = _reldiff_cellparams( cellsg, d['cellparams_snapped'] )
-            rda = _reldiff_atompos( spglib_cell, d['refined_cell'] )
-            #rd = None if (rdl is None or rda is None) else max(rdl,rda)
-            if rdl is None or rda is None or max(rdl,rda) > 0.01:
+            #Differences (in a common basis) must be small:
+            if d['reldiff'] is None or d['reldiff'] > 0.01:
                 raise _nc_core.NCBadInput('Failed to verify crystal structure with spglib.')
+            #The setting does not have to be spglib's standard one (e.g. axes
+            #might be permuted), as long as NCrystal's symmetry handling is
+            #valid:
+            _check_eqrefl_compatibility( spglib_cell, sgnumber, symprec )
 
     def set_atompos( self, atompos ):
         pos,occumap = [],{}
@@ -1856,6 +1858,38 @@ def _reldiff_atompos( spglib_cell1, spglib_cell2 ):
                 best = worst
     return math.sqrt(best) if best is not None else None
 
+def _check_eqrefl_compatibility( spglib_cell, sgnumber, symprec ):
+    #Check that all reflections which NCrystal considers equivalent for the
+    #space group, are actually equivalent for the structure as given (i.e. in
+    #the Laue orbit of spglib's symmetry operations in the input basis).
+    from ._numpy import _ensure_numpy
+    np = _ensure_numpy()
+    ds = _import_spglib().get_symmetry_dataset( spglib_cell, symprec = symprec )
+    rots = getattr( ds, 'rotations', None ) if ds else None
+    if rots is None and ds:
+        rots = ds['rotations']
+    testhkls = [ (1,3,7), (2,-5,11), (1,0,0), (0,1,0), (0,0,1), (1,1,0),
+                 (1,-1,0), (1,0,1), (0,1,1), (1,1,1), (1,2,0), (2,1,0) ]
+    from .misc import evaluate_query
+    eqrefl = evaluate_query( [ 'util', 'eqrefl', str(sgnumber) ]
+                             + [ ','.join(str(x) for x in hkl)
+                                 for hkl in testhkls ] )
+    for hkl, eqlist in zip( testhkls, eqrefl ):
+        orbit = set()
+        for R in ( rots if rots is not None else [] ):
+            e = tuple( int(x) for x in np.asarray(hkl) @ np.asarray(R) )
+            orbit.update( ( e, tuple( -x for x in e ) ) )
+        for e in eqlist:
+            if tuple(e) not in orbit:
+                raise _nc_core.NCBadInput(
+                    f'Failed to verify crystal structure with spglib: The'
+                    f' structure is consistent with space group {sgnumber},'
+                    ' but not in a setting where the symmetry-equivalent'
+                    ' reflections assumed by NCrystal are valid (e.g. hkl='
+                    f'{hkl} and {tuple(e)} are not equivalent). Using'
+                    ' .refine_crystal_structure() transforms it to a'
+                    ' standard setting.' )
+
 def _spglib_std_transform( spglib_cell, symprec ):
     #Get the transformation (P,p,centring translations) used by spglib to
     #standardise a cell (x_std = P.x + p), or None if it can not be handled
@@ -2018,7 +2052,8 @@ def _spglib_refine_cell( spglib_cell, symprec = 0.01 ):
              'sgsymb_hm': sgsymb_hm,
              'warnings': warnings,
              'msgs': msgs,
-             'can_keep_anisotropic_properties': not discard_aniso }
+             'can_keep_anisotropic_properties': not discard_aniso,
+             'reldiff' : rd }
 
 def _impl_spglib_refine_cell( spglib_cell, *, symprec, warnings, msgs,
                               trackinfo, nrepeat = 0 ):

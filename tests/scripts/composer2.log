@@ -295,6 +295,8 @@ AbsOOV(sigma_2200=0.231barn)
 Valid structures verified OK
 Caught expected NCBadInput('Failed to verify crystal structure with spglib. Expected SG-2, got SG-1 (P1).')
 Caught expected NCBadInput('Failed to verify crystal structure with spglib. Expected SG-229, got SG-225 (Fm-3m).')
+Non-standard SG-4 setting rejected
+Non-standard SG-76 setting rejected
 
 
   ================> refine corrections

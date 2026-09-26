@@ -87,6 +87,11 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * NCMATComposer.verify_crystal_structure now accepts any setting in
+       which NCrystal's symmetry handling is valid (e.g. permuted
+       orthorhombic axes, other monoclinic cell choices), and rejects
+       settings where it is not (e.g. monoclinic unique axis c) with a
+       clear message. New JSON query ["util","eqrefl",SG,"H,K,L",...].
      * cif2ncmat: clear error for CIF data without atom sites. New tests
        with synthetic CIF data in all space groups and many styles.
      * Fix Bragg diffraction for crystals in space groups 149, 151, 153, 157,

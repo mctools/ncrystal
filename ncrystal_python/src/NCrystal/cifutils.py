@@ -1138,7 +1138,7 @@ def _impl_refine_cell( cellsg, atoms ):
     orig_cell = _format_spglib_cell( cellsg, atoms )
 
     d = _nc_ncmatimpl._spglib_refine_cell( orig_cell )#, symprec = 0.01, allow_axis_swap = True )
-    assert len(d)==7
+    assert len(d)==8
 
     refined_cell = d['refined_cell']
     new_atom_pos = { i: [] for i in range(max(refined_cell[2])+1) }
