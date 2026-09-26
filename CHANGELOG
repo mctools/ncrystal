@@ -87,6 +87,7 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Fix Debug-build assertion failure when FILLHKL_IGNOREFSQCUT is set.
      * NCMATComposer (and thus cif2ncmat) now writes unit cell lengths and
        angles with full precision, rather than 6 significant digits.
      * Fix wrong real-space lattice (thus volume, density, d-spacings and

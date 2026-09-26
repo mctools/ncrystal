@@ -550,7 +550,9 @@ NC::HKLList NC::detail::calculateHKLPlanesWithSymEqRefl( const StructureInfo& st
   nc_assert_always(structureInfo.spacegroup!=0);
 
   const bool env_ignorefsqcut = ncgetenv_bool("FILLHKL_IGNOREFSQCUT");
-  nc_assert( !env_ignorefsqcut || cfg.fsquarecut == 0.0 );//due to logic in calling function
+  //Caller sets fsquarecut to 0.0 and then clamps it:
+  nc_assert( !env_ignorefsqcut
+             || cfg.fsquarecut <= fsquarecut_lowest_possible_value );
 
   const RotMatrix rec_lat = getReciprocalLatticeRot( structureInfo );
   EqRefl sym(structureInfo.spacegroup);
