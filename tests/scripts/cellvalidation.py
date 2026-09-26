@@ -124,11 +124,33 @@ def test_symmetry_selfcheck():
     else:
         raise RuntimeError('Wrong space group accepted')
 
+def test_rhombohedral_axes():
+    #Rhombohedral space groups can be given in rhombohedral axes (a=b=c,
+    #alpha=beta=gamma<120) as well as in hexagonal axes:
+    atoms = [('Bi','0.2 0.2 0.2'),('Bi','0.8 0.8 0.8')]#R-3m, like Bi
+    info = load( '4.7 4.7 4.7', '57.3 57.3 57.3', 166, atoms )
+    si = info.structure_info
+    print('R-3m in rhombohedral axes: loaded with'
+          f' angles={si["alpha"]:g},{si["beta"]:g},{si["gamma"]:g}'
+          f' (planes available: {len(list(info.hklObjects()))>0})')
+    for lengths, angles, errmsg in (
+            ( '4.7 4.7 4.8', '57.3 57.3 57.3', 'requires a=b=c' ),
+            ( '4.7 4.7 4.7', '57.3 57.3 58', 'requires alpha=beta=gamma<120' ),
+            ( '4.7 4.7 4.7', '125 125 125', 'requires alpha=beta=gamma<120' ) ):
+        try:
+            load( lengths, angles, 166, atoms )
+        except NC.NCBadInput as e:
+            assert errmsg in str(e), str(e)
+            print(f'Rhombohedral axes with {lengths} / {angles} rejected')
+        else:
+            raise RuntimeError('Invalid rhombohedral cell accepted')
+
 def main():
     test_hexagonal_angles()
     test_monoclinic_angles()
     test_duplicate_positions()
     test_symmetry_selfcheck()
+    test_rhombohedral_axes()
 
 if __name__ == '__main__':
     main()

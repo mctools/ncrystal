@@ -87,6 +87,9 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Rhombohedral space groups (146, 148, 155, 160, 161, 166, 167) can now
+       also be given in rhombohedral axes (a=b=c, alpha=beta=gamma<120) in
+       NCMAT data and NCMATComposer (not in .laz/.lau files).
      * When a space group is given, NCrystal now checks that the structure
        actually has the assumed symmetry (by comparing |F|^2 of low-index
        planes which should be symmetry-equivalent), and otherwise raises

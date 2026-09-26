@@ -413,3 +413,36 @@ def test_spacegroups( spacegroups, seed = 99 ):
         ds = spglib.get_symmetry_dataset( s.spglib_cell(), symprec = 1e-5 )
         check_symmetry_groups( f'SG-{sg}', info, ds )
     print(f'{len(spacegroups)} space groups OK ({ntot} planes checked)')
+
+def test_rhombohedral_axes( seed = 7 ):
+    """Structures in the rhombohedral (R) space groups described in both
+    hexagonal and rhombohedral axes (with the space group declared in both
+    cases) must give identical physics."""
+    from . import cifgen
+    _setup()
+    rng = random.Random( seed )
+    for sg in ( 146, 148, 155, 160, 161, 166, 167 ):
+        s = cifgen.random_structure( rng, sg, max_atoms = 100 )
+        hex_ncmat = compose( s.cellpars, [ (e,*p) for e,p in s.atoms ],
+                             spacegroup = sg )
+        dcut = safe_dcutoff( s.cellpars, 150 )
+        info_hex = load_info( hex_ncmat, dcut )
+        check_cell( f'SG-{sg}/hex', info_hex, dcut )
+        #Primitive cell of an R lattice (spglib) is in rhombohedral axes:
+        pl, pp, pn = spglib.find_primitive( s.spglib_cell(), symprec = 1e-5 )
+        cellpars = cellpars_from_lattice( pl )
+        a, b, c, alpha, beta, gamma = cellpars
+        assert a == b == c and alpha == beta == gamma != 90, cellpars
+        elems = s.elements()
+        atoms = [ ( elems[n-1], )+tuple( float(x)%1.0 for x in p )
+                  for p, n in zip( pp, pn ) ]
+        info_rh = load_info( compose( cellpars, atoms, spacegroup = sg ),
+                             dcut )
+        assert info_rh.structure_info['spacegroup'] == sg
+        n = check_cell( f'SG-{sg}/rh', info_rh, dcut )
+        ds = spglib.get_symmetry_dataset( ( pl, pp, pn ), symprec = 1e-5 )
+        check_symmetry_groups( f'SG-{sg}/rh', info_rh, ds )
+        cmp_spectra( f'SG-{sg}', powder_spectrum( info_hex, dcut ),
+                     powder_spectrum( info_rh, dcut ) )
+        print(f'SG-{sg} in rhombohedral axes (alpha={alpha:.4g}) OK'
+              f' ({n} planes)')

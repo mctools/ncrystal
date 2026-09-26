@@ -74,6 +74,13 @@ namespace NCRYSTAL_NAMESPACE {
   //allowed to provide spacegroup==0, in which case the function won't do much:
   void checkAndCompleteLattice( unsigned spacegroup, double a, double& b, double& c );
 
+  //Whether the space group is one of the rhombohedral (R) ones, and whether
+  //a unit cell of such a space group with lattice angle alpha (degrees) is
+  //described in rhombohedral axes (a=b=c, alpha=beta=gamma) rather than in
+  //hexagonal axes (alpha=beta=90, gamma=120):
+  bool isRhombohedralSpaceGroup( int spacegroup );
+  bool usesRhombohedralAxes( int spacegroup, double alpha );
+
   //Same for angles, except that all three angles might be left zero in case the
   //space group defines them:
   void checkAndCompleteLatticeAngles( unsigned spacegroup, double& alpha, double& beta, double& gamma );

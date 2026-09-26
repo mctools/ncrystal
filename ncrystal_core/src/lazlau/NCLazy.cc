@@ -195,6 +195,10 @@ namespace NCRYSTAL_NAMESPACE {
             double lattice_bb = this->value_or("lattice_bb",0.0);
             double lattice_cc = this->value_or("lattice_cc",0.0);
             checkAndCompleteLatticeAngles( spacegroup, lattice_aa, lattice_bb, lattice_cc );
+            if ( usesRhombohedralAxes( static_cast<int>(spacegroup), lattice_aa ) )
+              NCRYSTAL_THROW(BadInput,"Rhombohedral axes are not supported for"
+                             " rhombohedral space groups in .laz/.lau files"
+                             " (use hexagonal axes)");
 
             this->updateIfNonZero("lattice_a",lattice_a);
             this->updateIfNonZero("lattice_b",lattice_b);

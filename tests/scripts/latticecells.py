@@ -35,6 +35,7 @@ def main():
     lc.test_stdlib()
     lc.test_spacegroups( ( 149, 150, 151, 152, 153, 154, 157, 156,
                            159, 158, 162, 164, 163, 165 ) )
+    lc.test_rhombohedral_axes()
 
 if __name__ == '__main__':
     main()

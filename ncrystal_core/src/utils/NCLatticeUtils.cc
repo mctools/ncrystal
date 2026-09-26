@@ -243,6 +243,17 @@ NC::MaxHKL NC::estimateHKLRange( double dcutoff,
            floorhkl( max_reach_l * invdcutoff ) };
 }
 
+bool NC::isRhombohedralSpaceGroup( int sg )
+{
+  return ( sg==146 || sg==148 || sg==155 || sg==160 || sg==161
+           || sg==166 || sg==167 );
+}
+
+bool NC::usesRhombohedralAxes( int sg, double alpha )
+{
+  return isRhombohedralSpaceGroup( sg ) && alpha != 90.0;
+}
+
 void NC::checkAndCompleteLatticeAngles( unsigned sg, double& alpha, double& beta, double& gamma )
 {
   if (sg>230)
@@ -261,6 +272,15 @@ void NC::checkAndCompleteLatticeAngles( unsigned sg, double& alpha, double& beta
     return;
   case Trigonal:
   case Hexagonal:
+    if ( alpha > 0 && usesRhombohedralAxes( static_cast<int>(sg), alpha ) ) {
+      //Rhombohedral axes (a=b=c must be checked by caller):
+      if ( ( beta>0 && beta!=alpha ) || ( gamma>0 && gamma!=alpha )
+           || !( alpha < 120 ) )
+        NCRYSTAL_THROW2(BadInput,"Spacegroup ("<<sg<<") in rhombohedral axes"
+                        " requires alpha=beta=gamma<120");
+      beta = gamma = alpha;
+      return;
+    }
     if ( ( alpha>0 && alpha!=90 ) || ( beta>0 && beta!=90 ) || ( gamma>0 && gamma!=120 ) )
       NCRYSTAL_THROW2(BadInput,"Spacegroup ("<<sg<<") requires alpha=beta=90 and gamma=120");
     alpha = beta = 90;

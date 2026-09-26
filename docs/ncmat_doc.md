@@ -97,6 +97,13 @@ of the crystal symmetry, which must be mathematically consistent with the unit
 cell layout provided in the @CELL and @ATOMPOSITIONS sections. The space group
 number is given as a single integer with a value from 1 to 230.
 
+The unit cell must be given in a standard setting of the space group: For the
+monoclinic space groups (3-15) this is the setting with unique axis b (i.e.
+alpha=gamma=90). For the rhombohedral space groups (146, 148, 155, 160, 161,
+166, 167) the cell can be given either in hexagonal axes (alpha=beta=90,
+gamma=120), or (since NCrystal 4.4.7) in rhombohedral axes (a=b=c and
+alpha=beta=gamma<120).
+
 ## The @DEBYETEMPERATURE section ##
 
 Either a single number, the global Debye temperature, must be provided, or one

@@ -47,8 +47,11 @@ namespace NCRYSTAL_NAMESPACE {
   {
   public:
 
-    //Initialise with space group number in 1..230:
-    EqRefl( int spacegroup );
+    //Initialise with space group number in 1..230. For the rhombohedral
+    //(R) space groups, rhombohedral_axes indicates that the unit cell is
+    //described in rhombohedral rather than hexagonal axes (see also
+    //usesRhombohedralAxes in NCLatticeUtils.hh):
+    EqRefl( int spacegroup, bool rhombohedral_axes = false );
 
     class EquivReflList {
       //List with half the HKL points in a given family of symmetric equivalent

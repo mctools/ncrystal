@@ -254,11 +254,17 @@ namespace NCRYSTAL_NAMESPACE {
         //["util","eqrefl",SG,"h1,k1,l1","h2,k2,l2",...]: For each hkl, the
         //list of reflections considered symmetry-equivalent by NCrystal for
         //the space group (one of each Friedel pair, -h,-k,-l is implied).
+        //Rhombohedral axes can be selected with SG as e.g. "166:R".
         auto usage = "correct usage: [\"util\",\"eqrefl\",SG,\"H,K,L\",...]";
-        auto sg = ( nargs >= 2 ? arg(0).toInt32() : NullOpt );
-        if ( !sg.has_value() )
+        if ( nargs < 2 )
           invalid( usage );
-        EqRefl eqrefl( sg.value() );
+        auto sgparts = arg(0).split(':');
+        auto sg = ( ( sgparts.size() == 1 || sgparts.size() == 2 )
+                    ? sgparts.front().toInt32() : NullOpt );
+        const bool rhombo = ( sgparts.size() == 2 );
+        if ( !sg.has_value() || ( rhombo && sgparts.back() != "R" ) )
+          invalid( usage );
+        EqRefl eqrefl( sg.value(), rhombo );
         os << '[';
         for ( auto i : ncrange( std::size_t(1), nargs ) ) {
           auto parts = arg(i).splitTrimmed(',');

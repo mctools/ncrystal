@@ -230,6 +230,11 @@ namespace NCRYSTAL_NAMESPACE {
                                  si.lattice_b,  si.lattice_c );
 
         checkAndCompleteLatticeAngles( si.spacegroup, si.alpha, si.beta, si.gamma );
+        if ( usesRhombohedralAxes( static_cast<int>(si.spacegroup), si.alpha )
+             && !( si.lattice_a == si.lattice_b
+                   && si.lattice_a == si.lattice_c ) )
+          NCRYSTAL_THROW2(BadInput,"Spacegroup ("<<si.spacegroup<<") in"
+                          " rhombohedral axes requires a=b=c");
 
 
         if ( ! ( si.alpha > 0 && si.alpha < 180 &&

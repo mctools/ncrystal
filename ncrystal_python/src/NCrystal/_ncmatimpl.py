@@ -753,7 +753,9 @@ class NCMATComposerImpl:
             #The setting does not have to be spglib's standard one (e.g. axes
             #might be permuted), as long as NCrystal's symmetry handling is
             #valid:
-            _check_eqrefl_compatibility( spglib_cell, sgnumber, symprec )
+            _check_eqrefl_compatibility( spglib_cell, sgnumber, symprec,
+                                         _uses_rhombohedral_axes(
+                                             sgnumber, cellsg['alpha'] ) )
 
     def set_atompos( self, atompos ):
         pos,occumap = [],{}
@@ -1858,7 +1860,8 @@ def _reldiff_atompos( spglib_cell1, spglib_cell2 ):
                 best = worst
     return math.sqrt(best) if best is not None else None
 
-def _check_eqrefl_compatibility( spglib_cell, sgnumber, symprec ):
+def _check_eqrefl_compatibility( spglib_cell, sgnumber, symprec,
+                                 rhombohedral_axes = False ):
     #Check that all reflections which NCrystal considers equivalent for the
     #space group, are actually equivalent for the structure as given (i.e. in
     #the Laue orbit of spglib's symmetry operations in the input basis).
@@ -1871,7 +1874,8 @@ def _check_eqrefl_compatibility( spglib_cell, sgnumber, symprec ):
     testhkls = [ (1,3,7), (2,-5,11), (1,0,0), (0,1,0), (0,0,1), (1,1,0),
                  (1,-1,0), (1,0,1), (0,1,1), (1,1,1), (1,2,0), (2,1,0) ]
     from .misc import evaluate_query
-    eqrefl = evaluate_query( [ 'util', 'eqrefl', str(sgnumber) ]
+    sgstr = f'{sgnumber}:R' if rhombohedral_axes else str(sgnumber)
+    eqrefl = evaluate_query( [ 'util', 'eqrefl', sgstr ]
                              + [ ','.join(str(x) for x in hkl)
                                  for hkl in testhkls ] )
     for hkl, eqlist in zip( testhkls, eqrefl ):
@@ -1985,6 +1989,12 @@ def _spglib_extractsg( spglib_symdata ):
         sgsymb_hermann_mauguin += f':{c}'
     return sgno, sgsymb_hermann_mauguin
 
+def _uses_rhombohedral_axes( sgnumber, alpha ):
+    #Rhombohedral (R) space groups in rhombohedral rather than hexagonal axes
+    #(like usesRhombohedralAxes in NCLatticeUtils.hh):
+    return ( int(sgnumber) in ( 146, 148, 155, 160, 161, 166, 167 )
+             and alpha != 90 )
+
 def _check_cell_sg_consistency( sgnumber, a, b, c, alpha, beta, gamma ):
     sgclass = _nc_common._classifySG(int(sgnumber))
     if sgclass in ( 'orthorhombic', 'tetragonal', 'cubic'):
@@ -1993,10 +2003,26 @@ def _check_cell_sg_consistency( sgnumber, a, b, c, alpha, beta, gamma ):
         if not all( (_ == 90) for _ in (alpha, beta, gamma) ):
             raise _nc_core.NCBadInput(f'Space group {sgnumber} requires cell parameters alpha=beta=gamma=90 '
                                 +f'(found alpha={alpha}, beta={beta}, gamma={gamma})')
+    elif _uses_rhombohedral_axes( sgnumber, alpha ):
+        if not ( a == b == c and alpha == beta == gamma and alpha < 120 ):
+            raise _nc_core.NCBadInput(f'Space group {sgnumber} in rhombohedral'
+                                      ' axes requires cell parameters a=b=c'
+                                      ' and alpha=beta=gamma<120 (found'
+                                      f' a={a:g}, b={b:g}, c={c:g},'
+                                      f' alpha={alpha}, beta={beta},'
+                                      f' gamma={gamma})')
+        return
     elif sgclass in ('trigonal','hexagonal'):
         if not ( alpha == 90 and beta == 90 and gamma == 120 ):
             raise _nc_core.NCBadInput(f'Space group {sgnumber} requires cell parameters alpha=beta=90 and gamma=120 '
                                 +f'(found alpha={alpha}, beta={beta}, gamma={gamma})')
+    elif sgclass == 'monoclinic':
+        if not ( alpha == 90 and gamma == 90 and 0 < beta < 180 ):
+            raise _nc_core.NCBadInput(f'Space group {sgnumber} requires cell'
+                                      ' parameters alpha=gamma=90 (only'
+                                      ' monoclinic settings with unique axis'
+                                      f' b are supported) (found alpha={alpha},'
+                                      f' beta={beta}, gamma={gamma})')
     else:
         if not all( (0<a<180) for a in ( alpha, beta, gamma ) ):
             raise _nc_core.NCBadInput('Unit cell must have all angles between 0 and 180'

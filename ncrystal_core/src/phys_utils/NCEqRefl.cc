@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/phys_utils/NCEqRefl.hh"
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"
 namespace NC = NCrystal;
 
 struct NC::EqRefl::Helper {
@@ -83,6 +84,22 @@ struct NC::EqRefl::Helper {
     return e;
   }
 
+  static ERL calc_Rhombohedral_3(int h, int k, int l)
+  {
+    //Laue class -3 in rhombohedral axes (SG 146, 148):
+    ERL e; e.add(h,k,l);
+    e.add(k,l,h); e.add(l,h,k);
+    return e;
+  }
+
+  static ERL calc_Rhombohedral_3m(int h, int k, int l)
+  {
+    //Laue class -3m in rhombohedral axes (SG 155, 160, 161, 166, 167):
+    ERL e; e.add(h,k,l);
+    e.add(k,l,h); e.add(l,h,k); e.add(k,h,l); e.add(h,l,k); e.add(l,k,h);
+    return e;
+  }
+
   static bool isTrigonal_31m( int sg )
   {
     return ( sg==149 || sg==151 || sg==153 || sg==157 || sg==159
@@ -127,10 +144,19 @@ struct NC::EqRefl::Helper {
   }
 };
 
-NC::EqRefl::EqRefl(int sg)
+NC::EqRefl::EqRefl( int sg, bool rhombohedral_axes )
 {
   if (sg<1||sg>230)
     NCRYSTAL_THROW(BadInput,"Space group number is not in the range 1 to 230");
+  if ( rhombohedral_axes ) {
+    if ( !isRhombohedralSpaceGroup( sg ) )
+      NCRYSTAL_THROW2(BadInput,"Rhombohedral axes requested for space group "
+                      <<sg<<" which is not rhombohedral.");
+    m_calc = ( ( sg == 146 || sg == 148 )
+               ? &Helper::calc_Rhombohedral_3
+               : &Helper::calc_Rhombohedral_3m );
+    return;
+  }
   if (sg<149) {
     if (sg<75) {
       if (sg<3)

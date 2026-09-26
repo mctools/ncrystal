@@ -13,3 +13,7 @@ P1 structure in cubic cell (no SG): True
 P1 structure declared as SG-221 rejected
 P312 structure as SG-149: True
 P312 structure declared as SG-150 rejected
+R-3m in rhombohedral axes: loaded with angles=57.3,57.3,57.3 (planes available: True)
+Rhombohedral axes with 4.7 4.7 4.8 / 57.3 57.3 57.3 rejected
+Rhombohedral axes with 4.7 4.7 4.7 / 57.3 57.3 58 rejected
+Rhombohedral axes with 4.7 4.7 4.7 / 125 125 125 rejected

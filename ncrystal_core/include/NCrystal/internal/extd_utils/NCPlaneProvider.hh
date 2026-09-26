@@ -80,8 +80,8 @@ namespace NCRYSTAL_NAMESPACE {
 
     //Helper class for extracting HKL list from a given HKLInfo object:
 
-    ExpandHKLHelper( const Info& );//convenience, simply digs out spacegroup
-    ExpandHKLHelper( int spacegroup );
+    ExpandHKLHelper( const Info& );//convenience, digs out spacegroup+setting
+    ExpandHKLHelper( int spacegroup, bool rhombohedral_axes = false );
 
     //Use the following function to iterate over all (or rather, half of) HKL
     //entries in a given HKLInfo object. The returned span is invalidated once
@@ -104,11 +104,12 @@ namespace NCRYSTAL_NAMESPACE {
 ////////////////////////////
 
 namespace NCRYSTAL_NAMESPACE {
-  inline ExpandHKLHelper::ExpandHKLHelper( int spacegroup )
+  inline ExpandHKLHelper::ExpandHKLHelper( int spacegroup,
+                                           bool rhombohedral_axes )
   {
     nc_assert( spacegroup>=0 && spacegroup <= 230 );
     if ( spacegroup )
-      m_sym.emplace(spacegroup);
+      m_sym.emplace( spacegroup, rhombohedral_axes );
   }
 
   inline Span<const HKL> ExpandHKLHelper::expand( const HKLInfo& hi )
