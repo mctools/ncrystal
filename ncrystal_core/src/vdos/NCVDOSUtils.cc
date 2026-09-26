@@ -23,8 +23,6 @@
 #include "NCrystal/internal/utils/NCIter.hh"
 #include "NCrystal/internal/utils/NCFastSearch.hh"
 #include "NCrystal/internal/phys_utils/NCKinUtils.hh"
-#include "NCrystal/internal/utils/NCMsg.hh"
-#include "NCrystal/internal/utils/NCString.hh"
 
 namespace NC=NCrystal;
 
@@ -947,9 +945,6 @@ NC::PairDD NC::VDOS::estimateGnErange( double egrid_lower, double egrid_binwidth
                                        Span<const double> spec,
                                        double relcontriblvl )
 {
-  static const bool s_verbose_vdosutils = ncgetenv_bool("DEBUG_PHONON");
-  if ( s_verbose_vdosutils )
-    NCRYSTAL_MSG("estimateGnErange: entering (spec.size()="<<spec.size()<<")");
   //These were previously (incorrectly) wrapped in an #ifndef NDEBUG guard,
   //silently disabling them in Release builds contrary to the project's own
   //nc_assert_always convention (always active). spec.size()>=2 in

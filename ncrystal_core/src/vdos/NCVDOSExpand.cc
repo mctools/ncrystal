@@ -195,16 +195,9 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
   auto findAlphaBetaRangeOfOrder
     = [&Gn_asym,x2alpha,invkT,relcontriblvl](unsigned n)
     {
-      if ( s_verbose )
-        NCRYSTAL_MSG("findAlphaBetaRangeOfOrder: n="<<n<<" calling Gn_asym.eRange");
       auto eRange = Gn_asym.eRange(n, relcontriblvl);
-      if ( s_verbose )
-        NCRYSTAL_MSG("findAlphaBetaRangeOfOrder: n="<<n<<" eRange done,"
-                     " calling rangeXNexpMX");
       PairDD betaRange( eRange.first * invkT, eRange.second * invkT  );
       auto xRange = rangeXNexpMX( n, relcontriblvl );
-      if ( s_verbose )
-        NCRYSTAL_MSG("findAlphaBetaRangeOfOrder: n="<<n<<" rangeXNexpMX done");
       PairDD alphaRange( xRange.first * x2alpha, xRange.second * x2alpha  );
       return Rectangle(alphaRange,betaRange);
     };
@@ -273,16 +266,8 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
 
   res.abRanges.reserve(max_phonon_order);
   for ( unsigned n = 1; n<=max_phonon_order; ++n ) {
-    if ( s_verbose )
-      NCRYSTAL_MSG("VDOS expansion: abRanges loop n="<<n<<"/"<<max_phonon_order
-                   <<" -- calling findAlphaBetaRangeOfOrder");
     auto abRange = findAlphaBetaRangeOfOrder(n);
-    if ( s_verbose )
-      NCRYSTAL_MSG("VDOS expansion: abRanges loop n="<<n
-                   <<" -- findAlphaBetaRangeOfOrder done, calling findABExtentWithinKB");
     auto abOverlap = findABExtentWithinKB( abRange, targetEmax_div_kT );
-    if ( s_verbose )
-      NCRYSTAL_MSG("VDOS expansion: abRanges loop n="<<n<<" done");
     //FIXME: Also store abOverlap for each order n, so the combinedGnFunction
     //knows which parts of each Gn (and alpha) function to consider. Also
     //fillSABFromVDOS could perhaps take advantage.
@@ -291,8 +276,6 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
     if ( abRangesForWrite.has_value() )
       abRangesForWrite.value().push_back( { abRange, abOverlap } );
   }
-  if ( s_verbose )
-    NCRYSTAL_MSG("VDOS expansion: abRanges loop fully done");
   if ( abRangesForWrite.has_value() )
     writeFileWithABRanges(abRangesForWrite.value(),targetEmax_div_kT);
 
