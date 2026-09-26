@@ -3,19 +3,22 @@ name: benchmark
 # Cross-platform performance comparison for the VDOS Gn expansion /
 # FastConvolve hot path (tests/src/app_perfvdos -- see its own top comment),
 # particularly to quantify how much slower Windows/MSVC is there relative to
-# Linux/macOS. Deliberately manual-trigger only (not "on: push"): unlike
-# basictest.yml's correctness testing, timing numbers on shared CI runners
-# are inherently noisy and only useful when actually being looked at, so
-# running this on every commit would mostly waste CI minutes. Add "push:" to
-# the trigger list below if per-commit tracking turns out to be wanted
-# instead.
+# Linux/macOS.
 #
 # Builds only the one perfvdos target (skips the example/plugin build and
 # the pip install step entirely, same trick as fastwindbg.yml used for the
 # access-violation bisection), in Release, and runs it directly (not via
 # ctest) to keep the log output pure timing lines.
+#
+# Each platform is run 3 times (the "repeat" axis below), so results are
+# hopefully drawn from different underlying physical runners each time
+# (GitHub's runners are ephemeral VMs, not guaranteed identical hardware
+# even for the "same" runner label) -- comparing across those repeats
+# gives a rough sense of run-to-run/host-to-host noise, rather than
+# risking reading too much into a single noisy sample per platform.
 
 on:
+  push:
   workflow_dispatch:
 
 jobs:
@@ -23,12 +26,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        repeat: [1, 2, 3]
         include:
           - { os: windows-2022,   label: windows-2022 }
           - { os: ubuntu-latest,  label: ubuntu-latest }
           - { os: macos-latest,   label: macos-latest-arm64 }
           - { os: macos-15-intel, label: macos-15-intel }
-    name: ${{ matrix.label }}
+    name: ${{ matrix.label }} (run ${{ matrix.repeat }})
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -89,7 +93,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
-        name: perfvdos-${{ matrix.label }}-${{ github.sha }}
+        name: perfvdos-${{ matrix.label }}-run${{ matrix.repeat }}-${{ github.sha }}
         path: |
           perfvdos.log
           configure.log
