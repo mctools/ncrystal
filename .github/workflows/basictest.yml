@@ -246,9 +246,12 @@ jobs:
         run: tar -czf all-ci-logs-${{ github.sha }}.tar.gz all-ci-logs
 
       - name: Upload combined log tarball
+        #The artifact "name:" (not the file inside it) is what GitHub uses
+        #for the downloadable zip's filename on the Actions run page, so it
+        #needs the commit sha too, not just the tarball path below:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: all-ci-logs
+          name: all-ci-logs-${{ github.sha }}
           path: all-ci-logs-${{ github.sha }}.tar.gz
           if-no-files-found: warn
 
