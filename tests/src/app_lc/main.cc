@@ -45,9 +45,18 @@ void testlc(const std::string& cfg)
     NC::NeutronEnergy ekin = NC::NeutronWavelength{*it};
     auto xs = scat.crossSection(ekin, neutron_dir );
     printf( "xs@%geV (%g Aa): %g\n", ekin.dbl(), *it, xs.dbl() );
-    if(xs&& !(std::next(it,3)<wls.end()) )//todo: why this weird requirement? we
-                                          //only want to sample the final 3
-                                          //wavelengths?
+    //Only sample scattering for the final 3 wavelengths. Formerly written as
+    //"!(std::next(it,3)<wls.end())", which forms an iterator up to 2
+    //positions *past* wls.end() for the last two of those 3 wavelengths --
+    //undefined behaviour that happens to work as harmless pointer arithmetic
+    //on libstdc++/libc++, but which caused a genuine Windows-Debug-only CI
+    //hang: MSVC's checked iterators (default in Debug) reject advancing a
+    //vector iterator past end(), presumably blocking on a Debug Assertion
+    //dialog in a non-interactive CI session (indistinguishable from a
+    //genuine infinite loop: no crash, no exception, no more output).
+    //std::distance is always well-defined between two valid iterators into
+    //the same container, however far apart:
+    if ( xs && std::distance(it,wls.end()) <= 3 )
     {
       for (unsigned j=0;j<5;++j) {
         auto outcome = scat.sampleScatter( ekin , neutron_dir );

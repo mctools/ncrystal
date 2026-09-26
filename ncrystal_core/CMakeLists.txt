@@ -85,6 +85,45 @@ if( NOT NCRYSTAL_NOTOUCH_CMAKE_BUILD_TYPE )
   endif()
 endif()
 
+#Harden Debug builds with standard-library bounds-checking assertions on
+#GCC/Clang (_GLIBCXX_ASSERTIONS for libstdc++, _LIBCPP_ENABLE_ASSERTIONS or,
+#on newer libc++ releases that have removed it in favour of a new
+#_LIBCPP_HARDENING_MODE=<mode> mechanism, that instead). Unlike
+#_GLIBCXX_DEBUG/_LIBCPP_HARDENING_MODE=debug, none of these change container
+#ABI layout, so mixing hardened and non-hardened translation units remains
+#safe. Skipped on MSVC, whose own _ITERATOR_DEBUG_LEVEL already defaults to
+#a stricter level for Debug builds (exactly what caught a real UB bug in
+#tests/src/app_lc that these flags would also have caught, immediately and
+#loudly, on Linux/macOS).
+#
+#Each candidate macro is verified to actually compile before being added,
+#rather than assumed harmless when not applicable: confirmed via a real
+#macos-latest CI failure that recent libc++ (Apple clang 21/Xcode 26.6)
+#hard-errors (#error, not a silently ignored macro) on the old
+#_LIBCPP_ENABLE_ASSERTIONS, precisely because it now expects
+#_LIBCPP_HARDENING_MODE instead:
+if ( NOT MSVC )
+  include(CheckCXXSourceCompiles)
+  function( _ncrystal_add_debug_hardening_define_if_compiles definestr )
+    string( MAKE_C_IDENTIFIER "NCRYSTAL_DBGHARDENING_${definestr}" resvar )
+    set( CMAKE_REQUIRED_DEFINITIONS "-D${definestr}" )
+    check_cxx_source_compiles( "#include <vector>\nint main(){return 0;}" "${resvar}" )
+    unset( CMAKE_REQUIRED_DEFINITIONS )
+    if ( "${${resvar}}" )
+      add_compile_definitions( "$<$<CONFIG:Debug>:${definestr}>" )
+    endif()
+  endfunction()
+  _ncrystal_add_debug_hardening_define_if_compiles( "_GLIBCXX_ASSERTIONS" )
+  _ncrystal_add_debug_hardening_define_if_compiles( "_LIBCPP_ENABLE_ASSERTIONS" )
+  if ( NOT NCRYSTAL_DBGHARDENING__LIBCPP_ENABLE_ASSERTIONS )
+    #Fall through to the newer libc++ mechanism only if the older one did
+    #not apply (either because this isn't libc++ at all, or because it is
+    #a version that has removed it in favour of this); EXTENSIVE is the
+    #closest match to what the old macro used to enable:
+    _ncrystal_add_debug_hardening_define_if_compiles( "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE" )
+  endif()
+endif()
+
 # Set module path
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/modules")
 

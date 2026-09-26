@@ -37,7 +37,21 @@ namespace NCRYSTAL_NAMESPACE {
       using VDOSLux = VDOS::VDOSLux;
 
       struct FlexVDOS final : private MoveOnly {
-        const VDOSData* vdosData = nullptr;
+        //For the non-Debye case, points into an object owned by (and kept
+        //alive via) guard_info, which is stable regardless of what happens
+        //to *this. For the Debye case, must NOT be cached as a plain
+        //pointer into guard_vdosData's own storage below: FlexVDOS itself
+        //gets returned by value from loadVDOS() further down, and if that
+        //"return res;" is not elided via NRVO (confirmed to matter in
+        //practice: MSVC does not always apply NRVO here, where GCC/Clang
+        //reliably do -- the same class of Windows-only NRVO-reliance bug
+        //already fixed for VDOSGn/GnExpansion elsewhere this session), a
+        //real move relocates guard_vdosData's payload to a new address,
+        //silently invalidating any pointer computed into the old one
+        //beforehand. vdosData() below always re-derives the Debye case
+        //fresh instead, so it is safe regardless of whether a move
+        //happened:
+        const VDOSData* vdosData_infoOwned = nullptr;
         VDOSLux vdoslux;
         bool is_vdosdebye = false;
         //Info:
@@ -46,6 +60,11 @@ namespace NCRYSTAL_NAMESPACE {
         //Lifetime guards:
         std::shared_ptr<const Info> guard_info;
         Optional<VDOSData> guard_vdosData;
+
+        const VDOSData* vdosData() const
+        {
+          return is_vdosdebye ? &guard_vdosData.value() : vdosData_infoOwned;
+        }
       };
 
       FlexVDOS loadVDOS( const std::string& cfgstr,
@@ -59,17 +78,20 @@ namespace NCRYSTAL_NAMESPACE {
           NCRYSTAL_THROW(BadInput,"Single phase material required");
         res.cfgstr = matcfg.toStrCfg();
         res.vdoslux = VDOSLux(matcfg.get_vdoslux());
+        bool found = false;
         for ( auto& di : info.getDynamicInfoList() ) {
           const std::string& lbl = info.displayLabel(di->atom().index);
           if ( !requested_lbl.empty() && requested_lbl != lbl )
             continue;
-          const VDOSData* vdosData = nullptr;
+          bool this_is_vdosdebye = false;
+          bool have_vdos = false;
+          const VDOSData* vdosData_infoOwned = nullptr;
           auto divdos = dynamic_cast<const DI_VDOS*>(di.get());
           if ( divdos ) {
-            res.is_vdosdebye = false;
-            vdosData = &divdos->vdosData();
+            vdosData_infoOwned = &divdos->vdosData();
+            have_vdos = true;
          } else {
-            res.is_vdosdebye = true;
+            this_is_vdosdebye = true;
             auto divdosdebye = dynamic_cast<const DI_VDOSDebye*>(di.get());
             if ( divdosdebye ) {
               res.guard_vdosData
@@ -77,22 +99,24 @@ namespace NCRYSTAL_NAMESPACE {
                                    divdosdebye->temperature(),
                                    divdosdebye->atomData().scatteringXS(),
                                    divdosdebye->atomData().averageMassAMU() );
-              vdosData = &res.guard_vdosData.value();
+              have_vdos = true;
             }
           }
-          if (!vdosData) {
+          if (!have_vdos) {
             if ( lbl == requested_lbl )
               NCRYSTAL_THROW(BadInput,"Requested label is present but does"
                              " not have VDOS data");
             continue;
           }
-          if ( res.vdosData )
+          if ( found )
             NCRYSTAL_THROW(BadInput,"Multiple dyninfos with VDOS data present"
                            " and label not provided");
+          found = true;
+          res.is_vdosdebye = this_is_vdosdebye;
+          res.vdosData_infoOwned = vdosData_infoOwned;
           res.atomlbl = lbl;
-          res.vdosData = vdosData;
         }
-        if ( res.vdosData == nullptr ) {
+        if ( !found ) {
           if ( !requested_lbl.empty() ) {
             NCRYSTAL_THROW2(BadInput,"Could not find VDOS data with label \""
                             <<requested_lbl
@@ -102,7 +126,7 @@ namespace NCRYSTAL_NAMESPACE {
           }
 
         }
-        nc_assert_always( res.vdosData != nullptr );
+        nc_assert_always( res.vdosData() != nullptr );
         return res;
       }
 
@@ -113,7 +137,7 @@ namespace NCRYSTAL_NAMESPACE {
         auto vdos = loadVDOS( cfgstr, requested_lbl );
         const Optional<NeutronEnergy> targetEmax;//fixme: allow as param?
 
-        auto gnexpn = VDOS::expandVDOSToGnFcts( *vdos.vdosData,
+        auto gnexpn = VDOS::expandVDOSToGnFcts( *vdos.vdosData(),
                                                 vdos.vdoslux,
                                                 targetEmax );
 
