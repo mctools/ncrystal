@@ -1744,6 +1744,9 @@ def _actual_init_gemmicif( cifsrc, *, quiet, mp_apikey, refine_with_spglib, merg
                                   'uiso': u_iso,
                                   'aniso': aniso } )
 
+    if not collected_atoms:
+        raise _nc_core.NCBadInput('No atom sites found in CIF data.')
+
     #Now merge collected atoms which occupy the same sites:
     def has_same_sites( atom1, atom2 ):
         l1,l2 = atom1['expanded_coords'],atom2['expanded_coords']

@@ -87,6 +87,8 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * cif2ncmat: clear error for CIF data without atom sites. New tests
+       with synthetic CIF data in all space groups and many styles.
      * Fix Bragg diffraction for crystals in space groups 149, 151, 153, 157,
        159, 162 and 163 (Laue class -31m), for which planes that are not
        symmetry-equivalent were grouped as if they were (as for Laue class
