@@ -296,5 +296,9 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
   if ( abRangesForWrite.has_value() )
     writeFileWithABRanges(abRangesForWrite.value(),targetEmax_div_kT);
 
+  if ( s_verbose )
+    NCRYSTAL_MSG("VDOS expansion: about to return (abRanges.size()="
+                 <<res.abRanges.size()<<", Gn.maxOrder()="
+                 <<res.Gn.maxOrder().value()<<")");
   return res;
 }
