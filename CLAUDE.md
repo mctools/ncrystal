@@ -57,6 +57,7 @@ Code is split into small components, one directory each in `ncrystal_core/src/<c
 - **Each component's allowed dependencies are listed in its `dep.txt`** and enforced by the build. After adding cross-component `#include`s, update it (`ncdevtool fixdeps` does this).
 - Data flow: cfg-string + data source -> immutable `Info` (built by factories, e.g. `.ncmat` parsing in `ncmat/`) -> `Scatter`/`Absorption` objects from scatter/absorption factories (`stdscatfactory`, `absfact`, ...). Factories are registered by name and extendable by plugins.
 - The C API (`cinterface/`, `ncrystal.h`) is the stable ABI used by the Python module and by Geant4/OpenMC/McStas integrations; changes there usually need matching edits in `_chooks.py`. `NCrystal.hh` is the C++ entry header.
+- **All public headers are stable ABI, not just the C API**: anything under `ncrystal_core/include/NCrystal/` that is *not* under `ncrystal_core/include/NCrystal/internal/`. Changes there (including to widely-used utility templates like `Pimpl` in `NCDefs.hh`) must preserve existing layout/symbols; only headers under `internal/` are free of that constraint.
 
 ## C++ style for new code
 

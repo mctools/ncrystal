@@ -336,6 +336,12 @@ namespace NCRYSTAL_NAMESPACE {
     T* operator->() { return m_ptr; }
     const T& operator*() const  { return *m_ptr; }
     T& operator*() { return *m_ptr; }
+    //A moved-from Pimpl holds a null pointer (see the move ctor/assignment
+    //above); ordinarily nothing should touch a moved-from object again
+    //before it is itself destroyed, but a class with a hand-written (rather
+    //than defaulted) destructor might still need to check for this before
+    //dereferencing:
+    explicit operator bool() const noexcept { return m_ptr!=nullptr; }
   };
 
   template<class T>

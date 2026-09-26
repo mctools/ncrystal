@@ -252,6 +252,19 @@ void NCV::VDOSGnData::interpolateDensityMany( Span<const double> energy,
     buf_ix[i] = static_cast<double>(ix);
   }
 
+#ifndef NDEBUG
+  //vdosGnInterpolateDensityRun below indexes spec[ix]/spec[ix+1] for every
+  //ix in buf_ix[beg,end) without any bounds check of its own (it only gets
+  //a count, not the spectrum's size) -- verify here, from the caller's
+  //side, that every value it will read is exactly what it is assumed to
+  //be: an index in [0,m_spec_size_minus_2], leaving spec[ix+1] safely
+  //within m_spec (size m_spec_size_minus_2+2):
+  for (std::size_t i = beg; i < end; ++i) {
+    nc_assert( buf_ix[i] >= 0.0 );
+    nc_assert( buf_ix[i] <= static_cast<double>(m_spec_size_minus_2) );
+  }
+#endif
+
   vdosGnInterpolateDensityRun( op + beg, buf_f + beg, buf_ix + beg,
                                m_spec.data(), end - beg );
 
@@ -394,6 +407,13 @@ NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
 }
 
 NCV::VDOSGn::~VDOSGn() {
+  //A moved-from VDOSGn (e.g. the husk left behind when GnExpansion's
+  //implicit move constructor is actually invoked, rather than elided via
+  //NRVO -- confirmed to happen on MSVC for expandVDOSToGnFcts's "return
+  //res;" where GCC/Clang instead reliably apply NRVO here) has a null
+  //m_impl and must not be dereferenced below:
+  if ( !m_impl )
+    return;
   if ( m_impl->m_mt_jobs.has_value() ) {
     //End running jobs, so they don't write to suddenly non-existent buffers:
     m_impl->m_mt_jobs.value().waitAll();

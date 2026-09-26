@@ -292,6 +292,14 @@ void NC::FastConvolve::Impl::convolve( const VectD& a1, const VectD& a2,
                                        VectD& y, double dt,
                                        bool useLegacyBehaviour )
 {
+#ifndef NDEBUG
+  nc_assert( !a1.empty() && !a2.empty() );
+  //Guards the narrowing size_t->int conversion just below (a1/a2 are never
+  //remotely close to this in practice, but the conversion itself is
+  //otherwise unchecked UB if they ever were):
+  nc_assert( a1.size() + a2.size() - 1
+            <= static_cast<std::size_t>(std::numeric_limits<int>::max()) );
+#endif
   const int minimum_out_size = a1.size() + a2.size() - 1;
 
   //Note: We could calculate the next two fft calls concurrently, but it was
@@ -391,7 +399,11 @@ void NC::FastConvolve::Impl::applySwaps( const SwapPatternCache& swapcache,
   //Avoid direct std::complex usage. This next cast is actually OK by the c++11
   //standard (https://stackoverflow.com/questions/69591371):
   double * rawdata = reinterpret_cast<double*>( data.data() );
+#ifndef NDEBUG
+  const std::size_t rawn = data.size() * 2;
+#endif
   for ( auto& e : swapcache.pattern ) {
+    nc_assert( e.first + 1 < rawn && e.second + 1 < rawn );
     double* it1 = std::next(rawdata,(e.first));//We already had a *2 applied to the index
     double* it2 = std::next(rawdata,(e.second));//We already had a *2 applied to the index
     std::swap(*it1++, *it2++);
@@ -498,6 +510,10 @@ void NC::FastConvolve::Impl::fft( std::vector<std::complex<double>> &data,
   //per-element work is too small to amortise the non-inlinable call):
   double * rawdata = reinterpret_cast<double*>( data.data() );
   const double * raww = reinterpret_cast<const double*>( wtable.data() );
+#ifndef NDEBUG
+  const std::ptrdiff_t rawn = static_cast<std::ptrdiff_t>(data.size()) * 2;
+  const std::ptrdiff_t wrawn = static_cast<std::ptrdiff_t>(wtable.size()) * 2;
+#endif
   for(int i=0;i<output_log_size;++i){
     const int i1 = (1<<i);
     const int i2 = 1<<(output_log_size-i-1);
@@ -506,6 +522,18 @@ void NC::FastConvolve::Impl::fft( std::vector<std::complex<double>> &data,
     for(int j0=i1;j0<output_size;j0+=2*i1){
       double* rawdata_j = std::next(rawdata,j0*2);
       double* rawdata_sympos = std::next(rawdata_j,-(i1*2));
+#ifndef NDEBUG
+      //Every one of the i1 butterflies in this run touches
+      //rawdata_j/rawdata_sympos at [0,2) then advances by 2, and wtable at
+      //[0,2) then advances by wtable_stride -- verify the run's last access
+      //(index i1-1) stays in bounds on all three, since none of this is
+      //checked by the raw pointer arithmetic itself:
+      const std::ptrdiff_t j_lastoff = (static_cast<std::ptrdiff_t>(i1)-1)*2;
+      nc_assert( j0*2 >= 0 && j0*2 + 2 + j_lastoff <= rawn );
+      nc_assert( j0*2 - i1*2 >= 0 );
+      nc_assert( ( static_cast<std::ptrdiff_t>(i1)-1 ) * wtable_stride + 2
+                <= wrawn );
+#endif
       fastConvolveButterflyRun( rawdata_j, rawdata_sympos, raww,
                                 wtable_stride, is_forward, i1 );
     }
