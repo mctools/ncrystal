@@ -87,6 +87,11 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Fix wrong real-space lattice (thus volume, density, d-spacings and
+       plane normals) for unit cells with cos(alpha)!=cos(beta)cos(gamma),
+       e.g. triclinic and rhombohedral cells (github issue #383). Affected
+       stdlib files: BO3H3_sg2_BoricAcid.ncmat (density now 1.562 g/cm3,
+       was 2.288) and CaSiO3_sg2_Wollastonite.ncmat (2.909, was 3.096).
      * Python Gn functions (extractGn, DynamicInfo.extract_Gn/plot_Gn and
        the sjolanderGn plot option) now reject non-integral orders with an
        NCBadInput error, instead of silently truncating them (2.5 gave G2).

@@ -74,7 +74,7 @@ NC::RotMatrix NC::getLatticeRot( double a, double b, double c,
   nc_assert(sg>0);
   const double m57 = c*(ca-cb*cg)/sg;
   double m[9] = { a, 0., 0.,
-                  b*cg, b*sg, m57,
+                  b*cg, b*sg, 0.,
                   c*cb, m57, 0. };//last entry changed below
   if ( !cb && !m57 ) {
     //Avoid the sqrt and potential introduction of numerical imprecision:
