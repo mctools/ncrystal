@@ -124,115 +124,111 @@ jobs:
         path: ${{github.workspace}}/ci-logs
         if-no-files-found: warn
 
-  # Temporarily disabled (currently failing); re-enable once fixed. Also
-  # comment build_windows back into collect_logs's "needs:" list below when
-  # doing so.
-#   build_windows:
-#     #Separate job (rather than extra entries in build's matrix above) since
-#     #Windows needs its own approach: CMake's default (Visual Studio,
-#     #multi-config) generator is what finds MSVC, so unlike the other
-#     #platforms we deliberately do *not* set CC/CXX (that would push CMake
-#     #towards a Makefile/Ninja generator expecting "cl" already on PATH,
-#     #which it is not without a separate dev-prompt setup step), and the
-#     #build type is chosen at build/test time via --config rather than at
-#     #configure time. See https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md
-#     #for available platform details.
-#     needs: [ ncdevtool_check ]
-#     strategy:
-#       fail-fast: false
-#       matrix:
-#         os: [windows-2022, windows-2025]
-#     name: ${{ matrix.os }}
-#     runs-on: ${{ matrix.os }}
-#     defaults:
-#       run:
-#         #Explicit "bash" (git-bash, preinstalled on GitHub's Windows
-#         #runners) rather than the platform default (pwsh), so we get
-#         #"-o pipefail" for the "cmd | tee log" steps below, exactly like
-#         #the other platforms in the "build" job:
-#         shell: bash
+  build_windows:
+    #Separate job (rather than extra entries in build's matrix above) since
+    #Windows needs its own approach: CMake's default (Visual Studio,
+    #multi-config) generator is what finds MSVC, so unlike the other
+    #platforms we deliberately do *not* set CC/CXX (that would push CMake
+    #towards a Makefile/Ninja generator expecting "cl" already on PATH,
+    #which it is not without a separate dev-prompt setup step), and the
+    #build type is chosen at build/test time via --config rather than at
+    #configure time. See https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md
+    #for available platform details.
+    needs: [ ncdevtool_check ]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        #Explicit "bash" (git-bash, preinstalled on GitHub's Windows
+        #runners) rather than the platform default (pwsh), so we get
+        #"-o pipefail" for the "cmd | tee log" steps below, exactly like
+        #the other platforms in the "build" job:
+        shell: bash
 
-#     steps:
-#     - name: Checkout
-#       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-#       with:
-#         path: src
+    steps:
+    - name: Checkout
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        path: src
 
-#     - name: Enable parallel cmake
-#       run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
 
-#     - name: Setup python
-#       uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
-#       with:
-#         python-version: '3.14'
+    - name: Setup python
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.14'
 
-#     - name: Pip install dependencies
-#       run: python -mpip install -r ./src/devel/reqs/requirements_all_and_devel.txt
+    - name: Pip install dependencies
+      run: python -mpip install -r ./src/devel/reqs/requirements_all_and_devel.txt
 
-#     - name: Prepare log capture dir
-#       run: mkdir -p ci-logs
+    - name: Prepare log capture dir
+      run: mkdir -p ci-logs
 
-#     #NB: Paths below are relative (rather than "${{github.workspace}}/...",
-#     #as in the "build" job above) deliberately: github.workspace expands to
-#     #an OS-native path, i.e. Windows backslashes here, and bash treats an
-#     #unescaped backslash as an escape character, silently mangling any such
-#     #path when it is interpolated into a run: command (e.g.
-#     #"D:\a\ncrystal\ncrystal" had its backslash-letter pairs eaten,
-#     #breaking "mkdir -p" and the "[ -f ... ]" test below it). Relative paths
-#     #sidestep the issue entirely, since run: steps already default to
-#     #github.workspace as their working directory:
-#     - name: Configure CMake
-#       run: >
-#         cmake
-#         -S src
-#         -B build
-#         -DCMAKE_INSTALL_PREFIX=install
-#         -DNCRYSTAL_ENABLE_EXAMPLES=ON
-#         -DNCRYSTAL_BUILD_STRICT=ON
-#         -DNCRYSTAL_ENABLE_TESTING=ON
-#         -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
-#         -DNCRYSTAL_TEST_ENABLE_LONG=ON
-#         2>&1 | tee ci-logs/configure.log
+    #NB: Paths below are relative (rather than "${{github.workspace}}/...",
+    #as in the "build" job above) deliberately: github.workspace expands to
+    #an OS-native path, i.e. Windows backslashes here, and bash treats an
+    #unescaped backslash as an escape character, silently mangling any such
+    #path when it is interpolated into a run: command (e.g.
+    #"D:\a\ncrystal\ncrystal" had its backslash-letter pairs eaten,
+    #breaking "mkdir -p" and the "[ -f ... ]" test below it). Relative paths
+    #sidestep the issue entirely, since run: steps already default to
+    #github.workspace as their working directory:
+    - name: Configure CMake
+      run: >
+        cmake
+        -S src
+        -B build
+        -DCMAKE_INSTALL_PREFIX=install
+        -DNCRYSTAL_ENABLE_EXAMPLES=ON
+        -DNCRYSTAL_BUILD_STRICT=ON
+        -DNCRYSTAL_ENABLE_TESTING=ON
+        -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON
+        -DNCRYSTAL_TEST_ENABLE_LONG=ON
+        2>&1 | tee ci-logs/configure.log
 
-#     - name: Build
-#       run: >
-#         cmake
-#         --build build
-#         --config Release
-#         2>&1 | tee ci-logs/build.log
+    - name: Build
+      run: >
+        cmake
+        --build build
+        --config Release
+        2>&1 | tee ci-logs/build.log
 
-#     - name: CTest
-#       run: >
-#         ctest --test-dir ./build --build-config Release --no-tests=error --output-on-failure
-#         --test-output-size-failed 100000 --test-output-truncation middle
-#         2>&1 | tee ci-logs/ctest.log
+    - name: CTest
+      run: >
+        ctest --test-dir ./build --build-config Release --no-tests=error --output-on-failure
+        --test-output-size-failed 100000 --test-output-truncation middle
+        2>&1 | tee ci-logs/ctest.log
 
-#     - name: Package logs
-#       if: always()
-#       run: |
-#         mkdir -p ci-logs
-#         for f in build/CMakeFiles/CMakeConfigureLog.yaml \
-#                  build/CMakeFiles/CMakeError.log \
-#                  build/CMakeFiles/CMakeOutput.log \
-#                  build/Testing/Temporary/LastTest.log; do
-#           [ -f "$f" ] && cp "$f" ci-logs/
-#         done
+    - name: Package logs
+      if: always()
+      run: |
+        mkdir -p ci-logs
+        for f in build/CMakeFiles/CMakeConfigureLog.yaml \
+                 build/CMakeFiles/CMakeError.log \
+                 build/CMakeFiles/CMakeOutput.log \
+                 build/Testing/Temporary/LastTest.log; do
+          [ -f "$f" ] && cp "$f" ci-logs/
+        done
 
-#     - name: Upload logs
-#       if: always()
-#       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-#       with:
-#         name: ci-logs-${{ matrix.os }}
-#         path: ci-logs
-#         if-no-files-found: warn
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: ci-logs-${{ matrix.os }}
+        path: ci-logs
+        if-no-files-found: warn
 
   collect_logs:
     #Single job downloading every per-leg "ci-logs-*" artifact above and
     #re-bundling them into one tarball, so the whole matrix's build/test
     #output can be grabbed with a single download instead of one per leg.
     name: Collect all CI logs
-    # build_windows dropped from needs while it is temporarily disabled above:
-    needs: [ ncdevtool_check, build ]
+    needs: [ ncdevtool_check, build, build_windows ]
     if: always()
     runs-on: ubuntu-latest
     steps:
