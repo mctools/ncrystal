@@ -609,9 +609,24 @@ namespace NCRYSTAL_NAMESPACE {
       //we ignore roughly half (but not all since the sym_key's might have sign
       //flips).
 
+      //Loose ksq preselection on the loop hkl, to skip the costly EqRefl
+      //lookup for most hkl points outside the range. Equivalent hkl points
+      //have identical ksq up to rounding errors, so the slack guarantees
+      //identical results to preselecting on the representative hkl only (the
+      //upper value may be DBL_MAX, avoid overflow):
+      const double ksq_up = precalc.ksq_preselect_interval.second;
+      const PairDD ksq_loose_interval
+        = { precalc.ksq_preselect_interval.first * ( 1.0 - 1e-5 ),
+            ksq_up > 1e300 ? ksq_up : ksq_up * ( 1.0 + 1e-5 ) };
+
       for( int loop_h = 0 ; loop_h <= precalc.max_h; ++loop_h ) {
         for( int loop_k = (loop_h?-precalc.max_k:0); loop_k <= precalc.max_k; ++loop_k ) {
           for( int loop_l = -precalc.max_l; loop_l <= precalc.max_l; ++loop_l ) {
+
+            if ( ! valueInInterval( ksq_loose_interval,
+                                    ( rec_lat * Vector( loop_h, loop_k,
+                                                        loop_l ) ).mag2() ) )
+              continue;
 
             auto sym_key = sym_findrepval( loop_h, loop_k, loop_l );
             if (!symSeenTracker.isFirstCheck(sym_key))
