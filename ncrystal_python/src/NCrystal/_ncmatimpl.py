@@ -478,9 +478,10 @@ class NCMATComposerImpl:
             return ''
         c = cellsg
         spacegroup = c.get('spacegroup',None)
-        _sa = f"{c['a']:g}"
-        _sb = f"{c['b']:g}"
-        _sc = f"{c['c']:g}"
+        def fmt( x ):
+            #NB: not simply f'{x:g}', which rounds to 6 significant digits:
+            return _fmtprecisenum( x, strip_leading_zero = False )
+        _sa, _sb, _sc = fmt(c['a']), fmt(c['b']), fmt(c['c'])
         if spacegroup and 195<=spacegroup<=230:
             if not ( _sa == _sb and _sb == _sc ):
                 raise _nc_core.NCBadInput(f'Invalid lattice parameters for cubic spacegroup ({spacegroup}): a={_sa}, b={_sb}, c={_sc}')
@@ -501,7 +502,7 @@ class NCMATComposerImpl:
             ll = f"""
             @CELL
             lengths {_sa} {_sb} {_sc}
-            angles {c['alpha']:g} {c['beta']:g} {c['gamma']:g}
+            angles {fmt(c['alpha'])} {fmt(c['beta'])} {fmt(c['gamma'])}
             """
         if spacegroup:
             ll+=f"""
