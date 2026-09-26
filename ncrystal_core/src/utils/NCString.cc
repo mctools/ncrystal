@@ -347,31 +347,72 @@ namespace NCRYSTAL_NAMESPACE {
   namespace {
 
 #if ( defined(_WIN32) || defined(WIN32) )
-    //Deliberately using the raw Win32 GetEnvironmentVariable API here
-    //rather than std::getenv: the CRT's own environment table (which
-    //std::getenv reads from) is populated once per CRT module instance
-    //and only kept in sync by that *same* instance's own putenv/_putenv_s
-    //calls -- it does not pick up SetEnvironmentVariable changes made by
-    //a different CRT instance (confirmed to matter in practice: a
-    //Debug-built NCrystal.dll loaded into a Release-built Python
-    //interpreter -- exactly what our Windows Debug CI leg exercises --
-    //never saw an env var set via Python's os.environ, since Python's
-    //setter and this DLL's std::getenv end up backed by two different
-    //CRT modules there). GetEnvironmentVariable instead always reads the
-    //single, true, OS-maintained per-process value, independent of which
-    //CRT (if any) last wrote it:
+    //Deliberately using the raw Win32 GetEnvironmentVariableW (wide/UTF-16)
+    //API here rather than std::getenv: the CRT's own environment table
+    //(which std::getenv reads from) is populated once per CRT module
+    //instance and only kept in sync by that *same* instance's own
+    //putenv/_putenv_s calls -- it does not pick up SetEnvironmentVariable
+    //changes made by a different CRT instance (confirmed to matter in
+    //practice: a Debug-built NCrystal.dll loaded into a Release-built
+    //Python interpreter -- exactly what our Windows Debug CI leg
+    //exercises -- never saw an env var set via Python's os.environ,
+    //since Python's setter and this DLL's std::getenv end up backed by
+    //two different CRT modules there). GetEnvironmentVariable instead
+    //always reads the single, true, OS-maintained per-process value,
+    //independent of which CRT (if any) last wrote it.
+    //
+    //Using the *W* (wide) form specifically, not GetEnvironmentVariableA:
+    //the "A" form decodes/encodes using the system's active ANSI code
+    //page, not UTF-8, and would mangle any non-ASCII byte in a variable's
+    //value (e.g. a path containing accented or CJK characters) -- NCrystal's
+    //convention is UTF-8 for all strings everywhere, converting to/from
+    //the native encoding only at the fileutils boundary (see
+    //NCCFileUtils.cc/NCFileUtilsWin.cc, which this matches technique for
+    //technique, just using plain std::wstring/MultiByteToWideChar/
+    //WideCharToMultiByte here rather than those files' own mcu8str/mcwinstr
+    //machinery, which is specific to that component):
+    std::wstring utf8_to_wide( const std::string& s )
+    {
+      if ( s.empty() )
+        return std::wstring();
+      const int needed = MultiByteToWideChar( CP_UTF8, 0, s.data(),
+                                              static_cast<int>(s.size()),
+                                              nullptr, 0 );
+      if ( needed <= 0 )
+        return std::wstring();
+      std::wstring res( static_cast<std::size_t>(needed), L'\0' );
+      MultiByteToWideChar( CP_UTF8, 0, s.data(), static_cast<int>(s.size()),
+                           &res[0], needed );
+      return res;
+    }
+
+    std::string wide_to_utf8( const wchar_t* s, DWORD len )
+    {
+      if ( len == 0 )
+        return std::string();
+      const int needed = WideCharToMultiByte( CP_UTF8, 0, s,
+                                              static_cast<int>(len),
+                                              nullptr, 0, nullptr, nullptr );
+      if ( needed <= 0 )
+        return std::string();
+      std::string res( static_cast<std::size_t>(needed), '\0' );
+      WideCharToMultiByte( CP_UTF8, 0, s, static_cast<int>(len),
+                          &res[0], needed, nullptr, nullptr );
+      return res;
+    }
+
     Optional<std::string> platform_getenv( const char* name )
     {
-      const DWORD needed = GetEnvironmentVariableA( name, nullptr, 0 );
+      const std::wstring name_w = utf8_to_wide( name );
+      const DWORD needed = GetEnvironmentVariableW( name_w.c_str(), nullptr, 0 );
       if ( needed == 0 )
         return NullOpt;//unset (or, rarely, a genuine API error -- treated the same)
-      std::string buf( static_cast<std::size_t>(needed), '\0' );
-      const DWORD written = GetEnvironmentVariableA( name, &buf[0],
+      std::wstring buf( static_cast<std::size_t>(needed), L'\0' );
+      const DWORD written = GetEnvironmentVariableW( name_w.c_str(), &buf[0],
                                                       static_cast<DWORD>(buf.size()) );
       if ( written == 0 )
         return NullOpt;
-      buf.resize( written );
-      return buf;
+      return wide_to_utf8( buf.data(), written );
     }
 #else
     Optional<std::string> platform_getenv( const char* name )
