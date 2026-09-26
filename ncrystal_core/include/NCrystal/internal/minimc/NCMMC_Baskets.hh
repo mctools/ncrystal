@@ -120,7 +120,7 @@ namespace NCRYSTAL_NAMESPACE {
                                            BasketType );
 
 
-    class WorkerToken final : MoveOnly {
+    class WorkerToken final : private NoCopyMove {
       std::shared_ptr<BasketMgr> m_bmgr;
       bool m_active = false;
       Basket m_basketbuf;
