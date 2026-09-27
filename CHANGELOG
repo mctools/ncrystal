@@ -87,6 +87,8 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Simplify estimateHKLRange to the exact bound |h|<=a/dcutoff (etc.), with
+       a 0.1% safety margin, instead of sampling with a 5% margin.
      * HKL plane generation with space group symmetry now uses a bookkeeping
        table sized to the actual hkl range (typically kB instead of 1MB or
        67MB). A CalcError is raised if it would need more than 20MB (raise

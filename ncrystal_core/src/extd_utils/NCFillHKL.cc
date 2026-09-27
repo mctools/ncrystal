@@ -166,9 +166,8 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       {
-        auto max_hkl = estimateHKLRange( cfg.dcutoff,
-                                         si.lattice_a, si.lattice_b, si.lattice_c,
-                                         si.alpha*kDeg, si.beta*kDeg, si.gamma*kDeg );
+        auto max_hkl = estimateHKLRange( cfg.dcutoff, si.lattice_a,
+                                         si.lattice_b, si.lattice_c );
         res.max_h = max_hkl.h;
         res.max_k = max_hkl.k;
         res.max_l = max_hkl.l;
@@ -539,28 +538,25 @@ namespace NCRYSTAL_NAMESPACE {
       struct Dims { int mh, mk, ml; };
 
       //Dims needed for all hkl with d-spacing >= dcutoff*(1-1e-5) (which
-      //suffices for the loose ksq preselection). Since h=a.G/2pi, we have
-      //|h|<=a/d exactly for any lattice (similarly for k and l):
+      //suffices for the loose ksq preselection). This is guaranteed by the
+      //safety margin in estimateHKLRange (0.1%), plus one extra index:
       static Dims dimsNeeded( const StructureInfo& si, double dcutoff )
       {
-        auto f = [dcutoff]( double x )
-        {
-          return static_cast<int>( std::floor( x * ( 1.0 + 2e-5 ) / dcutoff )
-                                   + 1.0 );
-        };
-        return { f( si.lattice_a ), f( si.lattice_b ), f( si.lattice_c ) };
+        const auto m = estimateHKLRange( dcutoff, si.lattice_a, si.lattice_b,
+                                         si.lattice_c );
+        nc_assert_always( m.h < std::numeric_limits<int>::max()
+                          && m.k < std::numeric_limits<int>::max()
+                          && m.l < std::numeric_limits<int>::max() );
+        return { m.h + 1, m.k + 1, m.l + 1 };
       }
 
       static double bytesNeeded( const StructureInfo& si, double dcutoff )
       {
-        //Calculated without integer overflow for any dcutoff:
-        auto f = [dcutoff]( double x )
-        {
-          return std::floor( x * ( 1.0 + 2e-5 ) / dcutoff ) + 1.0;
-        };
-        const double nbits = ( ( f( si.lattice_a ) + 1.0 )
-                               * ( 2.0 * f( si.lattice_b ) + 1.0 )
-                               * ( 2.0 * f( si.lattice_c ) + 1.0 ) );
+        //Calculated with doubles, to avoid integer overflow:
+        const auto m = estimateHKLRange( dcutoff, si.lattice_a, si.lattice_b,
+                                         si.lattice_c );
+        const double nbits = ( ( m.h + 2.0 ) * ( 2.0 * m.k + 3.0 )
+                               * ( 2.0 * m.l + 3.0 ) );
         return 8.0 * std::ceil( nbits / 64.0 );
       }
 

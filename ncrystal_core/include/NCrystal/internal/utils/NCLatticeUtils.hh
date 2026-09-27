@@ -57,12 +57,12 @@ namespace NCRYSTAL_NAMESPACE {
   RotMatrix getReciprocalLatticeRot( double lattice_a, double lattice_b, double lattice_c,
                                      double alpha, double beta, double gamma );
 
-  //Given a set of lattice parameters, translate dcutoff into required maximum
-  //values of |h|, |k| and |l|:
+  //Given lattice lengths, translate dcutoff into required maximum values of
+  //|h|, |k| and |l| (i.e. all planes with d>=dcutoff have indices within
+  //these, for any lattice angles). The result is at least 1 for each:
   struct MaxHKL{ int h, k, l; };
-  MaxHKL estimateHKLRange( double dcutoff,
-                           double lattice_a, double lattice_b, double lattice_c,
-                           double alpha, double beta, double gamma );
+  MaxHKL estimateHKLRange( double dcutoff, double lattice_a,
+                           double lattice_b, double lattice_c );
 
   //Calculate d-spacing from Miller index and reciprocal lattice rotation:
   double dspacingFromHKL( int h, int k, int l, const RotMatrix& rec_lat );

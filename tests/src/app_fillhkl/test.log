@@ -26,3 +26,33 @@ BaO_sg225_BariumOxide.ncmat (dcutoff=0.35): 2019 hkl points in 83 families (137 
 Al2O3_sg167_Corundum.ncmat (dcutoff=0.5): 1261 hkl points in 218 families (241 symmetry families, 211 with varying F2), OK
 UF6_sg62_UraniumHexaflouride.ncmat (dcutoff=0.8): 1718 hkl points in 502 families (502 symmetry families, 479 with varying F2), OK
 All OK
+==== Range of HKL indices ====
+a,b,c=4,4,4 angles=90,90,90 dcutoff=1 : range=(4,4,4), max found=(4,4,4)
+a,b,c=4,4,4 angles=90,90,90 dcutoff=0.5 : range=(8,8,8), max found=(8,8,8)
+a,b,c=4,4,4 angles=90,90,90 dcutoff=0.25 : range=(16,16,16), max found=(16,16,16)
+a,b,c=4,4,4 angles=90,90,90 dcutoff=0.8 : range=(5,5,5), max found=(5,5,5)
+a,b,c=4,4,4 angles=90,90,90 dcutoff=0.123 : range=(32,32,32), max found=(32,32,32)
+a,b,c=3,3,5 angles=90,90,120 dcutoff=1 : range=(3,3,5), max found=(2,2,5)
+a,b,c=3,3,5 angles=90,90,120 dcutoff=0.5 : range=(6,6,10), max found=(6,6,10)
+a,b,c=3,3,5 angles=90,90,120 dcutoff=0.25 : range=(12,12,20), max found=(12,12,20)
+a,b,c=3,3,5 angles=90,90,120 dcutoff=0.8 : range=(3,3,6), max found=(3,3,6)
+a,b,c=3,3,5 angles=90,90,120 dcutoff=0.123 : range=(24,24,40), max found=(24,24,40)
+a,b,c=5,5,5 angles=70,70,70 dcutoff=1 : range=(5,5,5), max found=(4,4,4)
+a,b,c=5,5,5 angles=70,70,70 dcutoff=0.5 : range=(10,10,10), max found=(9,9,9)
+a,b,c=5,5,5 angles=70,70,70 dcutoff=0.25 : range=(20,20,20), max found=(19,19,19)
+a,b,c=5,5,5 angles=70,70,70 dcutoff=0.8 : range=(6,6,6), max found=(6,6,6)
+a,b,c=5,5,5 angles=70,70,70 dcutoff=0.123 : range=(40,40,40), max found=(40,40,40)
+a,b,c=4,6,5 angles=90,105,90 dcutoff=1 : range=(4,6,5), max found=(3,6,4)
+a,b,c=4,6,5 angles=90,105,90 dcutoff=0.5 : range=(8,12,10), max found=(7,12,9)
+a,b,c=4,6,5 angles=90,105,90 dcutoff=0.25 : range=(16,24,20), max found=(15,24,19)
+a,b,c=4,6,5 angles=90,105,90 dcutoff=0.8 : range=(5,7,6), max found=(4,7,6)
+a,b,c=4,6,5 angles=90,105,90 dcutoff=0.123 : range=(32,48,40), max found=(32,48,40)
+a,b,c=4,5,6 angles=80,95,110 dcutoff=1 : range=(4,5,6), max found=(3,4,5)
+a,b,c=4,5,6 angles=80,95,110 dcutoff=0.5 : range=(8,10,12), max found=(7,9,11)
+a,b,c=4,5,6 angles=80,95,110 dcutoff=0.25 : range=(16,20,24), max found=(15,19,23)
+a,b,c=4,5,6 angles=80,95,110 dcutoff=0.8 : range=(5,6,7), max found=(4,6,7)
+a,b,c=4,5,6 angles=80,95,110 dcutoff=0.123 : range=(32,40,48), max found=(32,40,48)
+a,b,c=3,3,40 angles=90,90,90 dcutoff=1 : range=(3,3,40), max found=(3,3,40)
+a,b,c=3,3,40 angles=90,90,90 dcutoff=0.8 : range=(3,3,50), max found=(3,3,50)
+Checked 200 random lattices
+All OK

@@ -24,6 +24,9 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/extd_utils/NCFillHKL.hh"
 #include "NCrystal/internal/phys_utils/NCEqRefl.hh"
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"
+#include "NCrystal/internal/utils/NCRotMatrix.hh"
+#include "NCrystal/internal/utils/NCVector.hh"
 #include <iostream>
 #include <map>
 #include <set>
@@ -262,11 +265,175 @@ void run()
 
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Range of HKL indices
+////////////////////////////////////////////////////////////////////////////////
+
+//Tests estimateHKLRange: All planes with d>=dcutoff must have indices within
+//the returned range (checked by brute force for many lattices, including
+//cases where d is exactly dcutoff), and the range must be tight (it is based
+//on |h|<=a/d, with equality when G is parallel to the lattice vector a).
+
+namespace test_range {
+
+namespace {
+
+  //Simple deterministic generator of values in [0,1) (splitmix64):
+  class SimpleRand {
+  public:
+    double generate()
+    {
+      std::uint64_t z = ( m_state += 0x9E3779B97F4A7C15ull );
+      z = ( z ^ ( z >> 30 ) ) * 0xBF58476D1CE4E5B9ull;
+      z = ( z ^ ( z >> 27 ) ) * 0x94D049BB133111EBull;
+      z ^= ( z >> 31 );
+      return static_cast<double>( z >> 11 ) * ( 1.0 / 9007199254740992.0 );
+    }
+  private:
+    std::uint64_t m_state = 12345;
+  };
+
+  struct Lattice { double a, b, c, alpha, beta, gamma; };
+
+  bool isValid( const Lattice& lt )
+  {
+    const double ca = std::cos( lt.alpha * NC::kDeg );
+    const double cb = std::cos( lt.beta * NC::kDeg );
+    const double cg = std::cos( lt.gamma * NC::kDeg );
+    return 1.0 - ca*ca - cb*cb - cg*cg + 2.0*ca*cb*cg > 1e-3;
+  }
+
+  //Returns max(|h|,|k|,|l|) found by brute force:
+  NC::MaxHKL check( const Lattice& lt, double dcutoff )
+  {
+    const auto mx = NC::estimateHKLRange( dcutoff, lt.a, lt.b, lt.c );
+    //Tight (just the 0.1% safety margin on top of the exact bound):
+    nc_assert_always( mx.h <= std::max( 1.0, 1.001 * lt.a / dcutoff ) + 1e-9 );
+    nc_assert_always( mx.k <= std::max( 1.0, 1.001 * lt.b / dcutoff ) + 1e-9 );
+    nc_assert_always( mx.l <= std::max( 1.0, 1.001 * lt.c / dcutoff ) + 1e-9 );
+    nc_assert_always( mx.h + 1 > lt.a / dcutoff );
+    nc_assert_always( mx.k + 1 > lt.b / dcutoff );
+    nc_assert_always( mx.l + 1 > lt.c / dcutoff );
+    const auto rec = NC::getReciprocalLatticeRot( lt.a, lt.b, lt.c,
+                                                  lt.alpha * NC::kDeg,
+                                                  lt.beta * NC::kDeg,
+                                                  lt.gamma * NC::kDeg );
+    const int bh = 2 * mx.h + 2;
+    const int bk = 2 * mx.k + 2;
+    const int bl = 2 * mx.l + 2;
+    NC::MaxHKL found{ 0, 0, 0 };
+    for ( int h = -bh; h <= bh; ++h ) {
+      for ( int k = -bk; k <= bk; ++k ) {
+        for ( int l = -bl; l <= bl; ++l ) {
+          if ( !h && !k && !l )
+            continue;
+          //Allow for rounding errors in the d-spacing calculation:
+          if ( NC::dspacingFromHKL( h, k, l, rec ) < dcutoff * ( 1.0 - 1e-12 ) )
+            continue;
+          nc_assert_always( std::abs(h) <= mx.h );
+          nc_assert_always( std::abs(k) <= mx.k );
+          nc_assert_always( std::abs(l) <= mx.l );
+          found.h = std::max( found.h, std::abs(h) );
+          found.k = std::max( found.k, std::abs(k) );
+          found.l = std::max( found.l, std::abs(l) );
+        }
+      }
+    }
+    return found;
+  }
+
+  //The analytic basis: rows of the lattice matrix (mapping G/2pi to hkl) are
+  //the lattice vectors, with lengths a, b and c:
+  void checkAnalyticBasis( const Lattice& lt )
+  {
+    const auto lat = NC::getLatticeRot( lt.a, lt.b, lt.c, lt.alpha * NC::kDeg,
+                                        lt.beta * NC::kDeg, lt.gamma * NC::kDeg );
+    const auto rec = NC::getReciprocalLatticeRot( lt.a, lt.b, lt.c,
+                                                  lt.alpha * NC::kDeg,
+                                                  lt.beta * NC::kDeg,
+                                                  lt.gamma * NC::kDeg );
+    const double len[3] = { lt.a, lt.b, lt.c };
+    for ( auto i : NC::ncrange( 3 ) ) {
+      //Row i of lat is its product with the unit vector along axis i:
+      NC::Vector e( i==0 ? 1.0 : 0.0, i==1 ? 1.0 : 0.0, i==2 ? 1.0 : 0.0 );
+      NC::Vector row( 0.0, 0.0, 0.0 );
+      for ( auto j : NC::ncrange( 3 ) ) {
+        NC::Vector ej( j==0 ? 1.0 : 0.0, j==1 ? 1.0 : 0.0, j==2 ? 1.0 : 0.0 );
+        row[j] = e.dot( lat * ej );
+      }
+      nc_assert_always( NC::floateq( row.mag(), len[i], 1e-12, 0.0 ) );
+    }
+    //And lat maps G/2pi back to hkl:
+    for ( auto& hkl : { NC::Vector(1,0,0), NC::Vector(2,-3,5),
+                        NC::Vector(-7,1,4) } ) {
+      NC::Vector back = lat * ( rec * hkl );
+      back *= ( 1.0 / NC::k2Pi );
+      for ( auto j : NC::ncrange( 3 ) )
+        nc_assert_always( NC::floateq( back[j], hkl[j], 1e-12, 1e-12 ) );
+    }
+  }
+}
+
+void run()
+{
+  //Special lattices, with dcutoff giving exact integer ratios (so planes with
+  //d exactly equal to dcutoff exist):
+  const Lattice special[] = {
+    { 4.0, 4.0, 4.0, 90.0, 90.0, 90.0 },//cubic
+    { 3.0, 3.0, 5.0, 90.0, 90.0, 120.0 },//hexagonal
+    { 5.0, 5.0, 5.0, 70.0, 70.0, 70.0 },//rhombohedral axes
+    { 4.0, 6.0, 5.0, 90.0, 105.0, 90.0 },//monoclinic
+    { 4.0, 5.0, 6.0, 80.0, 95.0, 110.0 },//triclinic
+    { 3.0, 3.0, 40.0, 90.0, 90.0, 90.0 },//long c-axis
+  };
+  for ( auto& lt : special ) {
+    checkAnalyticBasis( lt );
+    for ( double dcut : { 1.0, 0.5, 0.25, 0.8, 0.123 } ) {
+      if ( lt.c / dcut > 60 )
+        continue;//keep brute force fast
+      auto mx = NC::estimateHKLRange( dcut, lt.a, lt.b, lt.c );
+      auto found = check( lt, dcut );
+      std::cout << "a,b,c=" << lt.a << "," << lt.b << "," << lt.c
+                << " angles=" << lt.alpha << "," << lt.beta << ","
+                << lt.gamma << " dcutoff=" << dcut << " : range=("
+                << mx.h << "," << mx.k << "," << mx.l << "), max found=("
+                << found.h << "," << found.k << "," << found.l << ")"
+                << std::endl;
+    }
+  }
+
+  //Many random lattices:
+  SimpleRand rng;
+  unsigned ntested = 0;
+  while ( ntested < 200 ) {
+    Lattice lt{ 2.0 + 8.0 * rng.generate(), 2.0 + 8.0 * rng.generate(),
+                2.0 + 8.0 * rng.generate(), 50.0 + 80.0 * rng.generate(),
+                50.0 + 80.0 * rng.generate(), 50.0 + 80.0 * rng.generate() };
+    if ( !isValid( lt ) )
+      continue;
+    ++ntested;
+    checkAnalyticBasis( lt );
+    check( lt, 0.4 + 0.8 * rng.generate() );
+  }
+  std::cout << "Checked " << ntested << " random lattices" << std::endl;
+
+  //Minimum value is 1, and huge values are capped:
+  auto m1 = NC::estimateHKLRange( 100.0, 3.0, 4.0, 5.0 );
+  nc_assert_always( m1.h == 1 && m1.k == 1 && m1.l == 1 );
+  auto m2 = NC::estimateHKLRange( 1e-300, 3.0, 4.0, 5.0 );
+  nc_assert_always( m2.h == std::numeric_limits<int>::max() );
+  std::cout << "All OK" << std::endl;
+}
+
+}
+
 int main()
 {
   std::cout << "==== Bragg threshold and partial HKL lists ====" << std::endl;
   test_partial::run();
   std::cout << "==== HKL families without space group ====" << std::endl;
   test_nosymbuffer::run();
+  std::cout << "==== Range of HKL indices ====" << std::endl;
+  test_range::run();
   return 0;
 }
