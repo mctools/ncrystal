@@ -24,6 +24,7 @@
 
 #include "NCTestUtils/NCTestModUtils.hh"
 #include "NCrystal/internal/sgsym/NCSpaceGroup.hh"
+#include "NCrystal/internal/sgsym/NCSymOp.hh"
 
 NCTEST_CTYPE_DICTIONARY
 {
@@ -33,6 +34,7 @@ NCTEST_CTYPE_DICTIONARY
     "const char * nctest_sgsym_hallsymbol( int );"
     "const char * nctest_sgsym_tostring( int );"
     "int nctest_sgsym_parse( const char * );"
+    "const char * nctest_sgsym_symop( const char * );"
     ;
 }
 
@@ -94,4 +96,30 @@ NCTEST_CTYPES int nctest_sgsym_parse( const char * str )
     }
   } NCCATCH;
   return res;
+}
+
+NCTEST_CTYPES const char * nctest_sgsym_symop( const char * str )
+{
+  //Parses symmetry operation and returns its string representation (in
+  //NCrystal's format) followed by the 9 rotation matrix entries and 3
+  //translations (units of 1/24), separated by spaces. Returns "" in case of
+  //BadInput.
+  static std::string s_buf;//NB: Not thread-safe, but fine for this test
+  try {
+    nc_assert_always( str );
+    try {
+      const NC::SymOp op( str );
+      std::ostringstream ss;
+      ss << op;
+      for ( unsigned i = 0; i < 3; ++i )
+        for ( unsigned j = 0; j < 3; ++j )
+          ss << ' ' << op.rot( i, j );
+      for ( unsigned i = 0; i < 3; ++i )
+        ss << ' ' << op.trans( i );
+      s_buf = ss.str();
+    } catch ( NC::Error::BadInput& ) {
+      s_buf.clear();
+    }
+  } NCCATCH;
+  return s_buf.c_str();
 }

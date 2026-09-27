@@ -572,3 +572,48 @@ Invalid input:
   Hall number 0 -> BadInput: Invalid space group Hall number: 0 (must be in range 1..530)
   Hall number 531 -> BadInput: Invalid space group Hall number: 531 (must be in range 1..530)
 All OK
+==== Symmetry operations ====
+Accepted rotation matrices: 64
+Products of two accepted rotations which are invalid: 1280 (of 4096)
+  Example: Invalid composition of symmetry operations x-y,x,z and z,x,y (they can not belong to the same space group, since one of their rotation parts refers to hexagonal axes and the other to orthogonal-type axes)
+Numbers per rotation type: -6:2 -4:6 -3:10 -2:13 -1:1 1:1 2:13 3:10 4:6 6:2
+Closure of z,x,y -y+1/4,x+3/4,z+1/4 -x,-y,-z: 96 operations (modulo 1)
+Closure of x-y,x,z+1/6 y,x,-z -x,-y,-z: 72 operations (modulo 1)
+Accepted input:
+  "x,y,z" -> x,y,z
+  " X , Y , Z " -> x,y,z
+  "1/2+x,1/2-y,z" -> x+1/2,-y+1/2,z
+  "-y+x,x,z+1/6" -> x-y,x,z+1/6
+  "+x,-y,+z" -> x,-y,z
+  "x+1/2+1/4,y,z" -> x+3/4,y,z
+  "x-1/2,y,z" -> x+1/2,y,z
+  "x+3/2,y,z" -> x+1/2,y,z
+  "x+2/4,y,z" -> x+1/2,y,z
+  "x+1/8,y,z" -> x+1/8,y,z
+  "x,y,z+1" -> x,y,z
+  "x,y,z-1/24" -> x,y,z+23/24
+  "-x+y,-x,z+2/3" -> -x+y,-x,z+2/3
+  "y,x,-z+5/12" -> y,x,-z+5/12
+Invalid input:
+  "" -> BadInput: Invalid symmetry operation "": expected three comma-separated components
+  "x,y" -> BadInput: Invalid symmetry operation "x,y": expected three comma-separated components
+  "x,y,z,x" -> BadInput: Invalid symmetry operation "x,y,z,x": expected three comma-separated components
+  ",y,z" -> BadInput: Invalid symmetry operation ",y,z": empty component
+  "2x,y,z" -> BadInput: Invalid symmetry operation "2x,y,z": coefficients of x, y, z must be +1 or -1
+  "x,x,z" -> BadInput: Invalid symmetry operation "x,x,z": Symmetry operations must have a rotation part belonging to point group m-3m with orthogonal-type axes (i.e. a signed permutation matrix) or point group 6/mmm with hexagonal axes
+  "x+y+z,y,z" -> BadInput: Invalid symmetry operation "x+y+z,y,z": Symmetry operations must have a rotation part belonging to point group m-3m with orthogonal-type axes (i.e. a signed permutation matrix) or point group 6/mmm with hexagonal axes
+  "x+1/5,y,z" -> BadInput: Invalid symmetry operation "x+1/5,y,z": translations must be multiples of 1/24
+  "x+0.5,y,z" -> BadInput: Invalid symmetry operation "x+0.5,y,z": decimal translations are not supported (use fractions like 1/2)
+  "x,y,z+.5" -> BadInput: Invalid symmetry operation "x,y,z+.5": decimal translations are not supported (use fractions like 1/2)
+  "a,b,c" -> BadInput: Invalid symmetry operation "a,b,c": unexpected character
+  "x y,y,z" -> BadInput: Invalid symmetry operation "x y,y,z": missing sign between terms
+  "x+,y,z" -> BadInput: Invalid symmetry operation "x+,y,z": incomplete term
+  "x+1/0,y,z" -> BadInput: Invalid symmetry operation "x+1/0,y,z": division by zero
+  "x-x,y,z" -> BadInput: Invalid symmetry operation "x-x,y,z": repeated variable within component
+  "x+1//2,y,z" -> BadInput: Invalid symmetry operation "x+1//2,y,z": invalid fraction
+  "x,y,-z-" -> BadInput: Invalid symmetry operation "x,y,-z-": incomplete term
+  "--x,y,z" -> BadInput: Invalid symmetry operation "--x,y,z": unexpected character
+  "x,y,1/2" -> BadInput: Invalid symmetry operation "x,y,1/2": Symmetry operations must have a rotation part belonging to point group m-3m with orthogonal-type axes (i.e. a signed permutation matrix) or point group 6/mmm with hexagonal axes
+  "x+1234567890,y,z" -> BadInput: Invalid symmetry operation "x+1234567890,y,z": number too long
+  (2,0,0,0,1,0,0,0,1) -> BadInput: Symmetry operations must have rotation matrix entries in {-1,0,1}
+All OK

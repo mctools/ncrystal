@@ -86,8 +86,44 @@ def test_table():
     assert lib.nctest_sgsym_parse( '227:3' ) == 0
     print('All 530 space group settings consistent with spglib and gemmi')
 
+# Verifies NCrystal's parsing and formatting of symmetry operations (like
+# "-x,y+1/2,-z+1/2") against gemmi, using all operations of the 530 space
+# group settings in gemmi's table.
+def test_ops():
+    def ncrystal_symop( s ):
+        res = lib.nctest_sgsym_symop( s )
+        assert res, f'NCrystal failed to parse "{s}"'
+        parts = res.split()
+        return parts[0], [ int(x) for x in parts[1:10] ], [ int(x) for x in parts[10:] ]
+
+    def gemmi_rot_trans( op ):
+        #gemmi.Op.DEN is 24, like NCrystal's translation unit:
+        assert gemmi.Op.DEN == 24
+        rot = [ v // gemmi.Op.DEN for row in op.rot for v in row ]
+        trans = [ v % gemmi.Op.DEN for v in op.tran ]
+        return rot, trans
+
+    ops = {}
+    for sg in gemmi.spacegroup_table_itb():
+        for op in sg.operations():
+            ops[ op.triplet() ] = op
+    print(f'Distinct operations in the 530 settings of gemmi: {len(ops)}')
+    nsame_str = 0
+    for triplet, op in sorted( ops.items() ):
+        s, rot, trans = ncrystal_symop( triplet )
+        assert ( rot, trans ) == gemmi_rot_trans( op ), (triplet, s)
+        #gemmi must parse our format to the same operation:
+        assert gemmi_rot_trans( gemmi.Op( s ) ) == ( rot, trans ), (triplet, s)
+        #And we must parse our own format to the same operation:
+        assert ncrystal_symop( s ) == ( s, rot, trans )
+        if s == triplet:
+            nsame_str += 1
+    print(f'All parsed identically by NCrystal and gemmi (string representations'
+          f' identical for {nsame_str} of them)')
+
 def main():
     test_table()
+    test_ops()
 
 if __name__ == '__main__':
     main()
