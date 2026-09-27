@@ -4,3 +4,82 @@ BeF2_sg152_Beryllium_Fluoride.ncmat      [dcutoff=0.3]: 1487 families with space
 BaO_sg225_BariumOxide.ncmat              [dcutoff=0.35]: 137 families with space group, 83 without
 NaF_sg225_SodiumFlouride.ncmat           [dcutoff=0.19]: 401 families with space group, 189 without
 Al_sg225.ncmat                           [dcutoff=0.3]: 95 families with space group, 62 without
+  Al_sg225.ncmat [SG] 1,1,1: d=2.33803 F2=1.77316
+  Al_sg225.ncmat [SG] -1,-1,-1: d=2.33803 F2=1.77316
+  Al_sg225.ncmat [SG] 2,0,0: d=2.02479 F2=1.73179
+  Al_sg225.ncmat [SG] 0,0,-2: d=2.02479 F2=1.73179
+  Al_sg225.ncmat [SG] 0,-2,0: d=2.02479 F2=1.73179
+  Al_sg225.ncmat [SG] -3,1,1: d=1.22099 F2=1.46799
+  Al_sg225.ncmat [SG] 1,-3,1: d=1.22099 F2=1.46799
+  Al_sg225.ncmat [SG] 1,1,0: CalcError (The plane (1,1,0) selected via the envir...)
+  Al_sg225.ncmat [SG] 5,5,5: d=0.467605 F2=0.323996
+  Al_sg225.ncmat [SG] 10,10,10: outside d-spacing range
+  Al_sg225.ncmat [no SG] 1,1,1: d=2.33803 F2=1.77316
+  Al_sg225.ncmat [no SG] -1,-1,-1: d=2.33803 F2=1.77316
+  Al_sg225.ncmat [no SG] 2,0,0: d=2.02479 F2=1.73179
+  Al_sg225.ncmat [no SG] 0,0,-2: d=2.02479 F2=1.73179
+  Al_sg225.ncmat [no SG] 0,-2,0: d=2.02479 F2=1.73179
+  Al_sg225.ncmat [no SG] -3,1,1: d=1.22099 F2=1.46799
+  Al_sg225.ncmat [no SG] 1,-3,1: d=1.22099 F2=1.46799
+  Al_sg225.ncmat [no SG] 1,1,0: CalcError (The plane (1,1,0) selected via the envir...)
+  Al_sg225.ncmat [no SG] 5,5,5: d=0.467605 F2=0.323996
+  Al_sg225.ncmat [no SG] 10,10,10: outside d-spacing range
+  GaSe_sg194_GalliumSelenide.ncmat [SG] 1,0,0: d=3.2476 F2=8.75273
+  GaSe_sg194_GalliumSelenide.ncmat [SG] 0,1,0: d=3.2476 F2=8.75273
+  GaSe_sg194_GalliumSelenide.ncmat [SG] -1,1,0: d=3.2476 F2=8.75273
+  GaSe_sg194_GalliumSelenide.ncmat [SG] 1,-2,0: d=1.875 F2=30.9302
+  GaSe_sg194_GalliumSelenide.ncmat [SG] 2,-1,3: CalcError (The plane (2,-1,3) selected via the envi...)
+  GaSe_sg194_GalliumSelenide.ncmat [SG] 0,0,2: outside d-spacing range
+  GaSe_sg194_GalliumSelenide.ncmat [SG] 0,0,1: outside d-spacing range
+  GaSe_sg194_GalliumSelenide.ncmat [SG] 0,0,4: d=3.98 F2=9.75936
+  GaSe_sg194_GalliumSelenide.ncmat [SG] 0,0,-4: d=3.98 F2=9.75936
+  GaSe_sg194_GalliumSelenide.ncmat [no SG] 1,0,0: d=3.2476 F2=8.75273
+  GaSe_sg194_GalliumSelenide.ncmat [no SG] 0,1,0: d=3.2476 F2=8.75273
+  GaSe_sg194_GalliumSelenide.ncmat [no SG] -1,1,0: d=3.2476 F2=8.75273
+  GaSe_sg194_GalliumSelenide.ncmat [no SG] 1,-2,0: d=1.875 F2=30.9302
+  GaSe_sg194_GalliumSelenide.ncmat [no SG] 2,-1,3: CalcError (The plane (2,-1,3) selected via the envi...)
+  GaSe_sg194_GalliumSelenide.ncmat [no SG] 0,0,2: outside d-spacing range
+  GaSe_sg194_GalliumSelenide.ncmat [no SG] 0,0,1: outside d-spacing range
+  GaSe_sg194_GalliumSelenide.ncmat [no SG] 0,0,4: d=3.98 F2=9.75936
+  GaSe_sg194_GalliumSelenide.ncmat [no SG] 0,0,-4: d=3.98 F2=9.75936
+  Al2O3_sg167_Corundum.ncmat [SG] 1,0,4: d=2.5501 F2=5.6695
+  Al2O3_sg167_Corundum.ncmat [SG] 0,1,-4: d=2.5501 F2=5.6695
+  Al2O3_sg167_Corundum.ncmat [SG] -1,0,-4: d=2.5501 F2=5.6695
+  Al2O3_sg167_Corundum.ncmat [SG] 1,1,3: d=2.0846 F2=74.9373
+  Al2O3_sg167_Corundum.ncmat [SG] 1,1,-3: d=2.0846 F2=74.9373
+  Al2O3_sg167_Corundum.ncmat [SG] 0,0,6: d=2.16462 F2=51.8415
+  Al2O3_sg167_Corundum.ncmat [no SG] 1,0,4: d=2.5501 F2=5.6695
+  Al2O3_sg167_Corundum.ncmat [no SG] 0,1,-4: d=2.5501 F2=5.6695
+  Al2O3_sg167_Corundum.ncmat [no SG] -1,0,-4: d=2.5501 F2=5.6695
+  Al2O3_sg167_Corundum.ncmat [no SG] 1,1,3: d=2.0846 F2=74.9373
+  Al2O3_sg167_Corundum.ncmat [no SG] 1,1,-3: d=2.0846 F2=74.9373
+  Al2O3_sg167_Corundum.ncmat [no SG] 0,0,6: d=2.16462 F2=51.8415
+  invalid "1,1" [SG]: BadInput
+  invalid "1,1" [no SG]: BadInput
+  invalid "1,1,1,1" [SG]: BadInput
+  invalid "1,1,1,1" [no SG]: BadInput
+  invalid "a,b,c" [SG]: BadInput
+  invalid "a,b,c" [no SG]: BadInput
+  invalid "1.5,1,1" [SG]: BadInput
+  invalid "1.5,1,1" [no SG]: BadInput
+  invalid "0,0,0" [SG]: BadInput
+  invalid "0,0,0" [no SG]: BadInput
+  invalid " " [SG]: BadInput
+  invalid " " [no SG]: BadInput
+  Al_sg225.ncmat 1,1,1: d=2.338Aa, xsect at Bragg geometry 12.39 barn, zero for (1,1,-1) (same without space group)
+  Al_sg225.ncmat 0,0,2: d=2.0248Aa, xsect at Bragg geometry 10.9 barn, zero for (2,0,0) (same without space group)
+  Al_sg225.ncmat -3,1,1: d=1.221Aa, xsect at Bragg geometry 8.441 barn, zero for (1,3,1) (same without space group)
+  C_sg194_pyrolytic_graphite.ncmat 0,0,2: d=3.3555Aa, xsect at Bragg geometry 44.58 barn, zero for (1,0,0) (same without space group)
+  C_sg194_pyrolytic_graphite.ncmat 0,0,-4: d=1.6778Aa, xsect at Bragg geometry 41.85 barn, zero for (1,0,0) (same without space group)
+  Powder cross sections of selected planes scale as d*|F|^2
+Large tetragonal cell: 5587 symmetry families (max |h|,|k|,|l| = 146), 4872 families without space group, all consistent
+BO3H3_sg2_BoricAcid.ncmat: 4383 symmetry families (max |h|,|k|,|l| = 14), 4383 families without space group, all consistent
+GaSe_sg194_GalliumSelenide.ncmat: 1325 symmetry families (max |h|,|k|,|l| = 52), 1258 families without space group, all consistent
+Al2O3_sg167_Corundum.ncmat: 1100 symmetry families (max |h|,|k|,|l| = 42), 969 families without space group, all consistent
+  dcutoff=0.02 (memlim=None): NCCalcError: Calculation of HKL planes for dcutoff = 0.02 Aa would need 103.9 MB of memory for bookkeeping, ...
+  dcutoff=0.1 (memlim=0.01): NCCalcError: Calculation of HKL planes for dcutoff = 0.1 Aa would need 0.03449 MB of memory for bookkeeping,...
+  dcutoff=0.1 (memlim=0): NCBadInput: Invalid value of environment variable NCRYSTAL_FILLHKL_MEMLIM (must be a positive number of MB)...
+  dcutoff=0.1 (memlim=-1): NCBadInput: Invalid value of environment variable NCRYSTAL_FILLHKL_MEMLIM (must be a positive number of MB)...
+  dcutoff=0.1 (memlim=abc): NCBadInput: Invalid value of environment variable NCRYSTAL_FILLHKL_MEMLIM (expected a floating point number...
+  Al (memlim=1): 357 families
+  Al without space group (memlim=0.01): 171 families

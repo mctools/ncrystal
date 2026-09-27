@@ -139,6 +139,9 @@ namespace NCRYSTAL_NAMESPACE {
   int ncgetenv_int(std::string, int defval = 0 );
   std::int64_t ncgetenv_int64(std::string, std::int64_t defval = 0 );
   bool ncgetenv_bool(std::string);//if set to 1 -> true, 0/unset -> false (otherwise exception).
+  //Full (prefixed) name of the environment variable accessed by the above
+  //functions, e.g. for error messages:
+  std::string ncgetenv_varname(std::string);
 
   //Find forbidden characters. Either from a given list and/or by looking for non-ASCII characters.
   //If any are found, return a string representation suitable for printing in error messages.

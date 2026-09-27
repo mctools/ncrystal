@@ -87,6 +87,14 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * HKL plane generation with space group symmetry now uses a bookkeeping
+       table sized to the actual hkl range (typically kB instead of 1MB or
+       67MB). A CalcError is raised if it would need more than 20MB (raise
+       with the NCRYSTAL_FILLHKL_MEMLIM env var, in MB).
+     * NCRYSTAL_FILLHKL_SELECTHKL=h,k,l now selects exactly the plane
+       (h,k,l) (and (-h,-k,-l)) both with and without space group, using the
+       normal code paths with a reduced hkl range. A CalcError is raised if
+       the plane is absent, and malformed values give BadInput.
      * HKL families for crystals without space group are now grouped by a
        sort-and-sweep over d-spacing, rather than via binned map keys which
        could split families at rounding boundaries. Buffered hkl points are

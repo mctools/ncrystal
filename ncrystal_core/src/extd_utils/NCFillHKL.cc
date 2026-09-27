@@ -24,7 +24,6 @@
 #include "NCrystal/internal/utils/NCLatticeUtils.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include "NCrystal/internal/phys_utils/NCEqRefl.hh"
-#include <bitset>
 
 namespace NC = NCrystal;
 
@@ -63,9 +62,10 @@ namespace NCRYSTAL_NAMESPACE {
                       " parameter)");
     }
 
-    //For now we allow selection of a particular hkl value via an env var (a
-    //hacky workarond required for certain validation plots - we should support
-    //this in NCMatCfg instead):
+    //For validation plots, a single plane can be selected via the env var
+    //FILLHKL_SELECTHKL="h,k,l". The normal code paths are then used, but with
+    //the hkl loop range reduced to what is needed, and the resulting list
+    //reduced to the single plane (h,k,l) (and thus implicitly (-h,-k,-l)).
     Optional<HKL> selectedHKLFromEnv()
     {
       Optional<HKL> res;
@@ -73,12 +73,68 @@ namespace NCRYSTAL_NAMESPACE {
       if ( !selecthklcfg.empty() ) {
         VectS parts;
         split(parts,selecthklcfg,0,',');
-        nc_assert_always(parts.size()==3);
-        res = HKL( str2int(parts.at(0)),
-                   str2int(parts.at(1)),
-                   str2int(parts.at(2)) );
+        std::int32_t v[3];
+        bool ok = parts.size() == 3;
+        for ( auto i : ncrange( 3 ) )
+          ok = ok && safe_str2int( parts.at(i), v[i] );
+        if ( !ok || ( v[0] == 0 && v[1] == 0 && v[2] == 0 ) )
+          NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "
+                          <<ncgetenv_varname("FILLHKL_SELECTHKL")<<" (expected"
+                          " three integers \"h,k,l\" not all zero, but got \""
+                          <<selecthklcfg<<"\").");
+        res = HKL( v[0], v[1], v[2] );
       }
       return res;
+    }
+
+    //Reduce the loop range, so it still includes sel or -sel:
+    template<class TPreCalc>
+    void reduceLoopRangeForSelection( TPreCalc& pc, const HKL& sel )
+    {
+      pc.max_h = std::min( pc.max_h, std::abs( sel.h ) );
+      pc.max_k = std::min( pc.max_k, std::abs( sel.k ) );
+      pc.max_l = std::min( pc.max_l, std::abs( sel.l ) );
+    }
+
+    //Reduce hkllist to a single entry for the selected plane, taking values
+    //from the family for which isInFamily(entry) returns true. If the plane
+    //is not found, the result is empty if its d-spacing is outside the
+    //requested range (e.g. for partial calculations), otherwise an error:
+    template<class TFct>
+    HKLList reduceToSelected( HKLList& hkllist, const HKL& sel,
+                              bool sel_in_drange, TFct isInFamily )
+    {
+      HKLList res;
+      for ( auto& e : hkllist ) {
+        if ( !isInFamily( e ) )
+          continue;
+        res.emplace_back();
+        HKLInfo& hi = res.back();
+        hi.dspacing = e.dspacing;
+        hi.fsquared = e.fsquared;
+        hi.multiplicity = 2;
+        hi.hkl = sel;
+        hi.explicitValues = ncmake_unique<HKLInfo::ExplicitVals>();
+        hi.explicitValues->list.emplace<std::vector<HKL>>();
+        hi.explicitValues->list.get<std::vector<HKL>>().push_back( sel );
+        return res;
+      }
+      if ( !sel_in_drange )
+        return res;
+      NCRYSTAL_THROW2(CalcError,"The plane ("<<sel.h<<","<<sel.k<<","<<sel.l
+                      <<") selected via the environment variable "
+                      <<ncgetenv_varname("FILLHKL_SELECTHKL")<<" is not present"
+                      " (|F|^2 is below fsquarecut, e.g. due to systematic"
+                      " absence).");
+    }
+
+    //Whether the plane has d-spacing in the requested range (calculated like
+    //in the hkl loops):
+    bool isInDRange( const RotMatrix& rec_lat, const PairDD& dcut_interval,
+                     const HKL& hkl )
+    {
+      const double ksq = ( rec_lat * Vector( hkl.h, hkl.k, hkl.l ) ).mag2();
+      return valueInInterval( dcut_interval, k2Pi / std::sqrt( ksq ) );
     }
 
     struct PreCalc {
@@ -258,7 +314,8 @@ namespace NCRYSTAL_NAMESPACE {
                                      const AtomInfoList& atomList,
                                      const FillHKLCfg& cfg,
                                      bool no_forceunitdebyewallerfactor,
-                                     bool env_ignorefsqcut )
+                                     bool env_ignorefsqcut,
+                                     const Optional<HKL>& selected_hkl )
     {
       //Without space group, planes are grouped into families by (FSquared,
       //dspacing) values. Accepted hkl points are buffered, and whenever the
@@ -266,9 +323,10 @@ namespace NCRYSTAL_NAMESPACE {
       //families in a single sweep. The grouping thus does not depend on the
       //loop order or any binning of values, and the memory used for buffering
       //is bounded (in practice a single buffer suffices for most crystals):
-      const Optional<HKL> do_select = selectedHKLFromEnv();
       const RotMatrix rec_lat = getReciprocalLatticeRot( structureInfo );
-      const auto precalc = fillHKLPreCalc( structureInfo, atomList, cfg );
+      auto precalc = fillHKLPreCalc( structureInfo, atomList, cfg );
+      if ( selected_hkl.has_value() )
+        reduceLoopRangeForSelection( precalc, selected_hkl.value() );
       FSquaredCalc fsqcalc( precalc, cfg.fsquarecut,
                             no_forceunitdebyewallerfactor );
 
@@ -409,10 +467,6 @@ namespace NCRYSTAL_NAMESPACE {
             if ( !fsqcalc.setKSq( ksq ) )
               continue;
 
-            if ( do_select.has_value()
-                 && !( HKL(loop_h,loop_k,loop_l) == do_select.value() ) )
-              continue;
-
             const double FSquared = fsqcalc.calc( hkl );
 
             //skip weak or impossible reflections:
@@ -453,6 +507,19 @@ namespace NCRYSTAL_NAMESPACE {
         hi.hkl = v.front();
       }
 
+      if ( selected_hkl.has_value() ) {
+        const HKL& sel = selected_hkl.value();
+        const HKL msel( -sel.h, -sel.k, -sel.l );
+        const bool inrange = isInDRange( rec_lat, precalc.dcut_interval, sel );
+        return reduceToSelected( hkllist, sel, inrange,
+                                 [&sel,&msel]( const HKLInfo& e )
+        {
+          auto& v = e.explicitValues->list.get<std::vector<HKL>>();
+          return ( std::find( v.begin(), v.end(), sel ) != v.end()
+                   || std::find( v.begin(), v.end(), msel ) != v.end() );
+        } );
+      }
+
       //NB: Not sorting by dspace (InfoBuilder will anyway do it and it is
       //slightly complicated to do consistently).
       hkllist.shrink_to_fit();
@@ -465,89 +532,94 @@ namespace NCRYSTAL_NAMESPACE {
   namespace {
 
     class SymHKLSeenTracker {
-    private:
-      static constexpr unsigned fast_small_C = 128;//128;//always enabled, uses 4*C^3 bits [C=128 gives 1.04MB]
-      static constexpr unsigned fast_large_C = 512;//512;//rarely used, on-demand usage only [C=512 gives 67MB]
-      static constexpr unsigned n_small = 4*fast_small_C*fast_small_C*fast_small_C;
-      static constexpr unsigned n_large = 4*fast_large_C*fast_large_C*fast_large_C;
-      using FastArraySmall = std::bitset<n_small>;
-      using FastArrayLarge = std::bitset<n_large>;
-      //Both bitsets on the stack (to prevent stack overflow), but the smaller one is always set up.
-      std::unique_ptr<FastArraySmall> m_seen;//<--- this is the workhorse which is almost always used exclusively. Fast and not too big.
-      std::unique_ptr<FastArrayLarge> m_seenLarge;
-      std::set<HKL> m_seenFallBack;//<--- ultimate fallback, bad performance but always works.
-      double m_dcutoff;//for err msg (-1 means err disabled)
+      //Bit table for tracking which (representative) hkl values were already
+      //seen, covering h in [0,mh], k in [-mk,mk] and l in [-ml,ml]. The index
+      //of l varies fastest, for cache locality in the hkl loop.
     public:
-      SymHKLSeenTracker( double dcutoff ) : m_seen(ncmake_unique<FastArraySmall>()), m_dcutoff(dcutoff) {}
-      bool isFirstCheck( const HKL& hkl ) {
-        auto idx = calcFastIdx<fast_small_C>(hkl);
-        if ( idx.has_value() ) nclikely {
-          auto e = (*m_seen)[idx.value()];
-          if ( (bool)e )
-            return false;
-          e = true;
-          return true;
-        } else {
-          return isFirstCheckFallBack(hkl);
-        }
+      struct Dims { int mh, mk, ml; };
+
+      //Dims needed for all hkl with d-spacing >= dcutoff*(1-1e-5) (which
+      //suffices for the loose ksq preselection). Since h=a.G/2pi, we have
+      //|h|<=a/d exactly for any lattice (similarly for k and l):
+      static Dims dimsNeeded( const StructureInfo& si, double dcutoff )
+      {
+        auto f = [dcutoff]( double x )
+        {
+          return static_cast<int>( std::floor( x * ( 1.0 + 2e-5 ) / dcutoff )
+                                   + 1.0 );
+        };
+        return { f( si.lattice_a ), f( si.lattice_b ), f( si.lattice_c ) };
       }
 
-      //Pretend that *some* of the values != v where already seen (not all, due
-      //to internal storage being dynamic).
-      void optimiseForSelection( const HKL& v )
+      static double bytesNeeded( const StructureInfo& si, double dcutoff )
       {
-        m_seen->set();//sets all to true, pretending they were already processed
-        auto idx = calcFastIdx<fast_small_C>(v);
-        if ( idx.has_value() )
-          m_seen->set(idx.value(),false);
+        //Calculated without integer overflow for any dcutoff:
+        auto f = [dcutoff]( double x )
+        {
+          return std::floor( x * ( 1.0 + 2e-5 ) / dcutoff ) + 1.0;
+        };
+        const double nbits = ( ( f( si.lattice_a ) + 1.0 )
+                               * ( 2.0 * f( si.lattice_b ) + 1.0 )
+                               * ( 2.0 * f( si.lattice_c ) + 1.0 ) );
+        return 8.0 * std::ceil( nbits / 64.0 );
       }
+
+      SymHKLSeenTracker( Dims d )
+        : m_mh( d.mh ), m_mk( d.mk ), m_ml( d.ml ),
+          m_nk( 2 * static_cast<std::size_t>( d.mk ) + 1 ),
+          m_nl( 2 * static_cast<std::size_t>( d.ml ) + 1 )
+      {
+        nc_assert_always( d.mh >= 0 && d.mk >= 0 && d.ml >= 0 );
+        const std::size_t nbits = ( ( static_cast<std::size_t>( d.mh ) + 1 )
+                                    * m_nk * m_nl );
+        m_bits.resize( ( nbits + 63 ) / 64, 0 );
+      }
+
+      bool isFirstCheck( const HKL& v )
+      {
+        //Outside the table would be a bug (not user error):
+        if ( !( v.h >= 0 && v.h <= m_mh && std::abs( v.k ) <= m_mk
+                && std::abs( v.l ) <= m_ml ) ) ncunlikely
+          NCRYSTAL_THROW2(LogicError,"hkl=("<<v.h<<","<<v.k<<","<<v.l<<") out"
+                          " of range in SymHKLSeenTracker");
+        const std::size_t idx
+          = ( static_cast<std::size_t>( v.l + m_ml )
+              + m_nl * ( static_cast<std::size_t>( v.k + m_mk )
+                         + m_nk * static_cast<std::size_t>( v.h ) ) );
+        std::uint64_t& w = m_bits[ idx >> 6 ];
+        const std::uint64_t bit = std::uint64_t(1) << ( idx & 63 );
+        if ( w & bit )
+          return false;
+        w |= bit;
+        return true;
+      }
+
     private:
-      bool isFirstCheckFallBack( const HKL& v ) {
-        auto idx = calcFastIdx<fast_large_C>(v);
-        if ( idx.has_value() ) {
-          if (!m_seenLarge) ncunlikely {
-            m_seenLarge = ncmake_unique<FastArrayLarge>();
-          }
-          auto e = (*m_seenLarge)[idx.value()];
-          if ( (bool)e )
-            return false;
-          e = true;
-          return true;
-        }
-        //Ultimate fallback:
-        auto it_and_inserted = m_seenFallBack.insert(v);
-        if ( m_seenFallBack.size() == 100000000 && m_dcutoff != -1.0 )
-          throwCombinatoricsTooGreat( m_dcutoff );
-        return it_and_inserted.second;
-      }
-
-      template<int C>
-      Optional<unsigned> calcFastIdx( const HKL&v ) const
-      {
-        //NOTE: l varies most frequently in the calling loop, then k, then h. So
-        //for cache-locality we should make sure that indices close in l are
-        //close, etc. (this is particularly important if overspilling to the
-        //m_seenLarge cache). Note on this note: The EqRefl remapping of HKL
-        //values screws this up, but benchmarking still showed the code below to
-        //be fastest.
-
-        //Works if h in range 0..C-1 (C values), and k,l in range -(C-1)..C (2C values)
-        static_assert(C>=2&&C<=10000,"");
-        nc_assert( v.h >= 0 );
-        constexpr int TwoC = 2*C;
-        constexpr int Cm1 = (C-1);
-        constexpr int mCm1 = -(C-1);
-        Optional<unsigned> res;
-        if ( v.h < C && std::min(v.k,v.l) >= mCm1 && std::max(v.k,v.l) <= C ) {
-          nc_assert( Cm1 + v.k >= 0 && Cm1 + v.k < TwoC );
-          nc_assert( Cm1 + v.l >= 0 && Cm1 + v.l < TwoC );
-          //res = static_cast<unsigned>(v.h + C * ( ( Cm1 + v.k) +  TwoC * ( Cm1 + v.l) ));This way would be very slow
-          res = static_cast<unsigned>( (Cm1 + v.l) + TwoC * ( ( Cm1 + v.k) + TwoC * v.h ) );//And this way much better
-          nc_assert( res < 4*C*C*C );
-        }
-        return res;
-      }
+      int m_mh, m_mk, m_ml;
+      std::size_t m_nk, m_nl;
+      std::vector<std::uint64_t> m_bits;
     };
+
+    //Check memory needed by SymHKLSeenTracker against the limit (in MB) set
+    //by FILLHKL_MEMLIM (default 20MB):
+    void checkTrackerMemory( const StructureInfo& si, double dcutoff )
+    {
+      const double bytes = SymHKLSeenTracker::bytesNeeded( si, dcutoff );
+      const double limit_mb = ncgetenv_dbl( "FILLHKL_MEMLIM", 20.0 );
+      if ( !( limit_mb > 0.0 ) )
+        NCRYSTAL_THROW2(BadInput,"Invalid value of environment variable "
+                        <<ncgetenv_varname("FILLHKL_MEMLIM")<<" (must be a"
+                        " positive number of MB).");
+      const double mb = bytes / ( 1024.0 * 1024.0 );
+      if ( mb > limit_mb )
+        NCRYSTAL_THROW2(CalcError,"Calculation of HKL planes for dcutoff = "
+                        <<dcutoff<<" Aa would need "<<fmt(mb,"%.4g")<<" MB of"
+                        " memory for bookkeeping, which exceeds the limit of "
+                        <<fmt(limit_mb,"%.4g")<<" MB. Either increase dcutoff,"
+                        " or raise the limit by setting the environment"
+                        " variable "<<ncgetenv_varname("FILLHKL_MEMLIM")
+                        <<" to a value in MB.");
+    }
   }
 }
 
@@ -557,7 +629,8 @@ namespace NCRYSTAL_NAMESPACE {
                                              const AtomInfoList& atomList,
                                              const FillHKLCfg& cfg,
                                              bool no_forceunitdebyewallerfactor,
-                                             bool env_ignorefsqcut )
+                                             bool env_ignorefsqcut,
+                                             const Optional<HKL>& selected_hkl )
     {
       nc_assert_always(structureInfo.spacegroup!=0);
       //Caller sets fsquarecut to 0.0 and then clamps it:
@@ -577,23 +650,16 @@ namespace NCRYSTAL_NAMESPACE {
         return sym.getEquivalentReflectionsRepresentativeValue(hh,kk,ll);
       };
 
-      SymHKLSeenTracker symSeenTracker( env_ignorefsqcut ? -1.0 : cfg.dcutoff );
+      checkTrackerMemory( structureInfo, cfg.dcutoff );
+      SymHKLSeenTracker symSeenTracker(
+        SymHKLSeenTracker::dimsNeeded( structureInfo, cfg.dcutoff ) );
 
       //Make sure to always skip the (0,0,0) group:
       symSeenTracker.isFirstCheck(sym_findrepval(0,0,0));
 
-      Optional<HKL> do_select = selectedHKLFromEnv();
-      if ( do_select.has_value() ) {
-        do_select = sym_findrepval( do_select.value().h,
-                                    do_select.value().k,
-                                    do_select.value().l );
-        //Pure efficiency improvement, mark *some* of the other values as
-        //already seen (not all, due to the std::set fallback in
-        //symSeenTrackar):
-        symSeenTracker.optimiseForSelection( do_select.value() );
-      }
-
-      const auto precalc = fillHKLPreCalc( structureInfo, atomList, cfg );
+      auto precalc = fillHKLPreCalc( structureInfo, atomList, cfg );
+      if ( selected_hkl.has_value() )
+        reduceLoopRangeForSelection( precalc, selected_hkl.value() );
       FSquaredCalc fsqcalc( precalc, cfg.fsquarecut,
                             no_forceunitdebyewallerfactor );
 
@@ -659,9 +725,6 @@ namespace NCRYSTAL_NAMESPACE {
             if ( !valueInInterval( precalc.dcut_interval, dspacing ) )
               continue;
 
-            if ( do_select.has_value() && !(sym_key == do_select.value()) )
-              continue;
-
             if ( hkllist.size()> 1000000 && !env_ignorefsqcut )//guard against crazy setups
               throwCombinatoricsTooGreat( cfg.dcutoff );
 
@@ -693,6 +756,21 @@ namespace NCRYSTAL_NAMESPACE {
           }//loop_l
         }//loop_k
       }//loop_h
+
+      if ( selected_hkl.has_value() ) {
+        const HKL& sel = selected_hkl.value();
+        const HKL rep1 = sym_findrepval( sel.h, sel.k, sel.l );
+        const HKL rep2 = sym_findrepval( -sel.h, -sel.k, -sel.l );
+        const bool inrange = isInDRange( rec_lat, precalc.dcut_interval,
+                                         rep1 );
+        return reduceToSelected( hkllist, sel, inrange,
+                                 [&]( const HKLInfo& e )
+                                 {
+                                   auto r = sym_findrepval( e.hkl.h, e.hkl.k,
+                                                            e.hkl.l );
+                                   return r == rep1 || r == rep2;
+                                 } );
+      }
 
       //NB: Not sorting by dspace (InfoBuilder will anyway do it and it is
       //slightly complicated to do consistently).
@@ -738,11 +816,13 @@ NC::HKLList NC::calculateHKLPlanes( const StructureInfo& structureInfo,
     no_forceunitdebyewallerfactor = !(ncgetenv_bool("FILLHKL_FORCEUNITDEBYEWALLERFACTOR"));
   }
 
+  const Optional<HKL> selected_hkl = selectedHKLFromEnv();
+
   if ( structureInfo.spacegroup != 0 )
     return calculateHKLPlanesWithSymEqRefl( structureInfo, atomList, cfg,
                                             no_forceunitdebyewallerfactor,
-                                            env_ignorefsqcut );
+                                            env_ignorefsqcut, selected_hkl );
   return calculateHKLPlanesNoSym( structureInfo, atomList, cfg,
                                   no_forceunitdebyewallerfactor,
-                                  env_ignorefsqcut );
+                                  env_ignorefsqcut, selected_hkl );
 }

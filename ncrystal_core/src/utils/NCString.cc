@@ -414,22 +414,32 @@ namespace NCRYSTAL_NAMESPACE {
     };
     GetEnvResult raw_getenv( std::string& v )
     {
-      nc_assert(!v.empty());
-      nc_assert(!startswith(v,"NCRYSTAL_"));//common mistake
       GetEnvResult res;
-#if defined(NCRYSTAL_NAMESPACE_PROTECTION) && defined( NCRYSTAL_NAMESPACED_ENVVARS )
-      res.varname.reserve( 64 );
-      res.varname = "NCRYSTAL";
-      res.varname += upperCase(ncrystal_xstr(NCRYSTAL_NAMESPACE_PROTECTION));
-      res.varname += '_';
-#else
-      res.varname = "NCRYSTAL_";
-#endif
-      res.varname += v;
+      //NB: keep platform_getenv here (not std::getenv): on Windows it
+      //reads via the wide Win32 API, so changes made from a different
+      //CRT module in the same process are seen:
+      res.varname = ncgetenv_varname( v );
       res.val = platform_getenv( res.varname.c_str() );
       return res;
     }
   }
+}
+
+std::string NC::ncgetenv_varname( std::string v )
+{
+  nc_assert(!v.empty());
+  nc_assert(!startswith(v,"NCRYSTAL_"));//common mistake
+  std::string res;
+#if defined(NCRYSTAL_NAMESPACE_PROTECTION) && defined( NCRYSTAL_NAMESPACED_ENVVARS )
+  res.reserve( 64 );
+  res = "NCRYSTAL";
+  res += upperCase(ncrystal_xstr(NCRYSTAL_NAMESPACE_PROTECTION));
+  res += '_';
+#else
+  res = "NCRYSTAL_";
+#endif
+  res += v;
+  return res;
 }
 
 //Common access to environment variables (unset and empty vars both return
