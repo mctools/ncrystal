@@ -1,0 +1,7 @@
+path as str: OK (name='al.ncmat')
+pathlib.Path: OK (name='al.ncmat')
+in-memory str: OK (name=None)
+in-memory bytes: OK (name=None)
+non-existing path: NCBadInput: Path not found: no_such_file.ncmat
+int: NCBadInput: Invalid text data / text file data (got type <class 'int'>)
+directLoad with cfg-string: NCBadInput: Path not found: stdlib::Al_sg225.ncmat;dcutoff=1

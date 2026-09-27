@@ -196,6 +196,7 @@ def matsrc_init( class_MaterialSource, matsrc_extract_d_fct, data, fmt, cfg_para
     return d
 
 def anytextdata_init( data, *, is_path, name ):
+    from .exceptions import NCBadInput
     if isinstance(name,bytes):
         name = name.decode()
     assert name is None or isinstance(name,str)
@@ -215,7 +216,6 @@ def anytextdata_init( data, *, is_path, name ):
     if isinstance(data,bytes):
         data = data.decode()
     if not isinstance(data,str):
-        from .exceptions import NCBadInput
         raise NCBadInput('Invalid text data / text file data (got type %s)'%type(data))
     is_path = is_path if ( is_path is not None ) else ( '\n' not in data )
     if is_path:
