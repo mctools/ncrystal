@@ -83,3 +83,7 @@ Al2O3_sg167_Corundum.ncmat: 1100 symmetry families (max |h|,|k|,|l| = 42), 969 f
   dcutoff=0.1 (memlim=abc): NCBadInput: Invalid value of environment variable NCRYSTAL_FILLHKL_MEMLIM (expected a floating point number...
   Al (memlim=1): 357 families
   Al without space group (memlim=0.01): 171 families
+BO3H3_sg2_BoricAcid.ncmat            dcutoff=0.25: 29253 planes (7620 with F2<1e-4 barn) agree with independent F2 calculation
+MgH2_sg136_MagnesiumHydride.ncmat    dcutoff=0.2: 9915 planes (1654 with F2<1e-4 barn) agree with independent F2 calculation
+SiO2-beta_sg180_BetaQuartz.ncmat     dcutoff=0.22: 20444 planes (1506 with F2<1e-4 barn) agree with independent F2 calculation
+CaH2_sg62_CalciumHydride.ncmat       dcutoff=0.2: 35290 planes (3710 with F2<1e-4 barn) agree with independent F2 calculation

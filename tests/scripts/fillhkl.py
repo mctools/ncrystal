@@ -20,6 +20,8 @@
 ##                                                                            ##
 ################################################################################
 
+# NEEDS: numpy
+
 # Tests related to the generation of lists of HKL planes.
 
 import math
@@ -28,6 +30,7 @@ import time
 
 import NCrystalDev as NC
 import NCTestUtils.enable_fpe  # noqa: F401
+import numpy as np
 from NCTestUtils.env import ncsetenv
 
 
@@ -378,11 +381,47 @@ def test_memlim():
           load( strip_sg( al ), 'dcutoff=0.1' ).nHKL(), 'families')
     ncsetenv( 'FILLHKL_MEMLIM', None )
 
+# Checks |F|^2 of all planes against an independent calculation, for materials
+# with strongly damped light atoms at small d-spacings. This includes weak
+# planes near fsquarecut, where contributions from heavily damped atoms used
+# to be skipped (giving errors of several percent).
+def test_weakf2():
+    def check( fn, cfg ):
+        info = NC.createInfo( f'stdlib::{fn};{cfg}' )
+        hkl, d, f2 = [], [], []
+        for e in info.hklObjects():
+            #All planes of the family, with the family values:
+            for h, k, l in zip( e.h, e.k, e.l ):  # noqa: E741
+                hkl.append( ( h, k, l ) )
+                d.append( float( e.d ) )
+                f2.append( float( e.f2 ) )
+        hkl = np.asarray( hkl, dtype = float )
+        d, f2 = np.asarray( d ), np.asarray( f2 )
+        q2 = ( 2 * math.pi / d )**2
+        F = np.zeros( len(d), dtype = complex )
+        for ai in info.atominfos:
+            b = ai.atomData.coherentScatLen()
+            pos = np.asarray( ai.positions, dtype = float )
+            phases = np.exp( 2j * math.pi * ( hkl @ pos.T ) ).sum( axis = 1 )
+            F += b * np.exp( -0.5 * ai.msd * q2 ) * phases
+        f2ref = np.abs( F )**2
+        relerr = np.abs( f2 - f2ref ) / f2ref
+        nweak = int( ( f2 < 1e-4 ).sum() )
+        assert relerr.max() < 1e-9, ( fn, float( relerr.max() ) )
+        print(f'{fn:<36} {cfg}: {len(d)} planes ({nweak} with F2<1e-4 barn)'
+              f' agree with independent F2 calculation')
+
+    check( 'BO3H3_sg2_BoricAcid.ncmat', 'dcutoff=0.25' )
+    check( 'MgH2_sg136_MagnesiumHydride.ncmat', 'dcutoff=0.2' )
+    check( 'SiO2-beta_sg180_BetaQuartz.ncmat', 'dcutoff=0.22' )
+    check( 'CaH2_sg62_CalciumHydride.ncmat', 'dcutoff=0.2' )
+
 def main():
     test_nosgfamilies()
     test_select()
     test_selectphys()
     test_memlim()
+    test_weakf2()
 
 if __name__ == '__main__':
     main()

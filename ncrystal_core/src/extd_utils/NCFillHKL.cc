@@ -142,7 +142,6 @@ namespace NCRYSTAL_NAMESPACE {
       SmallVectD csl;//coherent scattering length
       SmallVectD msd;//mean squared displacement
       int max_h, max_k, max_l;
-      SmallVectD whkl_thresholds;
       PairDD ksq_preselect_interval;
       PairDD dcut_interval;
     };
@@ -175,16 +174,6 @@ namespace NCRYSTAL_NAMESPACE {
 
       nc_assert_always(res.msd.size()==res.atomic_pos.size());
       nc_assert_always(res.msd.size()==res.csl.size());
-
-      //cache some thresholds for efficiency (see locations where it is used
-      //for more comments):
-      res.whkl_thresholds.reserve_hint(res.csl.size());
-      for ( auto i : ncrange( res.csl.size() ) ) {
-        if ( cfg.fsquarecut < 0.01 && cfg.fsquarecut > fsquarecut_lowest_possible_value )
-          res.whkl_thresholds.push_back(std::log(ncabs(res.csl.at(i)) / cfg.fsquarecut ) );
-        else
-          res.whkl_thresholds.push_back(kInfinity);//use inf when not true that fsqcut^2 << fsq
-      }
 
       auto clampNormal = [](double x)
       {
@@ -227,22 +216,15 @@ namespace NCRYSTAL_NAMESPACE {
         if (m_use_dw) nclikely {
           fillHKL_getWhkl(m_whkl, ksq, m_pc.msd);
         }
+        //NB: All species are always included (skipping heavily damped ones
+        //would bias |F|^2 at first order, for no measurable speedup).
         double real_or_imag_upper_limit(0.0);
         for( unsigned i=0; i < m_whkl.size(); ++i ) {
-          if ( m_whkl[i] > m_pc.whkl_thresholds[i]) {
-            m_cache_factors[i] = 0.0;
-            continue;//Abort early to save exp/cos/sin calls. Note that
-                     //O(fsquarecut) here corresponds to O(fsquarecut^2)
-                     //contributions to final FSquared - for which we demand
-                     //>fsquarecut below. We only do this when fsquarecut<1e-2
-                     //(see calculations for whkl_thresholds above).
-          } else {
-            double factor = m_pc.csl[i]*std::exp(-m_whkl[i]);
-            m_cache_factors[i] = factor;
-            //Assuming cos(phase)*factor=sin(phase)*factor=|factor| gives us a
-            //cheap upper limit on fsquared:
-            real_or_imag_upper_limit += m_pc.atomic_pos[i].size()*ncabs( factor );
-          }
+          double factor = m_pc.csl[i]*std::exp(-m_whkl[i]);
+          m_cache_factors[i] = factor;
+          //Assuming cos(phase)*factor=sin(phase)*factor=|factor| gives us a
+          //cheap upper limit on fsquared:
+          real_or_imag_upper_limit += m_pc.atomic_pos[i].size()*ncabs( factor );
         }
         //If the upper limit on fsq is below fsquarecut, we can skip already and
         //avoid needless calculations further down:
