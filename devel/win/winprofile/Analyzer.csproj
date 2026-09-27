@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Windows-only developer tool (not part of the NCrystal distribution, and
+    not wired into simplebuild, since simplebuild does not support Windows):
+    loads a Windows Performance Recorder (.etl) CPU-sampling trace via
+    Microsoft's TraceEvent library (the same library PerfView is built on)
+    and prints a flat, symbolicated "self time by leaf function" report.
+
+    Invoked by devel/win/profile_perfvdos.sh, which is in turn used both by
+    .github/workflows/profile.yml (CI) and, in principle, by a developer
+    running the same script by hand on an actual Windows machine; this
+    project deliberately has no CI-specific assumptions baked in. The raw
+    .etl (plus PDBs) is always kept alongside this report's output, so a
+    full WPA (Windows Performance Analyzer, a GUI tool) based analysis
+    remains possible locally regardless of whether this quick analyzer
+    works perfectly. (Note: a double hyphen is not allowed anywhere in an
+    XML comment, unlike the project's usual C++/Python comment style;
+    using one here fails the whole MSBuild parse, as confirmed by a real
+    CI run of this exact file.)
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>ncrystal_winprofile_analyzer</AssemblyName>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.*" />
+  </ItemGroup>
+
+</Project>

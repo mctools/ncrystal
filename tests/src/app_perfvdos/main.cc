@@ -56,18 +56,26 @@ namespace {
   //One material's worth of DI_ScatKnl entries, each timed nreps times:
   void benchMaterial( const std::string& cfgstr, unsigned nreps )
   {
+    std::printf( "BENCH: loading material=\"%s\"\n", cfgstr.c_str() );
     NC::MatCfg matcfg( cfgstr );
     const NC::VDOS::VDOSLux vdoslux( matcfg.get_vdoslux() );
     auto info = NC::FactImpl::createInfo( cfgstr );
+    std::printf( "BENCH: material=\"%s\" loaded, iterating dyninfo entries\n",
+                cfgstr.c_str() );
 
     for ( auto& di : info->getDynamicInfoList() ) {
       auto di_scatknl = dynamic_cast<const NC::DI_ScatKnl*>( di.get() );
       if ( !di_scatknl )
         continue;//not a phonon/VDOS-based component (e.g. free gas, sterile)
 
+      std::printf( "BENCH: material=\"%s\" element=\"%s\" starting %u reps\n",
+                  cfgstr.c_str(), di->atomData().elementName().c_str(), nreps );
       std::vector<double> times_ms;
       times_ms.reserve( nreps );
       for ( unsigned i = 0; i < nreps; ++i ) {
+        std::printf( "BENCH: material=\"%s\" element=\"%s\" rep %u/%u\n",
+                    cfgstr.c_str(), di->atomData().elementName().c_str(),
+                    i+1, nreps );
         const auto t0 = std::chrono::steady_clock::now();
         auto sab = NC::extractSABDataFromDynInfo( di_scatknl, vdoslux,
                                                   false/*useCache*/ );
@@ -90,6 +98,16 @@ namespace {
 
 int main()
 {
+  //Unbuffer stdout, so that if this crashes or hangs, whatever was printed
+  //so far is still visible in CI logs -- on Windows in particular,
+  //redirected stdout is fully buffered by default, and a hard crash skips
+  //the normal at-exit stream flush entirely, so any not-yet-flushed output
+  //is simply lost (confirmed to matter in practice: a real CI run of this
+  //exact app produced a completely empty log on Windows, indistinguishable
+  //between "crashed instantly" and "crashed after some progress" without
+  //this):
+  std::setvbuf(stdout, nullptr, _IONBF, 0);
+
   //Deliberately small, fixed set: enough phonon orders to exercise the
   //VDOS Gn expansion/FastConvolve hot path meaningfully (Al_sg225 alone
   //reaches phonon order ~168 at the default vdoslux), while keeping total
@@ -103,5 +121,6 @@ int main()
   for ( auto& cfgstr : materials )
     benchMaterial( cfgstr, nreps );
 
+  std::printf( "BENCH: all materials done\n" );
   return 0;
 }
