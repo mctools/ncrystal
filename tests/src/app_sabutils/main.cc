@@ -19,6 +19,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/sab/NCSABUtils.hh"
+#include "NCrystal/interfaces/NCInfoTypes.hh"
+#include "NCrystal/interfaces/NCSABData.hh"
+#include "NCrystal/internal/atomdb/NCAtomDB.hh"
 #include "NCrystal/core/NCFmt.hh"
 #include <iostream>
 namespace NC = NCrystal;
@@ -152,8 +155,58 @@ void test_alpha_integrals() {
   }
 }
 
+namespace {
+  //Test that DI_ScatKnlDirect objects whose buildSAB() method provides a
+  //kernel at the wrong temperature, consistently fail (previously only the
+  //first call failed, while subsequent calls returned the invalid kernel).
+  class TestDI final : public NC::DI_ScatKnlDirect {
+    NC::Temperature m_tknl;
+  public:
+    TestDI( NC::Temperature t, NC::Temperature tknl )
+      : NC::DI_ScatKnlDirect( 1.0,
+                              NC::IndexedAtomData{ NC::AtomDB::getNaturalElement("Al"),
+                                                   NC::AtomIndex{0} },
+                              t ),
+        m_tknl(tknl)
+    {
+    }
+    EGridShPtr energyGrid() const override { return nullptr; }
+  protected:
+    std::shared_ptr<const NC::SABData> buildSAB() const override
+    {
+      return std::make_shared<const NC::SABData>( NC::VectD{ 0.1, 0.2 },
+                                                  NC::VectD{ -0.1, 0.1 },
+                                                  NC::VectD{ 1.0, 1.0, 1.0, 1.0 },
+                                                  m_tknl,
+                                                  NC::SigmaBound{ 1.0 },
+                                                  NC::AtomMass{ 27.0 } );
+    }
+  };
+
+  void testScatKnlDirect( NC::Temperature t, NC::Temperature tknl )
+  {
+    TestDI di( t, tknl );
+    for ( unsigned i = 0; i < 3; ++i ) {
+      nc_assert_always( di.hasBuiltSAB() == ( i > 0 && t == tknl ) );
+      try {
+        auto sab = di.ensureBuildThenReturnSAB();
+        nc_assert_always( sab != nullptr );
+        nc_assert_always( t == tknl );
+        std::cout << "DI_ScatKnlDirect: Got kernel at T="
+                  << sab->temperature() << std::endl;
+      } catch ( NC::Error::BadInput& ) {
+        nc_assert_always( t != tknl );
+        std::cout << "DI_ScatKnlDirect: Got BadInput error" << std::endl;
+      }
+    }
+  }
+}
+
 int main()
 {
+  testScatKnlDirect( NC::Temperature{ 300.0 }, NC::Temperature{ 300.0 } );
+  testScatKnlDirect( NC::Temperature{ 300.0 }, NC::Temperature{ 200.0 } );
+
   {
     //Unit test alpha limits taylor expansion (really for a dedicated KinUtils test)
     const double ekin_div_kT = 6.345703125e-08;//probably doesn't matter (using value where we once saw a failure)

@@ -67,11 +67,13 @@ std::shared_ptr<const NC::SABData> NC::DI_ScatKnlDirect::ensureBuildThenReturnSA
 {
   NCRYSTAL_LOCK_GUARD(m_mutex);
   if ( ! m_sabdata ) {
-    m_sabdata = buildSAB();
-    nc_assert_always( !! m_sabdata );
-    if ( m_sabdata->temperature() != this->temperature() )
+    //Only keep the result if valid (so later calls fail in the same way):
+    auto sabdata = buildSAB();
+    nc_assert_always( !! sabdata );
+    if ( sabdata->temperature() != this->temperature() )
         NCRYSTAL_THROW(BadInput,"temperature info on SABData object provided by DI_ScatKnlDirect object"
                        " is different than temperature on DI_ScatKnlDirect object itself!");
+    m_sabdata = std::move(sabdata);
   }
   return m_sabdata;
 }
