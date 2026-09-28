@@ -418,7 +418,7 @@ ncrystal_process_core_srcfiles()
 # (target_clones), so on MSVC we instead give any specially named
 # "NC*_WINFMA.cc" source file (by convention, under ncrystal_core/src/*/ only)
 # an extra, per-file /arch:AVX2 clone-and-dispatch treatment -- see
-# ncrystal_core/include/NCrystal/internal/utils/NCWinFMA.hh for the full
+# ncrystal_core/include/NCrystal/internal/utils/NCFMADispatch.hh for the full
 # mechanism and rationale. x86-64 only, mirroring the same
 # CMAKE_SYSTEM_PROCESSOR check ncrystal_fmadispatch.cmake already uses to
 # skip the (unrelated, GCC/Clang) FMA dispatch probe on non-x86 targets
@@ -436,7 +436,22 @@ if ( MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64|i[3-6]86|x86)
   set_source_files_properties(
     ${ncrystal_winfma_srcfiles}
     PROPERTIES
-      COMPILE_OPTIONS "/arch:AVX2"
+      #/EHc- explicitly disables just the "extern C never throws" modifier
+      #CMake's own MSVC default (/EHsc) otherwise sets project-wide: the
+      #extern "C" twin functions defined in these files can genuinely throw
+      #in debug builds (nc_assert), and /EHc's assumption on top of that is
+      #a real correctness hazard (undefined behaviour if an assertion
+      #actually fires), not just a spurious warning -- MSVC already flags
+      #the mismatch itself (warning C4297, "function assumed not to throw
+      #an exception but does" / "extern C and /EHc was specified"), which
+      #NCRYSTAL_BUILD_STRICT's /WX escalates to a hard error (confirmed: a
+      #real Debug-config basictest.yml CI failure). Simply appending /EHs
+      #(without the trailing "-") does NOT work here -- confirmed via
+      #clang-cl: MSVC's /EH options accumulate rather than each later flag
+      #overriding the previous one wholesale, so once /EHsc has set the c
+      #modifier, a later plain /EHs does not clear it; /EHc- is the
+      #explicit, targeted "clear just this modifier" form:
+      COMPILE_OPTIONS "/arch:AVX2;/EHc-"
       COMPILE_DEFINITIONS "NCRYSTAL_WIN_FMA"
   )
 endif()

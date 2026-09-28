@@ -1,4 +1,15 @@
 v4.4.7 (work in progress)
+     * Added tests/src/app_perfsab, a self-timed benchmark (same
+       min/median/max convention as app_perfvdos) of the *simulation-time*
+       SAB cross-section/scattering-sampling cost (crossSectionIsotropic/
+       sampleScatterIsotropic on a vdoslux>=2000 "next-gen" material,
+       exercising NCSABCellInteg.cc's StdLogLinCellIntegrator), as opposed
+       to app_perfvdos's one-time VDOS->SAB kernel construction cost at
+       material load. Wired into benchmark.yml alongside perfvdos. Also
+       fixed a latent bug in that workflow's benchmark-running step,
+       found while extending it: without "set -o pipefail", a genuine
+       crash or missing-binary failure inside the piped-to-tee block was
+       silently swallowed (the step would report success regardless).
      * Added a Windows/MSVC-specific runtime FMA dispatch mechanism
        (NCRYSTAL_WIN_FMA/NCRYSTAL_DISPATCH_TO_WIN_FMA, see
        ncrystal_core/include/NCrystal/internal/utils/NCFMADispatch.hh):
