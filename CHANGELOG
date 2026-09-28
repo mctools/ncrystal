@@ -90,7 +90,9 @@ v4.4.7 (work in progress)
      * New internal sgsym component with SpaceGroup/SpaceGroupHallNumber
        classes for the 530 space group settings of ITVB Table A1.4.2.7 (table
        verified against several independent sources), and a SymOp class for
-       symmetry operations (exact, verified against gemmi).
+       symmetry operations (exact, verified against gemmi). SGSymmetry::get(sg)
+       gives the operations of each setting, derived from its Hall symbol and
+       verified against spglib and gemmi for all 530 settings.
      * HKL |F|^2 values no longer skip contributions from heavily damped atoms,
        which biased weak planes (up to ~2*fsquarecut, e.g. 5% errors) for no
        measurable speedup. Planes near fsquarecut may thus change slightly.

@@ -56,6 +56,8 @@ namespace NCRYSTAL_NAMESPACE {
     bool hasMultipleSettings() const noexcept;//number has other settings?
     std::string toString() const;//e.g. "227:2", "62:cab", "62", or "225"
 
+    //NB: Symmetry operations etc. are available via SGSymmetry::get(..).
+
     bool operator==( const SpaceGroup& o ) const noexcept;
     bool operator!=( const SpaceGroup& o ) const noexcept;
     bool operator<( const SpaceGroup& o ) const noexcept;//Hall number order

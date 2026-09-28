@@ -121,9 +121,74 @@ def test_ops():
     print(f'All parsed identically by NCrystal and gemmi (string representations'
           f' identical for {nsame_str} of them)')
 
+# Verifies the symmetry operations, centring vectors, coset representatives
+# and centrosymmetry which NCrystal derives from the Hall symbols of the 530
+# space group settings, against spglib and gemmi. The Hall symbol parser is
+# additionally tested on gemmi's non-ITVB settings.
+def test_symmetry():
+    def triplet( rot, trans ):
+        op = gemmi.Op()
+        op.rot = [ [ int(v) * gemmi.Op.DEN for v in row ] for row in rot ]
+        op.tran = [ round( float(x) * gemmi.Op.DEN ) % gemmi.Op.DEN
+                    for x in trans ]
+        return op.triplet()
+
+    def spglib_ops( hn ):
+        d = spglib.get_symmetry_from_database( hn )
+        return { triplet( np.asarray(r), t )
+                 for r, t in zip( d['rotations'], d['translations'] ) }
+
+    def gemmi_ops( gops ):
+        return { op.triplet() for op in gops }
+
+    def gemmi_centring( gops ):
+        return { triplet( np.eye( 3, dtype = int ), np.asarray(c) / gemmi.Op.DEN )
+                 for c in gops.cen_ops }
+
+    def ncrystal_symmetry( hn ):
+        head, ops, reps, cent = lib.nctest_sgsym_symmetry( hn ).split('|')
+        lattice, centro, order = head.split()
+        return ( lattice, centro == '1', int(order), ops.split(';'),
+                 reps.split(';'), cent.split(';') )
+
+    gemmi_itb = list( gemmi.spacegroup_table_itb() )
+    assert len( gemmi_itb ) == 530
+    for hn in range( 1, 531 ):
+        lattice, centro, order, ops, reps, cent = ncrystal_symmetry( hn )
+        g = gemmi_itb[hn-1]
+        gops = g.operations()
+        assert order == len( ops ) == len( set( ops ) )
+        assert set( ops ) == spglib_ops( hn ) == gemmi_ops( gops ), hn
+        assert ops[0] == reps[0] == cent[0] == 'x,y,z'
+        assert set( cent ) == gemmi_centring( gops ), hn
+        assert len( reps ) == len( gops.sym_ops ), hn
+        assert centro == g.is_centrosymmetric(), hn
+        hall = lib.nctest_sgsym_hallsymbol( hn )
+        assert lattice == hall.lstrip('-')[0], hn
+        #Raw parser gives the same (canonically ordered) operations:
+        assert lib.nctest_sgsym_rawhall( hall ).split(';') == ops, hn
+    print('All 530 space group settings: operations, centring vectors,'
+          ' representatives and centrosymmetry consistent with spglib and gemmi')
+
+    #Hall symbol parser on gemmi's settings which are not among the 530 of ITVB
+    #(origin shifts and non-conventional centred cells):
+    itb_halls = { ' '.join( g.hall.split() ) for g in gemmi_itb }
+    nextra = 0
+    for g in gemmi.spacegroup_table():
+        hall = ' '.join( g.hall.split() )
+        if hall in itb_halls:
+            continue
+        res = lib.nctest_sgsym_rawhall( hall )
+        assert not res.startswith('ERROR'), (hall,res)
+        assert set( res.split(';') ) == gemmi_ops( g.operations() ), hall
+        nextra += 1
+    print(f'Hall symbols of {nextra} additional (non-ITVB) gemmi settings'
+          ' consistent with gemmi')
+
 def main():
     test_table()
     test_ops()
+    test_symmetry()
 
 if __name__ == '__main__':
     main()

@@ -25,6 +25,14 @@
 #include "NCTestUtils/NCTestModUtils.hh"
 #include "NCrystal/internal/sgsym/NCSpaceGroup.hh"
 #include "NCrystal/internal/sgsym/NCSymOp.hh"
+#include "NCrystal/internal/sgsym/NCSGSymmetry.hh"
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace detail {
+    //Not declared in any header (only for testing):
+    std::vector<SymOp> rawSymOpsFromHallSymbol( StrView );
+  }
+}
 
 NCTEST_CTYPE_DICTIONARY
 {
@@ -35,6 +43,8 @@ NCTEST_CTYPE_DICTIONARY
     "const char * nctest_sgsym_tostring( int );"
     "int nctest_sgsym_parse( const char * );"
     "const char * nctest_sgsym_symop( const char * );"
+    "const char * nctest_sgsym_symmetry( int );"
+    "const char * nctest_sgsym_rawhall( const char * );"
     ;
 }
 
@@ -119,6 +129,50 @@ NCTEST_CTYPES const char * nctest_sgsym_symop( const char * str )
       s_buf = ss.str();
     } catch ( NC::Error::BadInput& ) {
       s_buf.clear();
+    }
+  } NCCATCH;
+  return s_buf.c_str();
+}
+
+namespace {
+  std::string joinOps( const std::vector<NC::SymOp>& ops )
+  {
+    std::ostringstream ss;
+    for ( auto& op : ops )
+      ss << ( &op == &ops.front() ? "" : ";" ) << op;
+    return ss.str();
+  }
+}
+
+NCTEST_CTYPES const char * nctest_sgsym_symmetry( int hn )
+{
+  //Returns "<lattice> <centrosymmetric> <order> | <operations> |
+  //<representatives> | <centring vectors>", with operations separated by
+  //semicolons.
+  static std::string s_buf;//NB: Not thread-safe, but fine for this test
+  try {
+    const auto& sym = NC::SGSymmetry::get( sgFromHallNumber( hn ) );
+    std::ostringstream ss;
+    ss << sym.latticeSymbol() << ' ' << ( sym.isCentrosymmetric() ? 1 : 0 )
+       << ' ' << sym.order() << '|' << joinOps( sym.operations() ) << '|'
+       << joinOps( sym.representatives() ) << '|'
+       << joinOps( sym.centringVectors() );
+    s_buf = ss.str();
+  } NCCATCH;
+  return s_buf.c_str();
+}
+
+NCTEST_CTYPES const char * nctest_sgsym_rawhall( const char * hall )
+{
+  //Operations from a Hall symbol (separated by semicolons), or "ERROR: <msg>"
+  //in case of BadInput:
+  static std::string s_buf;//NB: Not thread-safe, but fine for this test
+  try {
+    nc_assert_always( hall );
+    try {
+      s_buf = joinOps( NC::detail::rawSymOpsFromHallSymbol( hall ) );
+    } catch ( NC::Error::BadInput& e ) {
+      s_buf = std::string( "ERROR: " ) + e.what();
     }
   } NCCATCH;
   return s_buf.c_str();

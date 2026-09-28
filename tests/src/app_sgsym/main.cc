@@ -23,6 +23,8 @@
 #include "NCrystal/internal/sgsym/NCSpaceGroup.hh"
 #include "NCrystal/internal/sgsym/NCSymOp.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/internal/sgsym/NCSGSymmetry.hh"
+#include "NCrystal/internal/phys_utils/NCEqRefl.hh"
 #include <iostream>
 #include <sstream>
 #include <set>
@@ -30,6 +32,13 @@
 
 namespace NC = NCrystal;
 #define REQUIRE(x) nc_assert_always(x)
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace detail {
+    //Not declared in any header (only for testing):
+    std::vector<SymOp> rawSymOpsFromHallSymbol( StrView );
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Space group table
@@ -417,11 +426,190 @@ void run()
 
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Symmetry of space groups
+////////////////////////////////////////////////////////////////////////////////
+
+//Tests SGSymmetry (symmetry operations derived from the Hall symbols of the
+//530 space group settings): group properties, canonical ordering, total
+//counts, consistency of the Laue classes with the independently implemented
+//EqRefl class, and errors from the Hall symbol parser.
+
+namespace test_symmetry {
+
+namespace {
+  using Mat = std::array<int,9>;
+  Mat rotOf( const NC::SymOp& op )
+  {
+    Mat m;
+    for ( unsigned i = 0; i < 9; ++i )
+      m[i] = op.rot( i / 3, i % 3 );
+    return m;
+  }
+  constexpr Mat identity = { { 1,0,0, 0,1,0, 0,0,1 } };
+  constexpr Mat inversion = { { -1,0,0, 0,-1,0, 0,0,-1 } };
+
+  //Does EqRefl support the setting (only default orientations of Laue
+  //classes, i.e. unique axis b for monoclinic, and hexagonal or rhombohedral
+  //axes for trigonal)?
+  bool eqReflApplies( const NC::SpaceGroup& sg )
+  {
+    if ( sg.number() >= 3 && sg.number() <= 15 ) {
+      const std::string c = sg.choice();
+      return !c.empty() && ( c[0] == 'b' || c.substr( 0, 2 ) == "-b" );
+    }
+    return true;
+  }
+
+  //Compare Laue orbits of hkl (from rotation parts plus inversion) with
+  //EqRefl families. Returns number of hkl points checked:
+  unsigned checkEqRefl( const NC::SpaceGroup& sg,
+                        const NC::SGSymmetry& sym )
+  {
+    const NC::EqRefl eqrefl( static_cast<int>( sg.number() ),
+                             std::string( sg.choice() ) == "R" );
+    unsigned n = 0;
+    for ( int h = -4; h <= 4; ++h ) {
+      for ( int k = -4; k <= 4; ++k ) {
+        for ( int l = -4; l <= 4; ++l ) {
+          if ( !h && !k && !l )
+            continue;
+          //Reflections transform with the transposed rotation matrix:
+          std::set<std::array<int,3>> orbit;
+          for ( auto& op : sym.representatives() ) {
+            std::array<int,3> v;
+            for ( unsigned j = 0; j < 3; ++j )
+              v[j] = op.rot(0,j) * h + op.rot(1,j) * k + op.rot(2,j) * l;
+            orbit.insert( v );
+            orbit.insert( { { -v[0], -v[1], -v[2] } } );
+          }
+          std::set<std::array<int,3>> fam;
+          for ( auto& e : eqrefl.getEquivalentReflections( h, k, l ) ) {
+            fam.insert( { { e.h, e.k, e.l } } );
+            fam.insert( { { -e.h, -e.k, -e.l } } );
+          }
+          REQUIRE( orbit == fam );
+          ++n;
+        }
+      }
+    }
+    return n;
+  }
+
+  void expectBadHall( const char * s )
+  {
+    try {
+      NC::detail::rawSymOpsFromHallSymbol( s );
+    } catch ( NC::Error::BadInput& e ) {
+      std::cout << "  \"" << s << "\" -> BadInput: " << e.what() << std::endl;
+      return;
+    }
+    nc_assert_always( false );
+  }
+}
+
+void run()
+{
+  std::cout << "Hall number, setting, order, number of representatives,"
+            << " lattice symbol, centrosymmetric:" << std::endl;
+  unsigned total_ops = 0, total_reps = 0, n_eqrefl = 0, n_eqrefl_hkl = 0;
+  std::set<Mat> all_rots;
+  for ( std::uint16_t hn = 1; hn <= 530; ++hn ) {
+    const NC::SpaceGroup sg{ NC::SpaceGroupHallNumber{ hn } };
+    const NC::SGSymmetry& sym = NC::SGSymmetry::get( sg );
+    REQUIRE( &sym == &NC::SGSymmetry::get( sg ) );//cached
+    REQUIRE( sym.spaceGroup() == sg );
+    const auto& ops = sym.operations();
+    const auto& reps = sym.representatives();
+    const auto& cent = sym.centringVectors();
+    REQUIRE( sym.order() == ops.size() );
+    REQUIRE( ops.size() == reps.size() * cent.size() );
+    total_ops += sym.order();
+    total_reps += static_cast<unsigned>( reps.size() );
+    //Canonical order: identity first, then blocks per centring vector:
+    REQUIRE( ops.front().isIdentity() && reps.front().isIdentity()
+             && cent.front().isIdentity() );
+    for ( std::size_t ic = 0; ic < cent.size(); ++ic )
+      for ( std::size_t ir = 0; ir < reps.size(); ++ir )
+        REQUIRE( ops.at( ic * reps.size() + ir ) == cent.at( ic ) * reps.at( ir ) );
+    REQUIRE( std::is_sorted( reps.begin() + 1, reps.end() ) );
+    REQUIRE( std::is_sorted( cent.begin(), cent.end() ) );
+    //Centring vectors are pure translations, representatives have distinct
+    //rotations, and each has the smallest translation among operations with
+    //that rotation:
+    for ( auto& c : cent )
+      REQUIRE( rotOf( c ) == identity );
+    std::set<Mat> rots;
+    for ( auto& r : reps ) {
+      REQUIRE( rots.insert( rotOf( r ) ).second );
+      for ( auto& op : ops )
+        if ( rotOf( op ) == rotOf( r ) )
+          REQUIRE( !( op < r ) );
+    }
+    all_rots.insert( rots.begin(), rots.end() );
+    //Group properties (closure, inverses):
+    const std::set<NC::SymOp> opset( ops.begin(), ops.end() );
+    REQUIRE( opset.size() == ops.size() );
+    for ( auto& a : ops ) {
+      REQUIRE( opset.count( a.inverse() ) );
+      for ( auto& b : ops )
+        REQUIRE( opset.count( a * b ) );
+    }
+    //Lattice symbol and centrosymmetry:
+    const char lat = sym.latticeSymbol();
+    const std::size_t ncent_expected = ( lat == 'P' ? 1 : lat == 'R' ? 3
+                                         : lat == 'F' ? 4 : 2 );
+    REQUIRE( std::string( "PABCIRF" ).find( lat ) != std::string::npos );
+    REQUIRE( cent.size() == ncent_expected );
+    REQUIRE( sym.isCentrosymmetric() == ( rots.count( inversion ) > 0 ) );
+    //Laue classes consistent with EqRefl:
+    if ( eqReflApplies( sg ) ) {
+      ++n_eqrefl;
+      n_eqrefl_hkl += checkEqRefl( sg, sym );
+    }
+    std::cout << "  " << hn << " " << sg << " " << sym.order() << " "
+              << reps.size() << " " << lat << " "
+              << ( sym.isCentrosymmetric() ? 1 : 0 ) << std::endl;
+  }
+  std::cout << "Total number of operations: " << total_ops
+            << ", representatives: " << total_reps
+            << ", distinct rotations: " << all_rots.size() << std::endl;
+  REQUIRE( total_ops == 7388 && total_reps == 4462 && all_rots.size() == 64 );
+  std::cout << "Laue classes consistent with EqRefl for " << n_eqrefl
+            << " settings (" << n_eqrefl_hkl << " hkl points in total)"
+            << std::endl;
+
+  std::cout << "Examples:" << std::endl;
+  for ( auto s : { "14:b1", "15:b1", "166:H", "166:R", "194", "227:2" } ) {
+    const NC::SpaceGroup sg( s );
+    const auto& sym = NC::SGSymmetry::get( sg );
+    std::cout << "  " << sg << " (Hall symbol \"" << sg.hallSymbol()
+              << "\"):" << std::endl << "    representatives:";
+    for ( auto& op : sym.representatives() )
+      std::cout << " " << op;
+    std::cout << std::endl << "    centring vectors:";
+    for ( auto& op : sym.centringVectors() )
+      std::cout << " " << op;
+    std::cout << std::endl;
+  }
+
+  std::cout << "Invalid Hall symbols:" << std::endl;
+  for ( auto s : { "", "X 1", "-", "P 5", "P 2q", "P 22", "P 2 2 2 2",
+                   "P 3* 2\"", "P 6 3*", "P 4 (0 0", "P 1 (0 0 1 1)",
+                   "P 2 (a b c)", "P 1 (0 0 1) x", "P 32z*", "P 3 3" } )
+    expectBadHall( s );
+  std::cout << "All OK" << std::endl;
+}
+
+}
+
 int main()
 {
   std::cout << "==== Space group table ====" << std::endl;
   test_table::run();
   std::cout << "==== Symmetry operations ====" << std::endl;
   test_symop::run();
+  std::cout << "==== Symmetry of space groups ====" << std::endl;
+  test_symmetry::run();
   return 0;
 }
