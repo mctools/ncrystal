@@ -107,16 +107,16 @@ namespace NCRYSTAL_NAMESPACE {
     explicit SpaceGroup( const char * s ) : SpaceGroup( StrView( s ) ) {}
 
     SpaceGroupHallNumber hallNumber() const noexcept { return m_hall; }
-    unsigned number() const noexcept;//1..230
-    const char * choice() const noexcept;//e.g. "2", "R", "c1", or "" (never
-                                         //nullptr)
-    const char * hallSymbol() const noexcept;//e.g. "-F 4vw 2vw 3"
-    bool isDefaultSetting() const noexcept;//first listed setting of number?
-    bool hasMultipleSettings() const noexcept;//number has other settings?
+    unsigned number() const ncnoexceptndebug;//1..230
+    const char * choice() const ncnoexceptndebug;//e.g. "2", "R", "c1", or ""
+                                                 //(never nullptr)
+    const char * hallSymbol() const ncnoexceptndebug;//e.g. "-F 4vw 2vw 3"
+    bool isDefaultSetting() const ncnoexceptndebug;//first setting of number?
+    bool hasMultipleSettings() const ncnoexceptndebug;//other settings exist?
     std::string toString() const;//e.g. "227:2", "62:cab", "62", or "225"
 
-    SGCrystalSystem crystalSystem() const noexcept;
-    SGSettingInfo settingInfo() const noexcept;
+    SGCrystalSystem crystalSystem() const ncnoexceptndebug;
+    SGSettingInfo settingInfo() const ncnoexceptndebug;
 
     //NB: Symmetry operations etc. are available via SGSymmetry::get(..).
 

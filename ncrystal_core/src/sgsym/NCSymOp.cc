@@ -77,7 +77,7 @@ namespace NCRYSTAL_NAMESPACE {
               res.push_back( m );
           }
         }
-        nc_assert_always( res.size() == 24 );
+        nc_assert( res.size() == 24 );//(verified by tests)
         std::sort( res.begin(), res.end() );
         return res;
       }();
@@ -251,7 +251,7 @@ NC::SymOp::SymOp( StrView s )
   }
 }
 
-bool NC::SymOp::isAllowedRotation( const std::array<int,9>& m ) noexcept
+bool NC::SymOp::isAllowedRotation( const std::array<int,9>& m ) ncnoexceptndebug
 {
   for ( auto v : m )
     if ( !( v >= -1 && v <= 1 ) )
@@ -288,7 +288,7 @@ int NC::SymOp::determinant() const noexcept
   return matDet( m );
 }
 
-int NC::SymOp::rotationType() const noexcept
+int NC::SymOp::rotationType() const ncnoexceptndebug
 {
   const int rt = rotTypeFromDetTrace( determinant(),
                                       m_data[0] + m_data[4] + m_data[8] );
@@ -296,12 +296,12 @@ int NC::SymOp::rotationType() const noexcept
   return rt;
 }
 
-unsigned NC::SymOp::rotationOrder() const noexcept
+unsigned NC::SymOp::rotationOrder() const ncnoexceptndebug
 {
   return orderFromRotType( rotationType() );
 }
 
-NC::SymOp NC::SymOp::inverse() const noexcept
+NC::SymOp NC::SymOp::inverse() const ncnoexceptndebug
 {
   //R^-1 = adj(R)/det(R), and t' = -R^-1 t:
   const auto& d = m_data;

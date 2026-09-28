@@ -100,28 +100,28 @@ NC::SpaceGroup::SpaceGroup( StrView s )
   m_hall = SpaceGroupHallNumber{ hn };
 }
 
-unsigned NC::SpaceGroup::number() const noexcept
+unsigned NC::SpaceGroup::number() const ncnoexceptndebug
 {
   return entry( m_hall.get() ).number;
 }
 
-const char * NC::SpaceGroup::choice() const noexcept
+const char * NC::SpaceGroup::choice() const ncnoexceptndebug
 {
   return entry( m_hall.get() ).choice;
 }
 
-const char * NC::SpaceGroup::hallSymbol() const noexcept
+const char * NC::SpaceGroup::hallSymbol() const ncnoexceptndebug
 {
   return entry( m_hall.get() ).hall;
 }
 
-bool NC::SpaceGroup::isDefaultSetting() const noexcept
+bool NC::SpaceGroup::isDefaultSetting() const ncnoexceptndebug
 {
   const auto hn = m_hall.get();
   return hn == 1 || entry( hn - 1 ).number != entry( hn ).number;
 }
 
-bool NC::SpaceGroup::hasMultipleSettings() const noexcept
+bool NC::SpaceGroup::hasMultipleSettings() const ncnoexceptndebug
 {
   const auto hn = m_hall.get();
   const auto n = entry( hn ).number;
@@ -147,7 +147,7 @@ std::ostream& NC::operator<<( std::ostream& os, const SpaceGroup& sg )
   return os << sg.toString();
 }
 
-NC::SGCrystalSystem NC::SpaceGroup::crystalSystem() const noexcept
+NC::SGCrystalSystem NC::SpaceGroup::crystalSystem() const ncnoexceptndebug
 {
   const unsigned n = number();
   if ( n <= 2 )
@@ -165,7 +165,7 @@ NC::SGCrystalSystem NC::SpaceGroup::crystalSystem() const noexcept
   return SGCrystalSystem::Cubic;
 }
 
-NC::SGSettingInfo NC::SpaceGroup::settingInfo() const noexcept
+NC::SGSettingInfo NC::SpaceGroup::settingInfo() const ncnoexceptndebug
 {
   SGSettingInfo res{ SGHexFamilyAxes::NotApplicable,
                      SGUniqueAxis::NotApplicable,
@@ -173,8 +173,7 @@ NC::SGSettingInfo NC::SpaceGroup::settingInfo() const noexcept
                      SGOriginChoice::NotApplicable,
                      SGAxisPermutation::NotApplicable };
   //NB: The choice codes come from the hardwired table (fully verified by
-  //tests), so anything unexpected would be a bug (hence nc_assert, since this
-  //function is noexcept):
+  //tests), so anything unexpected would be a bug:
   const std::string c = choice();
   auto originFromDigit = []( char ch )
   {

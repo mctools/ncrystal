@@ -61,23 +61,23 @@ namespace NCRYSTAL_NAMESPACE {
     explicit SymOp( const std::string& s ) : SymOp( StrView( s ) ) {}
     explicit SymOp( const char * s ) : SymOp( StrView( s ) ) {}
 
-    int rot( unsigned i, unsigned j ) const noexcept;//row i, column j
-    int trans( unsigned i ) const noexcept;//in units of 1/24 (0..23)
+    int rot( unsigned i, unsigned j ) const ncnoexceptndebug;//row i, column j
+    int trans( unsigned i ) const ncnoexceptndebug;//in units of 1/24 (0..23)
     bool isIdentity() const noexcept;
     bool hasTranslation() const noexcept;
     int determinant() const noexcept;//+1 or -1
-    int rotationType() const noexcept;//ITA: 1,2,3,4,6,-1,-2(=m),-3,-4,-6
-    unsigned rotationOrder() const noexcept;//smallest n>0 with R^n=I
+    int rotationType() const ncnoexceptndebug;//1,2,3,4,6,-1,-2(=m),-3,-4,-6
+    unsigned rotationOrder() const ncnoexceptndebug;//smallest n>0 with R^n=I
 
     //Composition, a*b meaning "b followed by a", and inverse. Composing
     //operations with hexagonal-only and orthogonal-only rotation parts (which
     //can not belong to the same space group) would not give a valid operation,
     //and throws LogicError:
     SymOp operator*( const SymOp& ) const;
-    SymOp inverse() const noexcept;
+    SymOp inverse() const ncnoexceptndebug;
 
     //Whether a matrix (row-major) is one of the 64 allowed rotation parts:
-    static bool isAllowedRotation( const std::array<int,9>& ) noexcept;
+    static bool isAllowedRotation( const std::array<int,9>& ) ncnoexceptndebug;
 
     //Apply to fractional coordinates (no wrapping into the unit cell):
     Vector apply( const Vector& ) const noexcept;
@@ -108,12 +108,12 @@ namespace NCRYSTAL_NAMESPACE {
 ////////////////////////////
 
 namespace NCRYSTAL_NAMESPACE {
-  inline int SymOp::rot( unsigned i, unsigned j ) const noexcept
+  inline int SymOp::rot( unsigned i, unsigned j ) const ncnoexceptndebug
   {
     nc_assert( i < 3 && j < 3 );
     return m_data[ 3 * i + j ];
   }
-  inline int SymOp::trans( unsigned i ) const noexcept
+  inline int SymOp::trans( unsigned i ) const ncnoexceptndebug
   {
     nc_assert( i < 3 );
     return m_data[ 9 + i ];
