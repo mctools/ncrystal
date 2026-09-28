@@ -38,7 +38,15 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace VDOS {
 
+    namespace detail {
+      //For testing of error handling only: Make the production of all Gn
+      //functions of the given order or higher fail with a CalcError (0
+      //disables this again).
+      void vdosGnInjectFailureForTests( unsigned min_order );
+    }
+
     namespace {
+      static std::atomic<unsigned> s_injectfailure_minorder( 0 );
       static std::atomic<bool> s_verbose_vdosgn( ncgetenv_bool("DEBUG_PHONON") );
 
       struct CfgDecoded {
@@ -468,6 +476,11 @@ NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
                  <<")");
 }
 
+void NCV::detail::vdosGnInjectFailureForTests( unsigned min_order )
+{
+  s_injectfailure_minorder = min_order;
+}
+
 NCV::VDOSGn::~VDOSGn() {
   //A moved-from VDOSGn (e.g. the husk left behind when GnExpansion's
   //implicit move constructor is actually invoked, rather than elided via
@@ -477,8 +490,13 @@ NCV::VDOSGn::~VDOSGn() {
   if ( !m_impl )
     return;
   if ( m_impl->m_mt_jobs.has_value() ) {
-    //End running jobs, so they don't write to suddenly non-existent buffers:
-    m_impl->m_mt_jobs.value().waitAll();
+    //End running jobs, so they don't write to suddenly non-existent buffers.
+    //Errors from the jobs are discarded, since destructors must not throw
+    //(we might be here due to another exception):
+    try {
+      m_impl->m_mt_jobs.value().waitAll();
+    } catch (...) {
+    }
   }
   if (s_verbose_vdosgn)
     NCRYSTAL_MSG("VDOSGn destructed (final max order: "
@@ -628,6 +646,13 @@ NCV::VDOSGnData
 NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
                                                      FastConvolve& fastConvolve ) const
 {
+  {
+    const unsigned failorder = s_injectfailure_minorder.load();
+    if ( failorder && order.value() >= failorder )
+      NCRYSTAL_THROW2(CalcError,"Failure injected for testing in production"
+                      " of G"<<order.value());
+  }
+
   Order order2 = order.value()/2;
   Order order1 = order.value()-order2.value();
 

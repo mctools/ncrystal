@@ -24,16 +24,59 @@
 // rethrown in the calling thread by waitAll(), and FactoryJobs must
 // wait for all jobs when destroyed during stack unwinding. Without
 // thread support, jobs run immediately in queue(..), so exceptions
-// propagate from there.
+// propagate from there. Also test a concrete usage of FactoryJobs, the
+// concurrent production of Gn functions in VDOSGn, where several jobs
+// failing at once used to terminate the process (since the VDOSGn
+// destructor would throw during stack unwinding).
 
 #include "NCrystal/internal/fact_utils/NCFactoryJobs.hh"
 #include "NCrystal/threads/NCFactThreads.hh"
 #include "NCrystal/internal/utils/NCStrView.hh"
+#include "NCrystal/internal/vdos/NCVDOSGn.hh"
+#include "NCrystal/internal/vdos/NCVDOSEval.hh"
+#include "NCrystal/factories/NCFactImpl.hh"
+#include "NCrystal/factories/NCMatCfg.hh"
+#include "NCrystal/interfaces/NCInfo.hh"
 #include <atomic>
 #include <iostream>
 namespace NC = NCrystal;
 
+namespace NCRYSTAL_NAMESPACE {
+  namespace VDOS {
+    namespace detail {
+      void vdosGnInjectFailureForTests( unsigned min_order );
+    }
+  }
+}
+
 namespace {
+  void testVDOSGn()
+  {
+    auto info
+      = NC::FactImpl::createInfo( NC::MatCfg("stdlib::Al_sg225.ncmat") );
+    auto di = dynamic_cast<const NC::DI_VDOS*>
+      ( info->getDynamicInfoList().at(0).get() );
+    nc_assert_always( di != nullptr );
+    const unsigned maxorder = 20;
+    for ( unsigned failorder : { 0, 2, 3, 4, 5, 6, 7, 8, 9, 30 } ) {
+      NC::VDOS::detail::vdosGnInjectFailureForTests( failorder );
+      bool got_error = false;
+      try {
+        NC::VDOSEval ve( di->vdosData() );
+        NC::VDOS::VDOSGn gn( ve );
+        gn.growMaxOrder( maxorder );
+      } catch ( NC::Error::CalcError& ) {
+        got_error = true;
+      }
+      NC::VDOS::detail::vdosGnInjectFailureForTests( 0 );
+      std::cout << "  VDOSGn growing to order " << maxorder
+                << " with failures from order " << failorder << ": "
+                << ( got_error ? "CalcError" : "OK" ) << std::endl;
+      nc_assert_always( got_error
+                        == ( failorder && failorder <= maxorder ) );
+    }
+  }
+
   //Some busy work, so jobs are still running when others throw:
   double busyWork( unsigned n )
   {
@@ -131,6 +174,7 @@ namespace {
     testThrowingJobs();
     testNonStdException();
     testUnwindingWhileJobsRun();
+    testVDOSGn();
     //FactoryJobs still works normally afterwards:
     std::atomic<unsigned> n( 0 );
     NC::FactoryJobs jobs;

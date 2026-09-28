@@ -87,6 +87,8 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Fix process termination (rather than an exception) when several Gn
+       functions failed at once during multi-threaded VDOS expansion.
      * C-API: exceptions not deriving from std::exception no longer escape,
        but result in the usual error state. Also fix ineffective consistency
        check (assignment instead of comparison) in ncrystal_raw_vdos2knl, and
