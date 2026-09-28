@@ -73,8 +73,11 @@ void NC::TextData::Iterator::setup() {
   }
   const char * e = m_nextData = findNextNR0(m_data);
   //Move e so it points at the last char of the data we want to present to
-  //the user (we don't show \r, \n or \r\n chars):
-  if ( *m_nextData == '\n' && *(std::prev(m_nextData)) == '\r' )
+  //the user (we don't show \r, \n or \r\n chars). For empty lines with unix
+  //line endings, we must not look at the char before the line (which might
+  //even be before the start of the data):
+  if ( *m_nextData == '\n' && m_nextData != m_data
+       && *(std::prev(m_nextData)) == '\r' )
     --e;
   //Copy over the line data and ensure null-termination;
   auto newn = static_cast<std::string::size_type>(std::distance(m_data,e)+1);

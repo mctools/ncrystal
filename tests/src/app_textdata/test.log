@@ -16,6 +16,9 @@
 >>> (empty file with extra null char):
 >>> (single empty line (unix)):
     >>>>><<<<<
+>>> (initial empty line (unix) located after CR in memory):
+    >>>>><<<<<
+    >>>>>second line<<<<<
 >>> (single empty line (dos)):
     >>>>><<<<<
 >>> BadInput as expected: single empty line (mac)

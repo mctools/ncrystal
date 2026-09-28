@@ -79,6 +79,12 @@ int main()
   test("","empty file");
   test("\0","empty file with extra null char");
   test("\n\0","single empty line (unix)");
+  {
+    //Text starting with a newline, located right after a '\r' char in
+    //memory (chars before the start of the text must not be looked at):
+    static const char buf[] = "\r\nsecond line\n";
+    test(&buf[1],"initial empty line (unix) located after CR in memory");
+  }
   test("\r\n\0","single empty line (dos)");
   testThrow("\r\0","single empty line (mac)");
   test("\n \n\0","empty line and line with 1 space (dos)");
