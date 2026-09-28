@@ -21,6 +21,7 @@
 #include "NCrystal/internal/utils/NCRomberg.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
+#include "NCRomberg_FMA.hh"
 
 void NCrystal::Romberg::evalFuncMany(double* fvals, unsigned n, double offset, double delta) const
 {
@@ -259,130 +260,7 @@ void NCrystal::Romberg::fixedOrderIntegration129pts( const double* fvals,
     tgt.add( coeffs129[i]*fvals[i] );
 }
 
-//Every R(i,j) below combines two products (a trapezoidal-rule update, or a
-//Richardson-extrapolation step) into a single sum: a plain "a*b+c*d" is
-//exactly the shape a compiler may or may not silently fuse the *second*
-//product into (giving fma(c,d,a*b)), and since either fusion choice is a
-//valid reading of the same source expression, different platforms/flags
-//can legitimately pick different ones -- not just contract-or-not, but
-//*which* product gets fused. Made unambiguous throughout with an explicit
-//std::fma that always fuses the *first* product (the second is computed
-//separately first, then used as fma's addend), so every platform performs
-//the identical sequence of roundings. NCRYSTAL_FMADISPATCH_ATTR gets those
-//std::fma calls hardware speed on a portable (non--mfma) x86 build too, via
-//runtime dispatch: every remaining plain expression in this function is
-//either a bare subtraction/exact-power-of-2-multiply (no a*b+c shape for a
-//"fma" clone to silently misfuse) or already explicit std::fma, so the
-//whole function is safe to decorate per doc/devel_fma_attribute.md rule 1.
-//evalFuncMany/evalFuncManySum (called below) are virtual and so cannot be
-//decorated themselves (rule: never on a virtual member function); their own
-//std::fma calls remain an ordinary (undispatched) call on such a build.
-//
-//Written as an extern "C" free function taking the Romberg instance as an
-//explicit pointer, rather than as the member function itself: Apple
-//Clang's target_clones lowering on Mach-O has been confirmed (a real
-//basictest.yml CI failure) to silently produce no linkable definition for
-//a namespaced or member (i.e. C++-mangled) target_clones target -- this
-//function hit exactly that -- while the identical attribute on a plain
-//extern "C" function links and runs fine there. Calling a virtual method
-//through the explicit pointer is no different, in this regard, from
-//calling it through an implicit "this" (see the comment above); the
-//public Romberg::integrate below becomes a thin wrapper.
-//NCRYSTAL_APPLY_C_NAMESPACE keeps the resulting unmangled symbol from
-//colliding with a differently-namespaced NCrystal build in the same
-//process, the same way e.g. register_stdscat_factory already does for
-//unrelated reasons -- see docs/devel_fma_attribute.md for the full
-//reasoning:
-extern "C"
-NCRYSTAL_FMADISPATCH_ATTR
-double NCRYSTAL_APPLY_C_NAMESPACE(detail_romberg_integrate)( const NCrystal::Romberg* self,
-                                                              double a, double b )
-{
-  double h = (b-a);
-  double fvals[17];//R(4,4) needs 17 equally spaced evaluations, we do them in one go:
-  self->evalFuncMany(&fvals[0], 17, a, h*0.0625);
-
-  //To reduce overhead, we unroll the calculations for R(n,k) up to R(5,5),
-  //since they are anyway short enough to carry out before entering the main
-  //loop:
-
-  h *= 0.5;
-  const double R00 = (fvals[0] + fvals[16])*h;
-  const double R10 = std::fma( h, fvals[8], 0.5*R00 );
-  const double R11 = std::fma( (4./3.), R10, (-1./3.)*R00 );
-  h *= 0.5;
-  const double R20 = std::fma( h, fvals[4]+fvals[12], 0.5*R10 );
-  const double R21 = std::fma( (4./3.), R20, (-1./3.)*R10 );
-  const double R22 = std::fma( (16./15.), R21, (-1./15.)*R11 );
-  h *= 0.5;
-  const double R30 = std::fma( h, (fvals[2]+fvals[6])+(fvals[10]+fvals[14]), 0.5*R20 );
-  const double R31 = std::fma( (4./3.), R30, (-1./3.)*R20 );
-  const double R32 = std::fma( (16./15.), R31, (-1./15.)*R21 );
-  const double R33 = std::fma( (64./63.), R32, (-1./63.)*R22 );
-  h *= 0.5;
-  const double R40 = std::fma( h, ((fvals[1]+fvals[3])+(fvals[5]+fvals[7]))+((fvals[9]+fvals[11])+(fvals[13]+fvals[15])), 0.5*R30 );
-  const double R41 = std::fma( (4./3.), R40, (-1./3.)*R30 );
-  const double R42 = std::fma( (16./15.), R41, (-1./15.)*R31 );
-  const double R43 = std::fma( (64./63.), R42, (-1./63.)*R32 );
-  const double R44 = std::fma( (256./255.), R43, (-1./255.)*R33 );
-
-  if (self->accept(4,R33,R44,a,b))
-    return R44;
-
-  //R(4,4) was not enough, try R(5,5):
-  const double c5 = self->evalFuncManySum(16, a+h*0.5, h);
-  h *= 0.5;
-  const double R50 = std::fma( h, c5, 0.5*R40 );
-  const double R51 = std::fma( (4./3.), R50, (-1./3.)*R40 );
-  const double R52 = std::fma( (16./15.), R51, (-1./15.)*R41 );
-  const double R53 = std::fma( (64./63.), R52, (-1./63.)*R42 );
-  const double R54 = std::fma( (256./255.), R53, (-1./255.)*R43 );
-  const double R55 = std::fma( (1024./1023.), R54, (-1./1023.)*R44 );
-
-  if (self->accept(5,R44,R55,a,b))
-    return R55;
-
-  //Still not accepted. Use generic loop for R(6,6) or higher.
-
-  //Set up cache arrays to keep row data of current and previous rows:
-  const unsigned maxlevel = 16;
-  double cache1[maxlevel], cache2[maxlevel];
-  double *row_prev = &cache1[0], *row = &cache2[0];
-
-  row_prev[0] = R50;
-  row_prev[1] = R51;
-  row_prev[2] = R52;
-  row_prev[3] = R53;
-  row_prev[4] = R54;
-  row_prev[5] = R55;
-
-  unsigned nj = 16;
-  for(unsigned i = 6; i < maxlevel; ++i){
-    double hh = h;
-    h *= 0.5;
-    nj *= 2;
-    double c = self->evalFuncManySum(nj, a+h, hh);
-
-    row[0] = std::fma( h, c, 0.5*row_prev[0] ); //R(i,0)
-
-    double n_k = 1.;
-    for(unsigned j = 0; j < i; ++j) {
-      n_k *= 4.0;
-      //extrapolate value for R(i,j):
-      row[j+1] = std::fma( n_k, row[j], -row_prev[j] ) / (n_k-1.0);
-    }
-
-    if (self->accept(i,row_prev[i-1],row[i],a,b))
-      return row[i];
-
-    std::swap(row_prev,row);
-  }
-
-  //Did not converge:
-  self->convergenceError(a,b);
-
-  return row_prev[maxlevel-1];//convergenceError() did not throw or otherwise die, so return best estimate.
-}
+//detail_romberg_integrate: see NCRomberg_FMA.hh (included above).
 
 double NCrystal::Romberg::integrate(double a, double b) const
 {

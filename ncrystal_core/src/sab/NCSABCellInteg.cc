@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/sab/NCSABCellInteg.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCSABCellInteg_FMA.hh"
 
 namespace NC = NCrystal;
 namespace NCS = NCrystal::SABUtils;
@@ -117,22 +118,7 @@ namespace NCRYSTAL_NAMESPACE {
         double getLogS() const { return m_logS; }
       };
 
-      //out[i] = fma(slope,i,offset) for i in [i0,i1): the linear-ramp fill
-      //used (twice) in SOfAlphaGrid's constructor below. Extracted into its
-      //own free function so it can carry NCRYSTAL_FMADISPATCH_ATTR -- a
-      //constructor cannot be decorated, but SOfAlphaGrid is constructed
-      //extremely frequently in the SAB cell-integration hot path (profiling:
-      //~13-18% of total init self-time across every material tried), so
-      //this std::fma call is worth the same hardware-dispatch speed as
-      //everywhere else it appears. Single fma expression, no other FP, no
-      //loop-index oddities -- safe per doc/devel_fma_attribute.md rule 1:
-      NCRYSTAL_FMADISPATCH_ATTR
-      void fmaRampFill( double* ncrestrict out, unsigned i0, unsigned i1,
-                        double slope, double offset )
-      {
-        for ( unsigned i = i0; i < i1; ++i )
-          out[i] = std::fma( slope, static_cast<double>(i), offset );
-      }
+      //fmaRampFill: see NCSABCellInteg_FMA.hh (included above).
 
       struct SOfAlphaGrid final : private NoCopyMove {
         //Class which sets up an alpha grid like linspace(a1,a2,n) with
@@ -204,27 +190,8 @@ namespace NCRYSTAL_NAMESPACE {
         double final_k;//needed for adaptive alg
       };
 
-      inline double calc_bu_minus_bl_times_smiddle( bool is_bounded_by_both,
-                                                    double dbpm,
-                                                    double bu,
-                                                    double bl,
-                                                    double smiddle )
-      {
-        //Using inlined function here for calculation which is needed in two
-        //places, and which although simple is a bit tricky.
-
-        nc_assert(bu-bl > -0.01);//could be slightly negative due to
-                                 //numerical instabilities
-        const double bumbl( is_bounded_by_both
-                            ? 2.0*dbpm
-                            : ncmax(0.0,bu-bl) );
-        nc_assert(bumbl >= 0.0 );
-        nc_assert(smiddle >= -1e-9 );
-        const double res = ncmax(0.0,bumbl*smiddle);
-        nc_assert(res >= 0.0);
-        nc_assert(std::isfinite(res));
-        return res;
-      }
+      //calc_bu_minus_bl_times_smiddle: see NCSABCellInteg_FMA.hh (included
+      //above).
 
       class IntegrandOfA final : private NoCopyMove {
       public:
@@ -299,50 +266,13 @@ namespace NCRYSTAL_NAMESPACE {
           double s_at_b2;
         };
 
-        //NCRYSTAL_FMADISPATCH_ATTR: this is called once per alpha slice in
-        //the SAB cell-integration hot path; every plain FP expression here
-        //(and in the now-explicit-fma getBetaMinus/getBetaPlus/nclerp it
-        //calls) is either explicit std::fma or provably safe if silently
-        //contracted (no remaining a*b+-c shape) -- audited per
-        //doc/devel_fma_attribute.md rule 1:
-        NCRYSTAL_FMADISPATCH_ATTR
+        //Body extracted into contribImpl (a free function, needed to carry
+        //NCRYSTAL_FMADISPATCH_ATTR/get a Windows-fast twin -- see
+        //NCSABCellInteg_FMA.hh, included above):
         double contrib(const AlphaSlice& slice) const
         {
-          nc_assert(m_b2>m_b1);
-          const double a = slice.alpha;
-          const double dbpm = std::sqrt( m_4e * a );//NB: Most expensive
-                                                    //per-point calc might be in
-                                                    //this line. Also used below
-                                                    //for the bu-bl width via
-                                                    //2*dbpm, which (unlike
-                                                    //bl/bu themselves) is
-                                                    //cancellation-free since
-                                                    //it involves no subtraction.
-          //bl/bu = beta_minus/beta_plus(E,a) via the shared, cancellation-
-          //hardened getBetaMinus/getBetaPlus: the naive a-+dbpm formula is a
-          //catastrophic-cancellation trap whenever a is close to 4*E (which
-          //is exactly the regime a bounded-by-betaminus/betaplus region is
-          //entered for) -- see the BoundedCellSampler beta_minus fix for the
-          //same class of bug:
-          const double bl = ncclamp( getBetaMinus(m_4e*0.25,a), m_b1, m_b2 );
-          const double bu = ncclamp( getBetaPlus(m_4e*0.25,a), m_b1, m_b2 );
-          //Used to be like this, but gave results outside the clamp:
-          // const double bl( m_is_bounded_by_betaminus ? a - dbpm : m_b1 );
-          // const double bu( m_is_bounded_by_betaplus ? a + dbpm : m_b2 );
-
-
-
-          //To find the contribution we integrate S(a,b) over [bl,bu]. This is
-          //easy, since we always interpolate linearly in b:
-          const double bmiddle( m_is_bounded_by_both ? a : (bu+bl)*0.5 );
-          nc_assert(valueInInterval(-0.01,1.01,(bmiddle-m_b1)*m_invdb));
-          const double rb = ncclamp((bmiddle-m_b1)*m_invdb,0.0,1.0);
-          //nclerp (fma-based) rather than the equivalent but unaudited
-          //"a*(1-t)+b*t" form (two products summed -- the same fma-fusion
-          //ambiguity class as elsewhere in this file):
-          const double smiddle = nclerp( slice.s_at_b1, slice.s_at_b2, rb );
-          return calc_bu_minus_bl_times_smiddle( m_is_bounded_by_both,
-                                                 dbpm, bu, bl, smiddle );
+          return contribImpl( m_4e, m_b1, m_b2, m_invdb, m_is_bounded_by_both,
+                              slice.alpha, slice.s_at_b1, slice.s_at_b2 );
         }
 
         double growK( AlphaInterpMethod aim,
@@ -476,59 +406,7 @@ namespace NCRYSTAL_NAMESPACE {
         }
       };
 
-      //Per-alpha-point contribution loop from impl_numIntRegion below,
-      //extracted into its own function so it can carry
-      //NCRYSTAL_FMADISPATCH_ATTR (called up to 33 times per region, itself
-      //called per touched cell -- consistently hot in profiling across
-      //every material tried). Same computation as IntegrandOfA::contrib
-      //(that duplication is pre-existing, see the "fixme: cleanup and
-      //consolidation" comment at the top of this file, not introduced
-      //here). Every FP expression is either explicit std::fma (via the
-      //now-audited getBetaMinus/getBetaPlus/nclerp) or provably safe if
-      //silently contracted -- audited per doc/devel_fma_attribute.md rule 1:
-      NCRYSTAL_FMADISPATCH_ATTR
-      void fillContribAtAlpha( double* ncrestrict contrib_out, std::size_t npts,
-                               const double* ncrestrict Sb1_arr,
-                               const double* ncrestrict Sb2_arr,
-                               const double* ncrestrict alpha_arr,
-                               double foure, double E_div_kT,
-                               double cs_b1, double cs_b2, double invdb,
-                               bool is_bounded_by_betaminus,
-                               bool is_bounded_by_betaplus,
-                               bool is_bounded_on_both_sides )
-      {
-        //contrib_out/Sb1_arr/Sb2_arr/alpha_arr are ncrestrict: at the call
-        //site (impl_numIntRegion below) they are always contrib_at_a (a
-        //local stack array) and two distinct SOfAlphaGrid instances' member
-        //arrays (never overlapping, since they are separate objects/members):
-        nc_assert( buffersDisjoint( contrib_out, npts, Sb1_arr, npts ) );
-        nc_assert( buffersDisjoint( contrib_out, npts, Sb2_arr, npts ) );
-        nc_assert( buffersDisjoint( contrib_out, npts, alpha_arr, npts ) );
-        double bl(cs_b1), bu(cs_b2);
-        for ( std::size_t i = 0; i < npts; ++i ) {
-          double Sb1 = Sb1_arr[i];
-          double Sb2 = Sb2_arr[i];
-          double a = alpha_arr[i];
-          double dbpm = std::sqrt( foure * a );//nb: expensive
-          //bl/bu = beta_minus/beta_plus(E,a) via the shared, cancellation
-          //-hardened getBetaMinus/getBetaPlus rather than the naive a-+dbpm
-          //formula, which is a catastrophic-cancellation trap whenever a is
-          //close to 4*E (exactly the regime entered here) -- see the
-          //BoundedCellSampler beta_minus fix for the same class of bug:
-          if ( is_bounded_by_betaminus )
-            bl = getBetaMinus(E_div_kT,a);
-          if ( is_bounded_by_betaplus )
-            bu = ncmax(bl,getBetaPlus(E_div_kT,a));//ncmax as a safeguard
-                                                   //against FP issues
-          //To find the contribution we integrate S(a,b) over [bl,bu]. This is
-          //easy, since we always interpolate linearly in b:
-          const double bmiddle( is_bounded_on_both_sides ? a : (bu+bl)*0.5 );
-          double rb = (bmiddle-cs_b1)*invdb;
-          double smiddle = nclerp(Sb1,Sb2,rb);
-          contrib_out[i] = calc_bu_minus_bl_times_smiddle( is_bounded_on_both_sides,
-                                                           dbpm, bu, bl, smiddle );
-        }
-      }
+      //fillContribAtAlpha: see NCSABCellInteg_FMA.hh (included above).
 
       static void impl_numIntRegion( const CellData& entire_cell,
                                      const CellData& subcell,

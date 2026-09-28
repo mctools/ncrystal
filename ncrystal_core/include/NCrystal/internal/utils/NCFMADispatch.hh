@@ -110,41 +110,57 @@ namespace NCRYSTAL_NAMESPACE {
 
 #endif
 
-//NCRYSTAL_FMADISPATCH_DECLARATOR(name): the leading declarator for a
-//dispatched function's definition (everything up to, but not including, the
-//parameter list). Conditionally (re)defined per translation unit, since
-//NCRYSTAL_WIN_FMA is a per-file CMake property, not a global one:
+//NCRYSTAL_FMADISPATCH_DECLARATOR(rettype,name): the leading declarator for
+//a dispatched function's definition (everything up to, but not including,
+//the parameter list). Conditionally (re)defined per translation unit,
+//since NCRYSTAL_WIN_FMA is a per-file CMake property, not a global one:
 #ifdef NCRYSTAL_WIN_FMA
-#  define NCRYSTAL_FMADISPATCH_DECLARATOR(name) \
-     extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(detail_##name##_winfma)
+#  define NCRYSTAL_FMADISPATCH_DECLARATOR(rettype,name) \
+     extern "C" rettype NCRYSTAL_APPLY_C_NAMESPACE(detail_##name##_winfma)
 #else
-#  define NCRYSTAL_FMADISPATCH_DECLARATOR(name) \
-     NCRYSTAL_FMADISPATCH_ATTR void name
+#  define NCRYSTAL_FMADISPATCH_DECLARATOR(rettype,name) \
+     NCRYSTAL_FMADISPATCH_ATTR rettype name
 #endif
 
-//NCRYSTAL_FMADISPATCH_WINFMA_DECLARE(name,params): forward-declares the
-///arch:AVX2 twin (params must include its own parentheses, e.g. "(double* p,
-//std::size_t n)"). No-op (and must NOT be followed by a semicolon) except in
-//the one translation unit that both can and needs to call the twin:
-#if defined(NCRYSTAL_DISPATCH_TO_WIN_FMA) && !defined(NCRYSTAL_WIN_FMA)
-#  define NCRYSTAL_FMADISPATCH_WINFMA_DECLARE(name,params) \
-     extern "C" void NCRYSTAL_APPLY_C_NAMESPACE(detail_##name##_winfma) params;
+//NCRYSTAL_FMADISPATCH_DECLARATOR_C(rettype,cname,name): variant of
+//NCRYSTAL_FMADISPATCH_DECLARATOR for a function that must be extern "C" +
+//NCRYSTAL_APPLY_C_NAMESPACE-wrapped even in its ordinary (non-winfma)
+//form, e.g. one already using that wrapping for docs/devel_fma_attribute.md
+//rule 5 (Apple/Mach-O) reasons independent of Windows -- cname is that
+//function's own (already-established) unmangled name, while name is only
+//used to derive the twin's name (detail_<name>_winfma), same as elsewhere:
+#ifdef NCRYSTAL_WIN_FMA
+#  define NCRYSTAL_FMADISPATCH_DECLARATOR_C(rettype,cname,name) \
+     extern "C" rettype NCRYSTAL_APPLY_C_NAMESPACE(detail_##name##_winfma)
 #else
-#  define NCRYSTAL_FMADISPATCH_WINFMA_DECLARE(name,params)
+#  define NCRYSTAL_FMADISPATCH_DECLARATOR_C(rettype,cname,name) \
+     extern "C" NCRYSTAL_FMADISPATCH_ATTR rettype NCRYSTAL_APPLY_C_NAMESPACE(cname)
+#endif
+
+//NCRYSTAL_FMADISPATCH_WINFMA_DECLARE(rettype,name,params): forward-declares
+//the /arch:AVX2 twin (params must include its own parentheses, e.g.
+//"(double* p, std::size_t n)"). No-op (and must NOT be followed by a
+//semicolon) except in the one translation unit that both can and needs to
+//call the twin:
+#if defined(NCRYSTAL_DISPATCH_TO_WIN_FMA) && !defined(NCRYSTAL_WIN_FMA)
+#  define NCRYSTAL_FMADISPATCH_WINFMA_DECLARE(rettype,name,params) \
+     extern "C" rettype NCRYSTAL_APPLY_C_NAMESPACE(detail_##name##_winfma) params;
+#else
+#  define NCRYSTAL_FMADISPATCH_WINFMA_DECLARE(rettype,name,params)
 #endif
 
 //NCRYSTAL_FMADISPATCH_WINFMA_FORWARD(name,args): at the top of the ordinary
 //function's body, forwards to the twin at runtime if supported (args must
-//include its own parentheses, e.g. "(data1,data2,n)"). Always safe to call
-//(a no-op where dispatch is not applicable), and always needs its own
-//trailing semicolon, like an ordinary statement:
+//include its own parentheses, e.g. "(data1,data2,n)"), via a bare "return
+//<call>;" -- legal (and a no-op on the returned value) even when the
+//function returns void. Always safe to call (a no-op where dispatch is not
+//applicable), and always needs its own trailing semicolon, like an
+//ordinary statement:
 #if defined(NCRYSTAL_DISPATCH_TO_WIN_FMA) && !defined(NCRYSTAL_WIN_FMA)
 #  define NCRYSTAL_FMADISPATCH_WINFMA_FORWARD(name,args) \
      do { \
-       if ( ::NCRYSTAL_NAMESPACE::detail::ncrystalHasWinFma() ) { \
-         NCRYSTAL_APPLY_C_NAMESPACE(detail_##name##_winfma) args; \
-         return; \
-       } \
+       if ( ::NCRYSTAL_NAMESPACE::detail::ncrystalHasWinFma() ) \
+         return NCRYSTAL_APPLY_C_NAMESPACE(detail_##name##_winfma) args; \
      } while(0)
 #else
 #  define NCRYSTAL_FMADISPATCH_WINFMA_FORWARD(name,args) do {} while(0)

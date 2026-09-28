@@ -23,6 +23,7 @@
 #include "NCrystal/internal/utils/NCIter.hh"
 #include "NCrystal/internal/utils/NCFastSearch.hh"
 #include "NCrystal/internal/phys_utils/NCKinUtils.hh"
+#include "NCVDOSUtils_FMA.hh"
 
 namespace NC=NCrystal;
 
@@ -534,28 +535,7 @@ NC::VDOS::PWLFct NC::VDOS::pwlNarrowToPos( const PWLFct& p, double tol )
   return res;
 }
 
-namespace NCRYSTAL_NAMESPACE {
-  namespace {
-    //out/gridPtr are ncrestrict: at the call site (evalPWLSum below) they are
-    //always a freshly allocated output VectD and the caller-provided input
-    //grid Span, which can never be the same underlying allocation:
-    NCRYSTAL_FMADISPATCH_ATTR
-    void pwlSumAccumulateSegment( double* ncrestrict out,
-                                  const double* ncrestrict gridPtr,
-                                  std::size_t g, std::size_t end,
-                                  double y0, double slope, double xLeft,
-                                  double ylo, double yhi, double weight )
-    {
-      nc_assert( end >= g );
-      nc_assert( buffersDisjoint( out+g, end-g, gridPtr+g, end-g ) );
-      for ( std::size_t k = g; k < end; ++k ) {
-        const double v = ncclamp( std::fma(slope,gridPtr[k]-xLeft,y0),
-                                  ylo, yhi );
-        out[k] = std::fma( weight, v, out[k] );
-      }
-    }
-  }
-}
+//pwlSumAccumulateSegment: see NCVDOSUtils_FMA.hh (included above).
 
 NC::VectD NC::VDOS::evalPWLSum( Span<const PWLFct> fs,
                                 Span<const double> grid,
