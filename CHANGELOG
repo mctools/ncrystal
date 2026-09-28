@@ -87,6 +87,10 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Invalid values of the environment variables NCRYSTAL_DEBUG_PHONON,
+       NCRYSTAL_DEBUG_FACTORY and NCRYSTAL_NCMAT_NOWARNFORCUSTOM now give
+       BadInput exceptions when used, rather than terminating the process
+       when the library is loaded.
      * Fix process termination (rather than an exception) when several Gn
        functions failed at once during multi-threaded VDOS expansion.
      * C-API: exceptions not deriving from std::exception no longer escape,

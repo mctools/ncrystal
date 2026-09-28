@@ -28,7 +28,14 @@ namespace NC=NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
   namespace {
-    static std::atomic<bool> s_verbose_vdoseval( ncgetenv_bool("DEBUG_PHONON") );
+    //NB: Function-local static, since exceptions due to invalid values of
+    //environment variables could not be caught by anyone if thrown during
+    //initialisation of global variables.
+    std::atomic<bool>& s_verbose_vdoseval()
+    {
+      static std::atomic<bool> b( ncgetenv_bool("DEBUG_PHONON") );
+      return b;
+    }
 
     constexpr double detail_xcothx_taylor_threshold = 0.1;
 
@@ -152,12 +159,12 @@ void NC::VDOSEval::enableVerboseOutput(bool status)
 #ifndef NDEBUG
   (void)dummy_val_xcothx;
 #endif
-  s_verbose_vdoseval = status;
+  s_verbose_vdoseval() = status;
 }
 
 bool NC::VDOSEval::verboseOutputEnabled()
 {
-  return s_verbose_vdoseval;
+  return s_verbose_vdoseval();
 }
 
 template <class Fct, class TStableSum>
@@ -216,7 +223,7 @@ NC::VDOSEval::VDOSEval(const VDOSData& vd)
     m_temperature( DoValidate, vd.temperature()),
     m_elementMassAMU(vd.elementMassAMU())
 {
-  if ( s_verbose_vdoseval )
+  if ( s_verbose_vdoseval() )
     NCRYSTAL_MSG("VDOSEval constructed ("<<m_density.size()
                  <<" density pts on egrid spanning ["<<fmt(m_emin,"%.14g")
                  <<", "<<fmt(m_emax,"%.14g")<<"])");
@@ -240,7 +247,7 @@ NC::VDOSEval::VDOSEval(const VDOSData& vd)
     NCRYSTAL_THROW(BadInput,"Received non-regularised VDOS. The VDOSEval class expects regularised"
                    " equidistant grid which can be extended downwards and exactly coincide with 0.");
 
-  if ( s_verbose_vdoseval && emax_corrected != m_emax ) {
+  if ( s_verbose_vdoseval() && emax_corrected != m_emax ) {
     NCRYSTAL_MSG("VDOSEval Correcting emax slightly for completely regular"
                  " grid: " << m_emax << " -> "<< emax_corrected << " (relative"
                  " change: " << ((emax_corrected-m_emax)/m_emax) << ")");
@@ -559,7 +566,7 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
     //Is already OK within tolerance! Return regularised egrid, with potential
     //slight correction to emax to correct for numerical imprecision within
     //the allowed tolerance:
-    if ( s_verbose_vdoseval ) {
+    if ( s_verbose_vdoseval() ) {
       std::ostringstream msg;
       msg<<"regulariseVDOSGrid Grid was already regular within tolerance of "
          <<tolerance;
@@ -756,7 +763,7 @@ std::pair<NC::VectD,NC::VectD> NC::regulariseVDOSGrid( const VectD& orig_egrid, 
   }
   nc_assert( newDensity.size() == new_npts );
 
-  if ( s_verbose_vdoseval )
+  if ( s_verbose_vdoseval() )
     NCRYSTAL_MSG("regulariseVDOSGrid Grid was regularised using "
                  << newDensity.size()
                  << " equidistant points on interval [" << newEgrid.front()

@@ -25,21 +25,28 @@ namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
   namespace {
-    static std::atomic<bool> s_factoryVerbosity( ncgetenv_bool("DEBUG_FACTORY")
-                                                 || ncgetenv_bool("DEBUGFACTORY")
-                                                 || ncgetenv_bool("DEBUG_FACT")
-                                                 || ncgetenv_bool("DEBUGFACT") );
+    //NB: Function-local static, since exceptions due to invalid values of
+    //environment variables could not be caught by anyone if thrown during
+    //initialisation of global variables.
+    std::atomic<bool>& s_factoryVerbosity()
+    {
+      static std::atomic<bool> b( ncgetenv_bool("DEBUG_FACTORY")
+                                  || ncgetenv_bool("DEBUGFACTORY")
+                                  || ncgetenv_bool("DEBUG_FACT")
+                                  || ncgetenv_bool("DEBUGFACT") );
+      return b;
+    }
   }
 }
 
 void NC::enableFactoryVerbosity( bool status )
 {
-  s_factoryVerbosity = status;
+  s_factoryVerbosity() = status;
 }
 
 bool NC::getFactoryVerbosity()
 {
-  return s_factoryVerbosity;
+  return s_factoryVerbosity();
 }
 
 #ifndef NCRYSTAL_DISABLE_THREADS

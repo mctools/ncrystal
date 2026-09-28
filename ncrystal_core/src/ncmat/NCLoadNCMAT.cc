@@ -115,18 +115,25 @@ namespace NCRYSTAL_NAMESPACE {
 
 namespace NCRYSTAL_NAMESPACE {
 
-  static std::atomic<bool> s_NCMATWarnOnCustomSections(!ncgetenv_bool("NCMAT_NOWARNFORCUSTOM"));
+  //NB: Function-local static, since exceptions due to invalid values of
+  //environment variables could not be caught by anyone if thrown during
+  //initialisation of global variables.
+  static std::atomic<bool>& s_NCMATWarnOnCustomSections()
+  {
+    static std::atomic<bool> b(!ncgetenv_bool("NCMAT_NOWARNFORCUSTOM"));
+    return b;
+  }
 
 }
 
 bool NC::getNCMATWarnOnCustomSections()
 {
-  return s_NCMATWarnOnCustomSections;
+  return s_NCMATWarnOnCustomSections();
 }
 
 void NC::setNCMATWarnOnCustomSections(bool bb)
 {
-  s_NCMATWarnOnCustomSections = bb;
+  s_NCMATWarnOnCustomSections() = bb;
 }
 
 NC::Info NC::loadNCMAT( const char * ncmat_file,
@@ -708,7 +715,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
   //==> Transfer any custom sections:
   if (!data.customSections.empty()) {
     Msg::outputMsg("Loading NCMAT data which has @CUSTOM_ section(s). This is OK if intended.",
-                   (s_NCMATWarnOnCustomSections?MsgType::Warning:MsgType::Info));
+                   (s_NCMATWarnOnCustomSections()?MsgType::Warning:MsgType::Info));
     builder.customData = std::move(data.customSections);
   }
 

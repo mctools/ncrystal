@@ -1,0 +1,12 @@
+-- Invalid value of DEBUG_PHONON:
+   NCrystal loaded OK
+   NCBadInput: Invalid value of environment variable <DEBUG_PHONON> (expected a Boolean value, "0" or "1", but got "abc").
+-- Invalid value of DEBUG_FACTORY:
+   NCrystal loaded OK
+   NCBadInput: Invalid value of environment variable <DEBUG_FACTORY> (expected a Boolean value, "0" or "1", but got "abc").
+-- Invalid value of DEBUGINFO:
+   NCrystal loaded OK
+   NCBadInput: Invalid value of environment variable <DEBUGINFO> (expected a Boolean value, "0" or "1", but got "abc").
+-- Invalid value of NCMAT_NOWARNFORCUSTOM:
+   NCrystal loaded OK
+   NCBadInput: Invalid value of environment variable <NCMAT_NOWARNFORCUSTOM> (expected a Boolean value, "0" or "1", but got "abc").
