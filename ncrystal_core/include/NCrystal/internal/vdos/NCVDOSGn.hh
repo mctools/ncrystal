@@ -56,7 +56,9 @@ namespace NCRYSTAL_NAMESPACE {
       //truncation & thinning procedure which has tremendous impact on the
       //computational efficiency in terms of CPU and memory usage, but
       //essentially no impact on the validity of the results (at least when
-      //using the default truncation/thinning options below).
+      //using the default truncation/thinning options below). Except in the
+      //Legacy cfg, spectra are only thinned as long as they are smooth on
+      //the scale of the resulting binwidth.
       //
       //Upon construction, the VDOSGn class only contains G1, but calling code
       //can call the growMaxOrder function to dynamically expand this to higher

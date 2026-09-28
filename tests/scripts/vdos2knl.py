@@ -24,16 +24,23 @@
 
 # Test expansion of VDOS curves into scattering kernels. Apart from basic
 # usage, this includes tests of non-legacy expansions (vdoslux 2000..2006) at
-# low temperatures, where structure on the scale of kT must be resolved. In
-# particular G1 must be sampled finely enough, even when the input VDOS grid
-# is coarse (as for the H VDOS in the acrylic glass stdlib file, where the
-# grid spacing corresponds to ~5.8kT at 5K).
+# low temperatures, where structure on the scale of kT must be resolved:
+#
+#  * G1 must be sampled finely enough, even when the input VDOS grid is
+#    coarse (as for the H VDOS in the acrylic glass stdlib file, where the
+#    grid spacing corresponds to ~5.8kT at 5K).
+#  * Gn spectra must only be thinned when smooth. This is tested with a VDOS
+#    with features a few meV wide (a soft mode), but extending to 0.55eV (an
+#    oscillator), whose Gn spectra at 14K extend over thousands of kT while
+#    having structure on the scale of kT. Thinning such spectra based on
+#    their number of points only, gave cross sections wrong by 50%.
 #
 # The resolution is tested via the detailed balance relation,
 # Gn(+E)=exp(-E/kT)*Gn(-E), evaluated in the middle of the Gn bins (i.e.
 # testing the linear interpolation).
 
 import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.enable_testdatapath # noqa F401
 import NCrystalDev as NC
 import NCrystalDev.exceptions as nc_exceptions
 import NCrystalDev.vdos as nc_vdos
@@ -76,8 +83,9 @@ def main( do_plot ):
     with ensure_error(nc_exceptions.NCCalcError,expected_error):
         t( vdos, m = 27.0, T = 0.5, vdoslux = 1, target_emax = 5000 )
     test_g1_resolution()
+    test_thinning()
 
-def gn_dbcheck( egrid, gn, temp ):
+def gn_dbcheck( egrid, gn, temp, relfloor = 0.0 ):
     #Returns binwidth/kT and largest deviation from detailed balance, in the
     #middle of bins with energies in 0.25kT..10kT:
     kt = constant_boltzmann * temp
@@ -85,7 +93,9 @@ def gn_dbcheck( egrid, gn, temp ):
     emid = emid[ ( emid >= 0.25*kt ) & ( emid <= 10.0*kt ) ]
     gn_up = np.interp( emid, egrid, gn )
     gn_down = np.interp( -emid, egrid, gn )
-    ratio = gn_up * np.exp( emid / kt ) / gn_down
+    ok = gn_down > relfloor * gn.max()
+    assert ok.any()
+    ratio = gn_up[ok] * np.exp( emid[ok] / kt ) / gn_down[ok]
     return ( egrid[1] - egrid[0] ) / kt, np.abs( ratio - 1.0 ).max()
 
 def test_g1_resolution():
@@ -117,6 +127,30 @@ def test_g1_resolution():
     with ensure_error(NC.NCCalcError):
         nc_vdos.extractGn( wide_vdos, n = 1, mass_amu = mass,
                            temperature = 0.1 )
+
+def test_thinning():
+    #Test both detailed balance of Gn functions, and that cross sections
+    #agree with reference values obtained with all Gn functions kept at a
+    #binwidth of kT/8.
+    cfgstr = 'plain_osc.ncmat;temp=14K;comp=inelas;vdoslux=2005'
+    xs_ref = [ ( 1e-05, 77.934 ), ( 3.798e-05, 44.807 ),
+               ( 0.0001442, 34.099 ), ( 0.0005479, 41.112 ),
+               ( 0.002081, 40.013 ), ( 0.007903, 31.025 ),
+               ( 0.03001, 28.109 ), ( 0.114, 26.906 ), ( 0.433, 24.41 ),
+               ( 1.644, 21.742 ) ]
+    info = NC.createInfo( cfgstr )
+    di = info.dyninfos[0]
+    for n in ( 5, 20, 50, 100 ):
+        egrid, gn = di.extract_Gn( n, without_xsect = True )
+        _, maxdev = gn_dbcheck( egrid, gn, di.temperature, relfloor = 1e-6 )
+        print(f'G{n}: |detailed balance deviation| < 12%: {maxdev < 0.12}')
+        assert maxdev < 0.12
+    sc = NC.createScatter( cfgstr )
+    for e, xsref in xs_ref:
+        xs = sc.xsect( e )
+        ok = abs( xs / xsref - 1.0 ) < 0.015
+        print(f'Ekin={e:g}eV: xs within 1.5% of {xsref:g}b: {ok}')
+        assert ok
 
 
 if __name__ == '__main__':

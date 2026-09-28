@@ -53,3 +53,17 @@ T=50K: G1 binwidth/kT <= 0.25: True  |DB deviation| < 2.5%: True
 T=293.15K: G1 binwidth/kT <= 0.25: True  |DB deviation| < 2.5%: True
 Caught expected NCBadInput('VDOS expansion not supported for temperatures below 0.1K (requested T=0.09K)')
 Caught expected NCCalcError('VDOS expansion would require too many (4642000) bins to resolve the VDOS (which extends to 10eV) on the scale of kT=8.6173303e-06eV (max allowed is 1000000). The temperature is likely too low for the given VDOS.')
+G5: |detailed balance deviation| < 12%: True
+G20: |detailed balance deviation| < 12%: True
+G50: |detailed balance deviation| < 12%: True
+G100: |detailed balance deviation| < 12%: True
+Ekin=1e-05eV: xs within 1.5% of 77.934b: True
+Ekin=3.798e-05eV: xs within 1.5% of 44.807b: True
+Ekin=0.0001442eV: xs within 1.5% of 34.099b: True
+Ekin=0.0005479eV: xs within 1.5% of 41.112b: True
+Ekin=0.002081eV: xs within 1.5% of 40.013b: True
+Ekin=0.007903eV: xs within 1.5% of 31.025b: True
+Ekin=0.03001eV: xs within 1.5% of 28.109b: True
+Ekin=0.114eV: xs within 1.5% of 26.906b: True
+Ekin=0.433eV: xs within 1.5% of 24.41b: True
+Ekin=1.644eV: xs within 1.5% of 21.742b: True

@@ -277,21 +277,21 @@ Distribution "G5" with:
 Distribution "G8" with:
   integral         : 1
   mean             : -0.8003765
-  rms              : 0.2890547
-  skewness         : -8.768707
-  kurtosis         : 8.253486
-  5th moment (std) : -47.91826
-  6th moment (std) : 93.19795
-  7th moment (std) : -412.7349
+  rms              : 0.2890474
+  skewness         : -8.768952
+  kurtosis         : 8.254018
+  5th moment (std) : -47.91988
+  6th moment (std) : 93.20584
+  7th moment (std) : -412.7571
 Distribution "G20" with:
   integral         : 1
   mean             : -2.000941
-  rms              : 0.457119
-  skewness         : -13.42382
-  kurtosis         : 8.166993
-  5th moment (std) : -69.74875
-  6th moment (std) : 92.34827
-  7th moment (std) : -539.7563
+  rms              : 0.4570449
+  skewness         : -13.42609
+  kurtosis         : 8.170343
+  5th moment (std) : -69.76176
+  6th moment (std) : 92.39836
+  7th moment (std) : -539.8939
 Distribution "G50" with:
   integral         : 1
   mean             : -5.002353
@@ -336,30 +336,30 @@ Distribution "G5" with:
 Distribution "G8" with:
   integral         : 1
   mean             : -0.2501715
-  rms              : 0.1318042
-  skewness         : -6.763787
-  kurtosis         : 12.63466
-  5th moment (std) : -56.18084
-  6th moment (std) : 205.9819
-  7th moment (std) : -949.6517
+  rms              : 0.1318009
+  skewness         : -6.764015
+  kurtosis         : 12.63564
+  5th moment (std) : -56.18456
+  6th moment (std) : 206.0038
+  7th moment (std) : -949.7614
 Distribution "G20" with:
   integral         : 1
   mean             : -0.6254288
-  rms              : 0.2084392
-  skewness         : -9.677719
-  kurtosis         : 11.71993
-  5th moment (std) : -61.51614
-  6th moment (std) : 163.1947
-  7th moment (std) : -718.1704
+  rms              : 0.2083965
+  skewness         : -9.679977
+  kurtosis         : 11.72707
+  5th moment (std) : -61.53948
+  6th moment (std) : 163.3232
+  7th moment (std) : -718.6707
 Distribution "G50" with:
   integral         : 1
   mean             : -1.563572
-  rms              : 0.3296144
-  skewness         : -14.65837
-  kurtosis         : 11.35251
-  5th moment (std) : -81.33581
-  6th moment (std) : 147.0536
-  7th moment (std) : -735.5051
+  rms              : 0.3295281
+  skewness         : -14.66243
+  kurtosis         : 11.36126
+  5th moment (std) : -81.36555
+  6th moment (std) : 147.1956
+  7th moment (std) : -735.9592
 
 --------------------------------------------------------------------------------
 Investigating "stdlib::Polyethylene_CH2.ncmat;temp=10K;comp=inelas;vdoslux=3" / H
@@ -395,21 +395,21 @@ Distribution "G5" with:
 Distribution "G8" with:
   integral         : 1
   mean             : -0.8003765
-  rms              : 0.2890547
-  skewness         : -8.768707
-  kurtosis         : 8.253486
-  5th moment (std) : -47.91826
-  6th moment (std) : 93.19795
-  7th moment (std) : -412.7349
+  rms              : 0.2890474
+  skewness         : -8.768952
+  kurtosis         : 8.254018
+  5th moment (std) : -47.91988
+  6th moment (std) : 93.20584
+  7th moment (std) : -412.7571
 Distribution "G20" with:
   integral         : 1
   mean             : -2.000941
-  rms              : 0.457119
-  skewness         : -13.42382
-  kurtosis         : 8.166993
-  5th moment (std) : -69.74875
-  6th moment (std) : 92.34827
-  7th moment (std) : -539.7563
+  rms              : 0.4570449
+  skewness         : -13.42609
+  kurtosis         : 8.170343
+  5th moment (std) : -69.76176
+  6th moment (std) : 92.39836
+  7th moment (std) : -539.8939
 Distribution "G50" with:
   integral         : 1
   mean             : -5.002353
@@ -454,30 +454,30 @@ Distribution "G5" with:
 Distribution "G8" with:
   integral         : 1
   mean             : -0.2501715
-  rms              : 0.1318042
-  skewness         : -6.763787
-  kurtosis         : 12.63466
-  5th moment (std) : -56.18084
-  6th moment (std) : 205.9819
-  7th moment (std) : -949.6517
+  rms              : 0.1318009
+  skewness         : -6.764015
+  kurtosis         : 12.63564
+  5th moment (std) : -56.18456
+  6th moment (std) : 206.0038
+  7th moment (std) : -949.7614
 Distribution "G20" with:
   integral         : 1
   mean             : -0.6254288
-  rms              : 0.2084392
-  skewness         : -9.677719
-  kurtosis         : 11.71993
-  5th moment (std) : -61.51614
-  6th moment (std) : 163.1947
-  7th moment (std) : -718.1704
+  rms              : 0.2083965
+  skewness         : -9.679977
+  kurtosis         : 11.72707
+  5th moment (std) : -61.53948
+  6th moment (std) : 163.3232
+  7th moment (std) : -718.6707
 Distribution "G50" with:
   integral         : 1
   mean             : -1.563572
-  rms              : 0.3296144
-  skewness         : -14.65837
-  kurtosis         : 11.35251
-  5th moment (std) : -81.33581
-  6th moment (std) : 147.0536
-  7th moment (std) : -735.5051
+  rms              : 0.3295281
+  skewness         : -14.66243
+  kurtosis         : 11.36126
+  5th moment (std) : -81.36555
+  6th moment (std) : 147.1956
+  7th moment (std) : -735.9592
 
 --------------------------------------------------------------------------------
 Investigating "stdlib::Polyethylene_CH2.ncmat;temp=600K;comp=inelas;vdoslux=0" / H

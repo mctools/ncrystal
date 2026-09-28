@@ -62,6 +62,14 @@ namespace NCRYSTAL_NAMESPACE {
         //of width d*kT then has relative errors up to ~d^2/8.
         //FIXME: The optimal value might depend on the vdoslux level.
         double minTemperature = 0.1;//Kelvin (0 disables)
+        double thinSmoothTol = 0.1;//Only thin spectra as long as the points
+        //removed are reproduced by linear interpolation of the points kept,
+        //to within this relative tolerance (0 disables). This prevents
+        //thinning away structure which is narrow compared to the range of
+        //the spectrum (incl. the exp(-beta) fall-off of upscattering).
+        double thinSmoothFloor = 1e-6;//Points below this fraction of the
+        //spectrum maximum are ignored when applying thinSmoothTol.
+        //FIXME: The optimal values might depend on the vdoslux level.
       };
       CfgDecoded decodeCfg( VDOSGn::Cfg choice ) {
         CfgDecoded res;
@@ -74,10 +82,46 @@ namespace NCRYSTAL_NAMESPACE {
           res.legacyConvolve = true;
           res.g1MaxBinWidthKT = 0.0;
           res.minTemperature = 0.0;
+          res.thinSmoothTol = 0.0;
         } else if (choice == VDOSGn::Cfg::MaxLux) {
           res.directConvolve = true;
         } else {
           nc_assert( choice == VDOSGn::Cfg::Default );
+        }
+        return res;
+      }
+
+      unsigned long maxSmoothThinFactor( const VectD& spec, long startIdx,
+                                         unsigned long maxfactor,
+                                         double tol, double relfloor )
+      {
+        //Find the largest thinning factor (a power of 2, at most maxfactor)
+        //for which the spectrum is smooth enough to be thinned. Thinning by
+        //a factor f keeps the points at lattice positions (startIdx+i) which
+        //are multiples of f. Going from f/2 to f is accepted if all points
+        //removed in that step are within a relative distance tol from the
+        //average of their two neighbours at the new spacing (ignoring points
+        //where both are below relfloor times the spectrum maximum).
+        nc_assert( !spec.empty() && tol > 0.0 && relfloor >= 0.0 );
+        const double vfloor
+          = relfloor * ( *std::max_element( spec.begin(), spec.end() ) );
+        const long n = static_cast<long>( spec.size() );
+        unsigned long res = 1;
+        for ( unsigned long ff = 2; ff <= maxfactor; ff *= 2 ) {
+          const long f = static_cast<long>( ff );
+          const long h = f / 2;
+          long i = ( h - startIdx ) % f;//first point removed in this step
+          if ( i < 0 )
+            i += f;
+          for ( ; i < n; i += f ) {
+            const double v = spec[i];
+            const double avg = 0.5 * ( ( i >= h ? spec[i-h] : 0.0 )
+                                       + ( i + h < n ? spec[i+h] : 0.0 ) );
+            const double vmax = ncmax( v, avg );
+            if ( vmax > vfloor && ncabs( v - avg ) > tol * vmax )
+              return res;
+          }
+          res = ff;
         }
         return res;
       }
@@ -823,12 +867,21 @@ NCV::VDOSGn::Impl::produceNewOrderByConvolutionImpl( Order order,
       //minThinOrder and (minThinOrder-1)*2:
       extraThinFactor /= 2;
     }
-
-    if ( anchored )
-      phonon_spe = thinVectorAnchored( extraThinFactor, phonon_spe, startIdx );
-    else
-      phonon_spe = thinVector( extraThinFactor, phonon_spe );
-    dt *= extraThinFactor;
+    if ( m_cfg.thinSmoothTol > 0.0 ) {
+      nc_assert( anchored );
+      extraThinFactor = maxSmoothThinFactor( phonon_spe, startIdx,
+                                             extraThinFactor,
+                                             m_cfg.thinSmoothTol,
+                                             m_cfg.thinSmoothFloor );
+    }
+    if ( extraThinFactor > 1 ) {
+      if ( anchored )
+        phonon_spe = thinVectorAnchored( extraThinFactor,
+                                         phonon_spe, startIdx );
+      else
+        phonon_spe = thinVector( extraThinFactor, phonon_spe );
+      dt *= extraThinFactor;
+    }
   }
 
   if ( anchored )
