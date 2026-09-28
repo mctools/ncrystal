@@ -67,7 +67,12 @@ namespace NCRYSTAL_NAMESPACE {
     };
 
     //Perform Sjolander expansion. The targetEmax default value is given by
-    //vdoslux, but can be overridden:
+    //vdoslux, but can be overridden. If not overridden, the expansion might
+    //end up with a lower suggestedEmax if reaching targetEmax would require
+    //excessive resources (for non-legacy vdoslux this means a number of points
+    //in Gn spectra above 1e6, 2e6, 3e6, 5e6, 1e7, 3e7, 1e8 for levels 0..6,
+    //or above 5e6 in a single convolution), and a CalcError is thrown if
+    //suggestedEmax would be below 0.1eV:
     GnExpansion
     expandVDOSToGnFcts( const VDOSData&,
                         VDOSLux vdoslux = VDOSLux(),

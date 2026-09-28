@@ -87,6 +87,13 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Non-legacy VDOS expansion (vdoslux 2000..2006) no longer has fixed
+       limits of 1000 or 10000 phonon orders. Instead orders are added until
+       the Gn spectra hold 1e6, 2e6, 3e6, 5e6, 1e7, 3e7 or 1e8 points (for
+       levels 0..6), a single convolution would need more than 5e6 points, or
+       60000 orders are reached. As before, the kernel then covers a reduced
+       Emax, but a CalcError is now raised if that would be below 0.1eV
+       (where the free-gas extrapolation above Emax gave errors of 15-20%).
      * Non-legacy VDOS expansion now only thins Gn spectra (i.e. increases
        their binwidth) as long as they are smooth on the scale of the new
        binwidth, rather than just based on their number of points. This fixes

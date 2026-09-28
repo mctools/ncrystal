@@ -67,3 +67,5 @@ Ekin=0.03001eV: xs within 1.5% of 28.109b: True
 Ekin=0.114eV: xs within 1.5% of 26.906b: True
 Ekin=0.433eV: xs within 1.5% of 24.41b: True
 Ekin=1.644eV: xs within 1.5% of 21.742b: True
+widevdos.ncmat;temp=0.4K;comp=inelas;vdoslux=2000: CalcError: VDOS expansion would require excessive resources to reach E=0.1eV
+widevdos.ncmat;temp=5.0K;comp=inelas;vdoslux=2000: OK

@@ -34,6 +34,7 @@
 #    oscillator), whose Gn spectra at 14K extend over thousands of kT while
 #    having structure on the scale of kT. Thinning such spectra based on
 #    their number of points only, gave cross sections wrong by 50%.
+#  * Expansions needing excessive resources must fail with a CalcError.
 #
 # The resolution is tested via the detailed balance relation,
 # Gn(+E)=exp(-E/kT)*Gn(-E), evaluated in the middle of the Gn bins (i.e.
@@ -84,6 +85,7 @@ def main( do_plot ):
         t( vdos, m = 27.0, T = 0.5, vdoslux = 1, target_emax = 5000 )
     test_g1_resolution()
     test_thinning()
+    test_resource_limits()
 
 def gn_dbcheck( egrid, gn, temp, relfloor = 0.0 ):
     #Returns binwidth/kT and largest deviation from detailed balance, in the
@@ -152,8 +154,30 @@ def test_thinning():
         print(f'Ekin={e:g}eV: xs within 1.5% of {xsref:g}b: {ok}')
         assert ok
 
+def test_resource_limits():
+    #A VDOS extending to 8eV needs more than 1e6 points in G1 at a
+    #temperature of 0.4K. The expansion is thus stopped before the second
+    #order, leaving it unable to cover neutron energies up to the required
+    #0.1eV. The same VDOS works at a higher temperature.
+    c = NC.NCMATComposer()
+    c.set_dyninfo_vdos( 'H', vdos_egrid = ( 0.01, 8.0 ), vdos = [ 1.0 ] * 20 )
+    c.set_density( 1.0 )
+    c.set_state_of_matter( 'solid' )
+    NC.registerInMemoryFileData( 'widevdos.ncmat', c.create_ncmat() )
+    for temp, lux, expect_error in [ ( 0.4, 2000, True ),
+                                     ( 5.0, 2000, False ) ]:
+        cfgstr = f'widevdos.ncmat;temp={temp}K;comp=inelas;vdoslux={lux}'
+        try:
+            NC.createScatter( cfgstr )
+            print(f'{cfgstr}: OK')
+            assert not expect_error
+        except NC.NCCalcError as e:
+            msg = str(e)
+            print(f'{cfgstr}: CalcError: {msg.split("(")[0].strip()}')
+            assert expect_error
+            assert 'excessive resources' in msg
+
 
 if __name__ == '__main__':
     import sys
     main( do_plot = '--plot' in sys.argv[1:] )
-
