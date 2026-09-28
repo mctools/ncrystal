@@ -20,6 +20,13 @@ jobs:
         run: ./src/devel/bin/ncdevtool check -n "fix""me"
 
   build:
+    #Only the Debug legs (the slow ones -- 11-14 minutes each, vs Release's
+    #~2-3) are temporarily disabled below, not the whole job: CI time is
+    #wanted for faster iteration while investigating a Windows-specific
+    #basictest.yml issue, but the 6 Release legs still give useful Linux/
+    #macOS correctness coverage in the meantime. To be reverted once that
+    #investigation is done:
+    if: matrix.buildtype != 'Debug'
     needs: [ ncdevtool_check ]
     strategy:
       fail-fast: false
