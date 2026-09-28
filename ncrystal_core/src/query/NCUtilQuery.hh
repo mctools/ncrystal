@@ -30,13 +30,22 @@
 namespace NCRYSTAL_NAMESPACE {
   namespace {
 
-    //queryimpl_fmadiagnose_cmulXXX: Version with NCRYSTAL_FMADISPATCH_ATTR
+    //queryimpl_fmadiagnose_cmulXXX: Version with NCRYSTAL_FMADISPATCH_ATTR.
+    //re/im/cre/cim are ncrestrict: at the call site (queryimpl_fmadiagnose
+    //below) they are always four distinct VectD objects:
     NCRYSTAL_FMADISPATCH_ATTR
-    void queryimpl_fmadiagnose_cmulDispatch( double* re, double* im,
-                                             const double* cre,
-                                             const double* cim,
+    void queryimpl_fmadiagnose_cmulDispatch( double* ncrestrict re,
+                                             double* ncrestrict im,
+                                             const double* ncrestrict cre,
+                                             const double* ncrestrict cim,
                                              std::size_t n )
     {
+      nc_assert( buffersDisjoint( re, n, im, n ) );
+      nc_assert( buffersDisjoint( re, n, cre, n ) );
+      nc_assert( buffersDisjoint( re, n, cim, n ) );
+      nc_assert( buffersDisjoint( im, n, cre, n ) );
+      nc_assert( buffersDisjoint( im, n, cim, n ) );
+      nc_assert( buffersDisjoint( cre, n, cim, n ) );
       for ( std::size_t i = 0; i < n; ++i ) {
         double a = re[i], b = im[i], c = cre[i], d = cim[i];
         re[i] = std::fma( a, c, -(b*d) );

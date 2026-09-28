@@ -127,7 +127,7 @@ namespace NCRYSTAL_NAMESPACE {
       //everywhere else it appears. Single fma expression, no other FP, no
       //loop-index oddities -- safe per doc/devel_fma_attribute.md rule 1:
       NCRYSTAL_FMADISPATCH_ATTR
-      void fmaRampFill( double* out, unsigned i0, unsigned i1,
+      void fmaRampFill( double* ncrestrict out, unsigned i0, unsigned i1,
                         double slope, double offset )
       {
         for ( unsigned i = i0; i < i1; ++i )
@@ -487,15 +487,23 @@ namespace NCRYSTAL_NAMESPACE {
       //now-audited getBetaMinus/getBetaPlus/nclerp) or provably safe if
       //silently contracted -- audited per doc/devel_fma_attribute.md rule 1:
       NCRYSTAL_FMADISPATCH_ATTR
-      void fillContribAtAlpha( double* contrib_out, std::size_t npts,
-                               const double* Sb1_arr, const double* Sb2_arr,
-                               const double* alpha_arr,
+      void fillContribAtAlpha( double* ncrestrict contrib_out, std::size_t npts,
+                               const double* ncrestrict Sb1_arr,
+                               const double* ncrestrict Sb2_arr,
+                               const double* ncrestrict alpha_arr,
                                double foure, double E_div_kT,
                                double cs_b1, double cs_b2, double invdb,
                                bool is_bounded_by_betaminus,
                                bool is_bounded_by_betaplus,
                                bool is_bounded_on_both_sides )
       {
+        //contrib_out/Sb1_arr/Sb2_arr/alpha_arr are ncrestrict: at the call
+        //site (impl_numIntRegion below) they are always contrib_at_a (a
+        //local stack array) and two distinct SOfAlphaGrid instances' member
+        //arrays (never overlapping, since they are separate objects/members):
+        nc_assert( buffersDisjoint( contrib_out, npts, Sb1_arr, npts ) );
+        nc_assert( buffersDisjoint( contrib_out, npts, Sb2_arr, npts ) );
+        nc_assert( buffersDisjoint( contrib_out, npts, alpha_arr, npts ) );
         double bl(cs_b1), bu(cs_b2);
         for ( std::size_t i = 0; i < npts; ++i ) {
           double Sb1 = Sb1_arr[i];

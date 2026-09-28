@@ -188,6 +188,24 @@ namespace NCRYSTAL_NAMESPACE {
   bool intervalsOverlap( const PairDD&, const PairDD& );
   bool intervalsDisjoint(double a0, double b0, double a1, double b1);
 
+  //Debug-only check that two half-open buffers (an/bn elements of TValue
+  //starting at a/b) do not overlap in memory -- for nc_assert'ing the
+  //non-aliasing contract implied by "ncrestrict"-qualified pointer
+  //parameters (see e.g. NCFastConvolve_FMA.hh). Only declared in debug
+  //builds, matching its only intended use inside nc_assert(...):
+#ifndef NDEBUG
+  template <class TValue>
+  inline bool buffersDisjoint( const TValue* a, std::size_t an,
+                               const TValue* b, std::size_t bn )
+  {
+    const auto ab = reinterpret_cast<std::uintptr_t>(a);
+    const auto ae = ab + an * sizeof(TValue);
+    const auto bb = reinterpret_cast<std::uintptr_t>(b);
+    const auto be = bb + bn * sizeof(TValue);
+    return ae <= bb || be <= ab;
+  }
+#endif
+
   //Quick check that a<=x<=b (do not use if a or b might be infinite):
   bool valueInInterval(double a, double b, double x);
   bool valueInInterval( const PairDD& ab, double x);

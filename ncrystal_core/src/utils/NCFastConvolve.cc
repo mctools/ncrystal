@@ -23,6 +23,7 @@
 #include "NCrystal/internal/utils/NCStableDbl.hh"
 #include "NCrystal/internal/utils/NCTinyVector.hh"
 #include "NCrystal/internal/utils/NCIter.hh"
+#include "NCFastConvolve_FMA.hh"
 #include <complex>
 namespace NC = NCrystal;
 
@@ -253,24 +254,6 @@ void NC::FastConvolve::convolveDirect( const VectD& a1, const VectD& a2,
 namespace NCRYSTAL_NAMESPACE {
   namespace {
 
-    //Pointwise complex multiply of two interleaved-[re,im,re,im,...] arrays, in
-    //place into the first (data1 *= data2), replacing std::complex<
-    //double>::operator*= (whose exact formula/precision is otherwise up to the
-    //standard library implementation -- an extra, uncontrolled source of
-    //cross-platform variance, beyond just FMA contraction). Uses explicit
-    //std::fma and NCRYSTAL_FMADISPATCH_ATTR:
-    NCRYSTAL_FMADISPATCH_ATTR
-    void fastConvolveSpectralMultiply( double* data1, const double* data2,
-                                       std::size_t n )
-    {
-      for ( std::size_t i = 0; i < n; ++i ) {
-        const double a = data1[2*i], b = data1[2*i+1];
-        const double c = data2[2*i], d = data2[2*i+1];
-        data1[2*i]   = std::fma( a, c, -(b*d) );
-        data1[2*i+1] = std::fma( a, d, b*c );
-      }
-    }
-
     //out[i] = re(data[i])^2 + im(data[i])^2, for the (legacy) magnitude
     //computation in convolve() below. The choice of std::fma(a,a,b*b) (over the
     //equally valid std::fma(b,b,a*a)) is arbitrary but must be fixed, to pin
@@ -408,43 +391,6 @@ void NC::FastConvolve::Impl::applySwaps( const SwapPatternCache& swapcache,
     double* it2 = std::next(rawdata,(e.second));//We already had a *2 applied to the index
     std::swap(*it1++, *it2++);
     std::swap(*it1, *it2);
-  }
-}
-
-namespace NCRYSTAL_NAMESPACE {
-  namespace {
-
-    //One stage of the FFT butterfly, applied to a run of count consecutive
-    //j-values (see the caller in fft<is_forward> below for how a stage
-    //decomposes into such runs): reads/writes count complex numbers each at
-    //data_j and data_sympos (both interleaved [re,im,...], with a fixed stride
-    //of 2 doubles between consecutive elements of the run), and reads count
-    //complex numbers from wtable (also interleaved, but strided by
-    //wtable_stride doubles between consecutive elements of the run, not
-    //necessarily 2).
-    NCRYSTAL_FMADISPATCH_ATTR
-    void fastConvolveButterflyRun( double* data_j, double* data_sympos,
-                                   const double* wtable,
-                                   std::ptrdiff_t wtable_stride,
-                                   bool is_forward, int count )
-    {
-      for ( int k = 0; k < count; ++k ) {
-        const double a = data_j[0], b = data_j[1];
-        const double c = wtable[0];
-        const double d = ( is_forward ? wtable[1] : -wtable[1] );
-        const double jr = std::fma( a, c, -(b*d) );
-        const double ji = std::fma( a, d, b*c );
-        const double sr = data_sympos[0], si = data_sympos[1];
-        data_j[0] = sr - jr;
-        data_j[1] = si - ji;
-        data_sympos[0] = sr + jr;
-        data_sympos[1] = si + ji;
-        data_j += 2;
-        data_sympos += 2;
-        wtable += wtable_stride;
-      }
-    }
-
   }
 }
 

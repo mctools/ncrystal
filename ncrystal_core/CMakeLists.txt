@@ -414,6 +414,33 @@ include( "ncrystal_coresrc" )
 ncrystal_detectsrc()
 ncrystal_process_core_srcfiles()
 
+# MSVC has no equivalent of GCC/Clang's NCRYSTAL_FMADISPATCH_ATTR
+# (target_clones), so on MSVC we instead give any specially named
+# "NC*_WINFMA.cc" source file (by convention, under ncrystal_core/src/*/ only)
+# an extra, per-file /arch:AVX2 clone-and-dispatch treatment -- see
+# ncrystal_core/include/NCrystal/internal/utils/NCWinFMA.hh for the full
+# mechanism and rationale. x86-64 only, mirroring the same
+# CMAKE_SYSTEM_PROCESSOR check ncrystal_fmadispatch.cmake already uses to
+# skip the (unrelated, GCC/Clang) FMA dispatch probe on non-x86 targets
+# (e.g. Windows-on-ARM64, where MSVC is also the compiler but the whole
+# technique does not apply, since hardware FMA is baseline there already):
+if ( MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64|i[3-6]86|x86)$" )
+  add_compile_definitions( NCRYSTAL_DISPATCH_TO_WIN_FMA )
+  set( ncrystal_winfma_srcfiles "" )
+  foreach( f ${ncpkg_all_ncrystal_lib_srcfiles} )
+    get_filename_component( f_name "${f}" NAME )
+    if ( "${f_name}" MATCHES "^NC.*_WINFMA\\.cc$" )
+      list( APPEND ncrystal_winfma_srcfiles "${f}" )
+    endif()
+  endforeach()
+  set_source_files_properties(
+    ${ncrystal_winfma_srcfiles}
+    PROPERTIES
+      COMPILE_OPTIONS "/arch:AVX2"
+      COMPILE_DEFINITIONS "NCRYSTAL_WIN_FMA"
+  )
+endif()
+
 #We must additionally install a few special top-level include files:
 
 ncinstall(

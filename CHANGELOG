@@ -1,4 +1,28 @@
 v4.4.7 (work in progress)
+     * Added a Windows/MSVC-specific runtime FMA dispatch mechanism
+       (NCRYSTAL_WIN_FMA/NCRYSTAL_DISPATCH_TO_WIN_FMA, see
+       ncrystal_core/include/NCrystal/internal/utils/NCFMADispatch.hh):
+       MSVC has no equivalent of GCC/Clang's NCRYSTAL_FMADISPATCH_ATTR
+       (target_clones), so on Windows every std::fma() call fell back
+       to a slow software emulation -- a real Windows CPU trace of
+       tests/src/app_perfvdos found 65% of all runtime spent there.
+       NCFastConvolve.cc's two hottest inner loops
+       (fastConvolveSpectralMultiply/fastConvolveButterflyRun, see
+       NCFastConvolve_FMA.hh/_WINFMA.cc) now get a second,
+       /arch:AVX2-compiled clone built into a dedicated translation
+       unit, dispatched to at runtime only if the CPU actually
+       supports FMA3 (checked once via IsProcessorFeaturePresent),
+       falling back to the ordinary dispatch-decorated body otherwise.
+       x86-64 only; Windows-on-ARM64 is unaffected (hardware FMA is
+       baseline there) and never sees the new machinery. Also added
+       ncrestrict and nc_assert-verified non-overlap checks to every
+       NCRYSTAL_FMADISPATCH_ATTR-decorated function taking pointer
+       arguments (NCSABCellInteg.cc, NCUtilQuery.hh, NCVDOSUtils.cc,
+       NCVDOSToScatKnl.cc, NCVDOSGn.cc, and the two FastConvolve
+       functions above), to help auto-vectorisation of these hot loops
+       -- verified safe both by call-site static analysis and by the
+       new assertions running clean across the full test suite
+       (Release and Debug, simplebuild and CMake).
      * Wire fastLowerBoundIdx/fastUpperBoundIdx into the remaining
        qualifying call sites found by a full-codebase audit (plain
        double array, default comparator, and not part of a legacy-only
