@@ -40,3 +40,6 @@ I am DummyDerived
 I am DummyDerived
 I am DummyDerived
 Got expected error: shared_obj_from_this() does not work since this instance is not managed by std::shared_ptr / NCrystal::shared_obj
+COWPimpl: Failed modification gave exception
+COWPimpl: Subsequent operations did not hang
+COWPimpl: Modifier move assignment worked

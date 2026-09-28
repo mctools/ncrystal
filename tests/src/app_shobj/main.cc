@@ -23,11 +23,70 @@
 #include <memory>
 #include <type_traits>
 #include <iostream>
+#include <stdexcept>
 
 namespace NC = NCrystal;
 
 namespace {
 
+  //For testing COWPimpl:
+  bool s_cow_copy_throws = false;
+  struct COWData {
+    int value = 0;
+    COWData() = default;
+    COWData( const COWData& o ) : value(o.value)
+    {
+      if ( s_cow_copy_throws )
+        throw std::runtime_error("copy failed");
+    }
+  };
+
+  void testCOWPimpl()
+  {
+    //Test of COWPimpl, in particular that a failure during copy-on-write
+    //(i.e. the copy constructor of the wrapped type throws) does not leave
+    //the internal mutex locked, and that Modifier objects can be
+    //move-assigned.
+    NC::COWPimpl<COWData> a;
+    a.modify()->value = 1;
+    //NB: Copy construction must be from const references:
+    const NC::COWPimpl<COWData>& a_const = a;
+    NC::COWPimpl<COWData> b( a_const );//shallow copy, shares data with a
+    nc_assert_always( a->value == 1 && b->value == 1 );
+
+    //Copy-on-write which fails:
+    s_cow_copy_throws = true;
+    bool got_error = false;
+    try {
+      b.modify()->value = 2;
+    } catch ( std::runtime_error& ) {
+      got_error = true;
+    }
+    s_cow_copy_throws = false;
+    nc_assert_always( got_error );
+    std::cout << "COWPimpl: Failed modification gave exception" << std::endl;
+    nc_assert_always( a->value == 1 && b->value == 1 );
+
+    //The following would hang if the mutex was left locked:
+    NC::COWPimpl<COWData> c( a_const );
+    b.modify()->value = 3;
+    nc_assert_always( a->value == 1 && b->value == 3 && c->value == 1 );
+    std::cout << "COWPimpl: Subsequent operations did not hang" << std::endl;
+
+    //Move assignment of modifiers (the modifier of c gets released, and m2
+    //takes over the modifier of a):
+    {
+      auto m1 = a.modify();
+      auto m2 = c.modify();
+      m2 = std::move(m1);
+      m2->value = 5;
+    }
+    nc_assert_always( a->value == 5 && b->value == 3 && c->value == 1 );
+    c.modify()->value = 6;
+    a.modify()->value = 7;
+    nc_assert_always( a->value == 7 && b->value == 3 && c->value == 6 );
+    std::cout << "COWPimpl: Modifier move assignment worked" << std::endl;
+  }
 
   struct Dummy {
     int a = 17;
@@ -196,6 +255,7 @@ int main()
     //(void)dummy_ref_dangerous;
   }
 
+  testCOWPimpl();
 
   return 0;
 

@@ -1366,6 +1366,7 @@ namespace NCRYSTAL_NAMESPACE {
     reset();
     std::swap(m_data,o.m_data);
     std::swap(m_mtx,o.m_mtx);
+    return *this;
   }
 
   template<class T>
@@ -1393,8 +1394,14 @@ namespace NCRYSTAL_NAMESPACE {
       return;
     NCRYSTAL_LOCK_MUTEX(m_data->mtx);
     if ( m_data->refcount > 1 ) {
-      //Detach:
-      auto newdata = new Data( m_data->t );
+      //Detach (taking care to not leave the mutex locked if copying fails):
+      Data * newdata;
+      try {
+        newdata = new Data( m_data->t );
+      } catch (...) {
+        NCRYSTAL_UNLOCK_MUTEX(m_data->mtx);
+        throw;
+      }
       --( m_data->refcount );
       NCRYSTAL_UNLOCK_MUTEX(m_data->mtx);
       c.m_data = m_data = newdata;
