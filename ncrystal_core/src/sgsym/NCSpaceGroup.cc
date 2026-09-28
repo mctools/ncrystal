@@ -146,3 +146,189 @@ std::ostream& NC::operator<<( std::ostream& os, const SpaceGroup& sg )
 {
   return os << sg.toString();
 }
+
+NC::SGCrystalSystem NC::SpaceGroup::crystalSystem() const noexcept
+{
+  const unsigned n = number();
+  if ( n <= 2 )
+    return SGCrystalSystem::Triclinic;
+  if ( n <= 15 )
+    return SGCrystalSystem::Monoclinic;
+  if ( n <= 74 )
+    return SGCrystalSystem::Orthorhombic;
+  if ( n <= 142 )
+    return SGCrystalSystem::Tetragonal;
+  if ( n <= 167 )
+    return SGCrystalSystem::Trigonal;
+  if ( n <= 194 )
+    return SGCrystalSystem::Hexagonal;
+  return SGCrystalSystem::Cubic;
+}
+
+NC::SGSettingInfo NC::SpaceGroup::settingInfo() const noexcept
+{
+  SGSettingInfo res{ SGHexFamilyAxes::NotApplicable,
+                     SGUniqueAxis::NotApplicable,
+                     SGCellChoice::NotApplicable,
+                     SGOriginChoice::NotApplicable,
+                     SGAxisPermutation::NotApplicable };
+  //NB: The choice codes come from the hardwired table (fully verified by
+  //tests), so anything unexpected would be a bug (hence nc_assert, since this
+  //function is noexcept):
+  const std::string c = choice();
+  auto originFromDigit = []( char ch )
+  {
+    nc_assert( ch == '1' || ch == '2' );
+    return ch == '1' ? SGOriginChoice::Choice1 : SGOriginChoice::Choice2;
+  };
+  switch ( crystalSystem() ) {
+  case SGCrystalSystem::Triclinic:
+    nc_assert( c.empty() );
+    break;
+  case SGCrystalSystem::Monoclinic:
+    {
+      //Codes like "b", "b1", "-c2":
+      std::size_t i = 0;
+      const bool minus = ( !c.empty() && c[0] == '-' );
+      if ( minus )
+        ++i;
+      nc_assert( i < c.size() );
+      const char ax = c[i++];
+      nc_assert( ax == 'a' || ax == 'b' || ax == 'c' );
+      res.uniqueAxis = ( ax == 'a'
+                         ? ( minus ? SGUniqueAxis::minus_a : SGUniqueAxis::a )
+                         : ax == 'b'
+                         ? ( minus ? SGUniqueAxis::minus_b : SGUniqueAxis::b )
+                         : ( minus ? SGUniqueAxis::minus_c : SGUniqueAxis::c ) );
+      if ( i < c.size() ) {
+        nc_assert( i + 1 == c.size() );
+        const char cc = c[i];
+        nc_assert( cc >= '1' && cc <= '3' );
+        res.cellChoice = ( cc == '1' ? SGCellChoice::Choice1
+                           : cc == '2' ? SGCellChoice::Choice2
+                           : SGCellChoice::Choice3 );
+      }
+    }
+    break;
+  case SGCrystalSystem::Orthorhombic:
+    {
+      //Codes like "", "cab", "1", "2ba-c":
+      std::string perm = c;
+      if ( !perm.empty() && ( perm[0] == '1' || perm[0] == '2' ) ) {
+        res.originChoice = originFromDigit( perm[0] );
+        perm = perm.substr( 1 );
+      }
+      if ( perm.empty() || perm == "abc" )
+        res.axisPermutation = SGAxisPermutation::abc;
+      else if ( perm == "ba-c" )
+        res.axisPermutation = SGAxisPermutation::ba_mc;
+      else if ( perm == "cab" )
+        res.axisPermutation = SGAxisPermutation::cab;
+      else if ( perm == "-cba" )
+        res.axisPermutation = SGAxisPermutation::mcba;
+      else if ( perm == "bca" )
+        res.axisPermutation = SGAxisPermutation::bca;
+      else if ( perm == "a-cb" )
+        res.axisPermutation = SGAxisPermutation::a_mcb;
+      else
+        nc_assert( false );
+    }
+    break;
+  case SGCrystalSystem::Tetragonal:
+  case SGCrystalSystem::Cubic:
+    if ( !c.empty() ) {
+      nc_assert( c.size() == 1 );
+      res.originChoice = originFromDigit( c[0] );
+    }
+    break;
+  case SGCrystalSystem::Trigonal:
+  case SGCrystalSystem::Hexagonal:
+    nc_assert( c.empty() || c == "H" || c == "R" );
+    res.hexFamilyAxes = ( c == "R" ? SGHexFamilyAxes::Rhombohedral
+                          : SGHexFamilyAxes::Hexagonal );
+    break;
+  }
+  return res;
+}
+
+std::ostream& NC::operator<<( std::ostream& os, SGCrystalSystem cs )
+{
+  switch ( cs ) {
+  case SGCrystalSystem::Triclinic: return os << "triclinic";
+  case SGCrystalSystem::Monoclinic: return os << "monoclinic";
+  case SGCrystalSystem::Orthorhombic: return os << "orthorhombic";
+  case SGCrystalSystem::Tetragonal: return os << "tetragonal";
+  case SGCrystalSystem::Trigonal: return os << "trigonal";
+  case SGCrystalSystem::Hexagonal: return os << "hexagonal";
+  case SGCrystalSystem::Cubic: return os << "cubic";
+  }
+  return os;
+}
+
+std::ostream& NC::operator<<( std::ostream& os, SGHexFamilyAxes v )
+{
+  switch ( v ) {
+  case SGHexFamilyAxes::NotApplicable: return os << "n/a";
+  case SGHexFamilyAxes::Hexagonal: return os << "hexagonal";
+  case SGHexFamilyAxes::Rhombohedral: return os << "rhombohedral";
+  }
+  return os;
+}
+
+std::ostream& NC::operator<<( std::ostream& os, SGUniqueAxis v )
+{
+  switch ( v ) {
+  case SGUniqueAxis::NotApplicable: return os << "n/a";
+  case SGUniqueAxis::a: return os << "a";
+  case SGUniqueAxis::b: return os << "b";
+  case SGUniqueAxis::c: return os << "c";
+  case SGUniqueAxis::minus_a: return os << "-a";
+  case SGUniqueAxis::minus_b: return os << "-b";
+  case SGUniqueAxis::minus_c: return os << "-c";
+  }
+  return os;
+}
+
+std::ostream& NC::operator<<( std::ostream& os, SGCellChoice v )
+{
+  switch ( v ) {
+  case SGCellChoice::NotApplicable: return os << "n/a";
+  case SGCellChoice::Choice1: return os << "1";
+  case SGCellChoice::Choice2: return os << "2";
+  case SGCellChoice::Choice3: return os << "3";
+  }
+  return os;
+}
+
+std::ostream& NC::operator<<( std::ostream& os, SGOriginChoice v )
+{
+  switch ( v ) {
+  case SGOriginChoice::NotApplicable: return os << "n/a";
+  case SGOriginChoice::Choice1: return os << "1";
+  case SGOriginChoice::Choice2: return os << "2";
+  }
+  return os;
+}
+
+std::ostream& NC::operator<<( std::ostream& os, SGAxisPermutation v )
+{
+  switch ( v ) {
+  case SGAxisPermutation::NotApplicable: return os << "n/a";
+  case SGAxisPermutation::abc: return os << "abc";
+  case SGAxisPermutation::ba_mc: return os << "ba-c";
+  case SGAxisPermutation::cab: return os << "cab";
+  case SGAxisPermutation::mcba: return os << "-cba";
+  case SGAxisPermutation::bca: return os << "bca";
+  case SGAxisPermutation::a_mcb: return os << "a-cb";
+  }
+  return os;
+}
+
+std::ostream& NC::operator<<( std::ostream& os, const SGSettingInfo& si )
+{
+  return os << "{hexFamilyAxes=" << si.hexFamilyAxes
+            << ", uniqueAxis=" << si.uniqueAxis
+            << ", cellChoice=" << si.cellChoice
+            << ", originChoice=" << si.originChoice
+            << ", axisPermutation=" << si.axisPermutation << "}";
+}

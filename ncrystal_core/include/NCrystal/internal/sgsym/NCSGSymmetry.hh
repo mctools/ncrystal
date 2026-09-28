@@ -26,6 +26,37 @@
 
 namespace NCRYSTAL_NAMESPACE {
 
+  //Unit cell parameters (lengths in Aa, angles in degrees):
+  struct CellParameters { double a, b, c, alpha, beta, gamma; };
+
+  //Constraints on the unit cell parameters imposed by the symmetry of a space
+  //group setting (i.e. the cell metric must be invariant under all rotation
+  //parts of the operations), which are derived from the operations. The
+  //length a and the angle alpha are never constrained to other parameters.
+  //
+  //TODO: Replace checkAndCompleteLattice[Angles]() in NCLatticeUtils.hh with
+  //this.
+  struct SGCellConstraints {
+    enum class LengthConstraint { Free, EqualToA };
+    enum class AngleConstraint { Free, Is90, Is120, EqualToAlpha };
+    LengthConstraint b, c;
+    AngleConstraint alpha, beta, gamma;
+
+    //Check fully specified parameters, with exact equality required for
+    //constrained values. Also requires positive lengths, angles in (0,180),
+    //and alpha<120 if all angles must be equal. Throws BadInput if invalid
+    //(including for parameters which are 0, cf. complete(..) below):
+    void check( const CellParameters& ) const;
+
+    //Fill in any parameters given as 0 whose values are implied by the
+    //constraints (e.g. b and c for cubic space groups, or gamma=120 for
+    //hexagonal axes), and then check(..) the result:
+    void complete( CellParameters& ) const;
+  };
+
+  //Output like "a, b=a, c, alpha=90, beta, gamma=90":
+  std::ostream& operator<<( std::ostream&, const SGCellConstraints& );
+
   //Immutable symmetry information of one of the 530 space group settings,
   //derived from its Hall symbol. Instances are created on first use and live
   //until the end of the program, so references to them remain valid. Obtain
@@ -56,6 +87,9 @@ namespace NCRYSTAL_NAMESPACE {
     char latticeSymbol() const noexcept;//'P','A','B','C','I','R' or 'F'
     bool isCentrosymmetric() const noexcept;
 
+    //Constraints on the unit cell parameters:
+    const SGCellConstraints& cellConstraints() const noexcept;
+
     //Only for internal usage (use SGSymmetry::get(..) instead):
     struct internal_t {};
     SGSymmetry( internal_t, SpaceGroup );
@@ -63,6 +97,7 @@ namespace NCRYSTAL_NAMESPACE {
     SpaceGroup m_sg;
     char m_lattice;
     bool m_centrosymmetric;
+    SGCellConstraints m_cellconstraints;
     std::vector<SymOp> m_ops, m_reps, m_centring;
   };
 
@@ -93,6 +128,10 @@ namespace NCRYSTAL_NAMESPACE {
   inline bool SGSymmetry::isCentrosymmetric() const noexcept
   {
     return m_centrosymmetric;
+  }
+  inline const SGCellConstraints& SGSymmetry::cellConstraints() const noexcept
+  {
+    return m_cellconstraints;
   }
 }
 

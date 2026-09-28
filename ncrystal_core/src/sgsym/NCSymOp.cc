@@ -119,7 +119,7 @@ namespace NCRYSTAL_NAMESPACE {
       case 6: case -3: case -6: return 6;
       default: break;
       }
-      nc_assert_always( false );
+      nc_assert( false );//not possible for valid operations
       return 0;
     }
 

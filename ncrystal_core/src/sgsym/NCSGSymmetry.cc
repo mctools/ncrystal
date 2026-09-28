@@ -315,7 +315,222 @@ namespace NCRYSTAL_NAMESPACE {
       }
       return group;
     }
+
+    //Cell constraints: The metric tensor G (symmetric, with the six
+    //independent entries g=(g11,g22,g33,g12,g13,g23)) must satisfy
+    //R^T*G*R=G for all rotation parts R. This gives a homogeneous linear
+    //system M*g=0 with small integer coefficients. A linear relation L*g=0
+    //holds for all allowed metrics iff L is in the row space of M, i.e. iff
+    //appending L to M does not increase the rank (computed exactly, with
+    //integer arithmetic):
+    using Row = std::array<std::int64_t,6>;
+
+    unsigned exactRank( std::vector<Row> rows )
+    {
+      unsigned rank = 0;
+      for ( unsigned col = 0; col < 6 && rank < rows.size(); ++col ) {
+        std::size_t piv = rank;
+        while ( piv < rows.size() && rows[piv][col] == 0 )
+          ++piv;
+        if ( piv == rows.size() )
+          continue;
+        std::swap( rows[rank], rows[piv] );
+        for ( std::size_t r = rank + 1; r < rows.size(); ++r ) {
+          if ( !rows[r][col] )
+            continue;
+          const std::int64_t f1 = rows[rank][col];
+          const std::int64_t f2 = rows[r][col];
+          std::int64_t g = 0;
+          for ( unsigned k = 0; k < 6; ++k ) {
+            rows[r][k] = rows[r][k] * f1 - rows[rank][k] * f2;
+            std::int64_t v = rows[r][k] < 0 ? -rows[r][k] : rows[r][k];
+            while ( v ) {//gcd, to keep numbers small
+              const std::int64_t tmp = g % v;
+              g = v;
+              v = tmp;
+            }
+          }
+          if ( g > 1 )
+            for ( auto& e : rows[r] )
+              e /= g;
+        }
+        ++rank;
+      }
+      return rank;
+    }
+
+    SGCellConstraints deriveCellConstraints( const std::vector<SymOp>& reps )
+    {
+      //Index of G(k,l) in g:
+      auto gidx = []( unsigned k, unsigned l ) -> unsigned
+      {
+        if ( k == l )
+          return k;
+        const unsigned s = k + l;//(0,1)->1, (0,2)->2, (1,2)->3
+        return s == 1 ? 3u : s == 2 ? 4u : 5u;
+      };
+      std::vector<Row> M;
+      for ( auto& op : reps ) {
+        for ( unsigned i = 0; i < 3; ++i ) {
+          for ( unsigned j = i; j < 3; ++j ) {
+            //(R^T G R)_ij - G_ij = sum_kl R_ki G_kl R_lj - G_ij:
+            Row row{};
+            for ( unsigned k = 0; k < 3; ++k )
+              for ( unsigned l = 0; l < 3; ++l )
+                row[gidx(k,l)] += op.rot( k, i ) * op.rot( l, j );
+            row[gidx(i,j)] -= 1;
+            if ( row != Row{} )
+              M.push_back( row );
+          }
+        }
+      }
+      const unsigned rankM = exactRank( M );
+      auto implied = [&M,rankM]( const Row& L )
+      {
+        std::vector<Row> tmp = M;
+        tmp.push_back( L );
+        return exactRank( tmp ) == rankM;
+      };
+      using LC = SGCellConstraints::LengthConstraint;
+      using AC = SGCellConstraints::AngleConstraint;
+      SGCellConstraints res;
+      //g = (g11,g22,g33,g12,g13,g23):
+      res.b = implied( { { -1,1,0,0,0,0 } } ) ? LC::EqualToA : LC::Free;
+      res.c = implied( { { -1,0,1,0,0,0 } } ) ? LC::EqualToA : LC::Free;
+      //alpha (b,c <-> g23), beta (a,c <-> g13) and gamma (a,b <-> g12). An
+      //angle of 120 between vectors u and v of equal lengths means
+      //2*(u.v)+u.u=0. Angles equal to alpha are only possible for equal
+      //lengths a=b=c, in which case cos(angles) are proportional to g:
+      auto angle = [&implied]( const Row& is90, const Row& is120,
+                               const Row* eqalpha )
+      {
+        if ( implied( is90 ) )
+          return AC::Is90;
+        if ( implied( is120 ) )
+          return AC::Is120;
+        if ( eqalpha && implied( *eqalpha ) )
+          return AC::EqualToAlpha;
+        return AC::Free;
+      };
+      const Row beta_eq_alpha{ { 0,0,0,0,1,-1 } };
+      const Row gamma_eq_alpha{ { 0,0,0,1,0,-1 } };
+      res.alpha = angle( { { 0,0,0,0,0,1 } }, { { 0,1,0,0,0,2 } }, nullptr );
+      res.beta = angle( { { 0,0,0,0,1,0 } }, { { 1,0,0,0,2,0 } },
+                        &beta_eq_alpha );
+      res.gamma = angle( { { 0,0,0,1,0,0 } }, { { 1,0,0,2,0,0 } },
+                         &gamma_eq_alpha );
+      //Consistency: 120 degree angles and equal angles require equal
+      //lengths, and the constraints must account for all degrees of freedom
+      //of the metric:
+      nc_assert_always( res.alpha != AC::Is120 || res.c == LC::EqualToA );
+      nc_assert_always( res.beta != AC::Is120 || res.c == LC::EqualToA );
+      nc_assert_always( res.gamma != AC::Is120 || res.b == LC::EqualToA );
+      if ( res.beta == AC::EqualToAlpha || res.gamma == AC::EqualToAlpha )
+        nc_assert_always( res.b == LC::EqualToA && res.c == LC::EqualToA );
+      const unsigned nfree = ( 1 + ( res.b == LC::Free ? 1 : 0 )
+                               + ( res.c == LC::Free ? 1 : 0 )
+                               + ( res.alpha == AC::Free ? 1 : 0 )
+                               + ( res.beta == AC::Free ? 1 : 0 )
+                               + ( res.gamma == AC::Free ? 1 : 0 ) );
+      nc_assert_always( nfree == 6 - rankM );
+      return res;
+    }
+
+    const char * angleName( unsigned i )
+    {
+      return i == 0 ? "alpha" : ( i == 1 ? "beta" : "gamma" );
+    }
   }
+}
+
+void NC::SGCellConstraints::check( const CellParameters& cp ) const
+{
+  using LC = LengthConstraint;
+  using AC = AngleConstraint;
+  const double lengths[3] = { cp.a, cp.b, cp.c };
+  const LC lc[3] = { LC::Free, b, c };
+  const char * lnames[3] = { "a", "b", "c" };
+  for ( unsigned i = 0; i < 3; ++i ) {
+    if ( lengths[i] == 0.0 )
+      NCRYSTAL_THROW2(BadInput,"Lattice parameter "<<lnames[i]<<" is 0 ("
+                      <<( lc[i] == LC::Free
+                          ? "it must be specified"
+                          : "implied values must be filled in first" )<<")");
+    if ( !( lengths[i] > 0.0 ) || !std::isfinite( lengths[i] ) )
+      NCRYSTAL_THROW2(BadInput,"Lattice parameter "<<lnames[i]
+                      <<" must be a positive number (got "<<lengths[i]<<")");
+    if ( lc[i] == LC::EqualToA && lengths[i] != cp.a )
+      NCRYSTAL_THROW2(BadInput,"Lattice parameters a and "<<lnames[i]
+                      <<" must be equal for this space group (got a="<<cp.a
+                      <<" and "<<lnames[i]<<"="<<lengths[i]<<")");
+  }
+  const double angles[3] = { cp.alpha, cp.beta, cp.gamma };
+  const AC ac[3] = { alpha, beta, gamma };
+  for ( unsigned i = 0; i < 3; ++i ) {
+    if ( angles[i] == 0.0 )
+      NCRYSTAL_THROW2(BadInput,"Lattice angle "<<angleName(i)<<" is 0 ("
+                      <<( ac[i] == AC::Free
+                          ? "it must be specified"
+                          : "implied values must be filled in first" )<<")");
+    if ( !( angles[i] > 0.0 && angles[i] < 180.0 ) )
+      NCRYSTAL_THROW2(BadInput,"Lattice angle "<<angleName(i)<<" must be in"
+                      " the range (0,180) degrees (got "<<angles[i]<<")");
+    const double expected = ( ac[i] == AC::Is90 ? 90.0
+                              : ac[i] == AC::Is120 ? 120.0
+                              : ac[i] == AC::EqualToAlpha ? cp.alpha
+                              : angles[i] );
+    if ( angles[i] != expected )
+      NCRYSTAL_THROW2(BadInput,"Lattice angle "<<angleName(i)<<" must be "
+                      <<( ac[i] == AC::EqualToAlpha ? "equal to alpha"
+                          : ac[i] == AC::Is90 ? "90 degrees" : "120 degrees" )
+                      <<" for this space group (got "<<angles[i]<<")");
+  }
+  if ( beta == AC::EqualToAlpha && gamma == AC::EqualToAlpha
+       && !( cp.alpha < 120.0 ) )
+    NCRYSTAL_THROW2(BadInput,"Lattice angles alpha=beta=gamma must be less"
+                    " than 120 degrees (got "<<cp.alpha<<")");
+}
+
+void NC::SGCellConstraints::complete( CellParameters& cp ) const
+{
+  using LC = LengthConstraint;
+  using AC = AngleConstraint;
+  if ( b == LC::EqualToA && cp.b == 0.0 )
+    cp.b = cp.a;
+  if ( c == LC::EqualToA && cp.c == 0.0 )
+    cp.c = cp.a;
+  double* angles[3] = { &cp.alpha, &cp.beta, &cp.gamma };
+  const AC ac[3] = { alpha, beta, gamma };
+  for ( unsigned i = 0; i < 3; ++i ) {
+    if ( *angles[i] != 0.0 )
+      continue;
+    if ( ac[i] == AC::Is90 )
+      *angles[i] = 90.0;
+    else if ( ac[i] == AC::Is120 )
+      *angles[i] = 120.0;
+    else if ( ac[i] == AC::EqualToAlpha )
+      *angles[i] = cp.alpha;//(alpha is never EqualToAlpha itself)
+  }
+  check( cp );
+}
+
+std::ostream& NC::operator<<( std::ostream& os, const SGCellConstraints& cc )
+{
+  using LC = SGCellConstraints::LengthConstraint;
+  using AC = SGCellConstraints::AngleConstraint;
+  os << "a, b" << ( cc.b == LC::EqualToA ? "=a" : "" )
+     << ", c" << ( cc.c == LC::EqualToA ? "=a" : "" );
+  const AC ac[3] = { cc.alpha, cc.beta, cc.gamma };
+  for ( unsigned i = 0; i < 3; ++i ) {
+    os << ", " << angleName( i );
+    switch ( ac[i] ) {
+    case AC::Free: break;
+    case AC::Is90: os << "=90"; break;
+    case AC::Is120: os << "=120"; break;
+    case AC::EqualToAlpha: os << "=alpha"; break;
+    }
+  }
+  return os;
 }
 
 std::vector<NC::SymOp> NC::detail::rawSymOpsFromHallSymbol( StrView hall )
@@ -344,6 +559,7 @@ NC::SGSymmetry::SGSymmetry( internal_t, SpaceGroup sg )
     if ( inv )
       m_centrosymmetric = true;
   }
+  m_cellconstraints = deriveCellConstraints( m_reps );
 }
 
 const NC::SGSymmetry& NC::SGSymmetry::get( SpaceGroup sg )

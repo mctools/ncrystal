@@ -1,4 +1,4 @@
-All 530 space group settings consistent with spglib and gemmi
+All 530 space group settings (incl. crystal systems and setting info) consistent with spglib and gemmi
 Distinct operations in the 530 settings of gemmi: 882
 All parsed identically by NCrystal and gemmi (string representations identical for 882 of them)
 All 530 space group settings: operations, centring vectors, representatives and centrosymmetry consistent with spglib and gemmi

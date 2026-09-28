@@ -92,7 +92,9 @@ v4.4.7 (work in progress)
        verified against several independent sources), and a SymOp class for
        symmetry operations (exact, verified against gemmi). SGSymmetry::get(sg)
        gives the operations of each setting, derived from its Hall symbol and
-       verified against spglib and gemmi for all 530 settings.
+       verified against spglib and gemmi for all 530 settings. Also crystal
+       systems, setting info (axes, unique axis, cell/origin choice, axis
+       permutation), and cell constraints derived from the operations.
      * HKL |F|^2 values no longer skip contributions from heavily damped atoms,
        which biased weak planes (up to ~2*fsquarecut, e.g. 5% errors) for no
        measurable speedup. Planes near fsquarecut may thus change slightly.

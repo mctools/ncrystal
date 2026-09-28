@@ -25,6 +25,7 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/sgsym/NCSGSymmetry.hh"
 #include "NCrystal/internal/phys_utils/NCEqRefl.hh"
+#include "NCrystal/internal/utils/NCLatticeUtils.hh"
 #include <iostream>
 #include <sstream>
 #include <set>
@@ -603,6 +604,235 @@ void run()
 
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Crystal systems, settings and cell constraints
+////////////////////////////////////////////////////////////////////////////////
+
+//Tests crystal systems, setting information and cell constraints of the 530
+//space group settings. The cell constraints (derived from the symmetry
+//operations) are checked against the expected patterns, and against the
+//existing checkAndCompleteLattice[Angles] functions for all settings those
+//support.
+
+namespace test_cell {
+
+namespace {
+  using LC = NC::SGCellConstraints::LengthConstraint;
+  using AC = NC::SGCellConstraints::AngleConstraint;
+  using CS = NC::SGCrystalSystem;
+
+  //Expected constraints, by hand from the crystal system and setting:
+  NC::SGCellConstraints expectedConstraints( const NC::SpaceGroup& sg )
+  {
+    const auto si = sg.settingInfo();
+    switch ( sg.crystalSystem() ) {
+    case CS::Triclinic:
+      return { LC::Free, LC::Free, AC::Free, AC::Free, AC::Free };
+    case CS::Monoclinic:
+      switch ( si.uniqueAxis ) {
+      case NC::SGUniqueAxis::b: case NC::SGUniqueAxis::minus_b:
+        return { LC::Free, LC::Free, AC::Is90, AC::Free, AC::Is90 };
+      case NC::SGUniqueAxis::c: case NC::SGUniqueAxis::minus_c:
+        return { LC::Free, LC::Free, AC::Is90, AC::Is90, AC::Free };
+      case NC::SGUniqueAxis::a: case NC::SGUniqueAxis::minus_a:
+        return { LC::Free, LC::Free, AC::Free, AC::Is90, AC::Is90 };
+      default:
+        REQUIRE( false );
+      }
+      break;
+    case CS::Orthorhombic:
+      return { LC::Free, LC::Free, AC::Is90, AC::Is90, AC::Is90 };
+    case CS::Tetragonal:
+      return { LC::EqualToA, LC::Free, AC::Is90, AC::Is90, AC::Is90 };
+    case CS::Trigonal:
+    case CS::Hexagonal:
+      if ( si.hexFamilyAxes == NC::SGHexFamilyAxes::Rhombohedral )
+        return { LC::EqualToA, LC::EqualToA, AC::Free, AC::EqualToAlpha,
+                 AC::EqualToAlpha };
+      return { LC::EqualToA, LC::Free, AC::Is90, AC::Is90, AC::Is120 };
+    case CS::Cubic:
+      return { LC::EqualToA, LC::EqualToA, AC::Is90, AC::Is90, AC::Is90 };
+    }
+    REQUIRE( false );
+    return {};
+  }
+
+  bool operator==( const NC::SGCellConstraints& x,
+                   const NC::SGCellConstraints& y )
+  {
+    return ( x.b == y.b && x.c == y.c && x.alpha == y.alpha
+             && x.beta == y.beta && x.gamma == y.gamma );
+  }
+
+  //The existing functionality (as used by NCInfoBuilder.cc), for comparison:
+  bool existingComplete( unsigned sgno, NC::CellParameters& cp )
+  {
+    try {
+      NC::checkAndCompleteLattice( sgno, cp.a, cp.b, cp.c );
+      NC::checkAndCompleteLatticeAngles( sgno, cp.alpha, cp.beta, cp.gamma );
+      if ( NC::usesRhombohedralAxes( static_cast<int>( sgno ), cp.alpha )
+           && !( cp.a == cp.b && cp.a == cp.c ) )
+        return false;
+      if ( !( cp.alpha > 0 && cp.alpha < 180 && cp.beta > 0 && cp.beta < 180
+              && cp.gamma > 0 && cp.gamma < 180 ) )
+        return false;
+    } catch ( NC::Error::BadInput& ) {
+      return false;
+    }
+    return true;
+  }
+
+  bool newComplete( const NC::SGCellConstraints& cc, NC::CellParameters& cp )
+  {
+    try {
+      cc.complete( cp );
+    } catch ( NC::Error::BadInput& ) {
+      return false;
+    }
+    return true;
+  }
+
+  //Settings supported by the existing functions (which only know the
+  //number): monoclinic with unique axis b, and for R space groups
+  //rhombohedral axes are detected from alpha!=90:
+  bool existingSupports( const NC::SpaceGroup& sg )
+  {
+    const auto ua = sg.settingInfo().uniqueAxis;
+    return ( sg.crystalSystem() != CS::Monoclinic
+             || ua == NC::SGUniqueAxis::b || ua == NC::SGUniqueAxis::minus_b );
+  }
+}
+
+void run()
+{
+  std::cout << "Hall number, setting, crystal system, setting info, cell"
+            << " constraints:" << std::endl;
+  unsigned ncompared = 0, nsame_ok = 0, nsame_fail = 0, nnew_generalised = 0;
+  std::set<std::string> patterns;
+  std::set<std::pair<unsigned,std::string>> compared_number_patterns;
+  for ( std::uint16_t hn = 1; hn <= 530; ++hn ) {
+    const NC::SpaceGroup sg{ NC::SpaceGroupHallNumber{ hn } };
+    const auto si = sg.settingInfo();
+    const auto cs = sg.crystalSystem();
+    const auto& sym = NC::SGSymmetry::get( sg );
+    const auto& cc = sym.cellConstraints();
+
+    //Setting info fields apply exactly where expected:
+    REQUIRE( ( si.uniqueAxis != NC::SGUniqueAxis::NotApplicable )
+             == ( cs == CS::Monoclinic ) );
+    REQUIRE( si.cellChoice == NC::SGCellChoice::NotApplicable
+             || cs == CS::Monoclinic );
+    REQUIRE( ( si.axisPermutation != NC::SGAxisPermutation::NotApplicable )
+             == ( cs == CS::Orthorhombic ) );
+    REQUIRE( ( si.hexFamilyAxes != NC::SGHexFamilyAxes::NotApplicable )
+             == ( cs == CS::Trigonal || cs == CS::Hexagonal ) );
+    REQUIRE( si.originChoice == NC::SGOriginChoice::NotApplicable
+             || cs == CS::Orthorhombic || cs == CS::Tetragonal
+             || cs == CS::Cubic );
+    //Hexagonal axes iff some rotation part is not a signed permutation:
+    bool hexrot = false;
+    for ( auto& op : sym.representatives() )
+      for ( unsigned i = 0; i < 3; ++i ) {
+        int nnonzero = 0;
+        for ( unsigned j = 0; j < 3; ++j )
+          if ( op.rot( i, j ) )
+            ++nnonzero;
+        if ( nnonzero != 1 )
+          hexrot = true;
+      }
+    REQUIRE( hexrot == ( si.hexFamilyAxes == NC::SGHexFamilyAxes::Hexagonal ) );
+
+    //Cell constraints as expected:
+    REQUIRE( cc == expectedConstraints( sg ) );
+    std::ostringstream ss;
+    ss << cc;
+    patterns.insert( ss.str() );
+
+    //Compare with existing functions (only once per number and constraint
+    //pattern, since other settings would behave identically):
+    if ( existingSupports( sg )
+         && compared_number_patterns.emplace( sg.number(), ss.str() ).second ) {
+      const bool rhomb = si.hexFamilyAxes == NC::SGHexFamilyAxes::Rhombohedral;
+      for ( double b : { 0.0, 4.0, 5.0 } )
+      for ( double c : { 0.0, 4.0, 6.0 } )
+      for ( double alpha : { 0.0, 90.0, 60.0, 120.0 } )
+      for ( double beta : { 0.0, 90.0, 100.0, 60.0 } )
+      for ( double gamma : { 0.0, 90.0, 120.0, 60.0 } ) {
+        //Existing functions detect rhombohedral axes via alpha!=90 (and
+        //alpha>0):
+        if ( NC::isRhombohedralSpaceGroup( static_cast<int>( sg.number() ) )
+             && ( rhomb != ( alpha > 0.0 && alpha != 90.0 ) ) )
+          continue;
+        NC::CellParameters cp_old{ 4.0, b, c, alpha, beta, gamma };
+        NC::CellParameters cp_new = cp_old;
+        const bool ok_old = existingComplete( sg.number(), cp_old );
+        const bool ok_new = newComplete( cc, cp_new );
+        ++ncompared;
+        if ( ok_old ) {
+          REQUIRE( ok_new );
+          REQUIRE( cp_old.a == cp_new.a && cp_old.b == cp_new.b
+                   && cp_old.c == cp_new.c && cp_old.alpha == cp_new.alpha
+                   && cp_old.beta == cp_new.beta
+                   && cp_old.gamma == cp_new.gamma );
+          ++nsame_ok;
+        } else if ( !ok_new ) {
+          ++nsame_fail;
+        } else {
+          //Only allowed generalisation: c=0 in rhombohedral axes (existing
+          //code requires c to be specified, although c=a is implied):
+          REQUIRE( rhomb && c == 0.0 );
+          ++nnew_generalised;
+        }
+      }
+    }
+    std::cout << "  " << hn << " " << sg << " " << cs << " " << si << " ["
+              << cc << "]" << std::endl;
+  }
+  std::cout << "Distinct cell constraint patterns: " << patterns.size()
+            << std::endl;
+  for ( auto& p : patterns )
+    std::cout << "  " << p << std::endl;
+  REQUIRE( patterns.size() == 9 );
+  std::cout << "Compared with existing functions for " << ncompared
+            << " cells: " << nsame_ok << " accepted by both (identical"
+            << " results), " << nsame_fail << " rejected by both, "
+            << nnew_generalised << " only accepted by the new code (c=0"
+            << " in rhombohedral axes)" << std::endl;
+
+  std::cout << "Examples of errors:" << std::endl;
+  auto showErr = []( const char * sgstr, NC::CellParameters cp, bool complete )
+  {
+    const auto& cc = NC::SGSymmetry::get( NC::SpaceGroup( sgstr ) )
+      .cellConstraints();
+    try {
+      if ( complete )
+        cc.complete( cp );
+      else
+        cc.check( cp );
+      REQUIRE( false );
+    } catch ( NC::Error::BadInput& e ) {
+      std::cout << "  " << sgstr << ( complete ? " complete: " : " check: " )
+                << e.what() << std::endl;
+    }
+  };
+  showErr( "225", { 4.0, 0.0, 0.0, 90.0, 90.0, 90.0 }, false );
+  showErr( "14:b1", { 4.0, 5.0, 6.0, 90.0, 0.0, 90.0 }, true );
+  showErr( "14:c1", { 4.0, 5.0, 6.0, 90.0, 100.0, 90.0 }, false );
+  showErr( "194", { 4.0, 4.1, 6.0, 90.0, 90.0, 120.0 }, false );
+  showErr( "194", { 4.0, 4.0, 6.0, 90.0, 90.0, 119.9 }, false );
+  showErr( "166:R", { 4.0, 0.0, 0.0, 120.0, 0.0, 0.0 }, true );
+  showErr( "166:R", { 4.0, 4.0, 4.0, 60.0, 60.0, 61.0 }, false );
+  showErr( "1", { 4.0, 5.0, 6.0, 90.0, 180.0, 90.0 }, false );
+  showErr( "1", { -4.0, 5.0, 6.0, 90.0, 90.0, 90.0 }, false );
+  NC::CellParameters cp{ 4.0, 0.0, 0.0, 70.0, 0.0, 0.0 };
+  NC::SGSymmetry::get( NC::SpaceGroup( "166:R" ) ).cellConstraints()
+    .complete( cp );
+  REQUIRE( cp.b == 4.0 && cp.c == 4.0 && cp.beta == 70.0 && cp.gamma == 70.0 );
+  std::cout << "All OK" << std::endl;
+}
+
+}
+
 int main()
 {
   std::cout << "==== Space group table ====" << std::endl;
@@ -611,5 +841,7 @@ int main()
   test_symop::run();
   std::cout << "==== Symmetry of space groups ====" << std::endl;
   test_symmetry::run();
+  std::cout << "==== Crystal systems, settings and cell constraints ====" << std::endl;
+  test_cell::run();
   return 0;
 }
