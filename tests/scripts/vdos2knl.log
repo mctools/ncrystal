@@ -45,3 +45,11 @@ Calling nc_vdos.extractKnl( m=27, T=300, vdoslux=4, target_emax=0.5 )
 
 Calling nc_vdos.extractKnl( m=27, T=0.5, vdoslux=1, target_emax=5000 )
 Caught expected NCCalcError('VDOS expansion too slow - can not reach E=5000eV after 10000 phonon convolutions (likely causes: either the target energy value is too high, vdoslux too low, the temperature too high, or the VDOS is very unusual).')
+T=0.1K: G1 binwidth/kT <= 0.25: True  |DB deviation| < 2.5%: True
+T=1K: G1 binwidth/kT <= 0.25: True  |DB deviation| < 2.5%: True
+T=5K: G1 binwidth/kT <= 0.25: True  |DB deviation| < 2.5%: True
+T=14K: G1 binwidth/kT <= 0.25: True  |DB deviation| < 2.5%: True
+T=50K: G1 binwidth/kT <= 0.25: True  |DB deviation| < 2.5%: True
+T=293.15K: G1 binwidth/kT <= 0.25: True  |DB deviation| < 2.5%: True
+Caught expected NCBadInput('VDOS expansion not supported for temperatures below 0.1K (requested T=0.09K)')
+Caught expected NCCalcError('VDOS expansion would require too many (4642000) bins to resolve the VDOS (which extends to 10eV) on the scale of kT=8.6173303e-06eV (max allowed is 1000000). The temperature is likely too low for the given VDOS.')

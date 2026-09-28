@@ -87,6 +87,11 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Non-legacy VDOS expansion (vdoslux 2000..2006) now samples the G1
+       function with bins of at most 0.25*kT, since coarse input VDOS grids
+       otherwise broke detailed balance at low temperatures (e.g. ~10% xs
+       errors for H in acrylic glass at 5K). Temperatures below 0.1K are now
+       rejected, and a CalcError is raised if G1 would need >1e6 bins.
      * New internal sgsym component with SpaceGroup/SpaceGroupHallNumber
        classes for the 530 space group settings of ITVB Table A1.4.2.7 (table
        verified against several independent sources), and a SymOp class for

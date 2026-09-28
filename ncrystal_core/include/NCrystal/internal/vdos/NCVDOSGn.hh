@@ -85,6 +85,11 @@ namespace NCRYSTAL_NAMESPACE {
       //isolating whether a given cross-platform reproducibility issue stems
       //from FastConvolve's own numerical noise floor. See
       //docs/claude_session_vdos_fma_reprod.md.
+      //
+      //Except for Legacy, G1 is sampled with a binwidth of at most 0.25*kT
+      //(so the exp(-beta) fall-off of upscattering is resolved), and
+      //temperatures below 0.1K are not supported (throws BadInput). If the
+      //required number of G1 bins is excessive, a CalcError is thrown.
       enum class Cfg { Default, Legacy, MaxLux };
 
       //Initialise based on VDOS and cfg:

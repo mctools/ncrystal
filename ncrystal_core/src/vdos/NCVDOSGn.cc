@@ -55,6 +55,13 @@ namespace NCRYSTAL_NAMESPACE {
         bool legacyConvolve = false;
         bool directConvolve = false;//use FastConvolve::convolveDirect
         //instead of convolve, for every order (see VDOSGn::Cfg::MaxLux).
+        double g1MaxBinWidthKT = 0.25;//Thicken G1 until its binwidth is at
+        //most this value times kT (0 disables). Needed since the detailed
+        //balance factor exp(-beta/2) of the asymmetric G1 makes it fall off
+        //like exp(-beta) for upscattering, and linear interpolation over bins
+        //of width d*kT then has relative errors up to ~d^2/8.
+        //FIXME: The optimal value might depend on the vdoslux level.
+        double minTemperature = 0.1;//Kelvin (0 disables)
       };
       CfgDecoded decodeCfg( VDOSGn::Cfg choice ) {
         CfgDecoded res;
@@ -65,6 +72,8 @@ namespace NCRYSTAL_NAMESPACE {
           res.minThinAgressiveOrder = 50000;
           res.truncationThreshold = 1e-14;
           res.legacyConvolve = true;
+          res.g1MaxBinWidthKT = 0.0;
+          res.minTemperature = 0.0;
         } else if (choice == VDOSGn::Cfg::MaxLux) {
           res.directConvolve = true;
         } else {
@@ -303,7 +312,32 @@ NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
   //factor to nbins, not npts, since we want e.g. thicken_factor=2 to correspond
   //to the placement of 1 extra point in the middle of all existing bins.:
   constexpr unsigned long min_nbins = 400;
-  const unsigned long thicken_factor = static_cast<unsigned long>(std::ceil(double(min_nbins)/nbins));
+  unsigned long thicken_factor = static_cast<unsigned long>(std::ceil(double(min_nbins)/nbins));
+
+  if ( m_cfg.minTemperature > 0.0
+       && vde.temperature().dbl() < m_cfg.minTemperature )
+    NCRYSTAL_THROW2(BadInput,"VDOS expansion not supported for temperatures"
+                    " below "<<Temperature{m_cfg.minTemperature}
+                    <<" (requested T="<<vde.temperature()<<")");
+
+  if ( m_cfg.g1MaxBinWidthKT > 0.0 ) {
+    //Also thicken until G1 resolves structure on the kT scale (1e-9 guards
+    //against rounding up exact ratios):
+    const double r = ( gridinfo.emax / nbins )
+      / ( m_cfg.g1MaxBinWidthKT * vde.kT() );
+    constexpr double max_nbins = 1e6;//G1..G3 + FFT buffers ~0.35GB
+    const double tf = std::ceil( r * ( 1.0 - 1e-9 ) );
+    if ( !( nbins * tf <= max_nbins ) )
+      NCRYSTAL_THROW2(CalcError,"VDOS expansion would require too many ("
+                      <<static_cast<std::uint64_t>(nbins * tf)<<") bins to"
+                      " resolve the VDOS (which extends to "
+                      <<fmt(gridinfo.emax)<<"eV) on the scale of kT="
+                      <<fmt(vde.kT())<<"eV (max allowed is "
+                      <<static_cast<std::uint64_t>(max_nbins)<<"). The"
+                      " temperature is likely too low for the given VDOS.");
+    thicken_factor = std::max<unsigned long>(
+      thicken_factor, static_cast<unsigned long>( tf ) );
+  }
 
   if ( s_verbose_vdosgn && thicken_factor != 1 )
     NCRYSTAL_MSG("VDOSGn Thickening provided VDOS egrid for G1 by a"
