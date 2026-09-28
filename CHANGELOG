@@ -87,6 +87,9 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Fix data races on several static flags (warn-once flags in sampling
+       code for Gaussian mosaicity and layered crystals, and the C-API error
+       settings).
      * Fix potential deadlock if clearCaches() is called concurrently with
        code using a cache for the first time (or if cleanup functions
        themselves register cleanup functions).

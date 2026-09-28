@@ -638,9 +638,8 @@ void NC::LCHelper::genScatter( LCHelper::Cache& cache, RNG& rng, double wl, cons
         cosphi = cos_mpipi(phi);
         double xsphi = m_lcstdframe.calcXS(neutron,normal,cosphi);
         if ( xsphi > overlay_at_phi ) {
-          static bool first = true;
-          if (first) {
-            first = false;
+          static std::atomic<bool> first(true);//atomic, for MT-safety
+          if ( first.exchange(false) ) {
             std::ostringstream ss;
             ss<<"Problems sampling with rejection method during LCHelper::genScatter "
               "invocation. Overlay function was not larger than actual cross-section value at sampled point "
@@ -656,9 +655,8 @@ void NC::LCHelper::genScatter( LCHelper::Cache& cache, RNG& rng, double wl, cons
           break;
       }
       if (triesleft<=0) {
-        static bool first = true;
-        if (first) {
-          first = false;
+        static std::atomic<bool> first(true);//atomic, for MT-safety
+        if ( first.exchange(false) ) {
           std::ostringstream ss;
           ss<<"NCrystal WARNING: Problems sampling with rejection method during LCHelper::genScatter "
             "invocation. Did not accept sampled value after "<<maxtries<<" attempts. Further warnings"

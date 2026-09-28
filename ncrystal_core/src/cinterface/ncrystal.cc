@@ -281,9 +281,11 @@ namespace NCRYSTAL_NAMESPACE {
                       " not the handle itself.");
     }
 
-    static int quietonerror = 0;
-    static int haltonerror = 1;
-    static void (*custom_error_handler)(char *,char*) = 0;
+    //Atomic, since they might be read and modified from different threads:
+    using custom_error_handler_t = void (*)(char *,char*);
+    static std::atomic<int> quietonerror(0);
+    static std::atomic<int> haltonerror(1);
+    static std::atomic<custom_error_handler_t> custom_error_handler(nullptr);
 
     //Error state is kept per thread (keyed on thread id, guarded by a
     //mutex, since thread_local is avoided), so an error in one thread is
@@ -333,9 +335,9 @@ namespace NCRYSTAL_NAMESPACE {
       //Ensure final null-char in case of very long input strings:
       errmsg[sizeof(state->errmsg)-1]='\0';
       errtype[sizeof(state->errtype)-1]='\0';
-      if (custom_error_handler) {
-        (*custom_error_handler)(errtype,errmsg);
-      }
+      const custom_error_handler_t handler = custom_error_handler.load();
+      if ( handler )
+        (*handler)(errtype,errmsg);
       if (!quietonerror) {
         NCRYSTAL_RAWOUT("NCrystal ERROR ["<<errtype<<"]: "<<errmsg<<'\n');
       }
@@ -407,16 +409,12 @@ void ncrystal_clearerror(void)
 
 int ncrystal_setquietonerror(int q)
 {
-  int old = ncc::quietonerror;
-  ncc::quietonerror = q;
-  return old;
+  return ncc::quietonerror.exchange(q);
 }
 
 int ncrystal_sethaltonerror(int h)
 {
-  int old = ncc::haltonerror;
-  ncc::haltonerror = h;
-  return old;
+  return ncc::haltonerror.exchange(h);
 }
 
 int ncrystal_valid(void* object)
@@ -958,7 +956,11 @@ void ncrystal_dyninfo_extract_scatknl( ncrystal_info_t ci,
       if (first) {
         //Register for clearance by global clearCaches function:
         first = false;
-        NC::registerCacheCleanupFunction([](){ s_keepAlive.clear(); });
+        NC::registerCacheCleanupFunction([]()
+        {
+          NCRYSTAL_LOCK_GUARD(s_keepAlive_mutex);
+          s_keepAlive.clear();
+        });
       }
 
     }
