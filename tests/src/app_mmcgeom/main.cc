@@ -1526,7 +1526,7 @@ void testProbTransm( bool geom_is_unbounded )
     nc_assert_always( out[i]>=0.0 );
     nc_assert_always( out[i]<=1.0 );
   }
-  NCMMC::Utils::calcProbTransm( n, geom_is_unbounded,
+  NCMMC::Utils::calcProbTransm( nd, geom_is_unbounded,
                                 nullptr,
                                 vals_dists, out );
   for ( auto i : NC::ncrange(nd) ) {
