@@ -1,0 +1,84 @@
+name: profile
+
+# Windows CPU profiling for tests/src/app_perfvdos (the VDOS Gn expansion/
+# FastConvolve hot path), to find out *why* Windows is so much slower there
+# than Linux/macOS (benchmark.yml's cross-platform comparison found a
+# consistent ~5-10x gap). Uses Windows Performance Recorder (WPR, built into
+# Windows itself) to capture a CPU-sampling trace, then devel/win's tooling
+# to (best-effort) summarise it -- see devel/win/profile_perfvdos.sh and
+# devel/win/winprofile/ for the actual logic; this workflow is just the CI
+# wiring around that reusable, non-CI-specific script.
+#
+# RelWithDebInfo (not Release): CMake does not generate PDBs for a plain
+# Release build by default, and without PDBs the profiler cannot resolve
+# our own code's function names (only raw addresses) -- RelWithDebInfo
+# keeps the same optimisation level as Release for MSVC (/O2) while adding
+# debug info.
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  profile:
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        path: src
+
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
+    - name: Configure CMake (RelWithDebInfo)
+      run: >
+        cmake
+        -S src
+        -B build
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        -DNCRYSTAL_BUILD_STRICT=ON
+        -DNCRYSTAL_ENABLE_TESTING=ON
+        2>&1 | tee configure.log
+
+    - name: Build perfvdos
+      run: >
+        cmake
+        --build build
+        --config RelWithDebInfo
+        --target perfvdos
+        2>&1 | tee build.log
+
+    - name: Profile perfvdos
+      run: ./src/devel/win/profile_perfvdos.sh build profile-out 2>&1 | tee run.log
+
+    #Bundle the *text* logs into one file (same convention as the other
+    #workflows), but the .etl trace and .pdb files are binary and cannot be
+    #flattened into that same text file -- they are uploaded as additional
+    #files under the same artifact instead, so this is a small multi-file
+    #artifact by necessity rather than the usual single flat log:
+    - name: Combine text logs
+      if: always()
+      run: |
+        {
+          echo "=== configure.log ==="; cat configure.log 2>/dev/null || true
+          echo; echo "=== build.log ==="; cat build.log 2>/dev/null || true
+          echo; echo "=== run.log ==="; cat run.log 2>/dev/null || true
+          echo; echo "=== profile-out/perfvdos.log ==="; cat profile-out/perfvdos.log 2>/dev/null || true
+          echo; echo "=== profile-out/analysis.txt ==="; cat profile-out/analysis.txt 2>/dev/null || true
+        } > profile-logs.log
+
+    - name: Upload logs and trace
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: profile-${{ github.sha }}
+        path: |
+          profile-logs.log
+          profile-out/trace.etl
+          profile-out/*.pdb
+        if-no-files-found: warn

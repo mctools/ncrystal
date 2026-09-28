@@ -1,0 +1,209 @@
+name: benchmark
+
+# Cross-platform performance comparison for two related but distinct hot
+# paths, particularly to quantify how much slower Windows/MSVC is there
+# relative to Linux/macOS:
+#  - tests/src/app_perfvdos: one-time VDOS Gn expansion/FastConvolve cost
+#    paid once when a material is loaded (VDOS -> SAB kernel construction).
+#  - tests/src/app_perfsab: the ongoing, per-event SAB cross-section/
+#    scattering-sampling cost paid throughout an actual simulation
+#    (StdLogLinCellIntegrator, for a vdoslux>=2000 "next-gen" material) --
+#    see both apps' own top comments for the distinction.
+#
+# Builds only these two targets (skips the example/plugin build and the
+# pip install step entirely, same trick as fastwindbg.yml used for the
+# access-violation bisection), in Release, and runs them directly (not via
+# ctest) to keep the log output pure timing lines.
+#
+# Each platform is run 3 times (the "repeat" axis below), so results are
+# hopefully drawn from different underlying physical runners each time
+# (GitHub's runners are ephemeral VMs, not guaranteed identical hardware
+# even for the "same" runner label) -- comparing across those repeats
+# gives a rough sense of run-to-run/host-to-host noise, rather than
+# risking reading too much into a single noisy sample per platform.
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    strategy:
+      fail-fast: false
+      matrix:
+        repeat: [1, 2, 3]
+        #A real matrix axis (object-valued), not "include": the previous
+        #"repeat: [1,2,3]" + "include: [{os,label}, {os,label}, ...]" form
+        #looked like it should cross to 3x4=12 jobs, but since none of the
+        #4 include entries share a key with "repeat", each one gets merged
+        #into the *same* pre-existing {repeat:N} combinations rather than
+        #creating new ones -- so each later entry overwrote the previous
+        #one's os/label on those same 3 combinations, leaving only the
+        #last entry (macos-15-intel) surviving x3 runs, which is exactly
+        #the bug observed on a real run (only macos-15-intel jobs showed
+        #up). This form is unambiguous: GitHub crosses every real matrix
+        #axis (repeat x platform here), guaranteeing all 3x4=12 jobs:
+        platform:
+          - { os: windows-2022,   label: windows-2022 }
+          - { os: ubuntu-latest,  label: ubuntu-latest }
+          - { os: macos-latest,   label: macos-latest-arm64 }
+          - { os: macos-15-intel, label: macos-15-intel }
+    name: ${{ matrix.platform.label }} (run ${{ matrix.repeat }})
+    runs-on: ${{ matrix.platform.os }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        path: src
+
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
+    #CMAKE_BUILD_TYPE matters for the single-config generators used on
+    #Linux/macOS; it is silently ignored for Windows' multi-config Visual
+    #Studio generator, where --config Release below is what actually
+    #selects the optimised build instead. Passing both covers every
+    #platform in this matrix with one recipe:
+    - name: Configure CMake (Release)
+      run: >
+        cmake
+        -S src
+        -B build
+        -DCMAKE_BUILD_TYPE=Release
+        -DNCRYSTAL_BUILD_STRICT=ON
+        -DNCRYSTAL_ENABLE_TESTING=ON
+        2>&1 | tee configure.log
+
+    - name: Build perfvdos + perfsab
+      run: >
+        cmake
+        --build build
+        --config Release
+        --target perfvdos perfsab
+        2>&1 | tee build.log
+
+    #Executable location differs between the single-config generators used
+    #on Linux/macOS (build/tests/<name>) and Windows' multi-config VS
+    #generator (build/tests/Release/<name>.exe). On Windows specifically,
+    #running it directly like this (rather than via ctest, which sets up
+    #PATH itself -- see tests/CMakeLists.txt) needs the directory holding
+    #the (namespace-protected, hence "NCrystal-test.dll" not "NCrystal.dll")
+    #shared library prepended to PATH ourselves, or the exe fails to even
+    #start at all with no output whatsoever (confirmed: this is exactly
+    #what a real CI run of this workflow showed before this fix -- the
+    #same DLL-not-found issue already hit and fixed once for fastwindbg.yml):
+    - name: Run benchmarks
+      run: |
+        #Without this, a real crash/missing-binary failure inside the
+        #piped-to-tee block below would be silently swallowed: the
+        #pipeline's reported exit status is tee's (always 0), not the
+        #"exit ..." above it, unless pipefail is set (confirmed by
+        #deliberately testing the failure path locally):
+        set -o pipefail
+        run_bench() {
+          local name="$1"
+          local EXE=""
+          for cand in "build/tests/Release/$name.exe" \
+                      "build/tests/Release/$name" \
+                      "build/tests/$name"; do
+            if [ -f "$cand" ]; then
+              EXE="$cand"
+              break
+            fi
+          done
+          if [ -z "$EXE" ]; then
+            echo "Could not locate the built $name executable"
+            return 1
+          fi
+          local dll
+          dll=$(find build -iname "NCrystal-test.dll" -o -iname "NCrystal.dll" 2>/dev/null | head -n1)
+          if [ -n "$dll" ]; then
+            export PATH="$(dirname "$dll"):$PATH"
+          fi
+          set +e
+          "$EXE"
+          local ec=$?
+          set -e
+          echo "$name exit code: $ec"
+          return "$ec"
+        }
+        {
+          echo "=== perfvdos ==="
+          #set +e/-e bracketing each call: with pipefail active, a non-zero
+          #return from run_bench would otherwise trip errexit immediately,
+          #aborting the script before perfsab is even attempted (confirmed
+          #by testing the failure path locally) -- we want both apps
+          #attempted independently, with the combined exit code decided
+          #only at the very end:
+          set +e; run_bench perfvdos; ec1=$?; set -e
+          echo; echo "=== perfsab ==="
+          set +e; run_bench perfsab; ec2=$?; set -e
+          exit $(( ec1 != 0 ? ec1 : ec2 ))
+        } 2>&1 | tee run.log
+
+    #Bundle this job's 3 files into the one, so the final collected log
+    #(assembled by the "collect" job below from every leg's single file)
+    #is a flat concatenation, not a tarball-of-tarballs:
+    - name: Combine logs
+      if: always()
+      run: |
+        {
+          echo "=== configure.log ==="; cat configure.log 2>/dev/null || true
+          echo; echo "=== build.log ==="; cat build.log 2>/dev/null || true
+          echo; echo "=== run.log ==="; cat run.log 2>/dev/null || true
+        } > benchmark-${{ matrix.platform.label }}-run${{ matrix.repeat }}.log
+
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: benchmark-${{ matrix.platform.label }}-run${{ matrix.repeat }}-${{ github.sha }}
+        path: benchmark-${{ matrix.platform.label }}-run${{ matrix.repeat }}.log
+        if-no-files-found: warn
+
+  collect_logs:
+    #Single job downloading every per-leg "benchmark-*" artifact above and
+    #concatenating them all into one flat log file, so the whole matrix's
+    #timing data can be grabbed with a single download instead of one per
+    #leg (12 legs = 12 downloads otherwise):
+    name: Collect all benchmark logs
+    needs: [ benchmark ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all per-leg logs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: benchmark-*
+          path: all-benchmark-logs
+
+      - name: Concatenate into one file
+        #Not relying on merge-multiple (download-artifact puts each artifact
+        #in its own subdirectory by default): find handles either layout:
+        run: |
+          out="benchmark-logs-${{ github.sha }}.log"
+          : > "$out"
+          for f in $(find all-benchmark-logs -type f -iname '*.log' | sort); do
+            {
+              echo "############################################################"
+              echo "### $(basename "$f")"
+              echo "############################################################"
+              cat "$f"
+              echo
+            } >> "$out"
+          done
+          echo "OUT=$out" >> "$GITHUB_ENV"
+
+      - name: Upload combined log
+        #The artifact "name:" (not the file inside it) is what GitHub uses
+        #for the downloadable zip's filename on the Actions run page, so it
+        #needs the commit sha too, not just the log file's own name below:
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: benchmark-logs-${{ github.sha }}
+          path: ${{ env.OUT }}
+          if-no-files-found: warn
