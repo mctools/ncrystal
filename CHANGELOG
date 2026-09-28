@@ -87,6 +87,9 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Fix potential deadlock if clearCaches() is called concurrently with
+       code using a cache for the first time (or if cleanup functions
+       themselves register cleanup functions).
      * Fix out-of-bounds read when iterating over lines of text data starting
        with a newline (in the worst case giving memory corruption).
      * Non-legacy VDOS expansion (vdoslux 2000..2006) no longer has fixed

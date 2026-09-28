@@ -34,8 +34,15 @@ namespace NCRYSTAL_NAMESPACE {
 
 void NC::clearCaches()
 {
-  NCRYSTAL_LOCK_GUARD(s_cacheCleanerMutex);
-  for (auto& f : s_cacheCleanerMutexFcts)
+  //Invoke functions without holding the lock, since they typically acquire
+  //other locks, which are also often held by the code registering them
+  //(i.e. there would be a risk of deadlocks due to lock order inversion).
+  std::vector<voidfct_t> fcts;
+  {
+    NCRYSTAL_LOCK_GUARD(s_cacheCleanerMutex);
+    fcts = s_cacheCleanerMutexFcts;
+  }
+  for (auto& f : fcts)
     f();
 }
 

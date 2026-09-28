@@ -109,7 +109,27 @@ int main()
   test(2,3);
   test(2,3);
 
-
+  //Test that cleanup functions are invoked by clearCaches() without the
+  //registry of cleanup functions being locked (they might directly or
+  //indirectly end up registering other cleanup functions, and holding the
+  //lock also risks deadlocks due to lock order inversion):
+  {
+    static int s_ncalls_a = 0;
+    static int s_ncalls_b = 0;
+    NC::registerCacheCleanupFunction( []()
+    {
+      //Registers another cleanup function the first time it is called:
+      if ( ++s_ncalls_a == 1 )
+        NC::registerCacheCleanupFunction( [](){ ++s_ncalls_b; } );
+    });
+    nc_assert_always( s_ncalls_a == 0 && s_ncalls_b == 0 );
+    NC::clearCaches();
+    nc_assert_always( s_ncalls_a == 1 && s_ncalls_b == 0 );
+    NC::clearCaches();
+    nc_assert_always( s_ncalls_a == 2 && s_ncalls_b == 1 );
+    std::cout<<"(cleanup functions registering cleanup functions: OK)"
+             <<std::endl;
+  }
 
   //MT stuff:
 
