@@ -425,7 +425,8 @@ int ncrystal_valid(void* object)
   return i ? 1 : 0;
 }
 
-#define NCCATCH catch (std::exception& e) { ncc::handleError(e); }
+#define NCCATCH catch (std::exception& e) { ncc::handleError(e); } \
+  catch (...) { ncc::setError("<unknown>","unknown non-standard exception"); }
 
 ncrystal_process_t ncrystal_cast_scat2proc(ncrystal_scatter_t s)
 {
@@ -809,7 +810,7 @@ void ncrystal_raw_vdos2gn( const double* vdos_egrid,
     const auto& y =  vdosGn.getRawSpectrum( order );
     auto ny = static_cast<unsigned>( y.size() );
     double * arr_y = new double[ny];
-    std::copy( y.begin(), y.end(), arr_y );
+    std::copy( y.begin(), y.end(), arr_y );//(can not throw)
     *res_gn_xmin = xrange.first;
     *res_gn_xmax = xrange.second;
     *res_gn_npts = ny;
@@ -894,19 +895,23 @@ void ncrystal_raw_vdos2kernel( const double* vdos_egrid,
       // it unpredictable:
       *suggested_emax = sabdata.suggestedEmax();
     }
+    //Use unique_ptr's until all allocations are done, to avoid leaks if one
+    //of them fails:
     auto na = sabdata.alphaGrid().size();
-    double * arr_a = new double[na];
-    std::copy( sabdata.alphaGrid().begin(), sabdata.alphaGrid().end(), arr_a );
+    std::unique_ptr<double[]> arr_a( new double[na] );
+    std::copy( sabdata.alphaGrid().begin(), sabdata.alphaGrid().end(),
+               arr_a.get() );
     auto nb = sabdata.betaGrid().size();
-    double * arr_b = new double[nb];
-    std::copy( sabdata.betaGrid().begin(), sabdata.betaGrid().end(), arr_b );
+    std::unique_ptr<double[]> arr_b( new double[nb] );
+    std::copy( sabdata.betaGrid().begin(), sabdata.betaGrid().end(),
+               arr_b.get() );
     auto ns = sabdata.sab().size();
-    nc_assert_always( ns = na*nb );
-    double * arr_s = new double[ns];
-    std::copy( sabdata.sab().begin(), sabdata.sab().end(), arr_s );
-    *alpha = arr_a;
-    *beta = arr_b;
-    *sab = arr_s;
+    nc_assert_always( ns == na*nb );
+    std::unique_ptr<double[]> arr_s( new double[ns] );
+    std::copy( sabdata.sab().begin(), sabdata.sab().end(), arr_s.get() );
+    *alpha = arr_a.release();
+    *beta = arr_b.release();
+    *sab = arr_s.release();
     *nalpha = na;
     *nbeta = nb;
   } NCCATCH;
@@ -1972,13 +1977,21 @@ namespace NCRYSTAL_NAMESPACE {
       }
       nc_assert_always( l.size() < std::numeric_limits<unsigned>::max() );
       unsigned len = static_cast<unsigned>(l.size());
-      char ** out = new char*[len];
+      char ** out = new char*[len]();//NB: all entries initialised to nullptr
       char ** it = out;
-      for ( auto& e : l ) {
-        nc_assert(it<(out + len));
-        *it = new char[e.size()+1];
-        std::memcpy(*it,&e[0],e.size()+1);
-        ++it;
+      try {
+        for ( auto& e : l ) {
+          nc_assert(it<(out + len));
+          *it = new char[e.size()+1];
+          std::memcpy(*it,&e[0],e.size()+1);
+          ++it;
+        }
+      } catch (...) {
+        //Avoid leaks if an allocation failed:
+        for ( unsigned i = 0; i < len; ++i )
+          delete[] out[i];
+        delete[] out;
+        throw;
       }
       *tgtlen = len;
       *tgt = out;
@@ -2525,7 +2538,8 @@ void ncrystal_fill_jsonarray( const char* key_raw, double* dst )
       return;
     }
     NC::VectD data = NC::getJSONQueryHugeArray(key.to_string());
-    std::memcpy(dst,data.data(),sizeof(double)*data.size());
+    if ( !data.empty() )//(memcpy with null pointers is undefined behaviour)
+      std::memcpy(dst,data.data(),sizeof(double)*data.size());
   } NCCATCH;
 }
 

@@ -22,7 +22,9 @@
 // Test that the error state of the C API is kept per thread, so errors
 // in one thread are never reported in another. Threads are only used if
 // available, via NCrystal's factory thread pool (so
-// NCRYSTAL_DISABLE_THREADS is respected).
+// NCRYSTAL_DISABLE_THREADS is respected). Also test that exceptions which do
+// not derive from std::exception (here thrown by a custom random generator
+// function) do not escape the C API, but results in the usual error state.
 
 #include "NCrystal/ncrystal.h"
 #include "NCrystal/internal/fact_utils/NCFactoryJobs.hh"
@@ -62,6 +64,40 @@ namespace {
   }
 }
 
+namespace {
+  double badRandGen()
+  {
+    throw 17;
+    return 0.5;
+  }
+
+  void testNonStdException()
+  {
+    ncrystal_setrandgen( badRandGen );
+    nc_assert_always( !ncrystal_error() );
+    ncrystal_scatter_t sc
+      = ncrystal_create_scatter( "stdlib::Al_sg225.ncmat;comp=inelas" );
+    nc_assert_always( !ncrystal_error() );
+    double ekin_final(-1.0), mu(-1.0);
+    bool escaped = false;
+    try {
+      ncrystal_samplescatterisotropic( sc, 0.025, &ekin_final, &mu );
+    } catch ( ... ) {
+      escaped = true;
+    }
+    std::cout << "Non-standard exception escaped C API: "
+              << ( escaped ? "yes" : "no" ) << std::endl;
+    nc_assert_always( !escaped );
+    nc_assert_always( ncrystal_error() );
+    std::cout << "Error type: " << ncrystal_lasterrortype() << std::endl;
+    std::cout << "Error message: " << ncrystal_lasterror() << std::endl;
+    ncrystal_clearerror();
+    ncrystal_unref( &sc );
+    ncrystal_setbuiltinrandgen();
+    nc_assert_always( !ncrystal_error() );
+  }
+}
+
 int main()
 {
   ncrystal_sethaltonerror( 0 );
@@ -88,5 +124,6 @@ int main()
             << " possible. Problems: " << ntot << std::endl;
   nc_assert_always( ntot == 0 );
   nc_assert_always( !ncrystal_error() );
+  testNonStdException();
   return 0;
 }

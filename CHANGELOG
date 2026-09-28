@@ -87,6 +87,10 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * C-API: exceptions not deriving from std::exception no longer escape,
+       but result in the usual error state. Also fix ineffective consistency
+       check (assignment instead of comparison) in ncrystal_raw_vdos2knl, and
+       avoid memory leaks if allocations fail while preparing return values.
      * COWPimpl: fix mutex being left locked if copy-on-write fails, and
        missing return statement in move assignment of Modifier objects.
      * DI_ScatKnlDirect: kernels with wrong temperature now give errors in all
