@@ -95,6 +95,9 @@ v4.4.7 (work in progress)
        verified against spglib and gemmi for all 530 settings. Also crystal
        systems, setting info (axes, unique axis, cell/origin choice, axis
        permutation), and cell constraints derived from the operations.
+       expandSiteToOrbit(..) expands sites into symmetry-equivalent positions
+       (symmetrising sites within 5e-4 of special positions, and rejecting
+       sites within 1e-2 but not on them).
      * HKL |F|^2 values no longer skip contributions from heavily damped atoms,
        which biased weak planes (up to ~2*fsquarecut, e.g. 5% errors) for no
        measurable speedup. Planes near fsquarecut may thus change slightly.

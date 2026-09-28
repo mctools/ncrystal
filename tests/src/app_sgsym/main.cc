@@ -833,6 +833,144 @@ void run()
 
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Expansion of sites into orbits
+////////////////////////////////////////////////////////////////////////////////
+
+//Tests expandSiteToOrbit: general and special positions in all 530 space
+//group settings, symmetrisation of rounded special positions, rejection of
+//sites near (but not on) special positions, and wrapping of coordinates.
+
+namespace test_orbit {
+
+namespace {
+  double pdist( const NC::Vector& a, const NC::Vector& b )
+  {
+    double m = 0.0;
+    const double d[3] = { a.x() - b.x(), a.y() - b.y(), a.z() - b.z() };
+    for ( double x : d )
+      m = NC::ncmax( m, NC::ncabs( x - std::round( x ) ) );
+    return m;
+  }
+
+  bool inUnitCell( const NC::Vector& v )
+  {
+    return ( v.x() >= 0.0 && v.x() < 1.0 && v.y() >= 0.0 && v.y() < 1.0
+             && v.z() >= 0.0 && v.z() < 1.0 );
+  }
+
+  NC::SGSiteOrbit expand( const char * sg, const NC::Vector& site )
+  {
+    return NC::expandSiteToOrbit( NC::SGSymmetry::get( NC::SpaceGroup( sg ) ),
+                                  site );
+  }
+
+  void show( const char * sg, const NC::Vector& site, unsigned expected_mult )
+  {
+    const auto orbit = expand( sg, site );
+    std::cout << "  " << sg << " site (" << NC::fmt( site.x(), "%.6g" )
+              << ", " << NC::fmt( site.y(), "%.6g" ) << ", "
+              << NC::fmt( site.z(), "%.6g" ) << "): "
+              << orbit.positions.size() << " positions, site symmetry order "
+              << orbit.siteSymmetryOrder << std::endl;
+    REQUIRE( orbit.positions.size() == expected_mult );
+  }
+
+  void expectBad( const char * sg, const NC::Vector& site )
+  {
+    try {
+      expand( sg, site );
+    } catch ( NC::Error::BadInput& e ) {
+      std::cout << "  " << sg << " -> BadInput: " << e.what() << std::endl;
+      return;
+    }
+    REQUIRE( false );
+  }
+}
+
+void run()
+{
+  //General position in all settings:
+  const NC::Vector generic( 0.1234567, 0.2345678, 0.3456789 );
+  for ( std::uint16_t hn = 1; hn <= 530; ++hn ) {
+    const NC::SpaceGroup sg{ NC::SpaceGroupHallNumber{ hn } };
+    const auto& sym = NC::SGSymmetry::get( sg );
+    const auto orbit = NC::expandSiteToOrbit( sym, generic );
+    REQUIRE( orbit.positions.size() == sym.order() );
+    REQUIRE( orbit.siteSymmetryOrder == 1 );
+    REQUIRE( pdist( orbit.positions.front(), generic ) == 0.0 );
+    for ( std::size_t i = 0; i < orbit.positions.size(); ++i ) {
+      REQUIRE( inUnitCell( orbit.positions[i] ) );
+      for ( std::size_t j = 0; j < i; ++j )
+        REQUIRE( pdist( orbit.positions[i], orbit.positions[j] ) > 1e-2 );
+    }
+  }
+  std::cout << "General positions OK in all 530 settings" << std::endl;
+
+  std::cout << "Special positions:" << std::endl;
+  show( "225", NC::Vector( 0.0, 0.0, 0.0 ), 4 );
+  show( "225", NC::Vector( 0.25, 0.25, 0.25 ), 8 );
+  show( "227:1", NC::Vector( 0.0, 0.0, 0.0 ), 8 );
+  show( "227:2", NC::Vector( 0.125, 0.125, 0.125 ), 8 );
+  show( "194", NC::Vector( 1.0/3, 2.0/3, 0.25 ), 2 );
+  show( "166:H", NC::Vector( 0.0, 0.0, 0.0 ), 3 );
+  show( "166:R", NC::Vector( 0.0, 0.0, 0.0 ), 1 );
+  show( "14:b1", NC::Vector( 0.0, 0.0, 0.0 ), 2 );
+  show( "62", NC::Vector( 0.1, 0.25, 0.2 ), 4 );
+  show( "221", NC::Vector( 0.5, 0.5, 0.5 ), 1 );
+
+  std::cout << "Rounded special positions:" << std::endl;
+  //4 digits are symmetrised to the exact special position:
+  for ( auto s : { NC::Vector( 0.3333, 0.6667, 0.25 ),
+                   NC::Vector( 0.3333, 0.6666, 0.25 ),
+                   NC::Vector( 0.33333, 0.66667, 0.25 ) } ) {
+    const auto orbit = expand( "194", s );
+    REQUIRE( orbit.positions.size() == 2 );
+    REQUIRE( orbit.siteSymmetryOrder == 12 );
+    REQUIRE( pdist( orbit.positions.front(),
+                    NC::Vector( 1.0/3, 2.0/3, 0.25 ) ) < 1e-14 );
+  }
+  std::cout << "  194 site (0.3333, 0.6667, 0.25) etc.: symmetrised to"
+            << " (1/3, 2/3, 1/4)" << std::endl;
+  //3 digits are rejected:
+  expectBad( "194", NC::Vector( 0.333, 0.667, 0.25 ) );
+  expectBad( "227:2", NC::Vector( 0.125, 0.125, 0.12 ) );
+
+  std::cout << "Sites near a mirror plane (Pm with y->-y):" << std::endl;
+  {
+    //Merged and symmetrised (distance 4e-4):
+    const auto o1 = expand( "6:b", NC::Vector( 0.1, 0.0002, 0.2 ) );
+    REQUIRE( o1.positions.size() == 1 && o1.siteSymmetryOrder == 2 );
+    REQUIRE( o1.positions.front().y() == 0.0 );
+    //Distinct (distance 1.2e-2):
+    const auto o2 = expand( "6:b", NC::Vector( 0.1, 0.006, 0.2 ) );
+    REQUIRE( o2.positions.size() == 2 && o2.siteSymmetryOrder == 1 );
+    std::cout << "  y=0.0002: merged (y=0), y=0.006: two positions" << std::endl;
+    //Rejected (distance 8e-3):
+    expectBad( "6:b", NC::Vector( 0.1, 0.004, 0.2 ) );
+    //Across the periodic boundary (y=0.9998 is close to y=0.0002):
+    const auto o3 = expand( "6:b", NC::Vector( 0.1, 0.9999, 0.2 ) );
+    REQUIRE( o3.positions.size() == 1 && o3.positions.front().y() == 0.0 );
+  }
+
+  std::cout << "Wrapping and invalid input:" << std::endl;
+  {
+    const auto o = expand( "1", NC::Vector( 1.25, -0.5, 2.0 ) );
+    REQUIRE( o.positions.size() == 1 );
+    REQUIRE( o.positions.front().x() == 0.25 && o.positions.front().y() == 0.5
+             && o.positions.front().z() == 0.0 );
+    const auto o2 = expand( "1", NC::Vector( -0.0, -1e-30, 0.0 ) );
+    REQUIRE( inUnitCell( o2.positions.front() ) );
+    std::cout << "  (1.25, -0.5, 2.0) -> (0.25, 0.5, 0)" << std::endl;
+  }
+  expectBad( "1", NC::Vector( std::numeric_limits<double>::quiet_NaN(),
+                              0.0, 0.0 ) );
+  expectBad( "1", NC::Vector( 0.0, NC::kInfinity, 0.0 ) );
+  std::cout << "All OK" << std::endl;
+}
+
+}
+
 int main()
 {
   std::cout << "==== Space group table ====" << std::endl;
@@ -843,5 +981,7 @@ int main()
   test_symmetry::run();
   std::cout << "==== Crystal systems, settings and cell constraints ====" << std::endl;
   test_cell::run();
+  std::cout << "==== Expansion of sites into orbits ====" << std::endl;
+  test_orbit::run();
   return 0;
 }

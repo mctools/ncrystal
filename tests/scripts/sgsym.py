@@ -25,9 +25,11 @@
 # Tests of the sgsym component (space groups and their symmetries),
 # mostly by comparing with spglib and gemmi.
 
+import random
 from fractions import Fraction
 
 import gemmi
+import NCrystalDev as NC
 import NCTestUtils.enable_fpe  # noqa: F401
 import numpy as np
 import spglib
@@ -207,10 +209,124 @@ def test_symmetry():
     print(f'Hall symbols of {nextra} additional (non-ITVB) gemmi settings'
           ' consistent with gemmi')
 
+# Verifies the expansion of sites into orbits against a straightforward
+# expansion with spglib's operations (in all 530 space group settings), and
+# that the atom positions of all crystals in NCrystal's standard library can
+# be reconstructed by expanding one site per orbit.
+def test_orbit():
+    def ncrystal_orbit( hn, site ):
+        res = lib.nctest_sgsym_expandsite( hn, *( float(x) for x in site ) )
+        if res.startswith('ERROR'):
+            return None
+        order, pos = res.split('|')
+        return int(order), [ np.array( [ float(x) for x in p.split() ] )
+                             for p in pos.split(';') ]
+
+    def pdist( a, b ):
+        d = np.asarray(a) - np.asarray(b)
+        return float( np.max( np.abs( d - np.round( d ) ) ) )
+
+    _db_cache = {}
+    def reference_orbit( hn, site ):
+        if hn not in _db_cache:
+            d = spglib.get_symmetry_from_database( hn )
+            _db_cache[hn] = ( np.asarray( d['rotations'], dtype = float ),
+                              np.asarray( d['translations'], dtype = float ) )
+        rots, trans = _db_cache[hn]
+        imgs = rots @ np.asarray( site, dtype = float ) + trans
+        imgs = imgs - np.floor( imgs )
+        #Remove duplicates (periodically, within 1e-9):
+        diff = imgs[:,None,:] - imgs[None,:,:]
+        dist = np.max( np.abs( diff - np.round( diff ) ), axis = 2 )
+        keep = [ i for i in range( len( imgs ) )
+                 if not np.any( dist[i,:i] < 1e-9 ) ]
+        return imgs[keep]
+
+    def min_image_dist( orbit ):
+        o = np.asarray( orbit )
+        if len( o ) < 2:
+            return 1.0
+        diff = o[:,None,:] - o[None,:,:]
+        dist = np.max( np.abs( diff - np.round( diff ) ), axis = 2 )
+        return float( np.min( dist[ np.triu_indices( len( o ), 1 ) ] ) )
+
+    rng = random.Random( 1234 )
+    sites = [ (0,0,0), (1/2,1/2,1/2), (1/4,1/4,1/4), (1/8,1/8,1/8),
+              (1/3,2/3,0.2), (0.2,0.2,0.2), (0.2,0,0), (0,0.2,0), (0,0,0.2),
+              (0.2,0.4,0), (0.2,0.25,0.3), (0.1,0.1,0.35) ]
+    nchecked = nrejected = 0
+    for hn in range( 1, 531 ):
+        order = len( spglib.get_symmetry_from_database( hn )['rotations'] )
+        for site in sites + [ tuple( rng.random() for _ in range(3) ) ]:
+            ours = ncrystal_orbit( hn, site )
+            ref = reference_orbit( hn, site )
+            if ours is None:
+                #Random sites can by chance be close to (but not on) a special
+                #position, in which case they must be rejected:
+                assert 5e-4 <= min_image_dist( ref ) < 1e-2, (hn,site)
+                nrejected += 1
+                continue
+            siteorder, pos = ours
+            #Sites very close to special positions are symmetrised (moved by less
+            #than the merge tolerance), so compare with the orbit of the
+            #symmetrised site:
+            assert pdist( pos[0], site ) < 5e-4, (hn,site)
+            if min_image_dist( ref ) < 5e-4:
+                ref = reference_orbit( hn, pos[0] )
+            assert min_image_dist( ref ) >= 1e-2, (hn,site)
+            assert len( pos ) == len( ref ), (hn,site)
+            assert siteorder * len( pos ) == order
+            diff = np.asarray( pos )[:,None,:] - ref[None,:,:]
+            dist = np.max( np.abs( diff - np.round( diff ) ), axis = 2 )
+            assert np.all( np.min( dist, axis = 1 ) < 1e-9 ), (hn,site)
+            nchecked += 1
+    print(f'Orbits of {nchecked} sites in the 530 settings consistent with spglib'
+          f' ({nrejected} random sites correctly rejected as being close to a'
+          ' special position)')
+
+    #Reconstruct stdlib crystals from one site per orbit, trying each setting of
+    #the space group number (the files only specify the number):
+    halls_of = {}
+    for hn in range( 1, 531 ):
+        halls_of.setdefault( lib.nctest_sgsym_number( hn ), [] ).append( hn )
+
+    def reconstructs( hn, atoms ):
+        """Whether the (element,position) list is exactly reproduced by expanding
+    one site per orbit in the given setting."""
+        unused = list( range( len( atoms ) ) )
+        while unused:
+            elem, site = atoms[unused[0]]
+            res = ncrystal_orbit( hn, site )
+            if res is None:
+                return False
+            for p in res[1]:
+                match = [ i for i in unused if atoms[i][0] == elem
+                          and pdist( atoms[i][1], p ) < 1e-4 ]
+                if len( match ) != 1:
+                    return False
+                unused.remove( match[0] )
+        return True
+
+    nfiles = 0
+    for fe in NC.browseFiles( factory = 'stdlib' ):
+        if not fe.name.endswith('.ncmat'):
+            continue
+        info = NC.createInfo( f'stdlib::{fe.name}' )
+        if not info.hasStructureInfo() or not info.structure_info['spacegroup']:
+            continue
+        atoms = [ ( ai.atomData.displayLabel(), np.array( p ) )
+                  for ai in info.atominfos for p in ai.positions ]
+        sgno = info.structure_info['spacegroup']
+        assert any( reconstructs( hn, atoms ) for hn in halls_of[sgno] ), fe.name
+        nfiles += 1
+    print(f'All {nfiles} crystals with space groups in the standard library'
+          ' reconstructed from one site per orbit')
+
 def main():
     test_table()
     test_ops()
     test_symmetry()
+    test_orbit()
 
 if __name__ == '__main__':
     main()

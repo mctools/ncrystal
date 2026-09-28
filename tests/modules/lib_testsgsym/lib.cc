@@ -46,6 +46,7 @@ NCTEST_CTYPE_DICTIONARY
     "const char * nctest_sgsym_symmetry( int );"
     "const char * nctest_sgsym_rawhall( const char * );"
     "const char * nctest_sgsym_settinginfo( int );"
+    "const char * nctest_sgsym_expandsite( int, double, double, double );"
     ;
 }
 
@@ -192,6 +193,30 @@ NCTEST_CTYPES const char * nctest_sgsym_settinginfo( int hn )
        << si.uniqueAxis << ' ' << si.cellChoice << ' ' << si.originChoice
        << ' ' << si.axisPermutation;
     s_buf = ss.str();
+  } NCCATCH;
+  return s_buf.c_str();
+}
+
+NCTEST_CTYPES const char * nctest_sgsym_expandsite( int hn, double x,
+                                                    double y, double z )
+{
+  //Returns "<site symmetry order>|x y z;x y z;..." (full precision), or
+  //"ERROR: <msg>" in case of BadInput:
+  static std::string s_buf;//NB: Not thread-safe, but fine for this test
+  try {
+    try {
+      const auto orbit = NC::expandSiteToOrbit(
+        NC::SGSymmetry::get( sgFromHallNumber( hn ) ), NC::Vector( x, y, z ) );
+      std::ostringstream ss;
+      ss.precision( 17 );
+      ss << orbit.siteSymmetryOrder << '|';
+      for ( auto& p : orbit.positions )
+        ss << ( &p == &orbit.positions.front() ? "" : ";" )
+           << p.x() << ' ' << p.y() << ' ' << p.z();
+      s_buf = ss.str();
+    } catch ( NC::Error::BadInput& e ) {
+      s_buf = std::string( "ERROR: " ) + e.what();
+    }
   } NCCATCH;
   return s_buf.c_str();
 }

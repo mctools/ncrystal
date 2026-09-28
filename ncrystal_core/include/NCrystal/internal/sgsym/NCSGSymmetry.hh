@@ -101,6 +101,26 @@ namespace NCRYSTAL_NAMESPACE {
     std::vector<SymOp> m_ops, m_reps, m_centring;
   };
 
+  //Expansion of a site (fractional coordinates) into all its
+  //symmetry-equivalent positions. Positions are compared per coordinate,
+  //taking periodicity into account. Images of the site closer than 5e-4 in
+  //all coordinates are considered identical (i.e. the site is on a special
+  //position), in which case the site is first symmetrised (replaced by its
+  //average over the operations mapping it onto itself), which for example
+  //turns 0.3333 into 1/3. Images which are not identical, but closer than
+  //1e-2 in all coordinates, indicate a site close to a special position but
+  //not on it (e.g. due to insufficient precision like 0.333 instead of 1/3),
+  //in which case a BadInput exception is thrown. These thresholds are based
+  //on an analysis of rounding noise and genuinely distinct positions in CIF
+  //files from the Crystallography Open Database.
+
+  struct SGSiteOrbit {
+    std::vector<Vector> positions;//wrapped into [0,1), symmetrised site first
+    unsigned siteSymmetryOrder;//= group order / positions.size()
+  };
+
+  SGSiteOrbit expandSiteToOrbit( const SGSymmetry&, const Vector& site );
+
 }
 
 

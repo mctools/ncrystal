@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/sgsym/NCSGSymmetry.hh"
+#include "NCrystal/internal/utils/NCMath.hh"
 #include <set>
 #include <mutex>
 
@@ -560,6 +561,109 @@ NC::SGSymmetry::SGSymmetry( internal_t, SpaceGroup sg )
       m_centrosymmetric = true;
   }
   m_cellconstraints = deriveCellConstraints( m_reps );
+}
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace {
+    constexpr double site_merge_tol = 5e-4;
+    constexpr double site_distinct_tol = 1e-2;
+
+    double wrapCoord( double x )
+    {
+      double r = x - std::floor( x );
+      if ( !( r < 1.0 ) )
+        r = 0.0;//x-floor(x) can round to exactly 1.0
+      return r == 0.0 ? 0.0 : r;//also maps -0 to 0
+    }
+
+    Vector wrapPos( const Vector& v )
+    {
+      return Vector( wrapCoord( v.x() ), wrapCoord( v.y() ),
+                     wrapCoord( v.z() ) );
+    }
+
+    //Periodic difference of each coordinate, in [-0.5,0.5]:
+    Vector periodicDiff( const Vector& a, const Vector& b )
+    {
+      auto f = []( double d ) { return d - std::round( d ); };
+      return Vector( f( a.x() - b.x() ), f( a.y() - b.y() ),
+                     f( a.z() - b.z() ) );
+    }
+
+    //Largest periodic coordinate difference:
+    double periodicDist( const Vector& a, const Vector& b )
+    {
+      const Vector d = periodicDiff( a, b );
+      return ncmax( ncabs( d.x() ), ncabs( d.y() ), ncabs( d.z() ) );
+    }
+
+    [[noreturn]] void throwNearSpecial( const Vector& site, double dist )
+    {
+      NCRYSTAL_THROW2(BadInput,"The site ("<<fmt(site.x())<<", "
+                      <<fmt(site.y())<<", "<<fmt(site.z())<<") is close to a"
+                      " special position but not on it (symmetry-equivalent"
+                      " positions are only "<<fmt(dist,"%.2g")<<" apart in"
+                      " fractional coordinates). For sites on special"
+                      " positions, specify coordinates with sufficient"
+                      " precision, preferably as exact fractions like 1/3.");
+    }
+  }
+}
+
+NC::SGSiteOrbit NC::expandSiteToOrbit( const SGSymmetry& sym,
+                                       const Vector& input_site )
+{
+  if ( !std::isfinite( input_site.x() ) || !std::isfinite( input_site.y() )
+       || !std::isfinite( input_site.z() ) )
+    NCRYSTAL_THROW2(BadInput,"Invalid site coordinates: ("<<input_site.x()
+                    <<", "<<input_site.y()<<", "<<input_site.z()<<")");
+  const Vector site = wrapPos( input_site );
+  const auto& ops = sym.operations();
+
+  //Symmetrise: average (the nearest periodic copies of) the images of the
+  //site under the operations which map it onto itself. These operations
+  //(with their translations adjusted by the corresponding lattice vectors)
+  //form a group, so the average is exactly invariant under them:
+  Vector sum( 0.0, 0.0, 0.0 );
+  unsigned nstab = 0;
+  for ( auto& op : ops ) {
+    const Vector img = op.apply( site );
+    const Vector d = periodicDiff( img, site );
+    const double dist = ncmax( ncabs( d.x() ), ncabs( d.y() ),
+                               ncabs( d.z() ) );
+    if ( dist < site_merge_tol ) {
+      sum += site + d;
+      ++nstab;
+    } else if ( dist < site_distinct_tol ) {
+      throwNearSpecial( site, dist );
+    }
+  }
+  nc_assert_always( nstab >= 1 );//at least the identity
+  const Vector symsite = wrapPos( sum * ( 1.0 / nstab ) );
+
+  //Expand the symmetrised site, keeping the first occurrence of each
+  //distinct position (all pairs of distinct positions must be clearly
+  //separated):
+  SGSiteOrbit res;
+  for ( auto& op : ops ) {
+    const Vector img = wrapPos( op.apply( symsite ) );
+    bool found = false;
+    for ( auto& p : res.positions ) {
+      const double dist = periodicDist( img, p );
+      if ( dist < site_merge_tol ) {
+        found = true;
+        break;
+      }
+      if ( dist < site_distinct_tol )
+        throwNearSpecial( site, dist );
+    }
+    if ( !found )
+      res.positions.push_back( img );
+  }
+  const std::size_t npos = res.positions.size();
+  nc_assert_always( npos * nstab == ops.size() );
+  res.siteSymmetryOrder = nstab;
+  return res;
 }
 
 const NC::SGSymmetry& NC::SGSymmetry::get( SpaceGroup sg )

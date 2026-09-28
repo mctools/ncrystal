@@ -3,3 +3,5 @@ Distinct operations in the 530 settings of gemmi: 882
 All parsed identically by NCrystal and gemmi (string representations identical for 882 of them)
 All 530 space group settings: operations, centring vectors, representatives and centrosymmetry consistent with spglib and gemmi
 Hall symbols of 33 additional (non-ITVB) gemmi settings consistent with gemmi
+Orbits of 6883 sites in the 530 settings consistent with spglib (7 random sites correctly rejected as being close to a special position)
+All 110 crystals with space groups in the standard library reconstructed from one site per orbit
