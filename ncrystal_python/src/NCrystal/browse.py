@@ -1238,6 +1238,25 @@ class _WhereExpr:
         d = obj.as_dict() if hasattr( obj, 'as_dict' ) else dict( obj )
         return eval( self.__code, ns, d )
 
+def _excmsg( e ):
+    #Python 3.14 unified the various ZeroDivisionError messages ("float
+    #division by zero", ...) to just "division by zero"; make older
+    #versions mimic that so messages are version-independent:
+    import sys
+    msg = str( e )
+    if ( sys.version_info < (3,14)
+         and isinstance( e, ZeroDivisionError )
+         and msg in ( 'float division by zero',
+                      'division by zero',
+                      'integer division or modulo by zero',
+                      'float floor division by zero',
+                      'integer modulo by zero',
+                      'float modulo',
+                      'divmod()',
+                      'float divmod()' ) ):
+        return 'division by zero'
+    return msg
+
 def _eval_where( fct, props ):
     #Expressions failing due to unavailable values (None) are considered
     #false (e.g. "sg > 200" or "max(debyetemps.values()) > 500"):
@@ -1252,10 +1271,10 @@ def _eval_where( fct, props ):
             raise
         from .exceptions import NCBadInput
         raise NCBadInput(f'Error evaluating where expression "{fct.expr}":'
-                         f' {e}') from e
+                         f' {_excmsg(e)}') from e
     except Exception as e:
         if not isinstance( fct, _WhereExpr ):
             raise
         from .exceptions import NCBadInput
         raise NCBadInput(f'Error evaluating where expression "{fct.expr}":'
-                         f' {e}') from e
+                         f' {_excmsg(e)}') from e

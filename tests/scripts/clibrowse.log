@@ -674,7 +674,7 @@ Caught expected ArgumentError('Do not specify both --csv and --json.')
 ============= CLI >>browse --json --names<< =============
 Caught expected ArgumentError('Do not specify both --names and --json.')
 ============= CLI >>browse -w 'absxs/0 > 1' -f virtual<< =============
-Caught expected NCBadInput('Error evaluating --where expression "absxs/0 > 1": float division by zero')
+Caught expected NCBadInput('Error evaluating --where expression "absxs/0 > 1": division by zero')
 ============= CLI >>browse '*.la?'<< =============
 ==> 2 entries from "relpath" (<current-dir>, priority=140):
     disk.lau

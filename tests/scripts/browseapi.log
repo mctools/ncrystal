@@ -180,7 +180,7 @@ Caught expected NCBadInput('Invalid regular expression "(": missing ), untermina
 Caught expected NCBadInput('Unknown name "foo" in where expression "foo > 1"')
 Caught expected NCBadInput('Invalid where expression "elements.__class__" (private attributes are not allowed)')
 Caught expected NCBadInput('Invalid where expression "absxs >": invalid syntax')
-Caught expected NCBadInput('Error evaluating where expression "absxs/0 > 1": float division by zero')
+Caught expected NCBadInput('Error evaluating where expression "absxs/0 > 1": division by zero')
 Caught expected NCBadInput('Error evaluating where expression "elements.foo": \'frozenset\' object has no attribute \'foo\'')
 Caught expected NCBadInput('Invalid sort key "foo" (must be "name" or one of: elements, atoms, nelements, formula, mass, absxs, scatxs, cohxs, incohxs, density, numdens, temp, state, crystal, crystalsystem, sg, natoms, a, b, c, alpha, beta, gamma, volume, braggthreshold, dyninfo, customsections, nphases)')
 Caught expected NCBadInput('Invalid column "foo" (must be "description" or one of: elements, atoms, nelements, formula, mass, absxs, scatxs, cohxs, incohxs, density, numdens, temp, state, crystal, crystalsystem, sg, natoms, a, b, c, alpha, beta, gamma, volume, braggthreshold, debyetemps, msds, dyninfo, customsections, nphases)')

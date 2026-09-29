@@ -229,7 +229,7 @@ def test_errors():
         ' are not allowed)',lambda : v.where('elements.__class__'))
     bad('Invalid where expression "absxs >": invalid syntax',
         lambda : v.where('absxs >'))
-    bad('Error evaluating where expression "absxs/0 > 1": float division by'
+    bad('Error evaluating where expression "absxs/0 > 1": division by'
         ' zero',lambda : v.where('absxs/0 > 1'))
     bad('Error evaluating where expression "elements.foo": \'frozenset\''
         ' object has no attribute \'foo\'',lambda : v.where('elements.foo'))

@@ -275,7 +275,7 @@ def test_physics():
              '--sort','sg')
     bad_args('Do not specify both --names and --json.','--json','--names')
     with ensure_error(NC.NCBadInput,'Error evaluating --where expression'
-                      ' "absxs/0 > 1": float division by zero'):
+                      ' "absxs/0 > 1": division by zero'):
         run('-w','absxs/0 > 1','-f','virtual')
 
 def main():
