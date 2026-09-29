@@ -1,0 +1,39 @@
+test_kernel_closedform:
+  closed form matches quadrature in 36 cases: OK
+test_corr_spline:
+  A=0.999 r=4.12 : spline vs quadrature worst reldiff 1.1e-07: OK
+  A=0.999 r=20.00 : spline vs quadrature worst reldiff 1.1e-07: OK
+  A=0.999 r=59.30 : spline vs quadrature worst reldiff 1.6e-07: OK
+  A=205.420 r=1.05 : spline vs quadrature worst reldiff 8.3e-06: OK
+test_r1_limit:
+  Teff==T reproduces free-gas extender exactly: OK
+test_xs_vs_bruteforce:
+  A=0.999 r= 1.50 E= 0.70eV : sigma_SCT/sigma_FG(Teff) = 0.982432 (ref 0.982432)
+  A=0.999 r= 1.50 E= 3.00eV : sigma_SCT/sigma_FG(Teff) = 0.995816 (ref 0.995816)
+  A=0.999 r= 1.50 E= 5.00eV : sigma_SCT/sigma_FG(Teff) = 0.997483 (ref 0.997483)
+  A=0.999 r= 1.50 E=20.00eV : sigma_SCT/sigma_FG(Teff) = 0.999369 (ref 0.999369)
+  A=0.999 r= 4.12 E= 0.70eV : sigma_SCT/sigma_FG(Teff) = 0.895226 (ref 0.895226)
+  A=0.999 r= 4.12 E= 3.00eV : sigma_SCT/sigma_FG(Teff) = 0.974176 (ref 0.974176)
+  A=0.999 r= 4.12 E= 5.00eV : sigma_SCT/sigma_FG(Teff) = 0.984399 (ref 0.984399)
+  A=0.999 r= 4.12 E=20.00eV : sigma_SCT/sigma_FG(Teff) = 0.996069 (ref 0.996069)
+  A=0.999 r=20.00 E= 0.70eV : sigma_SCT/sigma_FG(Teff) = 0.540924 (ref 0.540923)
+  A=0.999 r=20.00 E= 3.00eV : sigma_SCT/sigma_FG(Teff) = 0.852525 (ref 0.852525)
+  A=0.999 r=20.00 E= 5.00eV : sigma_SCT/sigma_FG(Teff) = 0.908626 (ref 0.908626)
+  A=0.999 r=20.00 E=20.00eV : sigma_SCT/sigma_FG(Teff) = 0.976301 (ref 0.976301)
+  A=26.748 r= 1.50 E= 0.70eV : sigma_SCT/sigma_FG(Teff) = 0.929484 (ref 0.929484)
+  A=26.748 r= 1.50 E= 3.00eV : sigma_SCT/sigma_FG(Teff) = 0.970785 (ref 0.970785)
+  A=26.748 r= 1.50 E= 5.00eV : sigma_SCT/sigma_FG(Teff) = 0.981900 (ref 0.981900)
+  A=26.748 r= 1.50 E=20.00eV : sigma_SCT/sigma_FG(Teff) = 0.995455 (ref 0.995455)
+test_sampling_vs_bruteforce:
+  E=0.7eV : <beta> ref -12.47, Var(beta) ref 63.07, upfrac ref 0.03749
+    sampled values consistent (n=200000): OK
+  E=6.0eV : <beta> ref -117.2, Var(beta) ref 4664, upfrac ref 0.004227
+    sampled values consistent (n=200000): OK
+test_kernel_boundary (H in polyethylene, 293.15K):
+  Teff = 1208.1K (Teff/T = 4.121)
+  At Emax=5eV: xs(table)=0.2501barn, xs(freegas)=0.2505barn, xs(sct)=0.2485barn
+  Rel. mismatch to table: freegas 0.13%, sct 0.65%
+  Ridge width statistic W at Emax: table 4.03, freegas 1.01, sct 4.05 (Teff/T=4.12)
+test_cryogenic (H in polyethylene, 20K):
+  Teff/T = 59.3 ; sampled W at 6eV: freegas 0.995, sct 58.8
+All tests passed.
