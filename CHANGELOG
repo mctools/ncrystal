@@ -1,4 +1,20 @@
 v4.4.7 (work in progress)
+     * Bit-identical |F|^2 on every platform: the fast-trig Taylor kernels
+       (sincos_mpi2pi2, cos_mpipi, cos_mpi2pi2, sin_mpi2pi2, now in
+       NCMath_FMA.hh with runtime fma dispatch) and NCFillHKL's whole
+       per-hkl pipeline (reciprocal transform, phase dot products, |F|^2
+       assembly, now in NCFillHKL_FMA.hh; Debye-Waller factors via
+       stable_exp instead of libm exp) are rewritten with every
+       multiply-add shape as an explicit std::fma. Their plain forms were
+       contracted differently per compiler/target (gcc even across
+       statements, e.g. sincos_2pix's phase-shift seam), giving last-bit
+       F2 differences that flipped knife-edge family counts in
+       app_fillhkl on aarch64. Debug (-O0) and Release builds now produce
+       byte-identical fillhkl output, pinning the canonical values.
+     * Factory thread-pool workers now get an explicit 8MB stack on POSIX
+       (via pthread_create; std::thread has no stack-size control and
+       macOS defaults secondary threads to 512kB, seen as SIGBUS when
+       loading complex materials through the pool).
      * stable_exp/stable_expm1: fix the reconstruction for arguments in
        ~[709.44,709.79] (around ln(DBL_MAX)), where the internal 2^n scale
        is not representable although the result still is: previously this

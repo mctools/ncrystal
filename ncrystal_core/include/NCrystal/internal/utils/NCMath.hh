@@ -543,8 +543,20 @@ inline NCrystal::sincosval_t NCrystal::sincos_2pix( double x )
   //NB: We used to simply return PairDD but that triggers annoying gcc warning
   //on arm, like discussed on https://stackoverflow.com/questions/77729813
   //. Moving to a custom struct solves the issue.
+  //
+  //The (x-floor(x))*k2Pi multiply otherwise feeds straight into
+  //sincos_02pi's inlined "A -= kPi" subtraction -- a contractable
+  //mul+sub seam which made results depend on target/optimisation level
+  //(fillHKL's fma-dispatched kernel is the hot caller), so the fused
+  //form is spelled out explicitly, and the [-pi,pi] reduction of
+  //sincos_02pi is inlined here on the already-shifted value:
+  const double u = x - std::floor(x);//in [0,1)
+  const double Am = std::fma( u, k2Pi, -kPi );//u*2pi-pi, in [-pi,pi]
+  const double Amabs = ncabs( Am );
   sincosval_t res;
-  sincos_02pi((x-std::floor(x))*k2Pi,res.cos,res.sin);
+  sincos_mpi2pi2( ncmin( Amabs, kPi - Amabs ), res.cos, res.sin );
+  res.cos = std::copysign( res.cos, Amabs - kPiHalf );
+  res.sin = std::copysign( res.sin, -Am );
   return res;
 }
 

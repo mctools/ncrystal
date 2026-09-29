@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/extd_utils/NCFillHKL.hh"
+#include "NCFillHKL_FMA.hh"
 #include "NCrystal/internal/extd_utils/NCOrientUtils.hh"
 #include "NCrystal/internal/utils/NCRotMatrix.hh"
 #include "NCrystal/internal/utils/NCLatticeUtils.hh"
@@ -133,7 +134,8 @@ namespace NCRYSTAL_NAMESPACE {
     bool isInDRange( const RotMatrix& rec_lat, const PairDD& dcut_interval,
                      const HKL& hkl )
     {
-      const double ksq = ( rec_lat * Vector( hkl.h, hkl.k, hkl.l ) ).mag2();
+      const double ksq = NCRYSTAL_APPLY_C_NAMESPACE(detail_fillhkl_ksq)(
+        &rec_lat.rawData()[0], hkl.h, hkl.k, hkl.l );
       return valueInInterval( dcut_interval, k2Pi / std::sqrt( ksq ) );
     }
 
@@ -206,6 +208,11 @@ namespace NCRYSTAL_NAMESPACE {
         m_cache_factors.resize(m_pc.csl.size(),0.0);
         //init with unit factors in case of forceunitdebyewallerfactor:
         m_whkl.resize(m_pc.msd.size(),1.0);
+        //Marshalled position-array view for detail_fillhkl_fsq:
+        for ( auto& pv : m_pc.atomic_pos ) {
+          m_posptrs.push_back( &pv[0] );
+          m_npos.push_back( pv.size() );
+        }
       }
 
       bool empty() const { return m_whkl.empty(); }//all elements have bcoh=0?
@@ -220,11 +227,16 @@ namespace NCRYSTAL_NAMESPACE {
         //would bias |F|^2 at first order, for no measurable speedup).
         double real_or_imag_upper_limit(0.0);
         for( unsigned i=0; i < m_whkl.size(); ++i ) {
-          double factor = m_pc.csl[i]*std::exp(-m_whkl[i]);
+          //stable_exp rather than std::exp: bit-identical on every
+          //platform by construction, unlike libm:
+          double factor = m_pc.csl[i]*stable_exp(-m_whkl[i]);
           m_cache_factors[i] = factor;
           //Assuming cos(phase)*factor=sin(phase)*factor=|factor| gives us a
-          //cheap upper limit on fsquared:
-          real_or_imag_upper_limit += m_pc.atomic_pos[i].size()*ncabs( factor );
+          //cheap upper limit on fsquared (explicit fma: contraction of the
+          //accumulation would make this cutoff platform dependent):
+          real_or_imag_upper_limit
+            = std::fma( double( m_pc.atomic_pos[i].size() ),
+                        ncabs( factor ), real_or_imag_upper_limit );
         }
         //If the upper limit on fsq is below fsquarecut, we can skip already and
         //avoid needless calculations further down:
@@ -233,32 +245,16 @@ namespace NCRYSTAL_NAMESPACE {
 
       double calc( const Vector& hkl ) const
       {
-        //Time to calculate phases and sum up contributions. Use numerically
-        //stable summation, for better results on low-symmetry crystals (the
-        //main cost here is anyway the phase calculations, not the summation):
-        StableSum real, imag;
-        for( unsigned i=0 ; i < m_whkl.size(); ++i ) {
-          double factor = m_cache_factors[i];
-          if (!factor)
-            continue;
-          StableSum cpsum, spsum;
-          for ( auto& pos : m_pc.atomic_pos[i] ) {
-            //Phase is hkl.dot(pos)*2pi. We speed up the expensive calculation
-            //of sin+cos by a factor of 3 by shifting the phase to [0,2pi]
-            //(easily done by simply NOT multiplying with 2pi) and using our
-            //own fast sincos_02pi through sincos_2pix. Since typically 99% of
-            //the hkl initialisation time is spent calculating sin+cos here,
-            //that actually translates into an overall speedup of a factor of
-            //3 (measured in NCrystal v2.7.0)!
-            const double phase_div2pi = hkl.dot(pos);
-            auto spcp = sincos_2pix(phase_div2pi);
-            cpsum.add(spcp.cos);
-            spsum.add(spcp.sin);
-          }
-          real.add(cpsum.sum() * factor);
-          imag.add(spsum.sum() * factor);
-        }
-        return ncsquare( real.sum() ) + ncsquare( imag.sum() );
+        //Time to calculate phases (hkl.dot(pos)*2pi; we speed up the
+        //expensive sin+cos by a factor of 3 by shifting the phase to
+        //[0,2pi], easily done by simply NOT multiplying with 2pi, and
+        //using our own fast sincos_02pi through sincos_2pix -- typically
+        //99% of the hkl initialisation time is spent there) and sum up
+        //contributions. The actual work happens in the runtime-fma-
+        //dispatched, contraction-proof kernel in NCFillHKL_FMA.hh:
+        return NCRYSTAL_APPLY_C_NAMESPACE(detail_fillhkl_fsq)(
+          &hkl, &m_cache_factors[0], &m_posptrs[0], &m_npos[0],
+          m_posptrs.size() );
       }
 
       //Upper limit on |F|^2 (all contributions in phase, no Debye-Waller
@@ -277,6 +273,8 @@ namespace NCRYSTAL_NAMESPACE {
       bool m_use_dw;
       SmallVectD m_cache_factors;
       SmallVectD m_whkl;
+      SmallVector<const Vector*,4> m_posptrs;
+      SmallVector<std::size_t,4> m_npos;
     };
 
     //Estimated number of hkl points (in the half-space) with dspacing in
@@ -439,9 +437,9 @@ namespace NCRYSTAL_NAMESPACE {
 
             const Vector hkl(loop_h,loop_k,loop_l);
 
-            //calculate waveVector, wave number and dspacing:
-            Vector waveVector = rec_lat*hkl;
-            const double ksq = waveVector.mag2();
+            //calculate squared wave number (contraction-proof kernel):
+            const double ksq = NCRYSTAL_APPLY_C_NAMESPACE(detail_fillhkl_ksq)(
+              &rec_lat.rawData()[0], hkl.x(), hkl.y(), hkl.z() );
             if ( !valueInInterval(precalc.ksq_preselect_interval,ksq))
               continue;
 
@@ -671,20 +669,21 @@ namespace NCRYSTAL_NAMESPACE {
         for( int loop_k = (loop_h?-precalc.max_k:0); loop_k <= precalc.max_k; ++loop_k ) {
           for( int loop_l = -precalc.max_l; loop_l <= precalc.max_l; ++loop_l ) {
 
-            if ( ! valueInInterval( ksq_loose_interval,
-                                    ( rec_lat * Vector( loop_h, loop_k,
-                                                        loop_l ) ).mag2() ) )
+            if ( ! valueInInterval(
+                     ksq_loose_interval,
+                     NCRYSTAL_APPLY_C_NAMESPACE(detail_fillhkl_ksq)(
+                       &rec_lat.rawData()[0], loop_h, loop_k, loop_l ) ) )
               continue;
 
             auto sym_key = sym_findrepval( loop_h, loop_k, loop_l );
             if (!symSeenTracker.isFirstCheck(sym_key))
               continue;//Already seen this sym_key once.
 
-            //calculate waveVector at the cost of a matrix multiplication, and
-            //preselect on its squared magnitude:
+            //calculate squared wave number at the cost of a matrix
+            //multiplication (contraction-proof kernel), and preselect on it:
             const Vector hkl(sym_key.h,sym_key.k,sym_key.l);
-            Vector waveVector = rec_lat*hkl;
-            const double ksq = waveVector.mag2();
+            const double ksq = NCRYSTAL_APPLY_C_NAMESPACE(detail_fillhkl_ksq)(
+              &rec_lat.rawData()[0], hkl.x(), hkl.y(), hkl.z() );
             if ( ! valueInInterval( precalc.ksq_preselect_interval , ksq ) )
               continue;
 

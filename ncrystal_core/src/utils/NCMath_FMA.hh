@@ -458,6 +458,139 @@ namespace NCRYSTAL_NAMESPACE {
     return x > 0.0 ? e : -e;
   }
 
+  //////////////////////////////////////////////////////////////////////
+  // Fast trig (see NCMath.hh/.cc): the Taylor kernels behind          //
+  // sincos_mpi2pi2, cos_mpipi, cos_mpi2pi2 and sin_mpi2pi2, written   //
+  // as explicit std::fma Horner chains. Their original plain          //
+  // add-then-multiply form was contracted differently by different    //
+  // compilers/targets (gcc -ffp-contract=fast even across             //
+  // statements, clang within expressions, baseline x86-64 not at      //
+  // all), observed as last-bit F2 differences flipping knife-edge     //
+  // counts in app_fillhkl on the aarch64 CI legs. The explicit        //
+  // maximally-fused sequence below is the single canonical            //
+  // evaluation on every platform and optimisation level.              //
+  //////////////////////////////////////////////////////////////////////
+
+  namespace {
+
+    NCMATHFMA_ALWAYS_INLINE
+    double trig_cos22_from_mx2( double mx2 )
+    {
+      //cos(x) = 1 + mx2*Horner (Taylor to 22nd order, mx2=-x^2),
+      //coefficients 1/(2n)! exactly as in the original NCMath.cc:
+      double q =           8.89679139245057328674889744250246834331248809e-22;
+      q = std::fma( mx2, q, 4.1103176233121648584779906184361403746103695e-19 );
+      q = std::fma( mx2, q, 1.56192069685862264622163643500573334235194041e-16 );
+      q = std::fma( mx2, q, 4.77947733238738529743820749111754402759693765e-14 );
+      q = std::fma( mx2, q, 1.14707455977297247138516979786821056662326504e-11 );
+      q = std::fma( mx2, q, 2.08767569878680989792100903212014323125434237e-9 );
+      q = std::fma( mx2, q, 2.75573192239858906525573192239858906525573192e-7 );
+      q = std::fma( mx2, q, 2.48015873015873015873015873015873015873015873e-5 );
+      q = std::fma( mx2, q, 1.38888888888888888888888888888888888888888889e-3 );
+      q = std::fma( mx2, q, 4.16666666666666666666666666666666666666666667e-2 );
+      q = std::fma( mx2, q, 0.5 );
+      return std::fma( mx2, q, 1.0 );
+    }
+
+    NCMATHFMA_ALWAYS_INLINE
+    double trig_sin19_over_x_from_mx2( double mx2 )
+    {
+      //sin(x)/x = 1 + mx2*Horner (Taylor to 19th order, mx2=-x^2),
+      //coefficients 1/(2n+1)! exactly as in the original NCMath.cc:
+      double p =           8.22063524662432971695598123687228074922073899e-18;
+      p = std::fma( mx2, p, 2.81145725434552076319894558301032001623349274e-15 );
+      p = std::fma( mx2, p, 7.64716373181981647590113198578807044415510024e-13 );
+      p = std::fma( mx2, p, 1.60590438368216145993923771701549479327257105e-10 );
+      p = std::fma( mx2, p, 2.50521083854417187750521083854417187750521084e-8 );
+      p = std::fma( mx2, p, 2.75573192239858906525573192239858906525573192e-6 );
+      p = std::fma( mx2, p, 1.98412698412698412698412698412698412698412698e-4 );
+      p = std::fma( mx2, p, 8.33333333333333333333333333333333333333333333e-3 );
+      p = std::fma( mx2, p, 1.66666666666666666666666666666666666666666667e-1 );
+      return std::fma( mx2, p, 1.0 );
+    }
+
+  }
+
+  NCRYSTAL_FMADISPATCH_WINFMA_DECLARE(
+    void, sincos_mpi2pi2,
+    ( double A, double* cosA, double* sinA )
+  )
+  NCRYSTAL_FMADISPATCH_WINFMA_DECLARE(
+    double, cos_mpipi,
+    ( double A )
+  )
+  NCRYSTAL_FMADISPATCH_WINFMA_DECLARE(
+    double, cos_mpi2pi2,
+    ( double x )
+  )
+  NCRYSTAL_FMADISPATCH_WINFMA_DECLARE(
+    double, sin_mpi2pi2,
+    ( double x )
+  )
+
+  NCRYSTAL_FMADISPATCH_DECLARATOR_C(void,detail_sincos_mpi2pi2,sincos_mpi2pi2)
+  ( double A, double* cosA, double* sinA )
+  {
+    NCRYSTAL_FMADISPATCH_WINFMA_FORWARD(sincos_mpi2pi2,(A,cosA,sinA));
+    nc_assert( ncabs(A) <= kPiHalf );
+    //Evaluate at A/2 via (shorter, 15th/16th order) Taylor expansions
+    //and get final results via double-angle formulas (exactly the
+    //original NCMath.cc algorithm, with the Horner chains and the
+    //double-angle reconstruction spelled out as explicit fma):
+    const double x = 0.5 * A;
+    const double mx2 = -( x * x );
+    double p =           7.64716373181981647590113198578807044415510024e-13;
+    p = std::fma( mx2, p, 1.60590438368216145993923771701549479327257105e-10 );
+    p = std::fma( mx2, p, 2.50521083854417187750521083854417187750521084e-8 );
+    p = std::fma( mx2, p, 2.75573192239858906525573192239858906525573192e-6 );
+    p = std::fma( mx2, p, 1.98412698412698412698412698412698412698412698e-4 );
+    p = std::fma( mx2, p, 8.33333333333333333333333333333333333333333333e-3 );
+    p = std::fma( mx2, p, 1.66666666666666666666666666666666666666666667e-1 );
+    const double s2 = x * std::fma( mx2, p, 1.0 );
+    double q =           4.77947733238738529743820749111754402759693765e-14;
+    q = std::fma( mx2, q, 1.14707455977297247138516979786821056662326504e-11 );
+    q = std::fma( mx2, q, 2.08767569878680989792100903212014323125434237e-9 );
+    q = std::fma( mx2, q, 2.75573192239858906525573192239858906525573192e-7 );
+    q = std::fma( mx2, q, 2.48015873015873015873015873015873015873015873e-5 );
+    q = std::fma( mx2, q, 1.38888888888888888888888888888888888888888889e-3 );
+    q = std::fma( mx2, q, 4.16666666666666666666666666666666666666666667e-2 );
+    q = std::fma( mx2, q, 0.5 );
+    const double c2m1 = mx2 * q;//cos(A/2)-1
+    const double k = 2.0 * c2m1;
+    //sin(A)=2*sin(A/2)*cos(A/2)=(k+2)*s2; cos(A)=1+k*(c2m1+2)/... as in
+    //the original, with each mul+add shape made explicit:
+    *sinA = std::fma( 2.0, c2m1, 2.0 ) * s2;
+    *cosA = std::fma( k, std::fma( mx2, q, 2.0 ), 1.0 );
+  }
+
+  NCRYSTAL_FMADISPATCH_DECLARATOR_C(double,detail_cos_mpi2pi2,cos_mpi2pi2)
+  ( double x )
+  {
+    NCRYSTAL_FMADISPATCH_WINFMA_FORWARD(cos_mpi2pi2,(x));
+    nc_assert( ncabs(x) <= kPiHalf );
+    return trig_cos22_from_mx2( -( x * x ) );
+  }
+
+  NCRYSTAL_FMADISPATCH_DECLARATOR_C(double,detail_cos_mpipi,cos_mpipi)
+  ( double A )
+  {
+    NCRYSTAL_FMADISPATCH_WINFMA_FORWARD(cos_mpipi,(A));
+    //abs/min/copysign tricks reduce the evaluation to [-pi/2,pi/2]:
+    const double Aabs = ncabs( A );
+    nc_assert( Aabs <= kPi );
+    const double x = ncmin( Aabs, kPi - Aabs );
+    const double c = trig_cos22_from_mx2( -( x * x ) );
+    return std::copysign( c, kPiHalf - Aabs );
+  }
+
+  NCRYSTAL_FMADISPATCH_DECLARATOR_C(double,detail_sin_mpi2pi2,sin_mpi2pi2)
+  ( double x )
+  {
+    NCRYSTAL_FMADISPATCH_WINFMA_FORWARD(sin_mpi2pi2,(x));
+    nc_assert( ncabs(x) <= kPiHalf );
+    return x * trig_sin19_over_x_from_mx2( -( x * x ) );
+  }
+
 }
 
 #endif
