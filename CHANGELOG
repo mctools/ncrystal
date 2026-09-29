@@ -87,6 +87,7 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * RawStrData: move construction now moves rather than copies.
      * COWPimpl: copy construction from non-const objects now gives a shallow
        copy, rather than passing the object to the constructor of the
        wrapped type.

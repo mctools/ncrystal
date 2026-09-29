@@ -152,5 +152,20 @@ int main()
     nc_assert_always(it2==it3);
   }
 
+  {
+    //Moving RawStrData objects must transfer the data, not share it:
+    auto sp = std::make_shared<std::string>("some data");
+    NC::RawStrData d1{ NC::shared_obj<std::string>( sp ) };
+    nc_assert_always( sp.use_count() == 2 );
+    NC::RawStrData d2( std::move(d1) );
+    nc_assert_always( sp.use_count() == 2 );
+    nc_assert_always( d2.hasSameContent( *sp ) );
+    NC::RawStrData d3( NC::RawStrData::static_data_ptr_t(), "" );
+    d3 = std::move(d2);
+    nc_assert_always( sp.use_count() == 2 );
+    nc_assert_always( d3.hasSameContent( *sp ) );
+    nc_assert_always( d3.begin() == sp->c_str() );
+  }
+
   return 0;
 }

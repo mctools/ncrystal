@@ -263,7 +263,7 @@ namespace NCRYSTAL_NAMESPACE {
 
   inline RawStrData::RawStrData( RawStrData&& o ) noexcept
   {
-    *this = o;
+    *this = std::move(o);
   }
 
   inline bool RawStrData::hasSameContent( const std::string& ss ) const
