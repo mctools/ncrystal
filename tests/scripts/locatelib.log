@@ -1,3 +1,7 @@
+locatelib: begin imports
+locatelib: enable_fpe imported
+locatelib: _locatelib imported
+locatelib: tempdir created
                plain/libNCrystal.so -> namespace ''
            plain/libNCrystal-foo.so -> namespace 'foo'
      plain/libNCrystal-foo.so.4.4.7 -> namespace 'foo'

@@ -23,8 +23,14 @@
 # Test inference of namespace from NCRYSTAL_LIB (only file name should
 # matter, not dots in parent dirs).
 
+#Staged progress prints below (flushed): this test was observed to hang
+#with zero output on the GitHub windows-2025 runners, so make the next
+#such hang reveal how far it got:
+print('locatelib: begin imports',flush=True)
 import NCTestUtils.enable_fpe # noqa F401
+print('locatelib: enable_fpe imported',flush=True)
 from NCrystalDev._locatelib import _search_env_overrides
+print('locatelib: _locatelib imported',flush=True)
 import os
 import pathlib
 import tempfile
@@ -35,6 +41,7 @@ def main():
     os.environ.pop('NCRYSTAL_LIB_NAMESPACE_PROTECTION',None)
     try:
         with tempfile.TemporaryDirectory() as td:
+            print('locatelib: tempdir created',flush=True)
             for sub in ['plain','.venv','a.b/c.d']:
                 d = pathlib.Path(td) / sub
                 d.mkdir(parents=True)
