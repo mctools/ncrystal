@@ -71,6 +71,32 @@ namespace {
     return 0.5;
   }
 
+  void testOutputsOnError()
+  {
+    //All output parameters must be set to well defined values on errors:
+    ncrystal_atomdata_t ad;
+    ad.internal = nullptr;//invalid handle
+    const char * lbl = nullptr;
+    const char * descr = nullptr;
+    double mass(1.0), incxs(1.0), cohsl(1.0), absxs(1.0);
+    unsigned ncomp(17), zval(18), aval(19);
+    ncrystal_atomdata_getfields( ad, &lbl, &descr, &mass, &incxs, &cohsl,
+                                 &absxs, &ncomp, &zval, &aval );
+    nc_assert_always( ncrystal_error() );
+    ncrystal_clearerror();
+    nc_assert_always( lbl && descr && !lbl[0] && !descr[0] );
+    nc_assert_always( mass < 0.0 && incxs < 0.0 && cohsl < 0.0
+                      && absxs < 0.0 );
+    nc_assert_always( ncomp == 0 && zval == 0 && aval == 0 );
+    double fraction(17.0);
+    ncrystal_atomdata_t sub
+      = ncrystal_create_atomdata_subcomp( ad, 0, &fraction );
+    nc_assert_always( ncrystal_error() );
+    ncrystal_clearerror();
+    nc_assert_always( sub.internal == nullptr && fraction == -1.0 );
+    std::cout << "Output parameters well defined after error" << std::endl;
+  }
+
   void testNonStdException()
   {
     ncrystal_setrandgen( badRandGen );
@@ -125,5 +151,6 @@ int main()
   nc_assert_always( ntot == 0 );
   nc_assert_always( !ncrystal_error() );
   testNonStdException();
+  testOutputsOnError();
   return 0;
 }

@@ -890,8 +890,10 @@ void ncrystal_raw_vdos2kernel( const double* vdos_egrid,
                                double target_emax_raw,
                                double* suggested_emax )
 {
+  *nalpha = *nbeta = 0;
+  *alpha = *beta = *sab = nullptr;
+  *suggested_emax = 0.0;
   try {
-    *suggested_emax = 0.0;
     NC::VDOS::VDOSLux vdoslux(vdoslux_raw);
     auto vdosData = ncc::createVDOSDataFromRaw( vdos_egrid, vdos_density,
                                                 vdos_egrid_npts, vdos_density_npts,
@@ -1860,14 +1862,15 @@ void ncrystal_atomdata_getfields( ncrystal_atomdata_t o,
     return;
   } NCCATCH;
   *displaylabel = *description = "";
-  *cohsl_fm = *absxs = -99999.0;
-  *ncomponents = *zval = *aval;
+  *mass = *incxs = *cohsl_fm = *absxs = -99999.0;
+  *ncomponents = *zval = *aval = 0;
 }
 
 ncrystal_atomdata_t ncrystal_create_atomdata_subcomp( ncrystal_atomdata_t o,
                                                       unsigned icomponent,
                                                       double* fraction )
 {
+  *fraction = -1.0;
   try {
     const auto& comp = ncc::extract(o).atomData().getComponent(icomponent);
     *fraction = comp.fraction;
@@ -2188,6 +2191,8 @@ void ncrystal_get_file_list( unsigned* nstrs, char*** strs )
 {
   //Return list of: ["name", "source", "factname", "priority", "name", ...]
   //(priority is str(integer), "Unable", or "OnlyOnExplicitRequest")
+  *nstrs = 0;
+  *strs = nullptr;
   try {
     auto fl = NC::DataSources::listAvailableFiles();
     NC::VectS strlist;
@@ -2210,6 +2215,8 @@ void ncrystal_get_file_list( unsigned* nstrs, char*** strs )
 void ncrystal_get_plugin_list( unsigned* nstrs,
                                char*** strs )
 {
+  *nstrs = 0;
+  *strs = nullptr;
   try {
     auto plugins = NC::Plugins::loadedPlugins();
     NC::VectS strlist;

@@ -2,3 +2,4 @@ Ran 16 jobs with 200 C API calls each (half failing), concurrently if possible. 
 Non-standard exception escaped C API: no
 Error type: unknown non-standard exception
 Error message: <unknown>
+Output parameters well defined after error
