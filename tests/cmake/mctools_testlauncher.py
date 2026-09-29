@@ -46,32 +46,45 @@ def run( app_file, reflogfile = None ):
         print(f"  {shlex.quote(e)}")
     print()
     sys.stdout.flush()
-
-    sys.stdout.flush()
     sys.stderr.flush()
-    r = subprocess.run( cmd,
-                        encoding=ENCODING,
-                        errors='backslashreplace',
-                        capture_output = True,
-                        cwd = wd,
-                        check = False )
+    #Stream the child's stdout live (line by line) while also collecting
+    #it for the reference-log comparison below: the previous
+    #buffer-then-print approach (capture_output=True) meant that a child
+    #killed externally (e.g. by a ctest timeout after hanging) took all
+    #its already-produced diagnostic output with it. TextIOWrapper gives
+    #the same encoding/universal-newline treatment as the text-mode
+    #subprocess.run did, and the stderr pipe is drained from a thread so
+    #neither pipe can fill up and block the child:
+    import io
+    import threading
+    p = subprocess.Popen( cmd, cwd = wd,
+                          stdout = subprocess.PIPE,
+                          stderr = subprocess.PIPE )
+    stderr_parts = []
+    def _drain_stderr():
+        with io.TextIOWrapper( p.stderr, encoding=ENCODING,
+                               errors='backslashreplace' ) as f:
+            stderr_parts.extend( f )
+    t = threading.Thread( target = _drain_stderr, daemon = True )
+    t.start()
+    stdout_parts = []
+    with io.TextIOWrapper( p.stdout, encoding=ENCODING,
+                           errors='backslashreplace' ) as f:
+        for line in f:
+            stdout_parts.append( line )
+            sys.stdout.write( line )
+            sys.stdout.flush()
+    returncode = p.wait()
+    t.join()
     sys.stdout.flush()
     sys.stderr.flush()
     print("MCTools TestLauncher done running command.")
-    r_stdout = ( r.stdout.decode(ENCODING,errors='backslashreplace')
-                 if isinstance(r.stdout,bytes)
-                 else ( r.stdout or '' ) )
-    r_stderr = ( r.stderr.decode(ENCODING,errors='backslashreplace')
-                 if isinstance(r.stderr,bytes)
-                 else ( r.stderr or '' ) )
+    r_stdout = ''.join( stdout_parts )
+    r_stderr = ''.join( stderr_parts )
     assert isinstance(r_stdout,str)
     assert isinstance(r_stderr,str)
-    sys.stdout.write(r_stdout)
     if r_stderr:
-        #Todo support this, by merging them (probably needs subprocess.Popen not
-        #subprocess.run):
         for line in r_stderr.splitlines():
-            #sys.stderr.buffer.write(b'stderr> '+line+'\n'.encode())
             sys.stderr.write('stderr> '+line+'\n')
         sys.stderr.flush()
         raise SystemExit('Error: Process emitted output on'
@@ -82,12 +95,12 @@ def run( app_file, reflogfile = None ):
     assert not newout.exists()
     newout.write_bytes(output_raw.encode(ENCODING,errors='backslashreplace'))
 
-    if r.returncode == 3221225781 and is_windows:
+    if returncode == 3221225781 and is_windows:
         raise SystemExit('Error: Command ended with exit'
-                         f' code {r.returncode} (usually'
+                         f' code {returncode} (usually'
                          ' indicates "DLL not found")')
-    if r.returncode != 0:
-        raise SystemExit(f'Error: Command ended with exit code {r.returncode}')
+    if returncode != 0:
+        raise SystemExit(f'Error: Command ended with exit code {returncode}')
     if reflogfile is None:
         return #Done!
     refoutput = reflogfile.read_text(encoding='utf-8')
