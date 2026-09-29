@@ -1112,6 +1112,13 @@ def _format_info( b, *, linewidth ):
             fields.append( ('Hidden', ( 'yes, by a higher priority entry'
                                         ' with the same name' ) ) )
         for k, v in fields:
+            if k in ( 'Source', 'On-disk path' ):
+                #Never wrap path-valued fields: their length is
+                #environment dependent, so wrapping would make the
+                #output *structure* differ between platforms (and
+                #verbatim paths are more useful anyway):
+                out.append(f'    {k:<14}: {v}')
+                continue
             ll = textwrap.wrap( v, width = linewidth - 20,
                                 break_long_words = False,
                                 break_on_hyphens = False ) or ['']
@@ -1217,8 +1224,14 @@ class _WhereExpr:
         try:
             tree = ast.parse( expr, mode = 'eval' )
         except SyntaxError as e:
+            msg = e.msg
+            import sys
+            if ( sys.version_info < (3,10)
+                 and msg == 'unexpected EOF while parsing' ):
+                #Mimic the wording of newer Pythons:
+                msg = 'invalid syntax'
             raise NCBadInput(f'Invalid where expression "{expr}":'
-                             f' {e.msg}') from e
+                             f' {msg}') from e
         if names is None:
             names = [ n for n,d in _propdocs ]
         allowed = set( names ) | set( _where_funcs )
