@@ -406,6 +406,16 @@ NC::Fct1D::~Fct1D(){}
 //expm1_reducedarg_taylor14/detail_stable_expm1/detail_stable_exp: see
 //NCMath_FMA.hh (included above).
 
+double NC::ncerf( double x )
+{
+  return NCRYSTAL_APPLY_C_NAMESPACE(detail_ncerf)( x );
+}
+
+double NC::ncerfc( double x )
+{
+  return NCRYSTAL_APPLY_C_NAMESPACE(detail_ncerfc)( x );
+}
+
 double NC::stable_expm1( double x )
 {
   return NCRYSTAL_APPLY_C_NAMESPACE(detail_stable_expm1)( x );

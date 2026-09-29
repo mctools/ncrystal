@@ -1,0 +1,29 @@
+test_mpmath_refvals:
+  65 ref points, worst ulp-diff: erfc 2.00, erf 2.00: OK
+  cutoff and NaN behaviour: OK
+test_vs_libm:
+  1320004 points swept vs std::erf/std::erfc, all within 8 ulp: OK
+test_properties:
+  symmetry, monotonicity and erf+erfc==1: OK
+bit-identity table (uint64 patterns):
+  x=1e-09    : erfc(x) 3fefffffff64eab0 erfc(-x) 3ff00000004d8aa8 erf(x) 3e1362a9ffc610dc
+  x=0.001    : erfc(x) 3feff6c19e3fd964 erfc(-x) 3ff0049f30e0134e erf(x) 3f527cc3804d374c
+  x=0.1      : erfc(x) 3fec66b42bb6099a erfc(-x) 3ff1cca5ea24fb33 erf(x) 3fbcca5ea24fb334
+  x=0.3      : erfc(x) 3fe57be3bbf10af9 erfc(-x) 3ff5420e22077a84 erf(x) 3fd50838881dea0e
+  x=0.46875  : erfc(x) 3fe03c82ab5eb832 erfc(-x) 3ff7e1beaa50a3e7 erf(x) 3fdf86faa9428f9c
+  x=0.469    : erfc(x) 3fe03aa7d41f17b7 erfc(-x) 3ff7e2ac15f07424 erf(x) 3fdf8ab057c1d092
+  x=0.7      : erfc(x) 3fd49ee7bdd1d374 erfc(-x) 3ffad846108b8b23 erf(x) 3fe5b08c21171646
+  x=1        : erfc(x) 3fc4226162fbddd6 erfc(-x) 3ffd7bb3d3a08445 erf(x) 3feaf767a741088a
+  x=1.5      : erfc(x) 3fa15aaa8ec85204 erfc(-x) 3fff752aab89bd70 erf(x) 3feeea5557137ae0
+  x=2.25     : erfc(x) 3f57f713f9cc9784 erfc(-x) 3ffffa023b018cda erf(x) 3feff404760319b4
+  x=3        : erfc(x) 3ef729df6503422b erfc(-x) 3fffffe8d6209afd erf(x) 3fefffd1ac4135f9
+  x=3.75     : erfc(x) 3e7e87470e4f4245 erfc(-x) 3fffffffe178b8f2 erf(x) 3fefffffc2f171e3
+  x=4        : erfc(x) 3e508ddd13bd35e7 erfc(-x) 3ffffffffbdc88bb erf(x) 3feffffff7b91176
+  x=4.5      : erfc(x) 3deb05cfe2e99434 erfc(-x) 3ffffffffff27d18 erf(x) 3fefffffffe4fa30
+  x=6        : erfc(x) 3c78cf81557d20b5 erfc(-x) 4000000000000000 erf(x) 3ff0000000000000
+  x=9        : erfc(x) 386198d422be3f8d erfc(-x) 4000000000000000 erf(x) 3ff0000000000000
+  x=14       : erfc(x) 2df82af24bbe81dd erfc(-x) 4000000000000000 erf(x) 3ff0000000000000
+  x=20       : erfc(x) 1b8b54f244df93df erfc(-x) 4000000000000000 erf(x) 3ff0000000000000
+  x=26       : erfc(x) 02a284bfe1cdea24 erfc(-x) 4000000000000000 erf(x) 3ff0000000000000
+  x=26.5     : erfc(x) 0043df6725a60cf5 erfc(-x) 4000000000000000 erf(x) 3ff0000000000000
+All tests passed.

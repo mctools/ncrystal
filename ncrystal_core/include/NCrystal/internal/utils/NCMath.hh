@@ -153,6 +153,19 @@ namespace NCRYSTAL_NAMESPACE {
   double stable_log(double x);//refined via std::exp (Newton-Raphson on
                               //f(y)=exp(y)-x=0), same idea as stable_exp.
 
+  //Portable erf/erfc, entirely free of libm calls: rational
+  //approximations following W. J. Cody's CALERF (netlib SPECFUN; W. J.
+  //Cody, Math. Comp. 23 (1969) 631), with the exp(-x^2) tail factor
+  //provided by the equally portable stable_exp and the x^2 rounding
+  //compensated via an exact std::fma residual split. Results are
+  //therefore bit-identical on all platforms, with accuracy at the
+  //few-ULP level. NB: unlike the stable_* functions there is no speed
+  //penalty attached to the portability here: these are expected to be
+  //FASTER than typical libm erfc implementations (much faster in the
+  //large-argument tail), so they can be used freely in hot code:
+  double ncerf( double x );
+  double ncerfc( double x );
+
   //Evaluate erfc(a)-erfc(b) in a relatively numerically safe
   //manner and with as few actual calls to std::erfc as possible:
   double erfcdiff(double a, double b);
