@@ -38,6 +38,104 @@ NC::ThreadPool::ThreadPool::~ThreadPool()
   endAllThreads();
 }
 
+void NC::ThreadPool::ThreadPool::threadWorkFctTrampoline( void* arg )
+{
+  static_cast<ThreadPool*>( arg )->threadWorkFct();
+}
+
+#ifdef _WIN32
+
+NC::ThreadPool::WorkerThread::WorkerThread( void (*fct)( void* ),
+                                            void* arg )
+  : m_t( fct, arg )
+{
+}
+void NC::ThreadPool::WorkerThread::join() { m_t.join(); }
+NC::ThreadPool::WorkerThread::~WorkerThread() = default;
+NC::ThreadPool::WorkerThread::WorkerThread( WorkerThread&& ) noexcept
+  = default;
+NC::ThreadPool::WorkerThread&
+NC::ThreadPool::WorkerThread::operator=( WorkerThread&& ) noexcept
+  = default;
+
+#else
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace ThreadPool {
+    namespace {
+      struct WTLaunchData {
+        void (*fct)( void* );
+        void* arg;
+      };
+      void* wt_trampoline( void* raw )
+      {
+        WTLaunchData d = *static_cast<WTLaunchData*>( raw );
+        delete static_cast<WTLaunchData*>( raw );
+        d.fct( d.arg );
+        return nullptr;
+      }
+    }
+  }
+}
+
+NC::ThreadPool::WorkerThread::WorkerThread( void (*fct)( void* ),
+                                            void* arg )
+{
+  pthread_attr_t attr;
+  if ( pthread_attr_init( &attr ) != 0 )
+    throw std::runtime_error("pthread_attr_init failed");
+  std::size_t stacksize = 8 * 1024 * 1024;
+#  ifdef PTHREAD_STACK_MIN
+  //NB: PTHREAD_STACK_MIN might expand to a sysconf call (glibc>=2.34):
+  const std::size_t psm
+    = static_cast<std::size_t>( PTHREAD_STACK_MIN );
+  if ( stacksize < psm )
+    stacksize = psm;
+#  endif
+  pthread_attr_setstacksize( &attr, stacksize );
+  auto d = new WTLaunchData{ fct, arg };
+  const int ec = pthread_create( &m_t, &attr, &wt_trampoline, d );
+  pthread_attr_destroy( &attr );
+  if ( ec != 0 ) {
+    delete d;
+    throw std::runtime_error("pthread_create failed");
+  }
+  m_joinable = true;
+}
+
+void NC::ThreadPool::WorkerThread::join()
+{
+  nc_assert_always( m_joinable );
+  pthread_join( m_t, nullptr );
+  m_joinable = false;
+}
+
+NC::ThreadPool::WorkerThread::~WorkerThread()
+{
+  //Mirror std::thread semantics loosely, but never terminate(): a
+  //still-joinable thread here would be a logic error caught in debug
+  //builds:
+  nc_assert( !m_joinable );
+}
+
+NC::ThreadPool::WorkerThread::WorkerThread( WorkerThread&& o ) noexcept
+  : m_t( o.m_t ), m_joinable( o.m_joinable )
+{
+  o.m_joinable = false;
+}
+
+NC::ThreadPool::WorkerThread&
+NC::ThreadPool::WorkerThread::operator=( WorkerThread&& o ) noexcept
+{
+  nc_assert( !m_joinable );
+  m_t = o.m_t;
+  m_joinable = o.m_joinable;
+  o.m_joinable = false;
+  return *this;
+}
+
+#endif
+
 void NC::ThreadPool::ThreadPool::changeNumberOfThreads( unsigned nthreads )
 {
   //Todo: check that this means that we can change number of threads dynamically
@@ -53,7 +151,7 @@ void NC::ThreadPool::ThreadPool::changeNumberOfThreads( unsigned nthreads )
     m_threads_should_end = false;
     m_threads.reserve(nthreads);
     while ( (unsigned)m_threads.size() < nthreads )
-      m_threads.emplace_back(std::thread(&ThreadPool::threadWorkFct,this));
+      m_threads.emplace_back( &ThreadPool::threadWorkFctTrampoline, this );
   } else {
     nc_assert( nthreads < m_threads.size() );
     //For simplicity, go to a complete halt, then restart (this is anyway most
@@ -144,7 +242,7 @@ void NC::ThreadPool::ThreadPool::endAllThreads()
   std::unique_lock<std::mutex> lock(m_mutex);
   while ( !m_threads.empty() ) {
     {
-      std::thread t = std::move( m_threads.back() );
+      WorkerThread t = std::move( m_threads.back() );
       m_threads.pop_back();
       lock.unlock();
       t.join();

@@ -27,11 +27,38 @@
 #  include <thread>
 #  include <condition_variable>
 #  include <queue>
+#  ifndef _WIN32
+#    include <pthread.h>
+#  endif
 #endif
 
 namespace NCRYSTAL_NAMESPACE {
 
   namespace ThreadPool {
+
+#ifndef NCRYSTAL_DISABLE_THREADS
+    //Worker thread with an explicit 8MB stack on POSIX: std::thread
+    //offers no stack-size control, and e.g. macOS gives secondary
+    //threads just 512kB by default (vs. glibc's usual 8MB), observed
+    //(as CI SIGBUS crashes) to be too small for factory jobs loading
+    //complex materials. On Windows std::thread is kept (1MB default,
+    //no issues observed).
+    class WorkerThread final : private MoveOnly {
+    public:
+      WorkerThread( void (*fct)( void* ), void* arg );
+      void join();
+      ~WorkerThread();
+      WorkerThread( WorkerThread&& ) noexcept;
+      WorkerThread& operator=( WorkerThread&& ) noexcept;
+    private:
+#  ifdef _WIN32
+      std::thread m_t;
+#  else
+      pthread_t m_t;
+      bool m_joinable = false;
+#  endif
+    };
+#endif
 
     class ThreadPool final : NoCopyMove {
     public:
@@ -50,13 +77,14 @@ namespace NCRYSTAL_NAMESPACE {
 
 #ifndef NCRYSTAL_DISABLE_THREADS
     private:
-      std::vector<std::thread> m_threads;
+      std::vector<WorkerThread> m_threads;
       std::queue<voidfct_t> m_jobqueue;
       std::mutex m_mutex;
       std::condition_variable m_condvar;
       bool m_threads_should_end = true;
       void endAllThreads();
       void threadWorkFct();
+      static void threadWorkFctTrampoline( void* );
 #endif
     };
   }
