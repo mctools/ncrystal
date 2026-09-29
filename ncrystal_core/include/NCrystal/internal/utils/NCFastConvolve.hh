@@ -67,6 +67,18 @@ namespace NCRYSTAL_NAMESPACE {
     //testing:
     static PairDD calcPhase(unsigned long k, unsigned long n);
 
+    //The tables needed for the FFT algorithm are cached and shared between
+    //all FastConvolve objects, and their sizes are proportional to the size
+    //of the largest convolutions performed. The memory usage of the cache
+    //(in bytes) can be queried, and the cache can be cleared (which also
+    //happens when the global NCrystal::clearCaches() function is called).
+    //It can also be trimmed, which discards the largest tables until the
+    //memory usage is at most max_bytes (thus keeping the small tables which
+    //are cheap to keep and used by most convolutions):
+    static std::size_t currentCacheMemUsage();
+    static void clearCaches();
+    static void trimCaches( std::size_t max_bytes = 10000000 );
+
   private:
     struct Impl;
     Pimpl<Impl> m_impl;

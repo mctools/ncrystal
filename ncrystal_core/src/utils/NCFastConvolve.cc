@@ -117,6 +117,61 @@ namespace NCRYSTAL_NAMESPACE {
         m_w_cache.clear();
         m_swap_cache.clear();
       }
+
+      static std::size_t memUsage( const WTable& t )
+      {
+        return t.capacity() * sizeof(WTable::value_type);
+      }
+
+      static std::size_t memUsage( const SwapPatternCache& s )
+      {
+        return ( s.pattern.capacity()
+                 * sizeof(decltype(s.pattern)::value_type) );
+      }
+
+      std::size_t memUsage() const
+      {
+        std::size_t n = 0;
+        {
+          NCRYSTAL_LOCK_GUARD(m_w_cache_mutex);
+          for ( auto& e : m_w_cache )
+            n += memUsage( *e.second );
+        }
+        {
+          NCRYSTAL_LOCK_GUARD(m_swap_cache_mutex);
+          for ( auto& e : m_swap_cache )
+            n += memUsage( *e.second );
+        }
+        return n;
+      }
+
+      void trimCaches( std::size_t max_bytes )
+      {
+        //Discard the largest tables (those for the largest convolutions, at
+        //the end of the maps), until the memory usage is at most max_bytes.
+        NCRYSTAL_LOCK_GUARD(m_w_cache_mutex);
+        NCRYSTAL_LOCK_GUARD(m_swap_cache_mutex);
+        std::size_t n = 0;
+        for ( auto& e : m_w_cache )
+          n += memUsage( *e.second );
+        for ( auto& e : m_swap_cache )
+          n += memUsage( *e.second );
+        while ( n > max_bytes ) {
+          const std::size_t nw
+            = m_w_cache.empty() ? 0 : memUsage( *m_w_cache.rbegin()->second );
+          const std::size_t ns
+            = ( m_swap_cache.empty()
+                ? 0 : memUsage( *m_swap_cache.rbegin()->second ) );
+          nc_assert_always( nw + ns > 0 );
+          if ( nw >= ns ) {
+            m_w_cache.erase( std::prev( m_w_cache.end() ) );
+            n -= nw;
+          } else {
+            m_swap_cache.erase( std::prev( m_swap_cache.end() ) );
+            n -= ns;
+          }
+        }
+      }
       static ComplexSD calcPhaseSD(unsigned long k, unsigned long n);
     private:
       void initWTable( unsigned long, WTable& ) const;
@@ -212,6 +267,21 @@ void NC::FastConvolveCacheMgr::initWTable( unsigned long n_size_raw,
     wtable.emplace_back(std::complex<double>(phaseval.first.value(),
                                              phaseval.second.value()));
   }
+}
+
+std::size_t NC::FastConvolve::currentCacheMemUsage()
+{
+  return getFastConvolveCacheMgr().memUsage();
+}
+
+void NC::FastConvolve::clearCaches()
+{
+  getFastConvolveCacheMgr().clearCaches();
+}
+
+void NC::FastConvolve::trimCaches( std::size_t max_bytes )
+{
+  getFastConvolveCacheMgr().trimCaches( max_bytes );
 }
 
 void NC::FastConvolve::convolve( const VectD& a1, const VectD& a2,

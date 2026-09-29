@@ -26,6 +26,7 @@
 #include "NCrystal/internal/utils/NCMsg.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCFileUtils.hh"
+#include "NCrystal/internal/utils/NCFastConvolve.hh"
 #include <fstream>
 #include <sstream>
 
@@ -84,6 +85,23 @@ NC::VDOS::expandVDOSToGnFcts( const VDOSData& vdosdata,
                               Optional<NeutronEnergy> targetEmax_requested )
 {
   static bool s_verbose = ncgetenv_bool("DEBUG_PHONON");
+
+  //The FFT tables cached during expansions with very large convolutions can
+  //take up a lot of memory, so in that case we discard the largest of them
+  //at the end of the expansion (also in case of errors):
+  struct FFTCacheGuard {
+    ~FFTCacheGuard()
+    {
+      constexpr std::size_t max_cache_bytes = 100000000;//100MB
+      constexpr std::size_t trim_cache_bytes = 10000000;//10MB
+      try {
+        if ( FastConvolve::currentCacheMemUsage() > max_cache_bytes )
+          FastConvolve::trimCaches( trim_cache_bytes );
+      } catch (...) {
+        //Destructors must not throw.
+      }
+    }
+  } fftcacheguard;
 
   //Hidden unofficial env-vars used for special debugging purposes:
   static const bool dump_vdosabranges = ncgetenv_bool("HACK_DUMP_VDOSABRANGES");

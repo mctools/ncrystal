@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/utils/NCFastConvolve.hh"
+#include "NCrystal/core/NCMem.hh"
 #include <iostream>
 #include "refvals.hh"
 
@@ -243,7 +244,54 @@ namespace {
   }
 }
 
+namespace {
+  void testCaches()
+  {
+    //Test memory usage reporting and clearing of the cached FFT tables.
+    auto doConvolve = []( std::size_t n )
+    {
+      VectD a( n, 1.0 ), y;
+      NC::FastConvolve fc;
+      fc.convolve( a, a, y, 1.0 );
+      REQUIRE( y.size() == 2*n - 1 );
+    };
+    NC::FastConvolve::clearCaches();
+    REQUIRE( NC::FastConvolve::currentCacheMemUsage() == 0 );
+    doConvolve( 1000 );
+    const auto n1 = NC::FastConvolve::currentCacheMemUsage();
+    REQUIRE( n1 > 0 );
+    doConvolve( 1000 );
+    REQUIRE( NC::FastConvolve::currentCacheMemUsage() == n1 );
+    doConvolve( 100000 );
+    const auto n2 = NC::FastConvolve::currentCacheMemUsage();
+    //The second convolution needs an FFT of 2^18 complex numbers:
+    REQUIRE( n2 > 2*n1 );
+    REQUIRE( n2 >= 16*262144 && n2 < 5*16*262144 );
+    //Trimming discards the largest tables only:
+    NC::FastConvolve::trimCaches( n2 );
+    REQUIRE( NC::FastConvolve::currentCacheMemUsage() == n2 );
+    NC::FastConvolve::trimCaches( n2 - 1 );
+    REQUIRE( NC::FastConvolve::currentCacheMemUsage() < n2 );
+    REQUIRE( NC::FastConvolve::currentCacheMemUsage() >= n1 );
+    NC::FastConvolve::trimCaches( n1 );
+    REQUIRE( NC::FastConvolve::currentCacheMemUsage() == n1 );
+    NC::FastConvolve::trimCaches( 0 );
+    REQUIRE( NC::FastConvolve::currentCacheMemUsage() == 0 );
+    doConvolve( 100000 );
+    REQUIRE( NC::FastConvolve::currentCacheMemUsage() > n1 );
+    NC::FastConvolve::clearCaches();
+    REQUIRE( NC::FastConvolve::currentCacheMemUsage() == 0 );
+    doConvolve( 1000 );
+    REQUIRE( NC::FastConvolve::currentCacheMemUsage() == n1 );
+    NC::clearCaches();//global function must also clear them
+    REQUIRE( NC::FastConvolve::currentCacheMemUsage() == 0 );
+  }
+}
+
 int main() {
+  std::cout<<"testCaches start..."<<std::endl;
+  testCaches();
+  std::cout<<"testCaches done."<<std::endl;
   std::cout<<"testFastConvolve start..."<<std::endl;
   testFastConvolve();
   std::cout<<"testFastConvolve done."<<std::endl;
