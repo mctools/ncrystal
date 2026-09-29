@@ -353,8 +353,15 @@ namespace NCRYSTAL_NAMESPACE {
     // suited for classes which potentially keep a large internal structure
     // which is modified seldomly and copied often.
 
-    //Arguments of COWPimpl constructor will be passed along to constructor of T:
-    template<typename ...Args> COWPimpl( Args&& ... );
+    //Arguments of COWPimpl constructor will be passed along to constructor of
+    //T (unless the first argument is a COWPimpl, so copies of non-const
+    //objects are handled by the copy constructor):
+    COWPimpl();
+    template<typename Arg, typename ...Args,
+             typename = typename std::enable_if<
+               !std::is_same<typename std::decay<Arg>::type,
+                             COWPimpl>::value>::type>
+    COWPimpl( Arg&&, Args&& ... );
 
     //Access internal T object through * or -> dereferencing. For modifications,
     //one must first retrieve a modification object through modify() (which
@@ -1451,9 +1458,16 @@ namespace NCRYSTAL_NAMESPACE {
   }
 
   template<class T>
-  template<typename ...Args>
-  inline COWPimpl<T>::COWPimpl( Args&& ...args )
-    : m_data(new Data(std::forward<Args>(args)... ))
+  inline COWPimpl<T>::COWPimpl()
+    : m_data(new Data)
+  {
+  }
+
+  template<class T>
+  template<typename Arg, typename ...Args, typename>
+  inline COWPimpl<T>::COWPimpl( Arg&& arg, Args&& ...args )
+    : m_data(new Data( std::forward<Arg>(arg),
+                       std::forward<Args>(args)... ))
   {
   }
 

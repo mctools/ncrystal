@@ -87,6 +87,9 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * COWPimpl: copy construction from non-const objects now gives a shallow
+       copy, rather than passing the object to the constructor of the
+       wrapped type.
      * Tests: add VDOS curves with unusual features (mostly from plugins) as
        tests/data/vdos_*.ncmat, and exercise them in VDOS tests.
      * C-API: output parameters of ncrystal_atomdata_getfields,

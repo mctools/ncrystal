@@ -34,6 +34,7 @@ namespace {
   struct COWData {
     int value = 0;
     COWData() = default;
+    COWData( int v, int w ) : value(v+w) {}
     COWData( const COWData& o ) : value(o.value)
     {
       if ( s_cow_copy_throws )
@@ -49,10 +50,17 @@ namespace {
     //move-assigned.
     NC::COWPimpl<COWData> a;
     a.modify()->value = 1;
-    //NB: Copy construction must be from const references:
     const NC::COWPimpl<COWData>& a_const = a;
-    NC::COWPimpl<COWData> b( a_const );//shallow copy, shares data with a
+    //Copying a non-const object must use the copy constructor (a shallow
+    //copy sharing data with a), rather than passing the object on to the
+    //constructor of the wrapped type:
+    static_assert( !std::is_constructible<COWData,
+                   NC::COWPimpl<COWData>&>::value, "" );
+    NC::COWPimpl<COWData> b( a );
     nc_assert_always( a->value == 1 && b->value == 1 );
+    nc_assert_always( &(*a) == &(*b) );
+    //Other arguments are still passed on:
+    nc_assert_always( NC::COWPimpl<COWData>( 17, 3 )->value == 20 );
 
     //Copy-on-write which fails:
     s_cow_copy_throws = true;
