@@ -20,6 +20,7 @@
 
 #include "NCThreadPool.hh"
 #include "NCrystal/threads/NCFactThreads.hh"
+#include <exception>//std::terminate
 namespace NC = NCrystal;
 
 NC::ThreadPool::ThreadPool::ThreadPool() = default;
@@ -112,10 +113,11 @@ void NC::ThreadPool::WorkerThread::join()
 
 NC::ThreadPool::WorkerThread::~WorkerThread()
 {
-  //Mirror std::thread semantics loosely, but never terminate(): a
-  //still-joinable thread here would be a logic error caught in debug
-  //builds:
-  nc_assert( !m_joinable );
+  //Mirror std::thread semantics: destroying a still-joinable thread is
+  //a fatal logic error (NB: a throwing nc_assert is not allowed here,
+  //destructors have non-throwing exception specifications):
+  if ( m_joinable )
+    std::terminate();
 }
 
 NC::ThreadPool::WorkerThread::WorkerThread( WorkerThread&& o ) noexcept
@@ -127,7 +129,9 @@ NC::ThreadPool::WorkerThread::WorkerThread( WorkerThread&& o ) noexcept
 NC::ThreadPool::WorkerThread&
 NC::ThreadPool::WorkerThread::operator=( WorkerThread&& o ) noexcept
 {
-  nc_assert( !m_joinable );
+  //As for the destructor (also noexcept, so no nc_assert):
+  if ( m_joinable )
+    std::terminate();
   m_t = o.m_t;
   m_joinable = o.m_joinable;
   o.m_joinable = false;
