@@ -25,15 +25,16 @@
 
 #Staged progress prints below (flushed): this test was observed to hang
 #with zero output on the GitHub windows-2025 runners, so make the next
-#such hang reveal how far it got:
+#such hang reveal how far it got (the print-interleaved imports are
+#deliberate, hence the noqa markers):
 print('locatelib: begin imports',flush=True)
 import NCTestUtils.enable_fpe # noqa F401
 print('locatelib: enable_fpe imported',flush=True)
-from NCrystalDev._locatelib import _search_env_overrides
+from NCrystalDev._locatelib import _search_env_overrides # noqa: E402, I001
 print('locatelib: _locatelib imported',flush=True)
-import os
-import pathlib
-import tempfile
+import os # noqa: E402, I001
+import pathlib # noqa: E402
+import tempfile # noqa: E402
 
 def main():
     orig = { k: os.environ.get(k) for k in
