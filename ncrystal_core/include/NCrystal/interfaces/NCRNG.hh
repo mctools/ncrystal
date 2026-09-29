@@ -134,7 +134,10 @@ namespace NCRYSTAL_NAMESPACE {
 
     //Produce independent stream for current thread. All calls within a given
     //thread will return the same stream, but will give independent streams
-    //for different threads:
+    //for different threads. Streams are associated with the ID of the
+    //thread, and are kept for the lifetime of the producer: if a thread
+    //ends and a new thread gets the same ID, the new thread continues the
+    //stream of the old one:
     shared_obj<RNGStream> produceForCurrentThread();
 
     RNGProducer( RNGProducer&& ) noexcept;

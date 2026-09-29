@@ -110,6 +110,10 @@ namespace NCRYSTAL_NAMESPACE {
         }
 
         ThreadPool::ThreadPool& getTP() {
+          //NB: Worker threads are joined when this object is destructed
+          //during static destruction at program exit. On Windows this is
+          //a potential issue (the OS might have ended the threads already,
+          //which can make a join hang), but no such issues were observed.
           static ThreadPool::ThreadPool tp;
           return tp;
         }
