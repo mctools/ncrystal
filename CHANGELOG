@@ -87,6 +87,9 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * C-API: at most 1024 threads can now have error states at the same
+       time (the oldest are discarded), to avoid unbounded memory usage when
+       threads end without clearing their error state.
      * Pointers returned by ncrystal_dyninfo_extract_scatknl are now only
        valid until the next call (kernels were previously kept alive
        indefinitely). The Python API copies the data while holding a lock.

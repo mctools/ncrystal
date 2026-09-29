@@ -290,7 +290,9 @@ namespace NCRYSTAL_NAMESPACE {
     //Error state is kept per thread (keyed on thread id, guarded by a
     //mutex, since thread_local is avoided), so an error in one thread is
     //never reported in another. Entries only change via their own thread,
-    //so returned char pointers stay valid until that thread clears them.
+    //so returned char pointers stay valid until that thread clears them. The
+    //exception is that the oldest entries are discarded if there are too
+    //many, since threads might end without clearing their error state.
 #ifndef NCRYSTAL_DISABLE_THREADS
     using ThreadID = std::thread::id;
     ThreadID currentThreadID() { return std::this_thread::get_id(); }
@@ -301,10 +303,13 @@ namespace NCRYSTAL_NAMESPACE {
     struct ErrorState {
       char errmsg[512];
       char errtype[64];
+      std::uint64_t seqno = 0;//higher means more recent
     };
     struct ErrorStates {
       std::mutex mtx;
       std::map<ThreadID,ErrorState> states;
+      std::uint64_t nextseqno = 1;
+      static constexpr std::size_t max_nstates = 1024;
     };
     ErrorStates& errorStates()
     {
@@ -327,6 +332,15 @@ namespace NCRYSTAL_NAMESPACE {
         auto& es = errorStates();
         NCRYSTAL_LOCK_GUARD(es.mtx);
         state = &es.states[ currentThreadID() ];
+        state->seqno = es.nextseqno++;
+        if ( es.states.size() > ErrorStates::max_nstates ) {
+          //Discard the oldest entry (which can not be the current one):
+          auto itOldest = es.states.begin();
+          for ( auto it = es.states.begin(); it != es.states.end(); ++it )
+            if ( it->second.seqno < itOldest->second.seqno )
+              itOldest = it;
+          es.states.erase( itOldest );
+        }
       }
       char * errmsg = state->errmsg;
       char * errtype = state->errtype;

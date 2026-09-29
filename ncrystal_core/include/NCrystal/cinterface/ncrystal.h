@@ -1041,7 +1041,12 @@ extern "C" {
 
   /*If not halting on error, these functions can be used to access information     */
   /*about errors encountered. The error state is kept separately for each thread,  */
-  /*so these functions only report errors encountered in the calling thread:       */
+  /*so these functions only report errors encountered in the calling thread.       */
+  /*Threads should call ncrystal_clearerror before they end, since an error state  */
+  /*left behind might otherwise be seen by a new thread (if the system reuses the  */
+  /*thread ID). At most 1024 threads can have error states at the same time: if    */
+  /*more are needed, the oldest are discarded (invalidating any strings returned   */
+  /*for them):                                                                     */
   NCRYSTAL_API int ncrystal_error(void);/* returns 1 if an error condition occurred. */
   NCRYSTAL_API const char * ncrystal_lasterror(void);/* returns description of last error (NULL if none) */
   NCRYSTAL_API const char * ncrystal_lasterrortype(void);/* returns description of last error (NULL if none) */
