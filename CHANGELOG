@@ -87,6 +87,11 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Non-legacy VDOS expansion (vdoslux 2000..2006) now samples the G1
+       function with smaller bins, if needed for linear interpolation between
+       the points to reproduce it. This matters when G1 has structure which
+       is narrow compared to both kT and the VDOS grid (cross sections for a
+       VDOS not falling off like E^2 at low energies were 4% too high).
      * RawStrData: move construction now moves rather than copies.
      * COWPimpl: copy construction from non-const objects now gives a shallow
        copy, rather than passing the object to the constructor of the

@@ -60,8 +60,8 @@ vdos_clathrate_O2.ncmat: vdoslux=2003 Emax >= 2eV and cross sections within 2.5%
 vdos_graphiteoxide_D.ncmat: detailed balance of Gn functions fulfilled
 vdos_graphiteoxide_D.ncmat: vdoslux=2003 Emax >= 2eV and cross sections within 2.5% of reference: True
 vdos_hydrogen_osc.ncmat: detailed balance of Gn functions fulfilled
-vdos_hydrogen_osc.ncmat: vdoslux=2003 Emax >= 2eV and cross sections within 5% of reference: True
-vdos_hydrogen_osc.ncmat: vdoslux=2005 Emax >= 5eV and cross sections within 5% of reference: True
+vdos_hydrogen_osc.ncmat: vdoslux=2003 Emax >= 2eV and cross sections within 2.5% of reference: True
+vdos_hydrogen_osc.ncmat: vdoslux=2005 Emax >= 5eV and cross sections within 0.6% of reference: True
 vdos_liquidH2.ncmat: detailed balance of Gn functions fulfilled
 vdos_liquidH2.ncmat: vdoslux=2003 Emax >= 2eV and cross sections within 2.5% of reference: True
 vdos_orthoD2.ncmat: detailed balance of Gn functions fulfilled

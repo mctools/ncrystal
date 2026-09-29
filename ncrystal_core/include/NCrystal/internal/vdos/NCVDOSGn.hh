@@ -91,7 +91,10 @@ namespace NCRYSTAL_NAMESPACE {
       //Except for Legacy, G1 is sampled with a binwidth of at most 0.25*kT
       //(so the exp(-beta) fall-off of upscattering is resolved), and
       //temperatures below 0.1K are not supported (throws BadInput). If the
-      //required number of G1 bins is excessive, a CalcError is thrown.
+      //required number of G1 bins is excessive, a CalcError is thrown. The
+      //binwidth is reduced further if needed for linear interpolation
+      //between the points to reproduce G1 (e.g. when G1 has a narrow peak
+      //at E=0, due to a VDOS not falling off like E^2 at low energies).
       enum class Cfg { Default, Legacy, MaxLux };
 
       //Initialise based on VDOS and cfg:

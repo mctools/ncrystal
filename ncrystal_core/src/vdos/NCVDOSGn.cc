@@ -76,6 +76,14 @@ namespace NCRYSTAL_NAMESPACE {
         //like exp(-beta) for upscattering, and linear interpolation over bins
         //of width d*kT then has relative errors up to ~d^2/8.
         //FIXME: The optimal value might depend on the vdoslux level.
+        double g1InterpTol = 3e-3;//Thicken G1 further, until its values in
+        //the middle of bins are reproduced by linear interpolation to within
+        //this tolerance (0 disables, see g1InterpThickenFactor). Needed
+        //since G1 might have structure which is narrow compared to both kT
+        //and the VDOS grid, e.g. a peak at E=0 if the VDOS does not fall off
+        //like E^2 at low energies.
+        unsigned long g1InterpMaxNBins = 100000;//g1InterpTol never results
+        //in more bins than this (to not exhaust budgets for Gn points).
         double minTemperature = 0.1;//Kelvin (0 disables)
         double thinSmoothTol = 0.1;//Only thin spectra as long as the points
         //removed are reproduced by linear interpolation of the points kept,
@@ -96,6 +104,7 @@ namespace NCRYSTAL_NAMESPACE {
           res.truncationThreshold = 1e-14;
           res.legacyConvolve = true;
           res.g1MaxBinWidthKT = 0.0;
+          res.g1InterpTol = 0.0;
           res.minTemperature = 0.0;
           res.thinSmoothTol = 0.0;
         } else if (choice == VDOSGn::Cfg::MaxLux) {
@@ -104,6 +113,52 @@ namespace NCRYSTAL_NAMESPACE {
           nc_assert( choice == VDOSGn::Cfg::Default );
         }
         return res;
+      }
+
+      unsigned long g1InterpThickenFactor( const VDOSEval& vde,
+                                           double gamma0, double emax,
+                                           unsigned long nbins, double tol,
+                                           unsigned long max_nbins )
+      {
+        //Find the factor by which a grid of nbins bins over [0,emax] must
+        //be thickened, for linear interpolation between grid points to
+        //reproduce G1. The interpolation error is estimated by evaluating
+        //G1 at negative energies (where it has no exp(-beta) fall-off) in
+        //the middle of all bins. At positive energies the fall-off is
+        //handled by g1MaxBinWidthKT, so the same relative errors are used,
+        //but weighted with the values of G1 at positive energies. For both
+        //signs, the error is the integral of the absolute deviations
+        //divided by the integral of G1, and the largest of the two is used.
+        //As this scales with the binwidth squared, the factor is
+        //sqrt(error/tol), rounded up (but limited to max_nbins/nbins, and
+        //at least 1).
+        nc_assert( emax > 0.0 && nbins > 0 && tol > 0.0 );
+        StableSum sum_err_neg, sum_neg, sum_err_pos, sum_pos;
+        const double hbw = 0.5 * emax / nbins;
+        double prev = vde.evalG1AsymmetricAtEPair( 0.0, gamma0 ).first;
+        for ( auto i : ncrange( nbins ) ) {
+          const double e = hbw * ( 2 * i );
+          const auto mid = vde.evalG1AsymmetricAtEPair( e + hbw, gamma0 );
+          const double next = vde.evalG1AsymmetricAtEPair(
+            ( i + 1 == nbins ? emax : e + 2 * hbw ), gamma0 ).first;
+          const double dev = ncabs( mid.first - 0.5 * ( prev + next ) );
+          sum_err_neg.add( dev );
+          sum_neg.add( mid.first );
+          if ( mid.first > 0.0 ) {
+            sum_err_pos.add( mid.second * ( dev / mid.first ) );
+            sum_pos.add( mid.second );
+          }
+          prev = next;
+        }
+        const double neg = sum_neg.sum();
+        const double pos = sum_pos.sum();
+        const double err = ncmax( neg > 0.0 ? sum_err_neg.sum() / neg : 0.0,
+                                  pos > 0.0 ? sum_err_pos.sum() / pos : 0.0 );
+        if ( !( err > tol ) )
+          return 1;
+        const double f = std::ceil( std::sqrt( err / tol ) );
+        const double fmax = static_cast<double>( max_nbins / nbins );
+        return static_cast<unsigned long>( ncmax( 1.0, ncmin( f, fmax ) ) );
       }
 
       unsigned long maxSmoothThinFactor( const VectD& spec, long startIdx,
@@ -398,6 +453,13 @@ NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
       thicken_factor, static_cast<unsigned long>( tf ) );
   }
 
+  const double gamma0 = vde.calcGamma0();
+
+  if ( m_cfg.g1InterpTol > 0.0 )
+    thicken_factor *= g1InterpThickenFactor(
+      vde, gamma0, gridinfo.emax, nbins * thicken_factor,
+      m_cfg.g1InterpTol, m_cfg.g1InterpMaxNBins );
+
   if ( s_verbose_vdosgn() && thicken_factor != 1 )
     NCRYSTAL_MSG("VDOSGn Thickening provided VDOS egrid for G1 by a"
                  " factor of "<<thicken_factor<<" resulting in number of grid"
@@ -412,8 +474,6 @@ NCV::VDOSGn::Impl::Impl(const VDOSEval& vde,
 
   //Initialise G1 array on the egrid, from -emax to +emax:
   VectD G1spectrum(egrid.size()*2-1,0.0);
-
-  const double gamma0 = vde.calcGamma0();
 
   for (auto e: enumerate(egrid) ) {
     nc_assert(e.val>=0.0);

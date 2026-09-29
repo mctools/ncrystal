@@ -140,38 +140,41 @@ def test_unusual_vdos():
     #agree with reference values (obtained at vdoslux=2005, with budgets for
     #Gn points raised and all Gn functions kept at binwidths of kT/16).
     #
-    #The exception is vdos_hydrogen_osc.ncmat, where 60% of the weight of G1
-    #is within two bins of E=0, and results depend on how finely G1 is
-    #sampled. Reference values were here obtained with G1 bins of 0.011kT, and
-    #results with the usual bins are up to 4.1% higher (hence the tolerance).
+    #The exceptions are vdos_hydrogen_osc.ncmat and vdos_clathrate_H.ncmat,
+    #where the shape of G1 around E=0 requires a smaller G1 binwidth (the
+    #former has 60% of the weight of G1 within two bins of the VDOS grid
+    #from E=0). Reference values were here obtained with G1 bins reduced
+    #until results were stable (0.011kT and 0.0012kT). Before the G1
+    #binwidth was adapted to the shape of G1, results for these files were
+    #up to 4.1% and 1.8% higher.
     ekin = ( 1e-5, 1e-4, 1e-3, 0.01, 0.03, 0.1, 0.3, 1.0, 2.0 )
     cases = [
-        ( 'vdos_clathrate_H.ncmat', 20, 0.025,
-          ( 0.2673, 0.091029, 0.064679, 0.65616, 4.3312,
-            10.38, 17.605, 19.36, 19.919 ) ),
-        ( 'vdos_clathrate_O2.ncmat', 20, 0.025,
+        ( 'vdos_clathrate_H.ncmat', 20,
+          ( 0.26742, 0.090954, 0.063515, 0.64667, 4.3125,
+            10.356, 17.588, 19.343, 19.902 ) ),
+        ( 'vdos_clathrate_O2.ncmat', 20,
           ( 0.76364, 0.2978, 0.43132, 2.4012, 3.3239,
             3.6522, 3.7056, 3.7329, 3.7392 ) ),
-        ( 'vdos_graphiteoxide_D.ncmat', 293.15, 0.025,
+        ( 'vdos_graphiteoxide_D.ncmat', 293.15,
           ( 18.115, 5.7675, 1.9528, 1.0917, 1.5693,
             2.7196, 3.1024, 3.3006, 3.3469 ) ),
-        ( 'vdos_hydrogen_osc.ncmat', 14, 0.05,
+        ( 'vdos_hydrogen_osc.ncmat', 14,
           ( 78.324, 35.108, 42.398, 29.249, 27.193,
             26.13, 24.507, 20.873, 20.78 ) ),
-        ( 'vdos_liquidH2.ncmat', 20, 0.025,
+        ( 'vdos_liquidH2.ncmat', 20,
           ( 69.977, 24.397, 16.959, 20.043, 20.23,
             20.347, 20.381, 20.44, 20.436 ) ),
-        ( 'vdos_orthoD2.ncmat', 19, 0.025,
+        ( 'vdos_orthoD2.ncmat', 19,
           ( 3.5465, 1.2565, 1.0379, 3.1584, 3.7884,
             3.9093, 3.6549, 3.4194, 3.4077 ) ),
-        ( 'vdos_paraH2.ncmat', 14, 0.025,
+        ( 'vdos_paraH2.ncmat', 14,
           ( 26.537, 9.5587, 8.6773, 22.715, 25.93,
             26.564, 25.036, 20.933, 20.792 ) ),
     ]
     from NCTestUtils.dirs import test_data_dir
     assert ( sorted( f.name for f in test_data_dir.glob('vdos_*.ncmat') )
-             == sorted( c[0] for c in cases ) )
-    for fn, temp, tol, xs_ref in cases:
+             == sorted( fn for fn, _, _ in cases ) )
+    for fn, temp, xs_ref in cases:
         info = NC.createInfo( f'{fn};temp={temp}K' )
         di = info.dyninfos[0]
         ngn = 0
@@ -185,10 +188,10 @@ def test_unusual_vdos():
                 assert maxdev < 0.12
         assert ngn >= 3
         print(f'{fn}: detailed balance of Gn functions fulfilled')
-        luxtests = [ ( 2003, 2.0 ) ]
+        luxtests = [ ( 2003, 2.0, 0.025 ) ]
         if fn == 'vdos_hydrogen_osc.ncmat':
-            luxtests.append( ( 2005, 5.0 ) )
-        for lux, emax_min in luxtests:
+            luxtests.append( ( 2005, 5.0, 0.006 ) )
+        for lux, emax_min, tol in luxtests:
             sc = NC.createScatter( f'{fn};temp={temp}K;comp=inelas'
                                    f';vdoslux={lux}' )
             emax = sc.getSummary()['specific']['Emax']
