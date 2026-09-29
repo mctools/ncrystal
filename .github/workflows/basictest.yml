@@ -120,7 +120,7 @@ jobs:
       run: |
         echo "CI_TIMING: $(date -u '+%Y-%m-%dT%H:%M:%SZ') -- start CTest" | tee ${{github.workspace}}/ci-logs/ctest.log
         ctest --test-dir ./build --no-tests=error --output-on-failure \
-          --test-output-size-failed 100000 --test-output-truncation middle \
+          --test-output-size-failed 100000 --test-output-truncation middle --timeout 600 \
           2>&1 | tee -a ${{github.workspace}}/ci-logs/ctest.log
         echo "CI_TIMING: $(date -u '+%Y-%m-%dT%H:%M:%SZ') -- end CTest" | tee -a ${{github.workspace}}/ci-logs/ctest.log
 
@@ -257,14 +257,14 @@ jobs:
         echo "CI_TIMING: $(date -u '+%Y-%m-%dT%H:%M:%SZ') -- end Build" | tee -a ci-logs/build.log
 
     - name: CTest
-      #always(): run even if "Build" failed, rather than the default
-      #success()-only condition -- this will just fail fast against a
-      #broken/partial build tree, which is a fine, honest signal:
-      if: always()
+      #NB: default success()-only condition, deliberately: an earlier
+      #"if: always()" (meant to fail fast against a broken tree as an
+      #honest signal) instead hung for 45+ minutes running tests
+      #against a partial Debug build:
       run: |
         echo "CI_TIMING: $(date -u '+%Y-%m-%dT%H:%M:%SZ') -- start CTest" | tee ci-logs/ctest.log
         ctest --test-dir ./build --build-config ${{ matrix.buildtype }} --no-tests=error --output-on-failure \
-          --test-output-size-failed 100000 --test-output-truncation middle \
+          --test-output-size-failed 100000 --test-output-truncation middle --timeout 600 \
           2>&1 | tee -a ci-logs/ctest.log
         echo "CI_TIMING: $(date -u '+%Y-%m-%dT%H:%M:%SZ') -- end CTest" | tee -a ci-logs/ctest.log
 
