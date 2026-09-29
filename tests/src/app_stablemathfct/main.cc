@@ -283,6 +283,25 @@ int main()
   checkFct( "stable_log", NC::stable_log,
            log_cases, sizeof(log_cases)/sizeof(log_cases[0]) );
 
+  //Overflow-range behaviour, in particular that arguments in the
+  //vicinity of ln(DBL_MAX)~709.7827 saturate cleanly to +-inf/-1/0
+  //rather than overflowing inside the final fma reconstruction (which
+  //would raise FE_OVERFLOW, fatal under the FPE trapping enabled by
+  //various tests -- observed for E/kT values scanned in steps of 0.25
+  //at T=0.1K before the internal threshold was fixed):
+  for ( double x : { 709.783, 709.9, 710.0, 1000.0, 53000.0, 1e300 } ) {
+    REQUIRE( std::isinf( NC::stable_exp( x ) ) );
+    REQUIRE( std::isinf( NC::stable_expm1( x ) ) );
+    REQUIRE( NC::stable_exp( -x ) == 0.0 );
+    REQUIRE( NC::stable_expm1( -x ) == -1.0 );
+  }
+  //The n=1024 reduction band ~[709.436,709.78) must stay finite:
+  for ( double x : { 709.44, 709.5, 709.7, 709.78 } ) {
+    REQUIRE( !std::isinf( NC::stable_exp( x ) ) );
+    REQUIRE( NC::stable_exp( x ) > 1e308 );
+  }
+  std::cout << "Overflow-range saturation checks passed" << std::endl;
+
   std::cout << "All checks passed" << std::endl;
   return 0;
 }

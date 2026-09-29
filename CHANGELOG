@@ -1,4 +1,11 @@
 v4.4.7 (work in progress)
+     * stable_exp/stable_expm1: fix the reconstruction for arguments in
+       ~[709.44,709.79] (around ln(DBL_MAX)), where the internal 2^n scale
+       is not representable although the result still is: previously this
+       band produced NaN while raising FE_INVALID/FE_OVERFLOW (fatal under
+       the FPE trapping used by tests; encountered by G1 evaluations
+       scanning E/kT in 0.25 steps at T=0.1K). Arguments beyond the band
+       now saturate cleanly to inf/0/-1 without raising flags.
      * Added short-collision-time (SCT) model infrastructure: NCSCTUtils.hh's
        SCTXSProvider/SCTSampler implement the ENDF/GA SCT law (free gas at
        the effective temperature Teff on the downscatter side, detailed

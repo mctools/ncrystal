@@ -169,12 +169,18 @@ namespace NCRYSTAL_NAMESPACE {
     //such compounding since there is only one reduction step:
     if ( !std::isfinite(x) )
       return ncisnan(x) ? x : ( x < 0.0 ? -1.0 : x );//nan; -inf->-1; +inf->+inf
-    //Short-circuit comfortably before exp(x) itself would overflow/underflow
-    //to inf/-1 to full double precision anyway: besides being pointless work,
-    //this keeps n below safely within int range for the static_cast below
-    //(without it, e.g. x=1e10 would overflow that cast -- undefined
-    //behaviour -- long before exp(x) itself would legitimately overflow):
-    if ( x >= 710.0 )
+    //Short-circuit before exp(x) itself would overflow/underflow to
+    //inf/-1 anyway: besides being pointless work, this keeps n safely
+    //within int range for the static_cast below (without it, e.g.
+    //x=1e10 would overflow that cast -- undefined behaviour). NB: the
+    //threshold must sit at or below ln(DBL_MAX)~709.7827, since beyond
+    //that the final fma's result overflows and raises FE_OVERFLOW --
+    //fatal under the FPE-trapping used by the tests (a 710.0 threshold
+    //left a 0.22-wide trapping gap, found via a test evaluating G1 at
+    //T=0.1K where E/kT scans in steps of 0.25). Using 709.78 returns
+    //an early kInfinity only for a ~4e-13-wide sliver just below
+    //ln(DBL_MAX), which is deliberate and flag-clean:
+    if ( x >= 709.782712893384 )
       return kInfinity;
     if ( x <= -40.0 )
       return -1.0;
@@ -188,6 +194,16 @@ namespace NCRYSTAL_NAMESPACE {
     //no larger than 1 in magnitude from 1 never needs more mantissa bits than
     //already available), so the only rounding in the whole reconstruction is
     //the single final std::fma:
+    if ( n >= 1024.0 ) {
+      //x in ~[709.436,ln(DBL_MAX)): the result is still representable
+      //but 2^1024 is not, so reconstruct via 2*2^1023 (one extra
+      //rounding, at this extreme edge only). Without this branch the
+      //plain reconstruction below computes fma(+inf,negative,+inf)
+      //= NaN while also raising FE_INVALID:
+      const double p = std::ldexp( 1.0, 1023 );
+      const double t = std::fma( p, expm1_r, p );//2^1023*(1+expm1(r))
+      return std::fma( 2.0, t, -1.0 );
+    }
     const double pow2n = std::ldexp( 1.0, static_cast<int>(n) );
     return std::fma( pow2n, expm1_r, pow2n - 1.0 );
   }
