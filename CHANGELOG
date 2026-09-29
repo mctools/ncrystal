@@ -1,4 +1,21 @@
 v4.4.7 (work in progress)
+     * Added short-collision-time (SCT) model infrastructure: NCSCTUtils.hh's
+       SCTXSProvider/SCTSampler implement the ENDF/GA SCT law (free gas at
+       the effective temperature Teff on the downscatter side, detailed
+       balance at the actual T; reducing exactly to the free-gas model for
+       Teff==T), with sampling done via an exact mapping onto FreeGasSampler
+       plus an upscatter rejection factor, and cross sections via a closed
+       erf-form correction with an exact saturated limit and a
+       luxury-dependent spline table (SABCfg::Cfg::sct_table_npts, 40-1000
+       nodes for sablux 0-6). A thin SABSCTExtender exposes it through the
+       SABExtender interface, validated in tests/src/app_sctext against
+       brute-force integration and against the exact converged PE-H kernel
+       at its Emax boundary. No factory selects it yet: replacing the
+       free-gas extension model is a separate, physics-changing decision.
+     * Added FastConvolve::convolveDirect (StableSum-accumulated direct
+       convolution, no FFT round-off floor) and VDOSGn::Cfg::MaxLux routing
+       every phonon order through it -- tested reference infrastructure,
+       not yet wired to any vdoslux level.
      * Fix a Windows-only crash (STATUS_ACCESS_VIOLATION) affecting any
        scatter process created for a crystalline material: VDOSGn's
        destructor dereferenced a moved-from Pimpl, which went unnoticed on
