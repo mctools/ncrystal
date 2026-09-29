@@ -167,7 +167,7 @@ namespace NCRYSTAL_NAMESPACE {
   double ncerfc( double x );
 
   //Evaluate erfc(a)-erfc(b) in a relatively numerically safe
-  //manner and with as few actual calls to std::erfc as possible:
+  //manner and with as few actual erfc evaluations as possible:
   double erfcdiff(double a, double b);
 
   //Returns exp(b)*erfc(x), which has the advantage that when b ~= x^2, it

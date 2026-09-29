@@ -497,13 +497,14 @@ namespace NCRYSTAL_NAMESPACE {
     }
     //ok, b>a and at least one number is positive:
     nc_assert( b>=a && b>=0 );
-    //evaluate (remembering std::erfc(x)=0 for x above ~27.3 or so:
-    const double erfca = a>27.3 ? 0.0 : std::erfc(a);
+    //evaluate (remembering erfc(x)=0 for x above ~27.3 or so, and
+    //that ncerfc cuts off at 26.543 by construction):
+    const double erfca = a>27.3 ? 0.0 : ncerfc(a);
     if ( b > a+4.0 && ( a>=4 || ( a < 0.0 && b > 6.0 ) ) ) {
       //erfc(b) contribution negligible at double precision
       return erfca;
     }
-    const double erfcb = b>27.3 ? 0.0 : std::erfc(b);
+    const double erfcb = b>27.3 ? 0.0 : ncerfc(b);
     return erfca - erfcb;
   }
 }
@@ -545,8 +546,8 @@ double NC::erfc_rescaled(double x, double b)
   if (b<-745.1)
     return 0.0;//erfc <= 1, so exp(b) will always force strictly 0 here.
   if ( ( x<23.0 && ncabs(b)<700 ) || x < 5 ) {
-    //standard functions provide full precision here (at least when |b|<700).
-    return std::exp(b)*std::erfc(x);
+    //full precision available directly here (at least when |b|<700):
+    return std::exp(b)*ncerfc(x);
   }
   //large x, employ expansion and combine exp(b)*exp(-x^2)=exp(b-x^2). If the
   //caller picked b appropriately, so |b-x^2|<700, this provides full precision.

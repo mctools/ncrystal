@@ -170,7 +170,7 @@ namespace NCRYSTAL_NAMESPACE {
       nc_assert(ncabs(cosd)<1.000001);
       double d = std::acos(ncmin(1.0,ncmax(-1.0,cosd)));
       double d2 = d*d;
-      return m_k * std::exp(m_expfact*d2) * std::erf(std::sqrt(ncmax(0.0,-m_expfact*(m_tasq-d2))));
+      return m_k * std::exp(m_expfact*d2) * ncerf(std::sqrt(ncmax(0.0,-m_expfact*(m_tasq-d2))));
     }
   };
 
@@ -527,7 +527,7 @@ double NC::GaussOnSphere::estimateNTruncFromPrec( double prec, double minval, do
     virtual ~EstNTruncFct(){}
     virtual double eval(double x) const
     {
-      return std::erfc(x*kInvSqrt2) - m_prec;
+      return ncerfc(x*kInvSqrt2) - m_prec;
     }
   };
   EstNTruncFct f(prec);

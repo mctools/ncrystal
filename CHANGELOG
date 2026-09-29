@@ -1,4 +1,16 @@
 v4.4.7 (work in progress)
+     * Added ncerf/ncerfc (NCMath.hh): portable error functions with no
+       math-library calls at all (rational approximations after W. J.
+       Cody's CALERF with a stable_exp-style tail factor), giving
+       bit-identical results on all platforms at few-ULP accuracy while
+       also being significantly faster than typical libm implementations
+       (2-8x measured against glibc, whose correctly-rounded erfc tail
+       path is particularly slow). All erf/erfc evaluations in the
+       library (free-gas cross sections and sampling via
+       erfcdiff/erfc_rescaled, and single-crystal mosaic Gauss-on-sphere
+       setup) now use them, which shifts affected results at the
+       few-ULP level but makes them identical across platforms and
+       toolchains.
      * Added tests/src/app_perfsab, a self-timed benchmark (same
        min/median/max convention as app_perfvdos) of the *simulation-time*
        SAB cross-section/scattering-sampling cost (crossSectionIsotropic/

@@ -80,7 +80,7 @@ double NC::FreeGasXSProvider::evalXSShapeASq(double a_squared)
   };
   //intermediate region, fall-back to full formula (slow):
   const double inva = 1.0 / a;
-  return ( 1.0 + 0.5*inva*inva ) * std::erf(a) + kInvSqrtPi * std::exp(-a_squared)*inva;
+  return ( 1.0 + 0.5*inva*inva ) * ncerf(a) + kInvSqrtPi * std::exp(-a_squared)*inva;
 }
 
 namespace NCRYSTAL_NAMESPACE {
@@ -115,7 +115,7 @@ namespace NCRYSTAL_NAMESPACE {
       nc_assert(floateq(lookupTableLowerEdge+(nbinedges-1)*lookupTableBinWidth,lookupTableUpperEdge));
       v.push_back(2.0);//erfc(-infinity)
       for (auto e: linspace(lookupTableLowerEdge,lookupTableUpperEdge,nbinedges))
-        v.push_back(std::erfc(e));
+        v.push_back(ncerfc(e));
       v.push_back(0.0);//erfc(+infinity)
       nc_assert( v.size() == lookupTableLength );
       return v;
@@ -138,7 +138,7 @@ namespace NCRYSTAL_NAMESPACE {
       bounds.first = cache[binidx+1]*0.99999999;//lowerbound
       bounds.second = cache[binidx]*1.00000001;//upperbound
 #if NCRYSTAL_FREEGASUTILS_ENABLEEXTRADEBUGGING
-      double test_erfcx = std::erfc(x);
+      double test_erfcx = ncerfc(x);
       nc_assert_always(test_erfcx>=bounds.first);
       nc_assert_always(test_erfcx<=bounds.second);
 #endif
@@ -496,7 +496,7 @@ NC::FreeGasSampler::FreeGasSampler(NeutronEnergy ekin, Temperature temp_kelvin, 
     m_sqrtAc(std::sqrt(target_mass_amu.get()*m_c/const_neutron_atomic_mass)),
     m_invA(1.0/target_mass_amu.relativeToNeutronMass()),
     m_Adiv4(0.25*target_mass_amu.relativeToNeutronMass()),
-    m_normfact(0.5/std::erf(std::sqrt(m_c*m_invA))),
+    m_normfact(0.5/ncerf(std::sqrt(m_c*m_invA))),
     m_c_real(ekin.get()/(temp_kelvin.kT()))//unconstrainted version of m_c
 {
 #ifndef NDEBUG
