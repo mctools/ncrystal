@@ -87,6 +87,8 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Tests: add VDOS curves with unusual features (mostly from plugins) as
+       tests/data/vdos_*.ncmat, and exercise them in VDOS tests.
      * C-API: output parameters of ncrystal_atomdata_getfields,
        ncrystal_create_atomdata_subcomp, ncrystal_raw_vdos2kernel,
        ncrystal_get_file_list and ncrystal_get_plugin_list are now always

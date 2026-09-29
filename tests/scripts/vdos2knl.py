@@ -29,11 +29,12 @@
 #  * G1 must be sampled finely enough, even when the input VDOS grid is
 #    coarse (as for the H VDOS in the acrylic glass stdlib file, where the
 #    grid spacing corresponds to ~5.8kT at 5K).
-#  * Gn spectra must only be thinned when smooth. This is tested with a VDOS
-#    with features a few meV wide (a soft mode), but extending to 0.55eV (an
-#    oscillator), whose Gn spectra at 14K extend over thousands of kT while
-#    having structure on the scale of kT. Thinning such spectra based on
-#    their number of points only, gave cross sections wrong by 50%.
+#  * Gn spectra must only be thinned when smooth. This is tested with the
+#    unusual VDOS curves in the test data (vdos_*.ncmat), most notably one
+#    with features a few meV wide (a soft mode), but extending to 0.55eV
+#    (an oscillator), whose Gn spectra at 14K extend over thousands of kT
+#    while having structure on the scale of kT. Thinning such spectra based
+#    on their number of points only, gave cross sections wrong by 50%.
 #  * Expansions needing excessive resources must fail with a CalcError.
 #
 # The resolution is tested via the detailed balance relation,
@@ -84,19 +85,20 @@ def main( do_plot ):
     with ensure_error(nc_exceptions.NCCalcError,expected_error):
         t( vdos, m = 27.0, T = 0.5, vdoslux = 1, target_emax = 5000 )
     test_g1_resolution()
-    test_thinning()
+    test_unusual_vdos()
     test_resource_limits()
 
 def gn_dbcheck( egrid, gn, temp, relfloor = 0.0 ):
     #Returns binwidth/kT and largest deviation from detailed balance, in the
-    #middle of bins with energies in 0.25kT..10kT:
+    #middle of bins with energies in 0.25kT..10kT (None if no such bins):
     kt = constant_boltzmann * temp
     emid = 0.5 * ( egrid[1:] + egrid[:-1] )
     emid = emid[ ( emid >= 0.25*kt ) & ( emid <= 10.0*kt ) ]
     gn_up = np.interp( emid, egrid, gn )
     gn_down = np.interp( -emid, egrid, gn )
     ok = gn_down > relfloor * gn.max()
-    assert ok.any()
+    if not ok.any():
+        return ( egrid[1] - egrid[0] ) / kt, None
     ratio = gn_up[ok] * np.exp( emid[ok] / kt ) / gn_down[ok]
     return ( egrid[1] - egrid[0] ) / kt, np.abs( ratio - 1.0 ).max()
 
@@ -130,29 +132,72 @@ def test_g1_resolution():
         nc_vdos.extractGn( wide_vdos, n = 1, mass_amu = mass,
                            temperature = 0.1 )
 
-def test_thinning():
-    #Test both detailed balance of Gn functions, and that cross sections
-    #agree with reference values obtained with all Gn functions kept at a
-    #binwidth of kT/8.
-    cfgstr = 'plain_osc.ncmat;temp=14K;comp=inelas;vdoslux=2005'
-    xs_ref = [ ( 1e-05, 77.934 ), ( 3.798e-05, 44.807 ),
-               ( 0.0001442, 34.099 ), ( 0.0005479, 41.112 ),
-               ( 0.002081, 40.013 ), ( 0.007903, 31.025 ),
-               ( 0.03001, 28.109 ), ( 0.114, 26.906 ), ( 0.433, 24.41 ),
-               ( 1.644, 21.742 ) ]
-    info = NC.createInfo( cfgstr )
-    di = info.dyninfos[0]
-    for n in ( 5, 20, 50, 100 ):
-        egrid, gn = di.extract_Gn( n, without_xsect = True )
-        _, maxdev = gn_dbcheck( egrid, gn, di.temperature, relfloor = 1e-6 )
-        print(f'G{n}: |detailed balance deviation| < 12%: {maxdev < 0.12}')
-        assert maxdev < 0.12
-    sc = NC.createScatter( cfgstr )
-    for e, xsref in xs_ref:
-        xs = sc.xsect( e )
-        ok = abs( xs / xsref - 1.0 ) < 0.015
-        print(f'Ekin={e:g}eV: xs within 1.5% of {xsref:g}b: {ok}')
-        assert ok
+def test_unusual_vdos():
+    #Test the VDOS curves with unusual features found in the test data (see
+    #comments in the files), at temperatures where Gn spectra have structure
+    #on the scale of kT while extending over hundreds or thousands of kT.
+    #Tests both detailed balance of Gn functions, and that cross sections
+    #agree with reference values (obtained at vdoslux=2005, with budgets for
+    #Gn points raised and all Gn functions kept at binwidths of kT/16).
+    #
+    #The exception is vdos_hydrogen_osc.ncmat, where 60% of the weight of G1
+    #is within two bins of E=0, and results depend on how finely G1 is
+    #sampled. Reference values were here obtained with G1 bins of 0.011kT, and
+    #results with the usual bins are up to 4.1% higher (hence the tolerance).
+    ekin = ( 1e-5, 1e-4, 1e-3, 0.01, 0.03, 0.1, 0.3, 1.0, 2.0 )
+    cases = [
+        ( 'vdos_clathrate_H.ncmat', 20, 0.025,
+          ( 0.2673, 0.091029, 0.064679, 0.65616, 4.3312,
+            10.38, 17.605, 19.36, 19.919 ) ),
+        ( 'vdos_clathrate_O2.ncmat', 20, 0.025,
+          ( 0.76364, 0.2978, 0.43132, 2.4012, 3.3239,
+            3.6522, 3.7056, 3.7329, 3.7392 ) ),
+        ( 'vdos_graphiteoxide_D.ncmat', 293.15, 0.025,
+          ( 18.115, 5.7675, 1.9528, 1.0917, 1.5693,
+            2.7196, 3.1024, 3.3006, 3.3469 ) ),
+        ( 'vdos_hydrogen_osc.ncmat', 14, 0.05,
+          ( 78.324, 35.108, 42.398, 29.249, 27.193,
+            26.13, 24.507, 20.873, 20.78 ) ),
+        ( 'vdos_liquidH2.ncmat', 20, 0.025,
+          ( 69.977, 24.397, 16.959, 20.043, 20.23,
+            20.347, 20.381, 20.44, 20.436 ) ),
+        ( 'vdos_orthoD2.ncmat', 19, 0.025,
+          ( 3.5465, 1.2565, 1.0379, 3.1584, 3.7884,
+            3.9093, 3.6549, 3.4194, 3.4077 ) ),
+        ( 'vdos_paraH2.ncmat', 14, 0.025,
+          ( 26.537, 9.5587, 8.6773, 22.715, 25.93,
+            26.564, 25.036, 20.933, 20.792 ) ),
+    ]
+    from NCTestUtils.dirs import test_data_dir
+    assert ( sorted( f.name for f in test_data_dir.glob('vdos_*.ncmat') )
+             == sorted( c[0] for c in cases ) )
+    for fn, temp, tol, xs_ref in cases:
+        info = NC.createInfo( f'{fn};temp={temp}K' )
+        di = info.dyninfos[0]
+        ngn = 0
+        for n in ( 1, 2, 5, 20, 50 ):
+            egrid, gn = di.extract_Gn( n, without_xsect = True )
+            _, maxdev = gn_dbcheck( egrid, gn, temp, relfloor = 1e-6 )
+            if maxdev is not None:
+                #Gn has points to test, i.e. it is not a smooth spectrum
+                #which was thinned to binwidths well above kT.
+                ngn += 1
+                assert maxdev < 0.12
+        assert ngn >= 3
+        print(f'{fn}: detailed balance of Gn functions fulfilled')
+        luxtests = [ ( 2003, 2.0 ) ]
+        if fn == 'vdos_hydrogen_osc.ncmat':
+            luxtests.append( ( 2005, 5.0 ) )
+        for lux, emax_min in luxtests:
+            sc = NC.createScatter( f'{fn};temp={temp}K;comp=inelas'
+                                   f';vdoslux={lux}' )
+            emax = sc.getSummary()['specific']['Emax']
+            xs = sc.xsect( ekin = ekin )
+            ok = ( emax >= emax_min * ( 1.0 - 1e-9 )
+                   and np.abs( xs / np.asarray(xs_ref) - 1.0 ).max() < tol )
+            print(f'{fn}: vdoslux={lux} Emax >= {emax_min:g}eV and cross'
+                  f' sections within {tol*100:g}% of reference: {ok}')
+            assert ok
 
 def test_resource_limits():
     #A VDOS extending to 8eV needs more than 1e6 points in G1 at a

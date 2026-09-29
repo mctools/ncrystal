@@ -51,8 +51,10 @@ def main():
     cfgstrs = [f.fullKey for f in NC.browseFiles(factory='stdlib')]
     for i,f in enumerate(sorted(cfgstrs)):
         validate_cfgstr(f)
-    #Also exercise a VDOS with an unusual shape: a huge central region of
-    #exact zeroes, followed by a narrow, very sharp late peak:
-    validate_cfgstr('tsl-para-H_14K_OnlyVDOS.ncmat')
+    #Also exercise the VDOS curves with unusual features found in the test
+    #data (see comments in the files):
+    from NCTestUtils.dirs import test_data_dir
+    for f in sorted( test_data_dir.glob('vdos_*.ncmat') ):
+        validate_cfgstr(f.name)
 
 main()

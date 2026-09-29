@@ -1,18 +1,36 @@
-NCMAT v5
-# Plain NCrystal VDOS (no @CUSTOM_LIQUIDS): wt=0.005 solid residual plus the
-# 0.546 eV oscillator inside the VDOS; copied from four_cases_wt0p005.
+NCMAT v7
 #
-# Test file with a VDOS which has features a few meV wide, while extending to
-# 0.55eV. NB: VDOS values were rounded to 8 significant digits.
+# Test file with an unusual VDOS, not intended for physics usage.
+#
+# Provenance:
+#
+#   Provided by Douglas D. DiJulio, who describes it as a hydrogen VDOS test
+#   case with a 0.546 eV oscillator: the H2 translational spectrum with a
+#   diffusion component of weight 0.005 removed, for usage at 14 K (inelastic
+#   scattering only). VDOS values were rounded to 8 significant digits.
+#
+# Why it is a test case:
+#
+#   The VDOS has features which are a few meV wide (a soft mode), while
+#   extending to 0.55eV (an oscillator peak which is 3 points wide and cut off
+#   by the end of the grid). At low temperatures the Gn spectra of the phonon
+#   expansion therefore extend over thousands of kT, while having structure on
+#   the scale of kT. When NCrystal reduced the resolution of such spectra
+#   based on their number of points only, cross sections at 14K were wrong by
+#   50% (compared to results of NJOY).
+#
+#   Additionally, the VDOS rises steeply at the lowest energies (the value at
+#   the first grid point is half of the maximum of the soft mode). At 14K this
+#   gives G1 a narrow peak at E=0, with 60% of the weight within two grid bins
+#   of E=0.
+#
 @DENSITY
   1 g_per_cm3
-@STATEOFMATTER
-  solid
 @DYNINFO
   element  H
   fraction 1
   type     vdos
-  vdos_egrid 0.000137860178333 0.546891327448
+  vdos_egrid .000137860178333 .546891327448
   vdos_density 16.680877 26.483324 30.086551 31.484222 32.245759 32.873782
     33.508969 34.179894 34.882393 35.60383 36.330357 37.049053 37.74861
     38.419644 39.054879 39.649399 40.200817 40.709332 41.177592 41.610183

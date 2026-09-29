@@ -53,19 +53,20 @@ T=50K: G1 binwidth/kT <= 0.25: True  |DB deviation| < 2.5%: True
 T=293.15K: G1 binwidth/kT <= 0.25: True  |DB deviation| < 2.5%: True
 Caught expected NCBadInput('VDOS expansion not supported for temperatures below 0.1K (requested T=0.09K)')
 Caught expected NCCalcError('VDOS expansion would require too many (4642000) bins to resolve the VDOS (which extends to 10eV) on the scale of kT=8.6173303e-06eV (max allowed is 1000000). The temperature is likely too low for the given VDOS.')
-G5: |detailed balance deviation| < 12%: True
-G20: |detailed balance deviation| < 12%: True
-G50: |detailed balance deviation| < 12%: True
-G100: |detailed balance deviation| < 12%: True
-Ekin=1e-05eV: xs within 1.5% of 77.934b: True
-Ekin=3.798e-05eV: xs within 1.5% of 44.807b: True
-Ekin=0.0001442eV: xs within 1.5% of 34.099b: True
-Ekin=0.0005479eV: xs within 1.5% of 41.112b: True
-Ekin=0.002081eV: xs within 1.5% of 40.013b: True
-Ekin=0.007903eV: xs within 1.5% of 31.025b: True
-Ekin=0.03001eV: xs within 1.5% of 28.109b: True
-Ekin=0.114eV: xs within 1.5% of 26.906b: True
-Ekin=0.433eV: xs within 1.5% of 24.41b: True
-Ekin=1.644eV: xs within 1.5% of 21.742b: True
+vdos_clathrate_H.ncmat: detailed balance of Gn functions fulfilled
+vdos_clathrate_H.ncmat: vdoslux=2003 Emax >= 2eV and cross sections within 2.5% of reference: True
+vdos_clathrate_O2.ncmat: detailed balance of Gn functions fulfilled
+vdos_clathrate_O2.ncmat: vdoslux=2003 Emax >= 2eV and cross sections within 2.5% of reference: True
+vdos_graphiteoxide_D.ncmat: detailed balance of Gn functions fulfilled
+vdos_graphiteoxide_D.ncmat: vdoslux=2003 Emax >= 2eV and cross sections within 2.5% of reference: True
+vdos_hydrogen_osc.ncmat: detailed balance of Gn functions fulfilled
+vdos_hydrogen_osc.ncmat: vdoslux=2003 Emax >= 2eV and cross sections within 5% of reference: True
+vdos_hydrogen_osc.ncmat: vdoslux=2005 Emax >= 5eV and cross sections within 5% of reference: True
+vdos_liquidH2.ncmat: detailed balance of Gn functions fulfilled
+vdos_liquidH2.ncmat: vdoslux=2003 Emax >= 2eV and cross sections within 2.5% of reference: True
+vdos_orthoD2.ncmat: detailed balance of Gn functions fulfilled
+vdos_orthoD2.ncmat: vdoslux=2003 Emax >= 2eV and cross sections within 2.5% of reference: True
+vdos_paraH2.ncmat: detailed balance of Gn functions fulfilled
+vdos_paraH2.ncmat: vdoslux=2003 Emax >= 2eV and cross sections within 2.5% of reference: True
 widevdos.ncmat;temp=0.4K;comp=inelas;vdoslux=2000: CalcError: VDOS expansion would require excessive resources to reach E=0.1eV
 widevdos.ncmat;temp=5.0K;comp=inelas;vdoslux=2000: OK

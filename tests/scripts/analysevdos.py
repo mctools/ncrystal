@@ -47,14 +47,16 @@ for vdoslux in (0,3):
           print('; '.join(f'{k}={v:.12g}'
                           for k,v in sorted(di.analyseVDOS().items())))
 
-#Also exercise a VDOS with an unusual shape: a huge central region of exact
-#zeroes, followed by a narrow, very sharp late peak:
-for vdoslux in (0,3):
-  for temp in (0.001,300,1e6):
-    cfgstr = f'tsl-para-H_14K_OnlyVDOS.ncmat;temp={temp};vdoslux={vdoslux}'
-    info = NC.createInfo(cfgstr)
-    for di in info.dyninfos:
-      if hasattr(di,'analyseVDOS'):
-        print(f'==> {cfgstr}//{di.atomData.displayLabel()} => ',end='')
-        print('; '.join(f'{k}={v:.12g}'
-                        for k,v in sorted(di.analyseVDOS().items())))
+#Also exercise the VDOS curves with unusual features found in the test data
+#(see comments in the files):
+from NCTestUtils.dirs import test_data_dir # noqa E402
+for f in sorted( test_data_dir.glob('vdos_*.ncmat') ):
+  for vdoslux in (0,3):
+    for temp in (0.001,300,1e6):
+      cfgstr = f'{f.name};temp={temp};vdoslux={vdoslux}'
+      info = NC.createInfo(cfgstr)
+      for di in info.dyninfos:
+        if hasattr(di,'analyseVDOS'):
+          print(f'==> {cfgstr}//{di.atomData.displayLabel()} => ',end='')
+          print('; '.join(f'{k}={v:.12g}'
+                          for k,v in sorted(di.analyseVDOS().items())))

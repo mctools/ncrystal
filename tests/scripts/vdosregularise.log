@@ -745,6 +745,24 @@ Validating VDOS regularisation of stdlib::ZrO2_sg14_Zirconia.ncmat / Zr:
 Validating VDOS regularisation of stdlib::Zr_sg194.ncmat / Zr:
   egrid [meV]: 1.8888421345886 .. 22.902210881887 (357 points)
   density: [0.00580803, 0.00699617, 0.00673608, .., 0.00277092, 0.000477786, 0]
-Validating VDOS regularisation of tsl-para-H_14K_OnlyVDOS.ncmat / H:
+Validating VDOS regularisation of vdos_clathrate_H.ncmat / H:
+  egrid [meV]: 0.04136 .. 454.96 (11000 points)
+  density: [0.0006605941, 0.0007027703760706, 0.0007575103394127, .., 0, 0, 0]
+Validating VDOS regularisation of vdos_clathrate_O2.ncmat / O:
+  egrid [meV]: 0.661797413341 .. 454.98572167194 (10985 points)
+  density: [0.10634, 0.111007, 0.1167, .., 0.000475612, 0.000475612, 0.000475612]
+Validating VDOS regularisation of vdos_graphiteoxide_D.ncmat / D:
+  egrid [meV]: 5.1432 .. 324.182325 (1986 points)
+  density: [1.92575e-05, 2.185937630815e-05, 2.44612526163e-05, .., 0.027109719052, 0.031794982419, 0]
+Validating VDOS regularisation of vdos_hydrogen_osc.ncmat / H:
+  egrid [meV]: 0.137860178333 .. 546.89132744701 (3967 points)
+  density: [16.680877, 26.483324, 30.086551, .., 0.022561091, 0.00015736009, 4.0377051e-07]
+Validating VDOS regularisation of vdos_liquidH2.ncmat / H:
+  egrid [meV]: 0.13786 .. 55.171572 (1997 points)
+  density: [0.00073964, 0.001040056844343, 0.001340473688687, .., 0.0440159003, 0.054981542, 0]
+Validating VDOS regularisation of vdos_orthoD2.ncmat / D:
+  egrid [meV]: 0.13786016 .. 386.83560896 (2806 points)
+  density: [0.4205932, 1.381228, 2.710043, .., 0.1264359, 0.00132122, 5.079082e-06]
+Validating VDOS regularisation of vdos_paraH2.ncmat / H:
   egrid [meV]: 0.13786016 .. 546.89125472 (3967 points)
   density: [0.3235771, 1.066718, 2.099773, .., 0.0226284, 0.0001579349, 4.055158e-07]
