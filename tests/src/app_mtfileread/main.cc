@@ -42,12 +42,15 @@ namespace {
       s += std::to_string( ifile * 1000003u + i ) + '\n';
     return s;
   }
+  //Namespace scope so lambdas below need no capture (a const local
+  //would need an explicit capture for MSVC (C3493), which clang then
+  //flags with -Wunused-lambda-capture):
+  constexpr unsigned nfiles = 8;
+  constexpr unsigned nrepeat = 20;
 }
 
 int main()
 {
-  const unsigned nfiles = 8;
-  const unsigned nrepeat = 20;
   NC::VectS paths, contents;
   for ( auto i : NC::ncrange( nfiles ) ) {
     paths.push_back( "mtfileread_" + std::to_string(i) + ".txt" );
