@@ -157,6 +157,55 @@ def main():
 
     test_cli('sab','refeval','0.025',
              'stdlib::Al2O3_sg167_Corundum.ncmat','3','Al')
+    test_huge_arrays()
+
+def test_huge_arrays():
+    #In the mode where huge arrays are transferred separately from the JSON
+    #data, arrays which are never collected must be discarded when caches are
+    #cleared, and when the mode is enabled the next time.
+    import json
+
+    from NCrystalDev._chooks import _get_raw_cfcts
+    from NCrystalDev.core import clearCaches
+    rawfct = _get_raw_cfcts()
+    query = [ 'sab', 'sglcell', '@40.0', '@158.28456094789',
+              '@160.60010716438572', '@-2.2701714000978403e-14',
+              '@-2.120250108329995e-17', '@0.02833179339754119',
+              '@0.027532855700519738', '@0.027532855700519426',
+              '@0.026748257342144074', '3', '12462' ]
+    def find_keys( data ):
+        if isinstance( data, dict ):
+            data = list( data.values() )
+        if isinstance( data, list ):
+            return [ k for e in data for k in find_keys(e) ]
+        is_key = ( isinstance( data, str )
+                   and data.startswith('__ncrystal__dblarray::') )
+        return [ data ] if is_key else []
+    def query_without_collecting():
+        rawfct['enablejsonarr'](True)
+        res = rawfct['jsonquery'](query)
+        rawfct['enablejsonarr'](False)
+        keys = find_keys( json.loads( res ) )
+        assert len(keys) >= 2
+        return keys
+    print()
+    keys = query_without_collecting()
+    assert len( rawfct['getjsonarr']( keys[0] ) ) > 0
+    print("Collected huge array")
+    clearCaches()
+    def errmsg( key ):
+        return 'Invalid key for JSON Huge Vector: "{}"'.format(
+            key.split('::')[1] )
+    with ensure_error(NCBadInput,errmsg(keys[1])):
+        rawfct['getjsonarr']( keys[1] )
+    keys = query_without_collecting()
+    rawfct['enablejsonarr'](True)
+    rawfct['enablejsonarr'](False)
+    with ensure_error(NCBadInput,errmsg(keys[0])):
+        rawfct['getjsonarr']( keys[0] )
+    res = ncquery( query, huge_arrays = True )
+    assert not find_keys( res )
+    print("Normal query with huge arrays worked afterwards")
 
 
 if __name__ == '__main__':

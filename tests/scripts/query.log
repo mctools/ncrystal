@@ -151,3 +151,8 @@ Caught expected NCBadInput('Can not use character 0x07 (ASCII BEL) in JSON query
              [0.39907406836, 0.21945676407, 0.0055438517653, 0.8226062291],
              [6.9800881778, 3.1300923869, 0.079071466664, -0.46323831733]]}
 ===========================================
+
+Collected huge array
+Caught expected NCBadInput('Invalid key for JSON Huge Vector: "2"')
+Caught expected NCBadInput('Invalid key for JSON Huge Vector: "7"')
+Normal query with huge arrays worked afterwards

@@ -27,6 +27,9 @@ Internal implementation details for utilities in ncmat.py
 
 __all__ = []
 
+import threading as _threading
+
+
 def matsrc_detect_fmt( class_MaterialSource, data ):
     if isinstance(data,class_MaterialSource):
         return 'NCrystal.MaterialSource'
@@ -377,6 +380,12 @@ def detect_scatcomps( standard_comp_types, matsrc ):
             res.append(ct)
     return res
 
+#The mode in which huge arrays are transferred separately is enabled globally
+#in the NCrystal library, which also discards any old arrays not collected
+#when the mode is enabled. So only one thread at a time must be in the process
+#of performing a query and collecting the arrays:
+_huge_arrays_lock = _threading.Lock()
+
 class enable_huge_vect_ctxmgr:
     def __init__(self, fct_enablejsonarr):
         self.__f = fct_enablejsonarr
@@ -406,9 +415,11 @@ def evalquery( query, unpack, readonly, huge_arrays ):
             from .exceptions import NCBadInput
             raise NCBadInput('huge_arrays=True requires %s'%
                              ('readonly=False' if readonly else 'unpack=True'))
-        with enable_huge_vect_ctxmgr(_rawfct['enablejsonarr']):
-            res = evalquery(query,unpack=True,readonly=False,huge_arrays=False)
-        return _eqnp(_rawfct['getjsonarr'],res)
+        with _huge_arrays_lock:
+            with enable_huge_vect_ctxmgr(_rawfct['enablejsonarr']):
+                res = evalquery( query, unpack=True, readonly=False,
+                                 huge_arrays=False )
+            return _eqnp(_rawfct['getjsonarr'],res)
     if not all( isinstance(a,str) for a in query ):
         from .exceptions import NCBadInput
         raise NCBadInput('Invalid query (not all entries are strings):'
