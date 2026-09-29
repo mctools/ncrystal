@@ -190,6 +190,21 @@ SABExtended::createWithFGExtender( shared_obj<const SABProcessor> processor )
 
 NC::shared_obj<const NC::SABUtils::SABExtended>
 NC::SABUtils::
+SABExtended::createWithSCTExtender( shared_obj<const SABProcessor> processor,
+                                    Temperature teff,
+                                    const SABCfg::Cfg& cfg )
+{
+  auto sab = processor->sabDataPtr();
+  auto ext = makeSO<SAB::SABSCTExtender>( sab->temperature(), teff,
+                                          sab->elementMassAMU(),
+                                          SigmaBound{1.0},
+                                          cfg.sct_table_npts );
+  return makeSO<SABUtils::SABExtended>( std::move(processor),
+                                        std::move(ext) );
+}
+
+NC::shared_obj<const NC::SABUtils::SABExtended>
+NC::SABUtils::
 SABExtended::createWithFGExtender( const SABCfg::Cfg& cfg,
                                    shared_obj<const SABData> sab,
                                    std::shared_ptr<const VectD> egrid )

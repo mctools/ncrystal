@@ -53,6 +53,15 @@ namespace NCRYSTAL_NAMESPACE {
                             std::shared_ptr<const VectD>
                             energyGrid = nullptr );
 
+      //Same, but extending with the short-collision-time model at the
+      //provided effective temperature (cf. SABSCTExtender). The Cfg
+      //should normally be the same one the processor was created with
+      //(it provides the luxury-dependent sct_table_npts):
+      static shared_obj<const SABExtended>
+      createWithSCTExtender( shared_obj<const SABProcessor>,
+                             Temperature teff,
+                             const SABCfg::Cfg& );
+
       //Access cross sections, always assuming SigmaBound=1barn.
       CrossSect crossSectionUnitSigmaBound( NeutronEnergy ekin ) const;
 

@@ -131,6 +131,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     c.egrid_emin_accuracy = 1e-5;
     c.fullCellSamplingARThreshold = 0.15;
     c.bcSamplingLargeSRatioThreshold = 1e-2;
+    c.sct_table_npts = 40;
     break;
   case 1:
     c.integScheme = IntegrationScheme::Romberg5;
@@ -140,6 +141,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     c.egrid_emin_accuracy = 1e-6;
     c.fullCellSamplingARThreshold = 0.15;
     c.bcSamplingLargeSRatioThreshold = 1e-3;
+    c.sct_table_npts = 50;
     break;
   case 2:
     c.integScheme = IntegrationScheme::Flex5;
@@ -149,6 +151,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     c.egrid_emin_accuracy = 1e-7;
     c.fullCellSamplingARThreshold = 0.15;
     c.bcSamplingLargeSRatioThreshold = 1e-4;
+    c.sct_table_npts = 70;
     break;
   case 3:
     //The default value of VDOS and direct kernels.
@@ -163,6 +166,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     nc_assert( c.egrid_emin_accuracy == 1e-8 );
     nc_assert( c.fullCellSamplingARThreshold == 0.15 );
     nc_assert( c.bcSamplingLargeSRatioThreshold == 1e-5);
+    nc_assert( c.sct_table_npts == 90 );
     break;
   case 4:
     c.integScheme = IntegrationScheme::Flex17;
@@ -172,6 +176,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     c.egrid_emin_accuracy = 1e-9;
     c.fullCellSamplingARThreshold = 0.15;
     c.bcSamplingLargeSRatioThreshold = 1e-6;
+    c.sct_table_npts = 150;
     break;
   case 5:
     c.integScheme = IntegrationScheme::Flex33;
@@ -181,6 +186,7 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     c.egrid_emin_accuracy = 1e-9;
     c.fullCellSamplingARThreshold = 0.15;
     c.bcSamplingLargeSRatioThreshold = 1e-7;
+    c.sct_table_npts = 200;
     break;
   case 6:
     static_assert( IntegrationScheme::MaxPrec
@@ -193,7 +199,11 @@ NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
     c.egrid_npts = 2400;
     c.egrid_emin_accuracy = 1e-10;
     c.fullCellSamplingARThreshold = 0.15;
+    //Like egrid_npts above, the top ("insane reference") level gets a
+    //far more aggressive value -- construction stays fast in absolute
+    //terms (linear cost, ~15ms):
     c.bcSamplingLargeSRatioThreshold = 1e-8;
+    c.sct_table_npts = 1000;
     break;
   default:
     NCRYSTAL_THROW2(BadInput,"SABCfg::createConfig sablux="<<sablux

@@ -48,3 +48,28 @@ NC::PairDD NC::SAB::SABFGExtender::sampleAlphaBeta( RNG& rng, NeutronEnergy ekin
 {
   return FreeGasSampler(ekin, m_t, m_m).sampleAlphaBeta(rng);
 }
+
+NC::SAB::SABSCTExtender::SABSCTExtender( Temperature temp_k,
+                                         Temperature teff,
+                                         AtomMass mass,
+                                         SigmaBound sigma,
+                                         unsigned sct_table_npts )
+  : m_xsprovider( temp_k, teff, mass, sigma, sct_table_npts ),
+    m_t(DoValidate,temp_k),
+    m_teff( m_xsprovider.effectiveTemperature() ),
+    m_m(DoValidate,mass)
+{
+}
+
+NC::SAB::SABSCTExtender::~SABSCTExtender() = default;
+
+NC::CrossSect NC::SAB::SABSCTExtender::crossSection(NeutronEnergy ekin) const
+{
+  return m_xsprovider.crossSection(ekin);
+}
+
+NC::PairDD NC::SAB::SABSCTExtender::sampleAlphaBeta( RNG& rng,
+                                                     NeutronEnergy ekin ) const
+{
+  return SCTSampler( ekin, m_t, m_teff, m_m ).sampleAlphaBeta( rng );
+}

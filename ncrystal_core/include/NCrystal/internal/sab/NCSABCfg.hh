@@ -90,6 +90,11 @@ namespace NCRYSTAL_NAMESPACE {
       SIntegralInterpolation sIntegralInterp = SIntegralInterpolation::Default;
 
       unsigned egrid_npts = 300;
+      //Nodes in the SCT extension model's upscatter-correction lookup
+      //table (cf. SCTXSProvider in NCSCTUtils.hh); worst-case relative
+      //accuracy of that correction scales as npts^-4, with 90 nodes
+      //giving ~1e-5:
+      unsigned sct_table_npts = 90;
       double egrid_emin_accuracy = 1e-8;//fixme: just use 1e-11 for all levels? To improve reproducibility! Also, increase trunc level in vdosgn to 1e-12-ish ?
       double fullCellSamplingARThreshold = 0.15;
       double bcSamplingLargeSRatioThreshold = 1e-5;//fixme: not used yet
