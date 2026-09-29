@@ -1,0 +1,59 @@
+# FIXME: Temporary debugging workflow -- delete (along with this file's
+# commit) once the windows-2025 py_rl_locatelib hang is understood. It
+# exercises just that one troublesome leg/test for fast iteration: full
+# Release build, then only the locatelib test, run verbosely (so the
+# staged progress prints stream straight to the job console, no artifact
+# download needed) and repeatedly, with a tight timeout.
+
+name: tmp_win25_locatelib
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  win25_locatelib:
+    name: windows-2025-Release-locatelib
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: Checkout
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        path: src
+
+    - name: Enable parallel cmake
+      run: python ./src/devel/bin/ncdevtool nprocs --enable-github-parallel
+
+    - name: Setup python
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.14'
+
+    - name: Pip install dependencies
+      run: python -mpip install -r ./src/devel/reqs/requirements_all_and_devel.txt
+
+    - name: Configure CMake
+      run: |
+        cmake \
+          -S src \
+          -B build \
+          -DCMAKE_INSTALL_PREFIX=install \
+          -DNCRYSTAL_ENABLE_EXAMPLES=ON \
+          -DNCRYSTAL_BUILD_STRICT=ON \
+          -DNCRYSTAL_ENABLE_TESTING=ON \
+          -DMCTOOLS_REQUIRE_ALL_TEST_DEPS=ON \
+          -DNCRYSTAL_TEST_ENABLE_LONG=ON
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: CTest locatelib only
+      #-VV streams all test output live; 10 repeats since the healthy
+      #test takes <1s, and --timeout to kill a hang quickly:
+      run: |
+        ctest --test-dir ./build --build-config Release --no-tests=error \
+          -R 'py_rl_locatelib' -VV --timeout 300 \
+          --repeat until-fail:10
