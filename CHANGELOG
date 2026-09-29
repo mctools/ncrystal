@@ -1,701 +1,145 @@
 v4.4.7 (work in progress)
-     * Added ncerf/ncerfc (NCMath.hh): portable error functions with no
-       math-library calls at all (rational approximations after W. J.
-       Cody's CALERF with a stable_exp-style tail factor), giving
-       bit-identical results on all platforms at few-ULP accuracy while
-       also being significantly faster than typical libm implementations
-       (2-8x measured against glibc, whose correctly-rounded erfc tail
-       path is particularly slow). All erf/erfc evaluations in the
-       library (free-gas cross sections and sampling via
-       erfcdiff/erfc_rescaled, and single-crystal mosaic Gauss-on-sphere
-       setup) now use them, which shifts affected results at the
-       few-ULP level but makes them identical across platforms and
-       toolchains.
-     * Added tests/src/app_perfsab, a self-timed benchmark (same
-       min/median/max convention as app_perfvdos) of the *simulation-time*
-       SAB cross-section/scattering-sampling cost (crossSectionIsotropic/
-       sampleScatterIsotropic on a vdoslux>=2000 "next-gen" material,
-       exercising NCSABCellInteg.cc's StdLogLinCellIntegrator), as opposed
-       to app_perfvdos's one-time VDOS->SAB kernel construction cost at
-       material load. Wired into benchmark.yml alongside perfvdos. Also
-       fixed a latent bug in that workflow's benchmark-running step,
-       found while extending it: without "set -o pipefail", a genuine
-       crash or missing-binary failure inside the piped-to-tee block was
-       silently swallowed (the step would report success regardless).
-     * Added a Windows/MSVC-specific runtime FMA dispatch mechanism
-       (NCRYSTAL_WIN_FMA/NCRYSTAL_DISPATCH_TO_WIN_FMA, see
-       ncrystal_core/include/NCrystal/internal/utils/NCFMADispatch.hh):
-       MSVC has no equivalent of GCC/Clang's NCRYSTAL_FMADISPATCH_ATTR
-       (target_clones), so on Windows every std::fma() call fell back
-       to a slow software emulation -- a real Windows CPU trace of
-       tests/src/app_perfvdos found 65% of all runtime spent there.
-       Every NCRYSTAL_FMADISPATCH_ATTR-decorated function in the
-       codebase (NCFastConvolve.cc's fastConvolveSpectralMultiply/
-       fastConvolveButterflyRun; NCSABCellInteg.cc's fmaRampFill/
-       IntegrandOfA::contrib (extracted as contribImpl)/
-       fillContribAtAlpha; NCVDOSUtils.cc's pwlSumAccumulateSegment;
-       NCVDOSToScatKnl.cc's vdosScatKnlAccumulate; NCVDOSGn.cc's
-       vdosGnInterpolateDensityRun; NCRomberg.cc's
-       detail_romberg_integrate; NCMath.cc's detail_stable_expm1/
-       detail_stable_exp; and NCUtilQuery.hh's diagnostic
-       queryimpl_fmadiagnose_cmulDispatch) now gets a second,
-       /arch:AVX2-compiled clone built into a dedicated translation
-       unit (each as an NC*_FMA.hh/_WINFMA.cc pair next to its
-       original .cc/.hh), dispatched to at runtime only if the CPU
-       actually supports FMA3 (checked once via a CPUID+XGETBV check,
-       the correct way to do this -- IsProcessorFeaturePresent has no
-       AVX/FMA flag at all), falling back to the ordinary
-       dispatch-decorated body otherwise. x86-64 only; Windows-on-ARM64
-       is unaffected (hardware FMA is baseline there) and never sees
-       the new machinery. Also added ncrestrict and nc_assert-verified
-       non-overlap checks to every one of these functions' pointer
-       arguments, to help auto-vectorisation of these hot loops --
-       verified safe both by call-site static analysis and by the new
-       assertions running clean across the full test suite (Release
-       and Debug, simplebuild and CMake).
-     * Wire fastLowerBoundIdx/fastUpperBoundIdx into the remaining
-       qualifying call sites found by a full-codebase audit (plain
-       double array, default comparator, and not part of a legacy-only
-       code path -- NCSABXSProvider.cc, NCSABSampler.cc,
-       NCSABSamplerModels.cc, NCSABEval.cc and NCSABUCN.cc are all
-       legacy and were excluded): PointwiseDist::percentileWithIndex
-       and ::commulIntegral, NC::reducePtsByEquidistribution and
-       ::reducePtsByEquidistributionRobust, NC::
-       findClosestValInSortedVector, VDOSGnData::interpolateDensityMany
-       (a lower_bound followed by an upper_bound restricted to the
-       first search's result -- same subrange-offset pattern as
-       PowderBragg::findLastValidPlaneIdx earlier), VDOS::spaceOutGrid,
-       OrderIntervalsByNearnessToZero's constructor, VDOS::evalPWLSum,
-       and PiecewiseLinearFct1D::eval (which also lost an awkward
-       iterator-decrement dance in favour of plain index arithmetic
-       while being converted). Left alone: ~6 more sites using custom
-       comparators, non-double types, or (one case) float instead of
-       double, which would need a templated generalisation of
-       fastLowerBoundIdx/fastUpperBoundIdx rather than a drop-in swap.
-       Full sb -t --long green, zero reference-log changes.
-     * Wire fastLowerBoundIdx/fastUpperBoundIdx into two more call
-       sites, chosen because they are plain double arrays with the
-       default comparator (directly compatible, no generalisation
-       needed) and confirmed hot: PowderBragg::findLastValidPlaneIdx
-       and ::genScatterMu (coherent elastic/Bragg scattering -- can
-       have as many as ~1e5 HKL planes for large/complex unit cells),
-       and NC::pickRandIdxByWeight (weighted random selection used
-       throughout the codebase: SAB cell/component sampling,
-       single-crystal mosaic models, absorption-oriented-volume
-       models, ...). PowderBragg's cumulative cross-section array can
-       have consecutive equal entries whenever a plane's structure
-       factor is zero (symmetry-forbidden reflections); the previous
-       entry's added test coverage for tied/duplicate values (and
-       corrected docstring) was motivated by exactly this case.
-       A broader codebase survey found ~15 more std::lower_bound/
-       upper_bound call sites, but most are either cold (cfg-string
-       parsing, atom database lookups, one-time VDOS/energy-grid setup)
-       or use custom types/comparators (would need a templated
-       generalisation of fastLowerBoundIdx/fastUpperBoundIdx, not
-       attempted here) -- left alone rather than swept blindly.
-       Measured with sb_ncdev_benchsabsample (comp=coh_elas,
-       SiO2-alpha_sg154_AlphaQuartz.ncmat, random energy per call, 5
-       trials of 10M samples each): ~24% faster (844ms -> 644ms, clean
-       non-overlapping trial ranges). Full sb -t --long green, zero
-       reference-log changes.
-     * Wire NC::fastLowerBoundIdx/fastUpperBoundIdx (see the previous
-       entry) into the three call sites profiling identified as the
-       actual dominant cost of a SAB scatter sample: SABProcessor's
-       phaseSpaceIntegral and sampleAlphaBeta (both search m_eGrid), and
-       PCHIPInterp::eval (used for the smooth cross-section
-       interpolation some configs use instead of phaseSpaceIntegral's
-       plain grid search). Also switched phaseSpaceIntegral's own
-       "y0*(1.0-r)+r*y1" to the already-audited nclerp() while there.
-       Measured with sb_ncdev_benchsabsample (comp=inelas, random
-       energy per call, 30M samples/trial, 8 trials each): ~15% faster
-       for Polyethylene_CH2.ncmat (8563ms -> 7293ms, clean non-
-       overlapping ranges), ~5% for Al_sg225.ncmat. End to end with
-       sb_ncdev_minimcbench (full simulation loop, not just sampling):
-       ~8% faster for Polyethylene_CH2.ncmat (5990ms -> 5516ms).
-       Full sb -t --long green, zero reference-log changes (the search
-       always returns the same index as before; the nclerp switch was
-       separately confirmed not to change any reference log either).
-     * Add NC::fastLowerBoundIdx/fastUpperBoundIdx (NCFastSearch.hh):
-       drop-in replacements for std::lower_bound/std::upper_bound on a
-       sorted array of double, written so the inner comparison compiles
-       to a branchless conditional move (cmov) rather than an ordinary
-       conditional branch. For the grid sizes actually seen in NCrystal's
-       hottest lookup tables (a few hundred to a few thousand points,
-       already fully cache-resident under the repeated-access pattern of
-       a real simulation), the dominant cost of a binary search is not
-       cache misses -- a cache-locality-motivated two-level (coarse
-       grid + narrowed search) approach was tried and measured as a net
-       loss for this reason -- but branch *mispredictions*: each
-       comparison's outcome
-       is data-dependent and close to 50/50, so the branch predictor
-       does no better than a coin flip, paying a full misprediction
-       penalty (~15-20 cycles) roughly half the time, once per
-       comparison. A cmov has no such penalty. Getting the compiler to
-       actually emit cmov here needed care: GCC does so for the obvious
-       ternary-based implementation, but Clang reverts even a
-       pure-arithmetic (no ternary) equivalent back into a branch --
-       Clang's __builtin_unpredictable() hint (GCC has no equivalent,
-       but does not need one here) fixes this; verified via disassembly
-       on both compilers. Measured 4-5x faster than std::lower_bound/
-       std::upper_bound on representative log-spaced grids
-       (100-2400 points), on both GCC 15 and Clang 21 (x86-64, -O3), with
-       results checked identical to the standard library's across
-       millions of random queries and many edge cases (tiny/negative/
-       near-ULP-spaced/irregular grids) in the new tests/src/app_fastsearch
-       (68694 checks). Not yet wired into any production call site.
-     * Fix a cluster of unaudited Horner-chain a*b-c/a*b+c shapes in
-       randKPowX's near-k=1 Taylor branch (NCRandUtils.cc): the c2/c3
-       coefficient polynomials and the final Horner evaluation in u were
-       all plain (non-fma) expressions. This function samples alpha
-       within a cell under the usual (non-degenerate) log-linear
-       interpolation scheme -- i.e. it runs on essentially every SAB
-       scatter sample, found while profiling sb_ncdev_benchsabsample's
-       pure-sampling path (LogLinDistSampler::sample -> randKPowX).
-       Fixed with explicit std::fma throughout. Full sb -t --long green,
-       zero reference-log changes.
-     * Resolve a small flagged "fixme cache?" in CellMgr::lookupCellInfo
-       (NCSABProcessor.cc): construct SABIdx::NAlpha from the already-
-       cached m_nalpham1+1 instead of reconstructing it from the full
-       alphaGrid() on every call -- exactly equivalent by construction
-       (NAlpha's VectD constructor just forwards to .size()). Tried and
-       measured (but reverted, see the same file's now-expanded fixme
-       comment) a second change in the same area: caching the
-       (idx,FullCellSampler) pair across a rejection-sampling loop's
-       retries in sampleAlphaBetaFC, in case the same cell got re-picked
-       on consecutive retries. That measured no wall-clock benefit on
-       sb_ncdev_benchsabsample (Polyethylene_CH2.ncmat, comp=inelas,
-       random energy per call) -- 8571ms vs 8613ms over 5x30M-sample
-       trials each, within run-to-run noise -- so it was not worth the
-       added bookkeeping and was dropped.
-     * Fix the same unaudited "rng.generate()*2.0-1.0" shape (isotropic
-       mu sampling near kinematic end-points / small-a rejection
-       sampling) found repeated verbatim in five places:
-       NCElIncXS.cc, NCSABExtended.cc, NCSABSampler.cc,
-       NCSABProcessor.cc and NCFreeGasUtils.hh -- fixed each with
-       explicit std::fma. Unlike the other fixes this sweep these feed
-       a randomly sampled scattering cosine directly, so a platform
-       difference here would show up as a difference in the exact
-       sampled outcome for a given RNG stream, not just a rounding
-       artefact in an intermediate value. Full sb -t --long green,
-       zero reference-log changes.
-     * Fix an unaudited "a*(1-t)+b*t" lerp shape in
-       NCSABCellSample.cc's FullCellSampler::sampleAlphaBeta (linear
-       interpolation of the sampled beta value across a cell) --
-       switched to the project's existing audited nclerp() helper
-       instead of hand-rolling the fma-fusable form again. Full sb -t
-       --long green, zero reference-log changes.
-     * Fix another unaudited a-=b*c shape, this time in
-       NCSABIntegrator.cc's analyseEnergyPoint: the Simpson-like
-       beta-crossing correction "prev_betaxs.first -= db_real*(1.0/3.0)"
-       is on the same footing as the a*b-c shapes fixed elsewhere this
-       sweep -- fixed with explicit std::fma. Grepped the rest of the
-       file for the same pattern; nothing else unaudited remains. Full
-       sb -t --long green, zero reference-log changes.
-     * Fix one more unaudited a*b-c shape found in the same sweep:
-       NCSABRefSampler.cc's extension-probability calculation computed
-       "4.0*(ext_xs_E*E_div_kT - ext_xs_Ecell*E_div_kT_cell)" -- fixed with
-       explicit std::fma for the inner difference-of-products. Full sb -t
-       --long green, zero reference-log changes.
-     * Fix the root cause of a cross-platform divergence in
-       NC::VDOS::estimateSpectrumCrossing (NCVDOSUtils.cc) that had
-       previously only been tapered around, not actually fixed:
-       NCVDOSGn.cc's applyCrossingTaper caller already documented that "the
-       [crossing] estimate can shift by several tenths of an index unit
-       between an -mfma and a plain build", handled there by widening a
-       taper region rather than addressing the cause. The cause: this
-       function's least-squares quadratic fit (solved via Cramer's rule)
-       had its S3/S4/T1/T2 accumulation and all six 2x2 determinant minors
-       (also feeding a 3-term outer sum of products) as unaudited a+-b*c
-       shapes -- plus the quadratic-formula discriminant. Fixed with
-       explicit std::fma throughout, reusing minors shared between
-       D/Da/Db/Dc that the original unaudited form recomputed. Verified
-       directly: a standalone default-vs--mfma comparison across 2000
-       trials of a synthetic Gaussian-tail spectrum (the exact shape this
-       function's docstring says it targets) is now bit-identical, where
-       it was not audited/verified before. Full sb -t --long green, zero
-       reference-log changes.
-     * Fix another unaudited a*b-c shape found while continuing the
-       performance/reproducibility pass into the VDOS side of the pipeline:
-       NCVDOSToScatKnl.cc's fillSABFromVDOS computed the high-phonon-order
-       (n>=stirling_threshold) alpha factor's exponent as "n*(...)-x.val",
-       feeding straight into std::exp() -- same class of hazard as
-       setupE0ABGrid's logarg fixed earlier this session, just not caught
-       at the time since this is a different function. Fixed with explicit
-       std::fma. Full sb -t --long green, zero reference-log changes.
-     * Hoist a loop-invariant std::log(taperBand) call (taperBand is a
-       compile-time constant) out of sIntegralAtE's per-cell loop --
-       unrelated to fma, just plain redundant recomputation on every cell
-       that lands in the tapering band, found while re-profiling after the
-       fixes below made sIntegralAtE the single largest remaining
-       self-time hotspot (~17-19%) across every material tried. Bit-
-       identical by construction (same values, computed once instead of
-       per-cell); sb -t --long confirms zero reference-log changes.
-     * Extend the SAB cell-integration performance pass below:
-       NCSABProcessor.cc's sIntegralAtE had an unaudited plain-Horner
-       quintic smootherstep (t*t*t*(t*(t*6.0-15.0)+10.0), evaluated per
-       cell within the tapering band) -- fixed with explicit std::fma.
-       impl_numIntRegion's per-alpha-point contribution loop (up to 33
-       iterations per region, itself per touched cell -- effectively a
-       second, duplicated implementation of IntegrandOfA::contrib's
-       calculation, pre-existing duplication noted in the file's own
-       "fixme: cleanup and consolidation" comment) had the same unaudited
-       lerp form fixed elsewhere this session; switched to nclerp and
-       extracted the whole loop into a new function (fillContribAtAlpha)
-       decorated with NCRYSTAL_FMADISPATCH_ATTR (confirmed multiversioned).
-       Re-profiling after this and the previous commit: SOfAlphaGrid's own
-       self-time dropped from ~13% to ~10% (its fma ramp-fill work moved
-       into the now-dispatched fmaRampFill, visible separately at ~2%), and
-       fillContribAtAlpha shows up as a clean ~7% line where its cost was
-       previously invisible, buried inline in impl_numIntRegion. Full
-       sb -t --long green, no reference-log changes needed this time.
-     * Performance pass over the SAB cell-integration hot path (motivated by
-       profiling inelastic-scattering initialisation with the new
-       parse_gperf tool across 5 materials spanning element mass/VDOS shape
-       -- Al, Pb, LiH's H, polyethylene's H, Debye-VDOS Ca -- swept over
-       next-gen vdoslux=2000/2002/2004, knllux=0/2/4 and temp=10/293.15/
-       1000K; the vdoslux=2000..2006/knllux=0..6 next-gen code specifically,
-       not the legacy 0..5 path this app defaults to if vdoslux/knllux
-       aren't given explicitly). Findings: temperature dominates cost
-       (2.5-5x from 10K to 1000K, more phonon orders needed), vdoslux has a
-       moderate effect (1.3-2.5x), knllux only matters for the downstream
-       SABProcessor/table-construction phase (~2.8x from 0 to 4), not VDOS
-       expansion. At the high end of that range, NCSABCellInteg.cc's
-       SOfAlphaGrid construction and IntegrandOfA::contrib (the per-alpha-
-       slice integrand) are consistently hot across every material tried:
-       - SOfAlphaGrid's constructor already used explicit std::fma for its
-         two linear ramps but, being a constructor, could not carry
-         NCRYSTAL_FMADISPATCH_ATTR; extracted into a new free function
-         (fmaRampFill) that can.
-       - NCKinUtils.hh's getAlphaLimits/getAlphaLimitsWithDiff/getAlphaMinus/
-         getAlphaPlus/getBetaMinus/getBetaPlus/getBetaLimits (called from
-         IntegrandOfA::contrib, among many other places) all had a
-         previously-unaudited "u +- 2*sqrt(v)" shape -- confirmed
-         empirically (disassembly) to actually get fused under -mfma even
-         though written across separate statements, unlike a similar
-         StableSum::add pattern audited earlier this session that does not
-         -- fixed with explicit std::fma throughout, along with the
-         alphaMinusTaylor/betaMinusTaylor Taylor expansions (plain Horner,
-         same unaudited-a*b+c class as elsewhere this session).
-       - IntegrandOfA::contrib's smiddle computation, and half a dozen
-         interpolation functions in NCSABUtils.hh (interpolate_loglin_
-         fallbacklinlin[_fast[2]], interpolate_linlin_NEW, interpolate_
-         linear, sampleLogLinDist[_fast]), used the unaudited "a*(1-t)+b*t"
-         lerp form instead of the project's existing fma-based nclerp
-         helper; switched to nclerp throughout.
-       - With NCKinUtils.hh's functions and nclerp now explicit-fma-safe,
-         IntegrandOfA::contrib itself is now fully audited and was decorated
-         with NCRYSTAL_FMADISPATCH_ATTR (a non-static, non-virtual member
-         function -- confirmed both multiversioning, via nm, and real
-         vfmadd instructions in the compiled .fma clone, via objdump,
-         including the inlined Taylor expansion).
-       Full sb -t --long green throughout (one reference log needed
-       regenerating: a near-degenerate E_div_kT~0 case in the *_OBSOLETE
-       comparison path of testsabcelleval, whose own pass/fail assertions
-       against the mpmath/brute-force references were unaffected -- only
-       the exact printed value shifted, as expected whenever a computation
-       moves from two roundings to a single fma rounding). A stashed
-       before/after wall-clock comparison at the worst-case settings across
-       all 5 materials showed differences within the ~3% trial-to-trial
-       noise of this measurement method, i.e. inconclusive either way at
-       that resolution; the change is kept regardless as real,
-       independently-justified correctness+dispatch hardening in a
-       genuinely hot path, consistent with this session's standing policy
-       for such patterns.
-     * Decorate stable_exp/stable_expm1 (NCMath.cc, along with their
-       expm1_reducedarg_taylor14 helper) with NCRYSTAL_FMADISPATCH_ATTR too,
-       for the same reason as Romberg::integrate() below: both are now
-       straight-line, loop-free, explicit-std::fma code (no libm calls at
-       all -- see the earlier stable_exp/expm1 rewrite), so this recovers
-       hardware FMA speed on a portable (non--mfma) build via runtime CPU
-       dispatch. Confirmed real multiversioning ([clone .default]/[clone
-       .fma]/[clone .resolver] symbols for all three) and the full sb -t
-       --long suite stays green. Motivated by profiling (valgrind/callgrind,
-       since this sandbox's perf_event_paranoid=4 blocks perf) a cold-start
-       app_benchsab run on Al_sg225.ncmat;knllux=3: stable_expm1 was ~1% of
-       total instructions, and this session's other touched functions
-       (Romberg::integrate, fixedOrderIntegration9pts) collectively ~2%
-       more -- confirming none of this session's fixes are a dominant cost
-       (the pre-existing, already-hardened FastConvolve/VDOSGn FFT machinery
-       remains the actual hot path, at ~45% combined, untouched this
-       session) while still finding this additional, real dispatch win.
-     * Decorate Romberg::integrate() (NCRomberg.cc) with
-       NCRYSTAL_FMADISPATCH_ATTR, so its now-fully-explicit-std::fma
-       Richardson-extrapolation arithmetic (see the Romberg fix above) gets
-       hardware FMA speed on a portable (non--mfma) x86 build too, via
-       runtime dispatch, rather than paying for a real (undispatched)
-       std::fma library call on hardware that actually has the instruction.
-       Confirmed real multiversioning occurred (nm shows [clone .default]/
-       [clone .fma]/[clone .resolver] symbols) and the full sb -t --long
-       suite stays green. evalFuncMany/evalFuncManySum (called from
-       integrate(), themselves also now using explicit std::fma per the fix
-       above) are virtual and so cannot be decorated (the attribute is
-       rejected outright on virtual member functions); their std::fma calls
-       remain an ordinary library call. Investigated whether NCRomberg.cc's
-       fixed-order integration helpers (used from NCSABCellInteg.cc) needed
-       similar treatment: empirically confirmed (via disassembly, zero
-       vfmadd instructions under -mfma) that the compiler does not fuse
-       across StableSum::add's inlined call boundary, so unlike the
-       Richardson-extrapolation code there is no latent reproducibility
-       hazard there to fix -- left unchanged pending a decision on whether
-       to trade StableSum's Neumaier compensation for raw std::fma-based
-       accumulation speed there, which is a real accuracy/speed tradeoff
-       rather than a mechanical audit fix.
-     * Fix the last-standing piece of the long-chased sabxs cross-platform
-       residual: NCRomberg.cc's generic Romberg-integration Richardson
-       extrapolation (R(i,j), used throughout via integrateRomberg17/33 --
-       notably VDOSEval::calcGamma0, called once per material and feeding
-       every subsequent G1 evaluation) combined every level's update as a
-       plain "a*b+c*d". Unlike a plain "a*b+c" (one obvious fusion), this
-       shape has *two* valid single-fusion readings (fma(a,b,c*d) or
-       fma(c,d,a*b)), so different platforms/flags were free to pick either
-       -- not just contract-or-not, but which term. Traced directly via the
-       existing SABXSDIAG diagnostic instrumentation (tests/src/
-       app_sabxsdiag): the earliest observed default-vs--mfma divergence
-       was at order n=1's raw G1 value, i.e. upstream of any convolution,
-       exactly where calcGamma0's result first enters the pipeline.
-       Rewrote every such combination (~20 across the unrolled R(4,4)/R(5,5)
-       fast path and the generic R(i,j) loop, plus evalFuncMany/
-       evalFuncManySum's own "offset+delta*i" argument) with an explicit
-       std::fma always fusing the same, fixed term. Verified: full sb -t
-       (incl. --long) green after regenerating the handful of reference
-       cases this legitimately shifted (a discrete grid-size decision in
-       app_gnerange's test.log, and default-build sabxs_A/B drift too small
-       to matter under the old flat tolerance but caught by the new
-       per-vdoslux one below); and, the actual point of this investigation,
-       testsabxs now passes cleanly under a full -mfma-forced rebuild --
-       "ALL OK", not a single case above tolerance, closing the residual
-       that survived every fix so far this session (reducePtsBy
-       Equidistribution's own fma hardening, stable_exp/stable_expm1's full
-       rewrite) because none of them were the actual remaining cause.
-     * Make the sabxs cross-platform reproducibility test's tolerance depend
-       on vdoslux (tests/pypath/NCTestUtils/xs.py's XSMonitor now accepts a
-       callable(teststr)->float for test_rdtol, not just a plain float;
-       tests/pypath/NCTestUtils/sabxs.py wires up 1e-4 for vdoslux=2000
-       (not a priority setting), 1e-5 for vdoslux=2001 (the historical
-       default), 1e-6 for vdoslux>=2002 (the more refined next-gen settings
-       where a still-open residual is being chased, see above -- tightening
-       here is what's actually driving the investigation, not a courtesy).
-       tests/data/sabxs_A and sabxs_B reference data regenerated for the
-       small number of cases that needed it at the new 1e-6 bar (pure
-       default-build drift relative to this session's other fixes above,
-       not a cross-platform issue).
-     * Rewrite NC::stable_exp/stable_expm1 (NCMath.cc) to no longer call
-       std::exp/std::log/std::expm1/std::log1p at all: the previous
-       implementation refined a libm call with one Newton-Raphson step, which
-       is very accurate but still depends on the platform's libm for its
-       starting point, so is not actually guaranteed reproducible across
-       platforms. Replaced with a portable, from-scratch implementation
-       (standard Cody-Waite range reduction x=n*ln(2)+r via std::fma with a
-       split ln(2) constant, a 14th-order std::fma Horner-scheme Taylor
-       expansion of expm1(r) for the reduced range |r|<=ln(2)/2, then
-       std::ldexp -- exact, pure exponent adjustment -- to reconstruct);
-       stable_exp(x) is now 1.0+stable_expm1(x) for x>=0 (exact: an addition
-       of same-signed quantities, no cancellation) and 1.0/stable_exp(-x) for
-       x<0 (the "1+expm1(x)" identity alone loses all precision once exp(x)
-       drops below ulp(1), regardless of how accurately expm1 itself is
-       computed -- confirmed empirically, e.g. 1+expm1(-199.3) rounds to 0.0
-       vs the true ~1.4e-87 -- sidestepped with the same reciprocal trick
-       this file's existing exp_approx/exp_negarg_approx already use).
-       Verified bit-identical between a plain and an -mfma-forced build
-       across a dense grid spanning [-700,700] (as expected: every
-       floating-point combination step is either an explicit std::fma or an
-       exact operation), and against tests/src/app_stablemathfct's
-       mpmath-derived 60-digit references (all within 1-2 ULP, comfortably
-       inside its existing 8 ULP bar; an earlier iterative-doubling-based
-       range reduction was tried first and rejected here, since each
-       doubling step roughly doubles the running relative error, compounding
-       ~15 such steps into several ULP and failing that bar for |x|>~10).
-       Motivated by tracing exactly which libm calls are reachable when
-       constructing and evaluating a VDOSEval (relevant to the still-open
-       sabxs residual noted above): turned out to be only these two
-       functions, via stable_tanh/stable_sinh/the safe_x{cothx,3cothx,
-       divsinhx}/safe_rec_expm1 helpers in NCVDOSEval.cc, all otherwise pure
-       arithmetic already. Does not by itself close that residual -- an
-       -mfma-forced rebuild shows it unmasks a different, still-unaudited
-       divergence elsewhere in the pipeline (a different, larger sabxs case
-       now fails first) -- but is real, independently-justified hardening of
-       a hitherto-not-fully-reproducible pair of functions used throughout
-       the VDOS/SAB code, kept regardless.
-     * Harden reducePtsByEquidistribution and reducePtsByEquidistributionRobust
-       (NCMath.cc) against a previously-unaudited FMA-contraction hazard: both
-       accumulated their combined density as "d += w_lin*dlin[i]; d +=
-       w_log*dlog[i]", a plain "a += b*c" shape a compiler may silently fuse
-       into a hardware FMA depending on target/flags (contracted by default on
-       AArch64, not on baseline x86-64) -- feeding straight into the cum[]
-       array the near-tie point-selection decision compares against. Rewrote
-       both with explicit std::fma, per the project's standing FP-contraction
-       policy (docs/devel_fma_attribute.md). Verified: default-vs-`-mfma`
-       output is now byte-identical for all seven committed real (x,y)
-       datasets (tests/data/ptreduce/), full sb -t suite green with zero
-       reference-log changes. Note: this is real, independently-justified
-       hardening, but a direct measurement (an `-mfma`-forced full rebuild,
-       comparing sabxs group A's worst-case reldiff before/after) showed it
-       has zero effect on the still-open sabxs residual described below --
-       that residual is driven by genuinely-differing (not contraction-
-       related) ~1e-14 relative upstream noise in Gn.getRawSpectrum, not by
-       this function's own arithmetic.
-     * Add reducePtsByEquidistributionRobust (NCMath.hh/.cc) alongside the
-       existing reducePtsByEquidistribution, for callers whose y-values carry
-       more numerical noise than a typical closed-form function evaluation
-       (e.g. the output of an FFT-based convolution). Same algorithm and
-       contract, except the |y''| curvature estimate driving point selection
-       uses a wider stencil (points further apart in x, not just immediate
-       neighbours) -- a standard technique for reducing a numerical
-       derivative's sensitivity to noise in the underlying values, at some
-       cost in resolution for genuinely sharp, few-point-wide features.
-       Motivated by the still-open residual noted above: on the exact real
-       (x,y) data that exposed it (captured from
-       VDOS::determineAlphaBetaGridFromGn's setupE0ABGrid call), a synthetic
-       noise-injection test at the actually-observed magnitude (~1e-8
-       relative) flips reducePtsByEquidistribution's selection in 1/50
-       trials, and at 1e-7 in 49/50 (with up to 2 points affected); the new
-       function is unaffected at 1e-8 and only 14/50 at 1e-7 (never more
-       than 1 point). Checked, using the same synthetic-noise methodology,
-       against six more real (x,y) datasets from other materials/elements to
-       confirm this is not just a fix for the one known case at the expense
-       of others: summed over all seven datasets and two noise levels, the
-       new function is more than 5x as stable in aggregate, with no
-       individual case worse. tests/src/app_ptreduceequi/main.cc now runs
-       its entire existing test battery (contract, quality and synthetic
-       robustness checks) against both functions, plus dedicated tests using
-       the real datasets (added under tests/data/ptreduce/). Not yet wired
-       into any production call site -- see
-       docs/claude_session_vdos_fma_reprod.md for the residual this targets
-       and why it is a real, if smaller, structural sensitivity rather than
-       something a threshold/tolerance tweak could fix (several were tried
-       and made other cases worse).
-     * Fix the actual root cause of the long-standing cross-platform sabxs
-       instability for high-order VDOS phonon expansions (real production
-       case: Li2O, vdoslux=2004): VDOSGn's convolution
-       (produceNewOrderByConvolutionImpl, NCVDOSGn.cc) already snapped
-       spectrum values below a fixed truncationThreshold*peak cutoff to
-       exactly 0.0, specifically to remove non-cross-platform-reproducible
-       FFT round-off noise. But FastConvolve's own (already-calibrated,
-       already used elsewhere to gate a related edge-refinement decision)
-       size-dependent noise floor -- peak*eps*sqrt(n) -- can exceed that
-       fixed cutoff for large/high-order spectra, so values kept "because
-       they cleared the cutoff" could still be pure FFT round-off, which
-       genuinely differs (not just last-ULP) between platforms/compilers:
-       confirmed via a real CI-log comparison (an intermediate diagnostic
-       app, since reverted) across six legs that the spectrum's own tail
-       values differed by 1e-4 to 1e-3 relative on the two/three legs known
-       to fail sabxs, while agreeing to ~1e-16 elsewhere -- feeding directly
-       into VDOS::determineAlphaBetaGridFromGn's grid-point selection
-       (reducePtsByEquidistribution) and cascading into a genuinely
-       different alpha/beta grid point (not last-bit noise) being chosen.
-       Now uses max(that fixed cutoff, the calibrated noise floor) for the
-       cleanup, so values within the known-unreliable range are zeroed
-       everywhere. Also hardens setupE0ABGrid's low-beta-limit
-       `factor *= exp(-x+n*log(x)+minus_log_nfactorial)` with an explicit
-       std::fma for the multiply-add feeding the exponent (found while
-       chasing a much smaller residual -mfma-vs-plain difference; had no
-       measurable effect on that residual, but is a real, independently
-       justified hardening of an until-now-unaudited expression of exactly
-       the shape this project's standing FMA policy targets).
-       A smaller residual (~2e-5 relative, matching the magnitude of one
-       of the originally-reported CI failures) remains locally reproducible
-       under -mfma even after both fixes, rooted in the same grid-point
-       selection algorithm's inherent sensitivity to near-ties in an
-       accumulated cumulative sum -- widening the existing tie-break bias
-       tolerance to cover it was tried and made things markedly worse (up
-       to 5.6e-4 relative, versus 2.3e-5 before) by flipping decisions that
-       were previously correct, so was reverted; this residual is left
-       for a follow-up. Regenerated affected reference data
-       (tests/data/sabxs_A, tests/data/sabxs_B, tests/scripts/vdosgn.log,
-       tests/src/app_gnerange/test.log), all shifting by an amount
-       consistent with the noise being cleaned up (see
-       docs/claude_session_vdos_fma_reprod.md for the full trace).
-     * Harden a discrete grid-point selection tie-break in
-       reducePtsByEquidistribution (NCMath.cc), used when building the
-       alpha/beta grid for next-gen (vdoslux>=2000) SAB data
-       (VDOS::determineAlphaBetaGridFromGn). For each target quantile along
-       a cumulative point-density curve, the function picks whichever
-       candidate input point is closest; that density is itself built from
-       std::exp/std::log evaluations of the Gn phonon expansion, so a
-       last-few-ULP difference in those (e.g. from differing libm
-       implementations/dispatch across platforms) can flip a near-tie in
-       the raw floating-point "closest neighbour" comparison, causing a
-       genuinely different discrete grid point (not just a perturbed value
-       of the same point) to be selected between builds. Traced this way
-       (via glibc's own runtime FMA-hwcap IFUNC dispatch for log/exp,
-       toggled locally while holding compiler/flags/binary fixed) on real
-       production data (Li2O, vdoslux=2004): a downstream SAB integration
-       cell was found to differ by ~0.4% (not last-ULP) between builds at
-       the same position in a per-cell survey. Now biases the tie-break by
-       a fixed tolerance well above realistic cross-platform noise, so
-       only a clearly-closer neighbour can win. Verified locally (full
-       test suite unaffected, no reference-log changes, bit-identical vs.
-       an -mfma-forced rebuild); whether this resolves the specific
-       still-open two-platform sabxs CI failure it was found investigating
-       can only be confirmed by a real CI re-run (see
-       docs/claude_session_vdos_fma_reprod.md).
-     * Harden a discrete-cutoff instability in the next-gen (vdoslux>=2000)
-       SAB machinery: sIntegralAtE (called on every energy point evaluated
-       while building a material's cross-section table and while searching
-       for Emin) has a "don't waste time on irrelevant cell" shortcut,
-       skipping a cell's contribution entirely (treating it as exactly 0)
-       whenever its full-cell integral falls below a small threshold
-       relative to the running total. Confirmed on real production data
-       (Li2O, vdoslux=2004) that hundreds of cells routinely sit within 10%
-       of this threshold for a given energy, some within 0.01% -- so
-       ordinary last-few-ULP noise in a cell's integral (itself a numerical
-       result) can flip it between contributing exactly 0 and its actual,
-       non-negligible value, a real (not just last-digit) difference. Now
-       tapers the shortcut smoothly over a decade-wide band around the
-       threshold (full computation, quintic-smootherstep-scaled) rather
-       than a hard cut exactly at it; cells safely outside the band are
-       unaffected (same shortcut, same performance). Note: verified via a
-       real-CI re-run that this did not, on its own, resolve a separate,
-       still-open cross-platform sabxs instability for the same Li2O/
-       vdoslux=2004 case (see docs/claude_session_vdos_fma_reprod.md for
-       the ongoing investigation) -- it addresses a real, independently
-       confirmed source of discrete-cutoff sensitivity, but is not a
-       complete fix for that remaining issue.
-     * Fix cross-platform (plain vs -mfma-forced) instability in the next-gen
-       (vdoslux>=2000) SAB cross-section table's Emin determination
-       (NCSABProcessor.cc's determineEMinDivKTminRange): the upper reference
-       point used there was found via a discrete search for where a
-       cumulative per-cell integral first crosses 10% of its total range.
-       That crossing index could differ by several tens of positions between
-       builds, because two cells with near-degenerate kinematic "touch"
-       energies can swap relative processing order under ordinary
-       FMA-contraction noise. Since that reference point still sat within
-       the visibly-rising part of the underlying curve (unlike the already-
-       robust lower reference point, which sits in the flat low-E "1/v law"
-       region), the index tie propagated into a ~2% shift of the returned
-       Emin, and hence of the entire cross-section table anchored on it.
-       Replaced with the material's own EMax (in E/kT units), already
-       computed before this search runs and, for most SABData (including
-       that produced by our VDOS expansion), an explicit, non-fluctuating
-       input value rather than one derived from any per-cell touched-cell
-       machinery at all; the real S-integral is evaluated there via the same
-       function used everywhere else in this search, so no separate
-       touched-cell-derived proxy is needed. Verified on the previously
-       failing case (Li2O, vdoslux=2004): reldiff between a plain and an
-       -mfma build dropped from ~4e-5 (just above the test's 1e-5 tolerance)
-       to ~5e-9. This changes sabxs/long_sabxsb reference data for vdoslux
-       2000-2004 Li2O materials, up to ~0.7% at the lowest tested energies
-       (where this Emin-anchored region of the table matters most).
-     * Bug fix: Python API functions accepting numpy arrays now work correctly
-       for non-float64 or non-contiguous arrays.
-     * Cmdline script errors in case of invalid choices now always gives output
-       like latest (Py3.14.7) argparse, thus ensuring consistent output.
-     * Use explicit std::fma widely for improved reproducibility.  Uses new
-       NCRYSTAL_FMADISPATCH_ATTR so this does not cost performance on portably
-       built binaries such as the published wheels and conda packages.
-       Utilities affected include FastConvolve (FFT), nclerp (new linear
-       interpolation fct), VDOS and Gn evaluation, VDOS grid regularisation,
-       egrid interpolation, and Stirling's series usage for factorial estimation
-       in alpha factors.
-     * VDOSGn::eRange (used internally to decide how many phonon orders' worth
-       of a Gn spectrum contribute above a relative threshold) now locates the
-       threshold crossing via a windowed quadratic fit of ln(spectrum) vs
-       energy, rather than snapping to the nearest grid point that clears the
-       threshold. The old approach discretised a continuous root-finding problem
-       to bin-width resolution -- amplifying a tiny, platform-varying last-ULP
-       difference into a whole-bin output difference whenever the true crossing
-       sat close to a grid point, and occasionally shifting how many phonon
-       orders get included. The new fit matches the Gaussian-like shape
-       high-order Gn spectra approach (central limit theorem via repeated
-       self-convolution) and uses several points symmetrically rather than
-       trusting a single point as ground truth, substantially reducing this
-       last-ULP sensitivity (see tests/src/app_gnerange).
-     * VDOSGn's internal per-phonon-order truncation (which trims a
-       self-convolved order's spectrum to where it exceeds a small relative
-       threshold of its own peak) now refines that edge with the same
-       windowed quadratic-log-fit crossing estimate used by VDOSGn::eRange
-       (estimateSpectrumCrossing, generalised from estimateGnErange's
-       gnErangeCrossing), rather than trusting whichever single point
-       happens to be first to clear the threshold. Applied only for the
-       handful of large, un-thinned orders where FastConvolve's own
-       (size-dependent) numerical noise floor is not already safely below
-       that threshold (estimateFFTConvolutionNoiseFloor), since refining
-       every order was found to relocate near-ties into orders that never
-       needed it without reducing their number. Fixes a genuine
-       cross-platform (plain vs -mfma-forced) truncation-edge disagreement
-       for large un-thinned orders and its downstream cascade into later
-       orders that convolve from them; see
-       docs/claude_session_vdos_fma_reprod.md. This changes the exact bit
-       pattern of some VDOS/scattering-kernel-derived numerical results at
-       the next-gen (vdoslux>=2000) levels, typically at the level of the
-       last few significant digits (sabxs reference shifts up to ~0.006%,
-       concentrated in the Li2O test material at vdoslux 2000-2004), without
-       any expected impact on physical accuracy. Not applied to legacy-mode
-       convolution (which must keep reproducing NCrystal 2.x-4.x bit-for-bit)
-       or to VDOSGn::Cfg::MaxLux (whose convolveDirect has no FFT noise
-       floor for this to describe).
-     * VDOSGn's per-order truncation edge (see previous entry) is now also
-       smoothly tapered (applyCrossingTaper) rather than hard-cut exactly at
-       the estimated crossing: the crossing estimate itself can still land
-       close enough to a half-integer grid index that ordinary FMA-contraction
-       noise flips which neighbouring index gets chosen (confirmed on real
-       production data, near an array edge where the estimator's own fit
-       window is asymmetric), and a hard cut there discarded/kept a bin whose
-       value was still of order the truncation threshold itself -- a real,
-       whole-bin-sized discrepancy, not just last-digit noise. The taper
-       ramps the spectrum smoothly to zero around the crossing before
-       truncating a safe margin beyond it, so both plausible choices near
-       such a tie now hold an equally negligible value. This changes VDOS/
-       scattering-kernel-derived numerical results at the next-gen
-       (vdoslux>=2000) levels by more than the previous entry (sabxs
-       reference shifts up to ~1%, again concentrated in the Li2O test
-       material), without any expected impact on physical accuracy -- the
-       truncation threshold is itself just a relative-to-peak cutoff below
-       which contributions were already considered negligible.
-     * Fix BoundedCellSampler's edge-envelope calculation (used when sampling
-       S(alpha,beta) cells whose kinematically accessible region touches
-       beta=0) evaluating beta_minus(alpha) as the naive alpha-2*sqrt(E*alpha)
-       instead of using the existing getBetaMinus utility, which switches to a
-       Taylor expansion specifically to avoid the catastrophic cancellation
-       this naive formula suffers whenever alpha is close to 4*E (exactly
-       where beta_minus touches 0). Depending on whether the compiler fused
-       the multiply-subtract into a single rounding or not (platform/compiler/
-       -mfma dependent), this could give a substantially (order unity
-       relative) different envelope height in that narrow regime, changing
-       the sampling efficiency for affected cells. Found via a cross-platform
-       CI divergence in a test exercising exactly this regime.
-     * Fix five more instances of the same class of bug as the BoundedCellSampler
-       beta_minus(alpha) issue above, found via a static sweep of the sab
-       component for other naive, catastrophic-cancellation-prone re-
-       derivations of the alpha_minus/alpha_plus/beta_minus/beta_plus
-       kinematic boundary formulas: BoundedCellSampler::prepareBCSData's
-       amax1/amax2 (alpha_minus(b1)/alpha_minus(b2)), findActiveAlphaRange's
-       ap2/am2/am1, RCSImpl::alphaPtGem's bl/bu (beta_minus/beta_plus(alpha)),
-       RCSImpl's special_avals_candidates list (which also carried a
-       redundant duplicate-formula pair for the same two quantities), all in
-       NCSABCellSample.cc, and SABCellSurvey's constructor in
-       NCSABSurveyor.cc (essentially a duplicate of findActiveAlphaRange).
-       All six now go through the shared, Taylor-hardened getAlphaMinus/
-       getAlphaPlus/getBetaMinus/getBetaPlus utilities from NCKinUtils.hh
-       instead of re-deriving the same formulas inline.
-     * Fix two more instances of the same bug class, this time in the actual
-       cross-section integration path (NCSABCellInteg.cc's
-       IntegrandOfA::contrib and impl_numIntRegion, reached via
-       NCSABProcessor.cc from the "next-gen" SABScatterNG scatter process):
-       bl/bu were computed as the naive alpha-+2*sqrt(E*alpha) instead of via
-       getBetaMinus/getBetaPlus. Also fixed a related instance in
-       NCSABRefSampler.cc's cell-overlap culling check, rewritten as a
-       squared comparison (matching the safe pattern already used in
-       NCSABEval.cc's kbStatus) to avoid subtracting a computed sqrt from a
-       raw alpha value. Added tests/scripts/kinutils.py (via a new
-       ["util","kinutils"] query), validating getAlphaMinus/getAlphaPlus/
-       getBetaMinus/getBetaPlus against an independent mpmath reference
-       across their domain, including densely around the two singular
-       points, to directly regression-test this whole class of bug.
-     * Fix NCrystal.vdos.extractKnl/extractGn (used internally by ncmat2endf)
-       feeding the C API a VDOS curve that had already been redundantly
-       renormalised (by a freshly numpy-computed integral) and, for curves
-       natively stored as a compact [emin,emax] energy range, needlessly
-       expanded into a full numpy.linspace grid. Neither transformation was
-       needed (the underlying C++ VDOS machinery expands/regularises/
-       renormalises internally regardless of the input's form or scale), and
-       both were a source of platform/numpy-version-dependent last-few-ULP
-       noise ahead of that robust computation. This changes the exact bit
-       pattern of some VDOS/scattering-kernel-derived numerical results
-       (typically at the level of the last few significant digits, though
-       rare threshold-sensitive cases can shift by more), without any
+     * Fix a Windows-only crash (STATUS_ACCESS_VIOLATION) affecting any
+       scatter process created for a crystalline material: VDOSGn's
+       destructor dereferenced a moved-from Pimpl, which went unnoticed on
+       GCC/Clang (whose NRVO elides the move in the affected return) but
+       not on MSVC. Related Windows correctness fixes: environment
+       variables are now read via the wide Win32 API with explicit UTF-8
+       conversion instead of std::getenv, whose CRT-cached table misses
+       changes made from a different CRT module in the same process (e.g.
+       Python's os.environ versus the NCrystal DLL); a dangling pointer in
+       FlexVDOS's Debye-model query path was removed; and some undefined
+       iterator arithmetic (rejected by MSVC's checked Debug iterators,
+       masquerading as a hang) was replaced. C++ standard library
+       assertion modes are now also enabled in CMake Debug builds on the
+       other platforms, so this class of bug aborts loudly everywhere.
+     * Bug fix: Python API functions accepting numpy arrays now work
+       correctly for non-float64 or non-contiguous arrays.
+     * Cmdline script errors in case of invalid choices now always gives
+       output like latest (Py3.14.7) argparse, thus ensuring consistent
+       output.
+     * Fix catastrophic-cancellation-prone inline re-derivations of the
+       alpha_minus/alpha_plus/beta_minus/beta_plus kinematic boundary
+       formulas at eight sab-component call sites: the naive
+       alpha-+2*sqrt(E*alpha) forms lose essentially all precision near
+       their roots (e.g. alpha=4E, exactly where an affected
+       cell-sampling envelope is evaluated -- found via a cross-platform
+       CI divergence of order-unity relative size). All now use the
+       shared, Taylor-hardened getAlphaMinus/getAlphaPlus/getBetaMinus/
+       getBetaPlus utilities, and a new kinutils test validates those
+       against an independent mpmath reference across their domain,
+       including densely around the singular points.
+     * Extensive cross-platform floating-point reproducibility work in
+       the VDOS -> S(alpha,beta) pipeline, removing sources of genuinely
+       differing results (not merely last-ULP noise) between platforms,
+       compilers and FMA-contraction choices:
+       - VDOSGn's per-order spectra are cleaned to FastConvolve's own
+         calibrated, size-dependent FFT round-off floor, so values that
+         are pure FFT noise (which legitimately differs across
+         platforms) can no longer enter downstream grid selection.
+       - VDOSGn::eRange and the per-order truncation edge locate their
+         threshold crossings via a windowed quadratic fit of
+         ln(spectrum), matching the Gaussian-like shape of high-order
+         spectra, instead of snapping to whichever single grid point
+         first clears the threshold; the truncation edge is additionally
+         smoothly tapered, so near-ties between neighbouring bins no
+         longer produce whole-bin differences.
+       - The next-gen (vdoslux>=2000) alpha/beta grid selection gained a
+         noise-tolerant tie-break, and a new
+         reducePtsByEquidistributionRobust (wider curvature stencil,
+         several-fold less noise-sensitive on real datasets, exercised
+         against the full existing test battery plus committed real
+         data) is now used when constructing such grids.
+       - The next-gen cross-section table's Emin search is anchored to
+         the explicit EMax input instead of a threshold crossing of a
+         per-cell cumulative sum (whose crossing index could shift by
+         tens of positions under contraction noise, moving Emin by ~2%),
+         and sIntegralAtE's "irrelevant cell" shortcut is smoothly
+         tapered instead of hard-cut at its threshold.
+       - NCrystal.vdos.extractKnl/extractGn no longer redundantly
+         renormalise and grid-expand the VDOS curve in numpy before
+         handing it to the (internally renormalising) C++ machinery.
+       These changes shift some VDOS/kernel-derived results, typically
+       in the last few significant digits (sabxs reference shifts up to
+       ~1%, concentrated in low-vdoslux Li2O test cases), without any
        expected impact on physical accuracy.
-     * ...
+     * stable_exp/stable_expm1 were rewritten to use no math-library
+       calls at all (Cody-Waite range reduction plus an explicit-fma
+       Taylor core), making their results bit-identical on every
+       platform; verified against mpmath-derived references to 1-2 ULP.
+       The newly added ncerf/ncerfc (NCMath.hh) do the same for the
+       error functions (rational approximations after W. J. Cody's
+       CALERF with the same portable exponential tail), while also being
+       significantly faster than typical libm implementations (2-8x
+       measured against glibc, whose correctly-rounded erfc tail path is
+       particularly slow). All erf/erfc evaluations in the library
+       (free-gas cross sections and sampling, single-crystal mosaic
+       setup) now use them: affected results shift at the few-ULP level
+       but become identical across platforms and toolchains.
+     * Use explicit std::fma widely for improved reproducibility, with
+       the new NCRYSTAL_FMADISPATCH_ATTR runtime-dispatch mechanism
+       ensuring this costs no performance on portably built binaries
+       such as the published wheels and conda packages. Affected
+       utilities include FastConvolve (FFT), nclerp (new linear
+       interpolation helper, now used instead of hand-rolled
+       a*(1-t)+b*t forms throughout the SAB code), VDOS and Gn
+       evaluation, VDOS grid regularisation, kinematic-limit utilities,
+       random isotropic-mu mappings, randKPowX's Taylor branch, and
+       Stirling's-series alpha factors. Notably this also fixed Romberg
+       integration's Richardson extrapolation, whose plain "a*b+c*d"
+       update has two valid single-fusion readings that platforms were
+       free to pick between -- the final root cause of a long-standing
+       cross-platform sabxs test divergence, which now passes
+       bit-cleanly under forced-FMA rebuilds.
+     * Added a Windows/MSVC-specific runtime FMA dispatch mechanism
+       (NCFMADispatch.hh): MSVC has no equivalent of the target_clones
+       attribute, so every std::fma() there fell back to slow software
+       emulation -- a real Windows CPU trace found 65% of a VDOS
+       expansion benchmark's runtime spent in it. Every
+       dispatch-decorated function now gets a second, /arch:AVX2-compiled
+       clone in a dedicated translation unit, used at runtime only when
+       CPUID/XGETBV confirm FMA3 support (x86-64 only;
+       Windows-on-ARM64 has hardware FMA as baseline and never sees the
+       machinery). Also added ncrestrict + assertion-verified
+       non-overlap declarations to these functions' pointer arguments,
+       to help auto-vectorisation.
+     * Performance: new branchless NC::fastLowerBoundIdx/
+       fastUpperBoundIdx (NCFastSearch.hh) replace
+       std::lower_bound/upper_bound on the hot sorted-double-array
+       lookups. For NCrystal's typical grid sizes the dominant binary
+       search cost is branch mispredictions (each comparison is
+       data-dependent ~50/50), which a conditional move avoids: measured
+       4-5x faster in isolation (with care taken so both GCC and Clang
+       actually emit cmov), and results verified identical to the
+       standard library across millions of queries including
+       duplicate/tied-value edge cases. Wired into the SAB sampling hot
+       path, PowderBragg, pickRandIdxByWeight and the remaining
+       qualifying call sites: measured ~15% faster inelastic sampling
+       for polyethylene, ~24% faster Bragg sampling for alpha-quartz,
+       and ~8% end-to-end in a full simulation loop benchmark.
+     * Performance/audit pass over the SAB cell-integration hot path
+       (guided by profiling across materials spanning element mass and
+       VDOS shape): the hottest integrand loops were extracted into
+       dispatch-decorated free functions, unaudited fma-contractable
+       shapes in them and in the kinematic-limit utilities were made
+       explicit, a loop-invariant logarithm was hoisted out of
+       sIntegralAtE's per-cell loop, and misc small cleanups landed
+       (e.g. a flagged NAlpha reconstruction now reuses a cached value).
+     * Test/benchmark infrastructure: PYTHON_COLORS=0 is now forced for
+       all test-script invocations (simplebuild, CMake and the shipped
+       ncrystal-verify alike), since Python 3.13+ colourises
+       argparse/traceback output based on ambient environment variables
+       like FORCE_COLOR even when stdout is not a terminal, spuriously
+       breaking golden-log comparisons. New self-timed benchmarks
+       app_perfvdos (one-time VDOS -> kernel construction cost) and
+       app_perfsab (per-event cross-section/sampling cost) are wired
+       into a cross-platform benchmark CI workflow, alongside a
+       WPR-based Windows CPU-profiling workflow; Windows Debug+Release
+       CI legs were added to the basic test workflow. The sabxs
+       reproducibility test tolerances are now vdoslux-dependent
+       (1e-4/1e-5/1e-6), and several test apps gained real assertions
+       instead of relying purely on byte-exact log comparisons of
+       FMA-sensitive diagnostic values.
 
 v4.4.6 2026-06-30
      * Support Numpy 2.5 by reworking usage of obsoleted array reshaping
