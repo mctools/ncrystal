@@ -87,6 +87,9 @@ v4.4.7 (work in progress)
        expressions), and can search in and show the header comments of NCMAT
        files (e.g. "ncrystal browse -E -s 'boron|b4c'"), with grep-like
        colored highlighting of hits (controlled by --color=WHEN).
+     * Pointers returned by ncrystal_dyninfo_extract_scatknl are now only
+       valid until the next call (kernels were previously kept alive
+       indefinitely). The Python API copies the data while holding a lock.
      * Huge arrays of JSON queries which are never collected, are now
        discarded by clearCaches() and when the mode is enabled again. The
        Python API now serialises such queries with a lock.

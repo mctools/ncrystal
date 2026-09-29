@@ -947,16 +947,12 @@ void ncrystal_dyninfo_extract_scatknl( ncrystal_info_t ci,
       shptr_egrid = di_sk->energyGrid();
       //In case the sabdata factory does not keep strong references, we must
       //keep the newly created object in shptr_sabdata alive when returning to
-      //C/Python code without shared pointers. For now we do this by adding to a
-      //global static array here:
-      static std::vector<std::shared_ptr<const NC::SABData>> s_keepAlive;
+      //C/Python code without shared pointers. As documented, this is only
+      //guaranteed until the next call:
+      static std::shared_ptr<const NC::SABData> s_keepAlive;
       static std::mutex s_keepAlive_mutex;
-      //fixme: we should check how this is used in the python api, and when we
-      //are able to clear the cache in case it grows out of hand. It might be
-      //better to just return via a json query and obsolete this complicated
-      //function.
       NCRYSTAL_LOCK_GUARD(s_keepAlive_mutex);
-      s_keepAlive.push_back(shptr_sabdata);
+      s_keepAlive = shptr_sabdata;
       static bool first = true;
       if (first) {
         //Register for clearance by global clearCaches function:
@@ -964,7 +960,7 @@ void ncrystal_dyninfo_extract_scatknl( ncrystal_info_t ci,
         NC::registerCacheCleanupFunction([]()
         {
           NCRYSTAL_LOCK_GUARD(s_keepAlive_mutex);
-          s_keepAlive.clear();
+          s_keepAlive.reset();
         });
       }
 

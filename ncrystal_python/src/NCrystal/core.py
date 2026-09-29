@@ -970,16 +970,19 @@ class Info(RCBase):
                 vdoslux -= 1000
             if self.__lastvdoslux != vdoslux:
                 _keepalive, key = self._key
-                sugEmax,ne,na,nb,eptr,aptr,bptr,sabptr = _rawfct['ncrystal_dyninfo_extract_scatknl'](key,vdoslux)
-                self.__lastvdoslux = vdoslux
                 res={}
-                assert ne>=0
-                res['suggestedEmax'] = float(sugEmax)
-                res['egrid'] = self._copy_cptr_2_nparray(eptr,ne) if ne > 0 else self._np().zeros(0)
-                assert na>1 and nb>1
-                res['alpha'] = self._copy_cptr_2_nparray(aptr,na)
-                res['beta']  = self._copy_cptr_2_nparray(bptr,nb)
-                res['sab']   = self._copy_cptr_2_nparray(sabptr,na*nb)
+                #Returned pointers are only valid until the next call, so we
+                #copy the data while holding a lock:
+                with _impl.extract_scatknl_lock:
+                    sugEmax,ne,na,nb,eptr,aptr,bptr,sabptr = _rawfct['ncrystal_dyninfo_extract_scatknl'](key,vdoslux)
+                    assert ne>=0
+                    res['suggestedEmax'] = float(sugEmax)
+                    res['egrid'] = self._copy_cptr_2_nparray(eptr,ne) if ne > 0 else self._np().zeros(0)
+                    assert na>1 and nb>1
+                    res['alpha'] = self._copy_cptr_2_nparray(aptr,na)
+                    res['beta']  = self._copy_cptr_2_nparray(bptr,nb)
+                    res['sab']   = self._copy_cptr_2_nparray(sabptr,na*nb)
+                self.__lastvdoslux = vdoslux
                 res['temperature'] = self.temperature
                 self.__lastknl = res
             assert self.__lastknl is not None

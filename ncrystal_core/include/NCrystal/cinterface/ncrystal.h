@@ -871,7 +871,11 @@ extern "C" {
                                            double* temperature,
                                            unsigned* ditypeid );
 
-  /* Extract scattering kernel for ditype 2,3,4 (vdoslux ignored for type 2).      */
+  /* Extract scattering kernel for ditype 2,3,4 (vdoslux ignored for type 2). The  */
+  /* returned pointers are only guaranteed to be valid until the next call to the  */
+  /* function (from any thread) or to ncrystal_clear_caches. Data must therefore   */
+  /* be copied immediately, and multi-threaded callers must use a lock to prevent  */
+  /* concurrent calls while doing so.                                              */
   NCRYSTAL_API void ncrystal_dyninfo_extract_scatknl( ncrystal_info_t,
                                                       unsigned idyninfo,
                                                       unsigned vdoslux,
