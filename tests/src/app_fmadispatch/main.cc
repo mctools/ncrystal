@@ -125,29 +125,42 @@ namespace {
   }
 
 #if NCRYSTAL_FMADISPATCH_ENABLED
-  //Best-of-ntrials timing, in ns/element. Guarded by the same #if as its
+  //Timing of a single trial, in ns/element. Guarded by the same #if as its
   //only use below: when dispatch is disabled, this would otherwise be an
   //unused function, which fails the project's -Werror build:
   double timeIt( void(*f)(double*,double*,const double*,const double*,std::size_t),
                  const NC::VectD& re0, const NC::VectD& im0,
                  const NC::VectD& cre, const NC::VectD& cim,
-                 int ntrials, int nrep )
+                 int nrep )
   {
     const std::size_t n = re0.size();
-    double best = 1e300;
+    NC::VectD re(re0), im(im0);
+    const auto t0 = std::chrono::steady_clock::now();
+    for ( auto r : NC::ncrange(nrep) ) {
+      (void)r;
+      f( re.data(), im.data(), cre.data(), cim.data(), n );
+    }
+    const auto t1 = std::chrono::steady_clock::now();
+    volatile double sink = re[0] + im[0];
+    (void)sink;
+    const double ns = std::chrono::duration<double,std::nano>(t1-t0).count();
+    return ns / ( static_cast<double>(nrep) * static_cast<double>(n) );
+  }
+
+  //Best-of-ntrials timings of both functions, as (dispatch,reference). The
+  //trials of the two functions are interleaved, so temporary load on the
+  //machine tends to affect both:
+  NC::PairDD timeBoth( const NC::VectD& re0, const NC::VectD& im0,
+                       const NC::VectD& cre, const NC::VectD& cim,
+                       int ntrials, int nrep )
+  {
+    NC::PairDD best( 1e300, 1e300 );
     for ( auto trial : NC::ncrange(ntrials) ) {
       (void)trial;
-      NC::VectD re(re0), im(im0);
-      const auto t0 = std::chrono::steady_clock::now();
-      for ( auto r : NC::ncrange(nrep) ) {
-        (void)r;
-        f( re.data(), im.data(), cre.data(), cim.data(), n );
-      }
-      const auto t1 = std::chrono::steady_clock::now();
-      volatile double sink = re[0] + im[0];
-      (void)sink;
-      const double ns = std::chrono::duration<double,std::nano>(t1-t0).count();
-      best = std::min( best, ns / ( static_cast<double>(nrep) * static_cast<double>(n) ) );
+      best.first = std::min( best.first, timeIt( cmulDispatch, re0, im0,
+                                                 cre, cim, nrep ) );
+      best.second = std::min( best.second, timeIt( cmulReference, re0, im0,
+                                                   cre, cim, nrep ) );
     }
     return best;
   }
@@ -175,7 +188,10 @@ int main()
             << std::endl;
 #endif
 
-  const std::size_t n = 32768;
+  //NB: Small enough for all arrays to fit in the L1 cache, since the timings
+  //below should depend on the speed of the calculations, not of memory
+  //access (where FMA and vectorisation does not help):
+  const std::size_t n = 1024;
   NC::VectD re0(n), im0(n), cre(n), cim(n);
   for ( auto i : NC::ncrange(n) ) {
     const double x = static_cast<double>(i);
@@ -200,10 +216,17 @@ int main()
   //~5-15x typically measured (examples/fmadispatch_investigate), to stay
   //robust on a loaded/virtualised CI machine while still failing hard on
   //"no dispatch happened at all" (which would show up as ~1x):
-  const int ntrials = 8, nrep = 50;
-  const double tDispatch = timeIt( cmulDispatch, re0, im0, cre, cim, ntrials, nrep );
-  const double tReference = timeIt( cmulReference, re0, im0, cre, cim, ntrials, nrep );
-  const double speedup = tReference / tDispatch;
+  //Additionally, up to three attempts are allowed.
+  const int ntrials = 8, nrep = 1600;
+  double tDispatch(0.0), tReference(0.0), speedup(0.0);
+  for ( auto attempt : NC::ncrange(3) ) {
+    (void)attempt;
+    std::tie( tDispatch, tReference )
+      = timeBoth( re0, im0, cre, cim, ntrials, nrep );
+    speedup = tReference / tDispatch;
+    if ( speedup > 1.5 )
+      break;
+  }
   std::cout << "cmulDispatch  : " << tDispatch << " ns/element" << std::endl;
   std::cout << "cmulReference : " << tReference << " ns/element" << std::endl;
 #ifdef NDEBUG
