@@ -57,7 +57,7 @@ def parse_profile(path):
     with open(path, 'rb') as f:
         data = f.read()
     n = len(data) // 8
-    words = struct.unpack('<%dQ' % n, data[:n * 8])
+    words = struct.unpack(f'<{n}Q', data[:n * 8])
     if n < 5 or words[0] != 0:
         raise ValueError(f"{path} does not look like a gperftools cpu"
                           " profile (bad header)")
@@ -122,7 +122,7 @@ def symbolize(pcs, maps):
 
 
 def report(title, counts, total, topn):
-    print(f"\n{title} ({'%d' % len(counts)} distinct):")
+    print(f"\n{title} ({len(counts)} distinct):")
     print(f"{'count':>8} {'pct':>7}  function [lib]")
     for name, count in counts.most_common(topn):
         print(f"{count:>8} {100.0 * count / total:6.2f}%  {name}")
