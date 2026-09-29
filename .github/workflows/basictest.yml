@@ -296,7 +296,12 @@ jobs:
           path: all-ci-logs
 
       - name: Bundle into a single tarball
-        run: tar -czf all-ci-logs-${{ github.sha }}.tar.gz all-ci-logs
+        #mkdir -p: when every build leg was skipped (e.g. the check job
+        #failed) there are no artifacts and no directory, and the
+        #bundling should not add a second, confusing failure:
+        run: |
+          mkdir -p all-ci-logs
+          tar -czf all-ci-logs-${{ github.sha }}.tar.gz all-ci-logs
 
       - name: Upload combined log tarball
         #The artifact "name:" (not the file inside it) is what GitHub uses
