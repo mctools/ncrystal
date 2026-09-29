@@ -247,11 +247,13 @@ namespace NCRYSTAL_NAMESPACE {
   // is computed via the fully portable detail_stable_exp above        //
   // (instead of libm exp), and the rounding of x^2 is compensated     //
   // with an exact std::fma residual split (instead of CALERF's        //
-  // truncate-to-1/16ths trick). The rational recursions themselves    //
-  // are pure add-then-multiply chains: no contractable a*b+c shapes,  //
-  // so they give bit-identical results on every platform even         //
-  // without fma, and the only fma usage is the (exact by definition)  //
-  // x^2 splitting.                                                    //
+  // truncate-to-1/16ths trick). The rational recursions are written   //
+  // as explicit std::fma Horner chains: CALERF's add-then-multiply    //
+  // form is NOT contraction-proof (gcc's default -ffp-contract=fast   //
+  // fuses each (a+C)*y multiply into the *following* addition across  //
+  // statements, seen as last-bit Release-vs-Debug differences), so    //
+  // the maximally-fused sequence is spelled out instead, making it    //
+  // bit-identical on every platform and optimisation level.           //
   //////////////////////////////////////////////////////////////////////
 
   extern "C" double NCRYSTAL_APPLY_C_NAMESPACE(detail_ncerfc)( double x );
@@ -268,12 +270,12 @@ namespace NCRYSTAL_NAMESPACE {
     //must additionally be *forced*: gcc's size heuristics otherwise
     //leave the larger helpers as standalone baseline-ISA functions
     //whose std::fma calls become library calls (observed directly in
-    //the disassembly). This is safe
-    //only because every contractable a*b+c shape in their bodies is
-    //either absent (the rational recursions are pure add-then-multiply
-    //chains) or written as explicit std::fma -- inlining into the fma
-    //clone must not let the compiler introduce platform-dependent
-    //contractions (cross-statement contraction is real, cf.
+    //the disassembly). This is safe only because every contractable
+    //a*b+c shape in their bodies is written as explicit std::fma
+    //(incl. the rational recursions as full Horner fma chains, cf.
+    //the banner above) -- inlining into the fma clone must not let
+    //the compiler introduce platform-dependent contractions
+    //(cross-statement contraction is real, cf.
     //docs/devel_fma_attribute.md):
 
     NCMATHFMA_ALWAYS_INLINE
@@ -291,15 +293,15 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr double B3 = 1.28261652607737228e3;
       constexpr double B4 = 2.84423683343917062e3;
       const double y = x * x;
-      double xnum = A5 * y;
-      double xden = y;
-      xnum = ( xnum + A1 ) * y;
-      xden = ( xden + B1 ) * y;
-      xnum = ( xnum + A2 ) * y;
-      xden = ( xden + B2 ) * y;
-      xnum = ( xnum + A3 ) * y;
-      xden = ( xden + B3 ) * y;
-      return x * ( xnum + A4 ) / ( xden + B4 );
+      double xnum = std::fma( A5, y, A1 );
+      double xden = y + B1;
+      xnum = std::fma( xnum, y, A2 );
+      xden = std::fma( xden, y, B2 );
+      xnum = std::fma( xnum, y, A3 );
+      xden = std::fma( xden, y, B3 );
+      xnum = std::fma( xnum, y, A4 );
+      xden = std::fma( xden, y, B4 );
+      return x * xnum / xden;
     }
 
     NCMATHFMA_ALWAYS_INLINE
@@ -360,31 +362,33 @@ namespace NCRYSTAL_NAMESPACE {
         constexpr double D6 = 4.36261909014324716e3;
         constexpr double D7 = 3.43936767414372164e3;
         constexpr double D8 = 1.23033935480374942e3;
-        double xnum = C9 * y;
-        double xden = y;
-        xnum = ( xnum + C1 ) * y;
-        xden = ( xden + D1 ) * y;
-        xnum = ( xnum + C2 ) * y;
-        xden = ( xden + D2 ) * y;
-        xnum = ( xnum + C3 ) * y;
-        xden = ( xden + D3 ) * y;
-        xnum = ( xnum + C4 ) * y;
-        xden = ( xden + D4 ) * y;
-        xnum = ( xnum + C5 ) * y;
-        xden = ( xden + D5 ) * y;
-        xnum = ( xnum + C6 ) * y;
-        xden = ( xden + D6 ) * y;
-        xnum = ( xnum + C7 ) * y;
-        xden = ( xden + D7 ) * y;
-        const double r = ( xnum + C8 ) / ( xden + D8 );
+        double xnum = std::fma( C9, y, C1 );
+        double xden = y + D1;
+        xnum = std::fma( xnum, y, C2 );
+        xden = std::fma( xden, y, D2 );
+        xnum = std::fma( xnum, y, C3 );
+        xden = std::fma( xden, y, D3 );
+        xnum = std::fma( xnum, y, C4 );
+        xden = std::fma( xden, y, D4 );
+        xnum = std::fma( xnum, y, C5 );
+        xden = std::fma( xden, y, D5 );
+        xnum = std::fma( xnum, y, C6 );
+        xden = std::fma( xden, y, D6 );
+        xnum = std::fma( xnum, y, C7 );
+        xden = std::fma( xden, y, D7 );
+        xnum = std::fma( xnum, y, C8 );
+        xden = std::fma( xden, y, D8 );
+        const double r = xnum / xden;
         return ncerfc_expmxsq_times( y, r );
       }
-      if ( y >= 26.543 ) {
+      if ( !( y < 26.543 ) ) {
         //Result would be below ~1e-308 (CALERF's XBIG; same policy as
-        //erfcdiff's cutoff in NCMath.cc). NB: NaN never enters this
-        //branch (its comparisons are all false), it instead propagates
-        //through the arithmetic below:
-        return 0.0;
+        //erfcdiff's cutoff in NCMath.cc). The negated comparison also
+        //routes NaN here (all its ordinary comparisons are false),
+        //since it must not reach ncerfc_expneg_core below: the int
+        //cast in its Cody-Waite reconstruction is undefined for NaN
+        //(and its input assert rejects it):
+        return ncisnan( y ) ? y : 0.0;
       }
       //CALERF third interval (4 < y < 26.543):
       constexpr double P1 = 3.05326634961232344e-1;
@@ -399,17 +403,17 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr double Q4 = 6.05183413124413191e-2;
       constexpr double Q5 = 2.33520497626869185e-3;
       const double t = 1.0 / ( y * y );
-      double xnum = P6 * t;
-      double xden = t;
-      xnum = ( xnum + P1 ) * t;
-      xden = ( xden + Q1 ) * t;
-      xnum = ( xnum + P2 ) * t;
-      xden = ( xden + Q2 ) * t;
-      xnum = ( xnum + P3 ) * t;
-      xden = ( xden + Q3 ) * t;
-      xnum = ( xnum + P4 ) * t;
-      xden = ( xden + Q4 ) * t;
-      double r = t * ( xnum + P5 ) / ( xden + Q5 );
+      double xnum = std::fma( P6, t, P1 );
+      double xden = t + Q1;
+      xnum = std::fma( xnum, t, P2 );
+      xden = std::fma( xden, t, Q2 );
+      xnum = std::fma( xnum, t, P3 );
+      xden = std::fma( xden, t, Q3 );
+      xnum = std::fma( xnum, t, P4 );
+      xden = std::fma( xden, t, Q4 );
+      xnum = std::fma( xnum, t, P5 );
+      xden = std::fma( xden, t, Q5 );
+      double r = t * xnum / xden;
       r = ( kInvSqrtPi - r ) / y;
       return ncerfc_expmxsq_times( y, r );
     }
