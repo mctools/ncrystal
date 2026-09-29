@@ -38,7 +38,9 @@ def run( app_file, reflogfile = None ):
     wd.mkdir()
     cmd = [str(app_file)]
     if app_file.name.endswith('.py'):
-        cmd = [sys.executable] + cmd
+        #-u so a crashing script does not lose its final (pipe-buffered)
+        #stdout, which is essential for debugging from CI logs:
+        cmd = [sys.executable,'-u'] + cmd
     print("MCTools TestLauncher running command:")
     for e in cmd:
         print(f"  {shlex.quote(e)}")

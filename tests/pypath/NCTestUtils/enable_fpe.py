@@ -36,6 +36,11 @@ def _enable_fpe():
         import numpy # noqa F401
     except ImportError:
         pass
+    #Likewise stdlib math modules: at least Python 3.9's cmath raises
+    #FE_INVALID while initialising its constants, fatal if it is first
+    #imported (even indirectly) after fpe's are enabled:
+    import math # noqa F401
+    import cmath # noqa F401
     import sys
     if '--plot' in sys.argv[1:]:
         print('Not enabling FPE due to "--plot" seen in sys.argv')
