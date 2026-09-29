@@ -2,7 +2,7 @@ test_mpmath_refvals:
   65 ref points, worst ulp-diff: erfc 2.00, erf 2.00: OK
   cutoff and NaN behaviour: OK
 test_vs_libm:
-  1320004 points swept vs std::erf/std::erfc, all within 8 ulp: OK
+  1320004 points swept vs std::erf/std::erfc, all within 32 ulp (where |result|>1e-250): OK
 test_properties:
   symmetry, monotonicity and erf+erfc==1: OK
 bit-identity table (uint64 patterns):

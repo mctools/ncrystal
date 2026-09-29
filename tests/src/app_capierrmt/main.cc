@@ -122,14 +122,18 @@ namespace {
     ncrystal_setbuiltinrandgen();
     nc_assert_always( !ncrystal_error() );
   }
+
+  //Namespace scope so the job lambda in main needs no capture of
+  //nrepeat (MSVC C3493 otherwise, while capturing trips clang
+  //-Wunused-lambda-capture):
+  constexpr unsigned njobs = 16;
+  constexpr unsigned nrepeat = 200;
 }
 
 int main()
 {
   ncrystal_sethaltonerror( 0 );
   ncrystal_setquietonerror( 1 );
-  const unsigned njobs = 16;
-  const unsigned nrepeat = 200;
   NC::FactoryThreadPool::enable( NC::ThreadCount{ 8 } );
   std::vector<unsigned> nproblems( njobs, 0 );
   {
