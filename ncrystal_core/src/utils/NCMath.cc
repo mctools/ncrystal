@@ -160,6 +160,7 @@ bool NC::isPrime(unsigned n) {
 void NC::sincos_mpi2pi2(double A, double& cosA, double& sinA) {
   //Half-angle Taylor + double-angle reconstruction; body lives in
   //NCMath_FMA.hh (explicit-fma canonical form, runtime fma dispatch):
+  nc_assert( ncabs(A) <= kPiHalf );
   NCRYSTAL_APPLY_C_NAMESPACE(detail_sincos_mpi2pi2)( A, &cosA, &sinA );
 }
 
@@ -193,6 +194,7 @@ double NC::cos_mpipi(double A)
 {
   //Taylor to 22nd order after range reduction to [-pi/2,pi/2]; body in
   //NCMath_FMA.hh (explicit-fma canonical form, runtime fma dispatch):
+  nc_assert( ncabs(A) <= kPi );
   return NCRYSTAL_APPLY_C_NAMESPACE(detail_cos_mpipi)( A );
 }
 
@@ -200,6 +202,7 @@ double NC::cos_mpi2pi2(double x)
 {
   //Taylor to 22nd order, precision better than 1.1e-16 over entire
   //range; body in NCMath_FMA.hh (explicit-fma canonical form):
+  nc_assert( ncabs(x) <= kPiHalf );
   return NCRYSTAL_APPLY_C_NAMESPACE(detail_cos_mpi2pi2)( x );
 }
 
@@ -243,6 +246,7 @@ double NC::sin_mpi2pi2(double x)
 {
   //Taylor to 19th order, precision better than 6e-17 over entire
   //range; body in NCMath_FMA.hh (explicit-fma canonical form):
+  nc_assert( ncabs(x) <= kPiHalf );
   return NCRYSTAL_APPLY_C_NAMESPACE(detail_sin_mpi2pi2)( x );
 }
 

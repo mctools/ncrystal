@@ -532,7 +532,9 @@ namespace NCRYSTAL_NAMESPACE {
   ( double A, double* cosA, double* sinA )
   {
     NCRYSTAL_FMADISPATCH_WINFMA_FORWARD(sincos_mpi2pi2,(A,cosA,sinA));
-    nc_assert( ncabs(A) <= kPiHalf );
+    //NB: no nc_assert here or in the other extern "C" functions below
+    //(it can throw, and MSVC assumes extern "C" functions do not:
+    //C4297) -- input range asserts live in the NCMath.cc wrappers.
     //Evaluate at A/2 via (shorter, 15th/16th order) Taylor expansions
     //and get final results via double-angle formulas (exactly the
     //original NCMath.cc algorithm, with the Horner chains and the
@@ -567,7 +569,6 @@ namespace NCRYSTAL_NAMESPACE {
   ( double x )
   {
     NCRYSTAL_FMADISPATCH_WINFMA_FORWARD(cos_mpi2pi2,(x));
-    nc_assert( ncabs(x) <= kPiHalf );
     return trig_cos22_from_mx2( -( x * x ) );
   }
 
@@ -577,7 +578,6 @@ namespace NCRYSTAL_NAMESPACE {
     NCRYSTAL_FMADISPATCH_WINFMA_FORWARD(cos_mpipi,(A));
     //abs/min/copysign tricks reduce the evaluation to [-pi/2,pi/2]:
     const double Aabs = ncabs( A );
-    nc_assert( Aabs <= kPi );
     const double x = ncmin( Aabs, kPi - Aabs );
     const double c = trig_cos22_from_mx2( -( x * x ) );
     return std::copysign( c, kPiHalf - Aabs );
@@ -587,7 +587,6 @@ namespace NCRYSTAL_NAMESPACE {
   ( double x )
   {
     NCRYSTAL_FMADISPATCH_WINFMA_FORWARD(sin_mpi2pi2,(x));
-    nc_assert( ncabs(x) <= kPiHalf );
     return x * trig_sin19_over_x_from_mx2( -( x * x ) );
   }
 
