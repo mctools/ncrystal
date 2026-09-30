@@ -23,6 +23,7 @@
 #include "NCrystal/internal/utils/NCMath.hh"
 #include "NCrystal/internal/fact_utils/NCFactoryUtils.hh"
 #include "NCrystal/internal/sab/NCSABCfg.hh"
+#include <cstring>//memcpy
 
 namespace NC = NCrystal;
 
@@ -168,7 +169,44 @@ namespace NCRYSTAL_NAMESPACE {
       }
 
       //New SABExtended (S.E.) cache, key is (sab uid, egrid uid, knllux):
-      using SECacheKey_Thin = std::tuple<UniqueIDValue,UniqueIDValue,int>;
+      //NB: the std::uint64_t is the bit pattern of the SCT effective
+      //temperature in kelvin (a double), or 0 when absent (free-gas
+      //extension; never a legal bit pattern of a positive temperature).
+      //Using the bit pattern rather than the double itself gives the
+      //map key exact, total ordering by construction (a double key
+      //would e.g. break the map's strict weak ordering if a NaN ever
+      //slipped in):
+      using SECacheKey_Thin
+        = std::tuple<UniqueIDValue,UniqueIDValue,int,std::uint64_t>;
+
+      Optional<Temperature> teffFromKeyBits( std::uint64_t bits )
+      {
+        if ( !bits )
+          return NullOpt;
+        double v;
+        static_assert( sizeof(bits) == sizeof(v), "" );
+        std::memcpy( &v, &bits, sizeof(v) );
+        nc_assert_always( std::isfinite( v ) );
+        Temperature t{ v };
+        t.validate();
+        return t;
+      }
+
+      std::uint64_t teffToKeyBits( const Optional<Temperature>& teff )
+      {
+        if ( !teff.has_value() )
+          return 0;
+        const double v = teff.value().dbl();
+        nc_assert_always( std::isfinite( v ) );
+        teff.value().validate();
+        std::uint64_t bits;
+        static_assert( sizeof(bits) == sizeof(v), "" );
+        std::memcpy( &bits, &v, sizeof(bits) );
+        //Round-trip must be exact:
+        nc_assert( teffFromKeyBits( bits ).has_value()
+                   && teffFromKeyBits( bits ).value().dbl() == v );
+        return bits;
+      }
       struct SECacheKey {
         SECacheKey_Thin thin_key;
         std::shared_ptr<const SABData> sabdata_ptr;
@@ -206,7 +244,8 @@ namespace NCRYSTAL_NAMESPACE {
           std::ostringstream ss;
           ss<<"(SABData id="<<std::get<0>(key.thin_key).value
             <<";egrid id="<<std::get<1>(key.thin_key).value
-            <<";knllux="<<std::get<2>(key.thin_key)<<")";
+            <<";knllux="<<std::get<2>(key.thin_key)
+            <<";teffbits="<<std::get<3>(key.thin_key)<<")";
           return ss.str();
         }
       protected:
@@ -217,8 +256,11 @@ namespace NCRYSTAL_NAMESPACE {
                      == std::get<0>(key.thin_key) );
           int knllux = std::get<2>(key.thin_key);
           auto egrid = egridFromUniqueID(std::get<1>(key.thin_key));
+          Optional<Temperature> teff
+            = teffFromKeyBits( std::get<3>(key.thin_key) );
           return createSABExtendedNoCache( knllux,
                                            key.sabdata_ptr,
+                                           teff,
                                            std::move(egrid) );
         }
       };
@@ -328,23 +370,27 @@ NC::SAB::egridFromUniqueID( UniqueIDValue uidval )
 NC::shared_obj<const NC::SABUtils::SABExtended>
 NC::SAB::createSABExtendedNoCache( int knllux,
                                    shared_obj<const SABData> sab,
+                                   Optional<Temperature> teff,
                                    std::shared_ptr<const VectD> egrid )
 {
   auto cfg = SABCfg::createConfig(knllux);
-  return SABUtils::SABExtended::createWithFGExtender( cfg,
-                                                      std::move(sab),
-                                                      std::move(egrid) );
+  return SABUtils::SABExtended::create( cfg,
+                                        std::move(sab),
+                                        teff,
+                                        std::move(egrid) );
 }
 
 NC::shared_obj<const NC::SABUtils::SABExtended>
 NC::SAB::createSABExtendedWithCache( int knllux,
                                      shared_obj<const SABData> sab,
+                                     Optional<Temperature> teff,
                                      std::shared_ptr<const VectD> egrid )
 {
   SECacheKey key;
   std::get<0>(key.thin_key) = sab->getUniqueID();
   std::get<1>(key.thin_key) = egridToUniqueID(egrid);
   std::get<2>(key.thin_key) = knllux;
+  std::get<3>(key.thin_key) = teffToKeyBits( teff );
   key.sabdata_ptr = std::move(sab);
   return getSEFactory().create(key);
 }

@@ -47,8 +47,18 @@ v4.4.7 (work in progress)
        nodes for sablux 0-6). A thin SABSCTExtender exposes it through the
        SABExtender interface, validated in tests/src/app_sctext against
        brute-force integration and against the exact converged PE-H kernel
-       at its Emax boundary. No factory selects it yet: replacing the
-       free-gas extension model is a separate, physics-changing decision.
+       at its Emax boundary. The SCT model is now the default kernel
+       extension for next-gen inelastic physics (knllux>=0) whenever the
+       kernel derives from a VDOS (the effective temperature comes from
+       VDOSEval::calcEffectiveTemperature; direct kernels have no Teff
+       source yet and keep the free-gas extender). For comparisons,
+       knllux 200-206 selects "next-gen but with the free-gas extender",
+       analogous to 100-106 selecting linear sigma(E) interpolation
+       (SABCfg decodes both onto the base 0-6 configs). Effect on total
+       inelastic xs is at most ~2e-5 relative in the sabxs test grids
+       (largest for hot materials, in the beyond-Emax extension region);
+       knllux=20x was verified to reproduce the previous free-gas
+       results exactly.
      * Added FastConvolve::convolveDirect (StableSum-accumulated direct
        convolution, no FFT round-off floor) and VDOSGn::Cfg::MaxLux routing
        every phonon order through it -- tested reference infrastructure,

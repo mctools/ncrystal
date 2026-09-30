@@ -116,6 +116,12 @@ const char * NC::SABCfg::integSchemeToStr( IntegrationScheme v )
 NC::SABCfg::Cfg NC::SABCfg::createConfig( int sablux )
 {
   Cfg c;
+  if ( sablux >= 200 && sablux <= 206 ) {
+    //"Next-gen but with the free-gas extender", for comparisons with
+    //the default SCT extension model:
+    c.extender_model = ExtenderModel::FreeGas;
+    sablux -= 200;
+  }
   if ( sablux >= 100 && sablux <= 106 ) {
     c.sIntegralInterp = SIntegralInterpolation::Linear;
     sablux -= 100;

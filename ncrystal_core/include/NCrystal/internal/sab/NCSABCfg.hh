@@ -77,6 +77,14 @@ namespace NCRYSTAL_NAMESPACE {
 
     enum class SIntegralInterpolation { Linear, Smooth, Default = Smooth };
 
+    //Which model extends kernels beyond their Emax: the default is the
+    //short-collision-time model (SABSCTExtender, needs an effective
+    //temperature), with the plain free-gas extender (SABFGExtender)
+    //selectable for comparisons via sablux 200-206 (and used as
+    //fall-back where no effective temperature is available, e.g. for
+    //direct kernels):
+    enum class ExtenderModel { SCT, FreeGas, Default = SCT };
+
     ////////////////
     // Cfg object //
     ////////////////
@@ -88,6 +96,7 @@ namespace NCRYSTAL_NAMESPACE {
       IntegrationScheme integSchemeDetermineEGrid = IntegrationScheme::Flex5;
       IntegrationScheme integSchemeBCSample = IntegrationScheme::Flex9;
       SIntegralInterpolation sIntegralInterp = SIntegralInterpolation::Default;
+      ExtenderModel extender_model = ExtenderModel::Default;
 
       unsigned egrid_npts = 300;
       //Nodes in the SCT extension model's upscatter-correction lookup

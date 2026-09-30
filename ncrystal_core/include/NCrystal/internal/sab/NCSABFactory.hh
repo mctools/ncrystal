@@ -33,15 +33,21 @@ namespace NCRYSTAL_NAMESPACE {
     // Create SABExtended //
     ////////////////////////
 
+    //teff is the effective temperature used by the (default) SCT
+    //extension model; without it (e.g. for direct kernels, where no
+    //VDOS is available to derive it from) the free-gas extender is
+    //used instead:
     shared_obj<const SABUtils::SABExtended>
     createSABExtendedNoCache( int knllux,
                               shared_obj<const SABData>,
+                              Optional<Temperature> teff,
                               std::shared_ptr<const VectD>
                               energyGrid = nullptr );
 
     shared_obj<const SABUtils::SABExtended>
     createSABExtendedWithCache( int knllux,
                                 shared_obj<const SABData>,
+                                Optional<Temperature> teff,
                                 std::shared_ptr<const VectD>
                                 energyGrid = nullptr );
 

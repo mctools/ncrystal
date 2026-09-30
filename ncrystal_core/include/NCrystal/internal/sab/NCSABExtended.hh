@@ -62,6 +62,16 @@ namespace NCRYSTAL_NAMESPACE {
                              Temperature teff,
                              const SABCfg::Cfg& );
 
+      //Standard entry point selecting the extender from
+      //cfg.extender_model: SCT when an effective temperature is
+      //provided (and cfg does not select FreeGas), otherwise the
+      //free-gas extender:
+      static shared_obj<const SABExtended>
+      create( const SABCfg::Cfg&,
+              shared_obj<const SABData>,
+              Optional<Temperature> teff,
+              std::shared_ptr<const VectD> energyGrid = nullptr );
+
       //Access cross sections, always assuming SigmaBound=1barn.
       CrossSect crossSectionUnitSigmaBound( NeutronEnergy ekin ) const;
 

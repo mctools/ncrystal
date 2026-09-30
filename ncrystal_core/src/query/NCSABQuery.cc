@@ -26,6 +26,7 @@
 #include "NCrystal/internal/sab/NCSABCellSample.hh"
 #include "NCrystal/internal/sab/NCSABRefSampler.hh"
 #include "NCrystal/internal/sab/NCSABExtended.hh"
+#include "NCrystal/internal/sab/NCSABExtender.hh"
 #include "NCrystal/internal/sab/NCSABFactory.hh"
 #include "NCrystal/internal/sab/NCSABIntegrator.hh"
 #include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
@@ -42,7 +43,12 @@ namespace NCRYSTAL_NAMESPACE {
 
     namespace {
 
-      shared_obj<const SABData>
+      struct ExtractedSabData {
+        shared_obj<const SABData> sab;
+        Optional<Temperature> teff;//validated, when derivable (DI_VDOS)
+      };
+
+      ExtractedSabData
       query_impl_extractSabData( const std::string& matcfgstr,
                                  Optional<std::string> atomdsplbl )
       {
@@ -61,8 +67,9 @@ namespace NCRYSTAL_NAMESPACE {
         if ( !di_knl )
           NCRYSTAL_THROW(BadInput,"Indicated DynInfo object does not provide"
                          " S(alpha,beta) kernels.");
-        return extractSABDataFromDynInfo( di_knl,
-                                          VDOS::VDOSLux(cfg.get_vdoslux()) );
+        return { extractSABDataFromDynInfo( di_knl,
+                                            VDOS::VDOSLux(cfg.get_vdoslux()) ),
+                 extractTeffFromDynInfo( di_knl ) };
       }
 
       struct SampleResult {
@@ -190,6 +197,7 @@ namespace NCRYSTAL_NAMESPACE {
 
       void query_impl_proc( std::ostream& os,
                             shared_obj<const SABData> sab,
+                            Optional<Temperature> teff,
                             VectD egrid,
                             std::uint64_t nsample,
                             std::uint64_t seed,
@@ -198,17 +206,27 @@ namespace NCRYSTAL_NAMESPACE {
       {
         if ( knllux < 0 )
           knllux = SABCfg::sablux_default_luxury;
+        const auto cfg = SABCfg::createConfig(knllux);
 
         //Create with diagnostics:
         auto sp = makeSO<SABProcessor>
-          ( SABCfg::createConfig(knllux),
+          ( cfg,
             sab,
             std::make_shared<VectD>( std::move(egrid) ),
             SABProcessor::SampleSupport::YES,
             SABProcessor::StoreExtraDiagnostics::YES );
-        auto spe = SABExtended::createWithFGExtender( sp );
+        //Extender per cfg, like the actual factories (SCT needs teff):
+        const bool use_sct
+          = ( cfg.extender_model == SABCfg::ExtenderModel::SCT
+              && teff.has_value() );
+        auto spe = ( use_sct
+                     ? SABExtended::createWithSCTExtender( sp, teff.value(),
+                                                           cfg )
+                     : SABExtended::createWithFGExtender( sp ) );
 
-        os << "{\"sabproc\":";
+        os << "{\"extender\":";
+        streamJSON( os, use_sct ? "SCT" : "FreeGas" );
+        os << ",\"sabproc\":";
         spe->processor().toJSON(os);
         os << ",\"sample\":";
         if ( !nsample ) {
@@ -235,15 +253,34 @@ namespace NCRYSTAL_NAMESPACE {
 
       void query_impl_refsample( std::ostream& os,
                                  shared_obj<const SABData> sab,
+                                 Optional<Temperature> teff,
                                  std::uint64_t nsample,
                                  std::uint64_t seed,
-                                 NeutronEnergy sample_ekin )
+                                 NeutronEnergy sample_ekin,
+                                 int knllux )
       {
         auto rng = createBuiltinRNG( seed );
         const double E_div_kT = sample_ekin.dbl() / sab->temperature().kT();
+        //Extend beyond Emax per cfg, like the actual factories (the
+        //default RefSampleExtension extender is free-gas):
+        if ( knllux < 0 )
+          knllux = SABCfg::sablux_default_luxury;
+        const auto cfg = SABCfg::createConfig(knllux);
+        SABRef::RefSampleExtension ext;
+        const bool use_sct
+          = ( cfg.extender_model == SABCfg::ExtenderModel::SCT
+              && teff.has_value() );
+        if ( use_sct )
+          ext.extender = makeSO<SAB::SABSCTExtender>( sab->temperature(),
+                                                      teff.value(),
+                                                      sab->elementMassAMU(),
+                                                      SigmaBound{1.0},
+                                                      cfg.sct_table_npts );
         auto ab = SABRef::refSampleAlphaBeta( rng, sab, E_div_kT, nsample,
-                                              SABRef::RefSampleExtension{} );
-        os << "{\"refsample\":{\"E\":";
+                                              std::move(ext) );
+        os << "{\"refsample\":{\"extender\":";
+        streamJSON( os, use_sct ? "SCT" : "FreeGas" );
+        os << ",\"E\":";
         streamJSON(os,sample_ekin);
         os << ",\"E_div_kT\":";
         streamJSON(os,E_div_kT);
@@ -517,7 +554,8 @@ namespace NCRYSTAL_NAMESPACE {
       {
         //Fixme: is this obsolete? Should we remove ths option + the
         //NCSABRefEval header again?
-        auto sabdata = query_impl_extractSabData( matcfg, atomDisplayLabel );
+        auto sabdata = query_impl_extractSabData( matcfg,
+                                                  atomDisplayLabel ).sab;
         SABRefEval<> refeval( sabdata, eval );
         RNG* rngptr = nullptr;
         std::shared_ptr<RNGStream> rngholder;
@@ -622,7 +660,8 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
     Optional<std::string> atomDisplayLabel;
     if ( nargs>1 )
       atomDisplayLabel = argstr(1);
-    auto sabdata = query_impl_extractSabData( argstr(0), atomDisplayLabel );
+    auto sabdata
+      = query_impl_extractSabData( argstr(0), atomDisplayLabel ).sab;
     SABUtils::SABProcessor::testJSON(sabdata,os);
     return;
   }
@@ -755,7 +794,9 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
     Optional<std::string> atomdsplbl;
     if ( !arg(1).empty() )
       atomdsplbl = argstr(1);
-    auto sabdata = query_impl_extractSabData( argstr(0), atomdsplbl );
+    auto extracted = query_impl_extractSabData( argstr(0), atomdsplbl );
+    auto sabdata = std::move( extracted.sab );
+    const auto teff = extracted.teff;
     const int knllux = MatCfg(argstr(0)).get_knllux();
 
     auto optns = arg(2).toUInt64();
@@ -799,15 +840,15 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
       }
     }
     if ( key == sv_proc ) {
-      query_impl_proc( os, std::move(sabdata), std::move(egrid),
+      query_impl_proc( os, std::move(sabdata), teff, std::move(egrid),
                        nsample, seed, sample_ekin, knllux );
     } else {
       if ( refsample_type_is_legacy )
         query_impl_legacysample( os, std::move(sabdata), nsample, seed,
                                  sample_ekin, legacy_oversample );
       else
-        query_impl_refsample( os, std::move(sabdata), nsample, seed,
-                              sample_ekin );
+        query_impl_refsample( os, std::move(sabdata), teff, nsample, seed,
+                              sample_ekin, knllux );
     }
   } else if ( key == sv_list ) {
     if ( nargs != 0 )

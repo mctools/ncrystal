@@ -214,3 +214,20 @@ SABExtended::createWithFGExtender( const SABCfg::Cfg& cfg,
                                                           std::move(sab),
                                                           std::move(egrid) ) );
 }
+
+NC::shared_obj<const NC::SABUtils::SABExtended>
+NC::SABUtils::
+SABExtended::create( const SABCfg::Cfg& cfg,
+                     shared_obj<const SABData> sab,
+                     Optional<Temperature> teff,
+                     std::shared_ptr<const VectD> egrid )
+{
+  auto processor = makeSO<SABUtils::SABProcessor>( cfg,
+                                                   std::move(sab),
+                                                   std::move(egrid) );
+  if ( cfg.extender_model == SABCfg::ExtenderModel::SCT
+       && teff.has_value() )
+    return createWithSCTExtender( std::move(processor),
+                                  teff.value(), cfg );
+  return createWithFGExtender( std::move(processor) );
+}

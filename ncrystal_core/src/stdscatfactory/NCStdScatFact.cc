@@ -238,7 +238,8 @@ namespace NCRYSTAL_NAMESPACE {
         if ( inelas != "freegas" ) {
           nc_assert_always( isOneOf(inelas,"dyninfo","vdosdebye" ) );
           nc_assert_always( ( knllux >= -6 && knllux <= 6 )
-                            || (knllux >= 100 && knllux <= 106) );
+                            || (knllux >= 100 && knllux <= 106)
+                            || (knllux >= 200 && knllux <= 206) );
           if ( ucnmode.has_value() && knllux != -1)
             NCRYSTAL_THROW(BadInput,
                            "ucnmode only supported with legacy kernel processing");
@@ -328,9 +329,16 @@ namespace NCRYSTAL_NAMESPACE {
                                                             vdos2sabExcludeFlag );
                   if ( sabdata->boundXS() ) {
                     nc_assert( ( knllux >= 0 && knllux <= 6 )
-                               || (knllux >= 100 && knllux <= 106) );
+                               || (knllux >= 100 && knllux <= 106)
+                               || (knllux >= 200 && knllux <= 206) );
+                    //Effective temperature for the (default) SCT
+                    //extension model, available when the kernel derives
+                    //from a VDOS. Direct kernels provide none and fall
+                    //back to the free-gas extender for now:
+                    Optional<Temperature> teff
+                      = extractTeffFromDynInfo( di_scatknl );
                     auto sabext =
-                      SAB::createSABExtendedWithCache(knllux, sabdata,
+                      SAB::createSABExtendedWithCache(knllux, sabdata, teff,
                                                       di_scatknl->energyGrid());
                     auto scat = makeSO<SABScatterNG>(std::move(sabext),
                                                      sabdata->boundXS());

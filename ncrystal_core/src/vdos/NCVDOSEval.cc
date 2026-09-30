@@ -406,7 +406,34 @@ double NC::VDOSEval::calcEffectiveTemperature() const
   //statement):
   integrateBinsWithFunction( [inv2kT](double E){ return safe_xcothx( E * inv2kT ); }, sum );
 
-  return m_temperature.dbl() * sum.sum();
+  //Validate sanity of the result via the Temperature type's own range
+  //check before returning (a wildly out-of-range Teff would indicate a
+  //broken VDOS or a bug here, and downstream users like the SCT
+  //extension model depend on it being sane). NB: this deliberately
+  //also throws for a physically fine Teff marginally above the allowed
+  //range, which can only happen when T is already within ~emax/2k of
+  //the range's own upper end (physically T <= Teff <= T + emax/2k,
+  //where the upper bound follows from coth(x) <= 1 + 1/x applied to
+  //the defining integral k*Teff = integral( rho(E)*(E/2)*coth(E/2kT) )
+  //with unit-normalised rho -- and at high T the excess even collapses
+  //as <E^2>/12k^2T, i.e. just a few kelvin at T~1e6K). In other words:
+  //temperatures at the very top of the supported range simply have no
+  //valid effective temperature, by policy -- with a dedicated BadInput
+  //message for exactly that case (a finite Teff above the range while
+  //T itself is inside it), everything else getting the generic
+  //validation error:
+  const Temperature res{ m_temperature.dbl() * sum.sum() };
+  if ( std::isfinite( res.dbl() )
+       && res.dbl() > Temperature::allowed_range.second
+       && m_temperature.dbl() <= Temperature::allowed_range.second )
+    NCRYSTAL_THROW2(BadInput,"Material temperature ("<<m_temperature
+                    <<") is within the supported range, but the derived"
+                    " effective temperature ("<<res<<") is not. Such"
+                    " temperatures at the very top of the supported"
+                    " range are not supported (the effective temperature"
+                    " always exceeds the actual one).");
+  res.validate();
+  return res.dbl();
 }
 
 double NC::VDOSEval::getMSD( double gamma0 ) const
