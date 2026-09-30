@@ -31,6 +31,7 @@
 #include "NCrystal/internal/sab/NCSABExtended.hh"
 #include "NCrystal/internal/sab/NCSABCfg.hh"
 #include "NCrystal/internal/sab/NCSABProcessor.hh"
+#include "NCrystal/internal/extd_utils/NCSABAnalyser.hh"
 #include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
 #include "NCrystal/internal/vdos/NCVDOSEval.hh"
 #include "NCrystal/internal/phys_utils/NCKinUtils.hh"
@@ -314,6 +315,96 @@ namespace {
     }
   }
 
+  void test_sampling_cdf()
+  {
+    //Distribution-level validation of SCT sampling, beyond the moment
+    //checks above: node-based Kolmogorov-Smirnov comparison of sampled
+    //beta values against a reference CDF built by direct numerical
+    //integration of the model definition (a statistic bounded by the
+    //true KS D, so the KS critical value is valid). This is the
+    //independent check of the sampler's actual distribution; note that
+    //std-vs-ref sampler comparisons in the sabsample tests share this
+    //very sampling code for the extension region, so cannot provide it.
+    std::printf("test_sampling_cdf:\n");
+    const NC::Temperature T{293.15};
+    const double kT = T.kT();
+    const NC::AtomMass mass{1.008};
+    const double A = mass.relativeToNeutronMass();
+    const double r = 4.12;
+    const NC::Temperature Teff{ T.dbl() * r };
+    NC::SAB::SABSCTExtender sct( T, Teff, mass, NC::SigmaBound{1.0} );
+    auto rng = NC::createBuiltinRNG( 4242 );
+    for ( double e : { 0.7, 6.0 } ) {
+      NC::NeutronEnergy ekin{e};
+      const double c = e / kT;
+      //Beta-marginal of the SCT law (alpha integrated out), same
+      //independent integration approach as integrateShape:
+      auto marginal = [c,A,r]( double beta )
+      {
+        auto al = NC::getAlphaLimits( c, beta );
+        if ( !( al.second > al.first ) )
+          return 0.0;
+        auto innerIntegrand = [beta,A,r]( double u )
+        {
+          const double alpha = u*u;
+          return alpha > 0.0
+            ? 2.0 * u * refShapeFGTeff(alpha,beta,A,r) : 0.0;
+        };
+        const double v
+          = NC::integrateRombergFlex( innerIntegrand,
+                                      std::sqrt(al.first),
+                                      std::sqrt(al.second),
+                                      1e-9, 3, 10 );
+        return v * upSuppression(beta,r);
+      };
+      //Node grid mirroring integrateShape's segmentation (upscatter
+      //tail beyond beta=30 carries ~exp(-30) mass, negligible):
+      const double edges[7] = { -c, -0.5*c, -0.125*c, 0.0,
+                                2.0, 10.0, 30.0 };
+      constexpr unsigned npseg = 48;
+      NC::VectD nodes, cdf;
+      nodes.push_back( edges[0] );
+      cdf.push_back( 0.0 );
+      NC::StableSum cum;
+      for ( auto iseg : NC::ncrange(6) ) {
+        const double a0 = edges[iseg], a1 = edges[iseg+1];
+        for ( auto j : NC::ncrange( 1u, npseg + 1 ) ) {
+          const double b1 = a0 + (a1-a0) * ( double(j) / npseg );
+          cum.add( NC::integrateRombergFlex( marginal, nodes.back(),
+                                             b1, 1e-8, 3, 10 ) );
+          nodes.push_back( b1 );
+          cdf.push_back( cum.sum() );
+        }
+      }
+      const double tot = cum.sum();
+      REQUIRE( tot > 0.0 );
+      //Sample and compute the node-based KS statistic:
+      constexpr std::size_t n = 200000;
+      NC::VectD betas;
+      betas.reserve( n );
+      for ( auto i : NC::ncrange(n) ) {
+        (void)i;
+        betas.push_back( sct.sampleAlphaBeta( *rng, ekin ).second );
+      }
+      std::sort( betas.begin(), betas.end() );
+      double ks_d = 0.0;
+      for ( auto i : NC::ncrange( nodes.size() ) ) {
+        const auto it = std::upper_bound( betas.begin(), betas.end(),
+                                          NC::vectAt( nodes, i ) );
+        const double f_emp
+          = double( std::distance( betas.begin(), it ) ) / n;
+        ks_d = NC::ncmax( ks_d,
+                          NC::ncabs( f_emp - NC::vectAt( cdf, i ) / tot ) );
+      }
+      //KS 1%-level critical value is 1.63/sqrt(n); generous margin:
+      const double bound = 2.5 / std::sqrt( double(n) );
+      std::printf("  E=%.1feV : node-KS D below %.4f (n=%u,"
+                  " %u nodes): %s\n", e, bound, unsigned(n),
+                  unsigned(nodes.size()), ks_d < bound ? "OK" : "FAIL" );
+      REQUIRE( ks_d < bound );
+    }
+  }
+
   void test_kernel_boundary()
   {
     std::printf("test_kernel_boundary (H in polyethylene, 293.15K):\n");
@@ -463,6 +554,41 @@ namespace {
 
 }
 
+namespace {
+  void test_estimateTeffMSD()
+  {
+    //Turn-key estimates on a VDOS-expanded kernel must agree with the
+    //VDOSEval-derived truth, and repeated (cached) calls must be
+    //identical:
+    std::printf("test_estimateTeffMSD:\n");
+    auto info = NC::FactImpl::createInfo(
+      NC::MatCfg("Polyethylene_CH2.ncmat") );
+    const NC::DI_VDOS* di_h = nullptr;
+    for ( auto& di : info->getDynamicInfoList() ) {
+      auto p = dynamic_cast<const NC::DI_VDOS*>( di.get() );
+      if ( p && p->atomData().isElement()
+           && p->atomData().Z() == 1 )
+        di_h = p;
+    }
+    REQUIRE( di_h != nullptr );
+    auto sab = NC::extractSABDataFromDynInfo( di_h );
+    NC::VDOSEval ve( di_h->vdosData() );
+    const double teff_true = ve.calcEffectiveTemperature();
+    const double msd_true = ve.getMSD( ve.calcGamma0() );
+    auto e = NC::SABAnalyser::estimateTeffMSD( *sab );
+    REQUIRE( e.effectiveTemperature.has_value() );
+    REQUIRE( e.msd.has_value() );
+    const double teff_est = e.effectiveTemperature.value().dbl();
+    REQUIRE( NC::ncabs( teff_est/teff_true - 1.0 ) < 0.02 );
+    REQUIRE( NC::ncabs( e.msd.value()/msd_true - 1.0 ) < 0.03 );
+    auto e2 = NC::SABAnalyser::estimateTeffMSD( *sab );
+    REQUIRE( e2.effectiveTemperature.has_value() && e2.msd.has_value() );
+    REQUIRE( e2.effectiveTemperature.value().dbl() == teff_est );
+    REQUIRE( e2.msd.value() == e.msd.value() );
+    std::printf("  estimates match VDOS truth, cache consistent: OK\n");
+  }
+}
+
 int main()
 {
   test_kernel_closedform();
@@ -470,8 +596,10 @@ int main()
   test_r1_limit();
   test_xs_vs_bruteforce();
   test_sampling_vs_bruteforce();
+  test_sampling_cdf();
   test_kernel_boundary();
   test_cryogenic();
+  test_estimateTeffMSD();
   std::printf("All tests passed.\n");
   return 0;
 }

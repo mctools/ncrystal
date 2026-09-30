@@ -336,6 +336,24 @@ def main(do_plot,luxlvl,test_select):
 
         { 'cfgstr': 'stdlib::Ca_sg229_Calcium-gamma.ncmat;vdoslux=1000;temp=800', 'ekin': '0.04' },
 
+        #Cryogenic sampling just above the kernel Emax (~3eV): with
+        #Teff/T~32 the (default) SCT extension differs strongly from
+        #free-gas here (a forced model mismatch gives KS pval ~0), so
+        #this guards that the std and reference samplers agree on the
+        #extension model:
+        { 'cfgstr': 'stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20;vdoslux=1002',
+          'atomlbl': 'H', 'ekin': '4.5' },
+
+        #Direct-kernel material above its Emax (~4eV): a wiring and
+        #region-mixing test, NOT sampler validation (the extension
+        #region sampling is shared code between std and ref, and is
+        #independently validated in app_sctext). Guards that both
+        #paths receive the same auto-detected Teff (a silent free-gas
+        #fallback in either would collapse the KS pvals, the recoil
+        #widths differing by ~sqrt(Teff/T)~2) and agree on the
+        #independently-computed table-vs-extender mixing:
+        { 'cfgstr': 'stdlib::LiquidWaterH2O_T293.6K.ncmat;vdoslux=2001',
+          'atomlbl': 'H', 'ekin': '6.0' },
 
     ]
     npvals_tot = 0

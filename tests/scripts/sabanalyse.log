@@ -1,0 +1,23 @@
+==> stdlib::Al_sg225.ncmat//mono:
+    teff ~ 320 K (vdos 320 K), relerr<0.02: OK [nrows=211]
+    msd  ~ 0.0098 Aa^2 (vdos 0.0098 Aa^2), relerr<0.02: OK [nrows=180]
+==> stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20//H:
+    teff ~ 633 K (vdos 634 K), relerr<0.03: OK [nrows=120]
+    msd  ~ 0.021 Aa^2 (vdos 0.021 Aa^2), relerr<0.08: OK [nrows=201]
+==> stdlib::CaH2_sg62_CalciumHydride.ncmat;temp=20//Ca:
+    teff ~ 137 K (vdos 137 K), relerr<0.02: OK [nrows=206]
+    msd  ~ 0.0026 Aa^2 (vdos 0.0026 Aa^2), relerr<0.02: OK [nrows=127]
+==> stdlib::Fe_sg229_Iron-alpha.ncmat;temp=800//mono:
+    teff ~ 811 K (vdos 811 K), relerr<0.02: OK [nrows=237]
+    msd  ~ 0.011 Aa^2 (vdos 0.011 Aa^2), relerr<0.02: OK [nrows=155]
+==> stdlib::Polyethylene_CH2.ncmat//H:
+    teff ~ 1.21e+03 K (vdos 1.21e+03 K), relerr<0.02: OK [nrows=170]
+    msd  ~ 0.048 Aa^2 (vdos 0.047 Aa^2), relerr<0.03: OK [nrows=170]
+NCrystal WARNING: Discarding 52 edges of provided kernel data due to missing S values.
+==> liquid water (direct kernel):
+    teff in (2T,10T) with modest spread: OK
+    msd self-flagged unreliable: OK
+    auto: teff accepted, msd rejected: OK
+==> center_tol token accepted and benign: OK
+==> diagnostics: 400 rows, aligned arrays and valid status codes: OK
+==> direct-kernel extension methods: knllux=1 -> sct, knllux=201 -> freegas

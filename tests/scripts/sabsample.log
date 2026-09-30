@@ -85,6 +85,17 @@
 
 
 =============>
+=============> Launching test 18
+=============>
+
+
+=============>
+=============> Launching test 19
+=============>
+
+NCrystal WARNING: Discarding 52 edges of provided kernel data due to missing S values.
+
+=============>
 =============> Final summary
 =============>
 
@@ -105,3 +116,5 @@ P-value for test #14 : OK
 P-value for test #15 : OK
 P-value for test #16 : OK
 P-value for test #17 : OK
+P-value for test #18 : OK
+P-value for test #19 : OK

@@ -32,7 +32,10 @@ import NCTestUtils.enable_testdatapath # noqa F401,E402
 
 itest = 0
 for vdoslux in (0,3):
-  for temp in (0.001,300,1e6):
+  #NB: 1e6 (the top of the allowed range) tests the error for the
+  #derived effective temperature landing above the range, while 0.99e6
+  #retains actual numerical coverage near the top:
+  for temp in (0.001,300,0.99e6,1e6):
     for ncfile in sorted(NC.browseFiles(factory='stdlib')):
       if 'Liquid' in ncfile.name:
         continue
@@ -44,19 +47,34 @@ for vdoslux in (0,3):
       for di in info.dyninfos:
         if hasattr(di,'analyseVDOS'):
           print(f'==> {cfgstr}//{di.atomData.displayLabel()} => ',end='')
-          print('; '.join(f'{k}={v:.12g}'
-                          for k,v in sorted(di.analyseVDOS().items())))
+          try:
+            print('; '.join(f'{k}={v:.12g}'
+                            for k,v in sorted(di.analyseVDOS().items())))
+          except NC.NCBadInput as e:
+            #Expected at the very top of the supported temperature
+            #range, which by policy has no valid effective temperature
+            #(Teff>=T always):
+            print(f'NCBadInput: {e}')
 
 #Also exercise the VDOS curves with unusual features found in the test data
 #(see comments in the files):
 from NCTestUtils.dirs import test_data_dir # noqa E402
 for f in sorted( test_data_dir.glob('vdos_*.ncmat') ):
   for vdoslux in (0,3):
-    for temp in (0.001,300,1e6):
+    #NB: 1e6 (the top of the allowed range) tests the error for the
+    #derived effective temperature landing above the range, while
+    #0.99e6 retains actual numerical coverage near the top:
+    for temp in (0.001,300,0.99e6,1e6):
       cfgstr = f'{f.name};temp={temp};vdoslux={vdoslux}'
       info = NC.createInfo(cfgstr)
       for di in info.dyninfos:
         if hasattr(di,'analyseVDOS'):
           print(f'==> {cfgstr}//{di.atomData.displayLabel()} => ',end='')
-          print('; '.join(f'{k}={v:.12g}'
-                          for k,v in sorted(di.analyseVDOS().items())))
+          try:
+            print('; '.join(f'{k}={v:.12g}'
+                            for k,v in sorted(di.analyseVDOS().items())))
+          except NC.NCBadInput as e:
+            #Expected at the very top of the supported temperature
+            #range, which by policy has no valid effective temperature
+            #(Teff>=T always):
+            print(f'NCBadInput: {e}')
