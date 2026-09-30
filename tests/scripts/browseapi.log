@@ -190,12 +190,19 @@ Errors OK
 Lazy loading OK
   mem.lau: datatype=lau comments=None descr='' path(basename)=None error=None
      sg=225 crystalsystem=cubic formula=Al a=4.04958 braggthreshold=4.67605 dyninfo=['vdosdebye']
+     load OK
   mem.laz: datatype=laz comments=None descr='' path(basename)=None error=None
      sg=225 crystalsystem=cubic formula=Al a=4.04958 braggthreshold=4.67605 dyninfo=['vdosdebye']
+     load OK
   disk.lau: datatype=lau comments=None descr='' path(basename)=disk.lau error=None
      sg=225 crystalsystem=cubic formula=Al a=4.04958 braggthreshold=4.67605 dyninfo=['vdosdebye']
+     load OK
   disk.laz: datatype=laz comments=None descr='' path(basename)=disk.laz error=None
      sg=225 crystalsystem=cubic formula=Al a=4.04958 braggthreshold=4.67605 dyninfo=['vdosdebye']
+     load OK
+lazlau: leaving tmpdir
+lazlau: tmpdir cleaned up
+lazlau: relative paths disabled again
 LAZ/LAU data OK
 atomdb fields: ['z', 'a', 'label', 'element', 'natural', 'mass', 'cohsl', 'cohxs', 'incohxs', 'scatxs', 'absxs']
 He + b10 (case-insensitive): ['He', 'He3', 'He4', 'B10']

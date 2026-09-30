@@ -718,6 +718,9 @@ notncmat.laz        -    -        -               -          -
     python3 -c 'import NCrystal as NC; NC.load("disk.laz").dump()'
 ============= CLI >>browse -f virtual -w sg==225 --count<< =============
 3
+lazlau: leaving tmpdir
+lazlau: tmpdir cleaned up
+lazlau: relative paths disabled again
 ============= CLI >>browse -c stdlib::Al_sg225<< =============
 ==> 1 entry from "stdlib" (<stdlib-location>, priority=120):
     stdlib::Al_sg225.ncmat (hidden)

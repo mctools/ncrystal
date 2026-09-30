@@ -149,7 +149,12 @@ def test_lazlau():
         run('-s','disk')
         run('-f','relpath','--info','disk.laz',sanitize_paths=True)
         run('-f','virtual','-w','sg==225','--count')
+        #Staged flushed markers: this area was observed to hang on the
+        #Windows Debug CI legs, and these localise the next such hang:
+        print('lazlau: leaving tmpdir',flush=True)
+    print('lazlau: tmpdir cleaned up',flush=True)
     NC.enableRelativePaths(False)
+    print('lazlau: relative paths disabled again',flush=True)
 
 def test_physics():
     run('--props','-f','virtual')
