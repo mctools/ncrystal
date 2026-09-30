@@ -1,4 +1,10 @@
 v4.4.7 (work in progress)
+     * Fix latent undefined behaviour in factory removal (FactImpl's
+       removeFactoryIfExists kept iterating with invalidated iterators
+       after its hand-rolled erase): harmless-looking on gcc/clang, but
+       MSVC Debug's checked iterators raised a CRT assertion dialog,
+       hanging (headless) processes the moment a text-data factory was
+       removed, e.g. via DataSources::enableRelativePaths(false).
      * The minimum supported Python version is now 3.9 (was 3.8),
        reflected in all pyproject files, the runtime guard in
        NCrystal/__init__.py, ncrystal-verify's CMake config and CI.
