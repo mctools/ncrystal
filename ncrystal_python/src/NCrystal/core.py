@@ -933,8 +933,7 @@ class Info(RCBase):
 
         def __str__(self):
             n=self.__class__.__name__
-            if n.startswith('DI_'):
-                n=n[3:]
+            n = n.removeprefix('DI_')
             s=f', {self._extradescr()}' if hasattr(self,'_extradescr') else ''
             return ( f'DynamicInfo({self.atomData.displayLabel()},'
                      f' fraction={self.__fraction*100.0:.4g}%, type={n}{s})' )
@@ -1917,7 +1916,7 @@ class TextData:
         """Line-iteration, yielding lines without terminating newline characters"""
         from io import StringIO
         def chomp(x):
-            return x[:-2] if x.endswith('\r\n') else (x[:-1] if x.endswith('\n') else x)
+            return x[:-2] if x.endswith('\r\n') else (x.removesuffix('\n'))
         for e in StringIO(self.__rd):
             yield chomp(e)
 

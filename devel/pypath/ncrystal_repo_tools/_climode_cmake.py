@@ -90,7 +90,7 @@ def main( parser ):
     _ = []
     for e in args.cmake_args:
         for s in e:
-            _.append(s[1:] if s.startswith('@') else s)
+            _.append(s.removeprefix('@'))
     if args.strict != 'NOTOUCH' :
         _.append( f'-DNCRYSTAL_BUILD_STRICT={args.strict}' )
     if args.longtests:

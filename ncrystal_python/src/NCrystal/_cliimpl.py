@@ -252,8 +252,7 @@ def cli_entry_point(func):
                 if warn_escape:
                     raise
                 n=e.__class__.__name__
-                if n.startswith('NC'):
-                    n = n[2:]
+                n = n.removeprefix('NC')
                 raise SystemExit(f'{n} ERROR: {str(e) or "<unknown>"}') from e
             except Exception as e:
                 if warn_escape:

@@ -1,4 +1,7 @@
 v4.4.7 (work in progress)
+     * The minimum supported Python version is now 3.9 (was 3.8),
+       reflected in all pyproject files, the runtime guard in
+       NCrystal/__init__.py, ncrystal-verify's CMake config and CI.
      * Windows: loading an invalid/corrupt shared library (e.g. a bad
        NCRYSTAL_LIB) no longer risks hanging on a modal loader error
        dialog: the ctypes load in _chooks.py now runs under a

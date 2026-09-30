@@ -128,8 +128,7 @@ def test2():
             #unix:
             nc_basename = lib.nctest_basename(p)
             def decode_refbn(pp):
-                if pp.startswith(winlongstr):
-                    pp = pp[len(winlongstr):]
+                pp = pp.removeprefix(winlongstr)
                 is_windows_path = '\\' in pp or (len(pp)>1 and pp[1]==':')
                 if is_windows_path:
                     pp = pp.replace('/','\\')

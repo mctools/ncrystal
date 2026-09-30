@@ -223,8 +223,7 @@ def _find_testmod(name):
     return lib
 
 def _find_testmod_sbld( name ):
-    if name.startswith('TestMod_'):
-        name = name[8:]
+    name = name.removeprefix('TestMod_')
     name = name if name.startswith('NCTestMod_') else f'NCTestMod_{name}'
     import os
     import pathlib

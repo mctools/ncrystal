@@ -25,7 +25,7 @@
 [project]
 name = "ncrystal"
 version = "4.4.7"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [ 'numpy>=1.22' ]
 readme = "README.md"
 license = {file = "LICENSE"}

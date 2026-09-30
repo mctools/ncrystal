@@ -25,8 +25,7 @@ def short_description():
 
 def search_files( name2comp, filename ):
     bn = filename if filename.startswith('NC') else 'NC'+filename
-    if bn.endswith('.hh'):
-        bn = bn[:-3]
+    bn = bn.removesuffix('.hh')
     if not bn.isidentifier():
         return
     bn_hh = bn + '.hh'

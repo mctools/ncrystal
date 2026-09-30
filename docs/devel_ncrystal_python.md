@@ -30,7 +30,7 @@ must contain only this file, with the message
 
 ## Import chain and library loading
 
-- `__init__.py`: version metadata, py>=3.8 guard, then
+- `__init__.py`: version metadata, py>=3.9 guard, then
   `from .api import *` unless `NCRYSTAL_SLIMPYINIT` is set (never namespaced).
   `version_tuple`/`version_num` defined after.
 - `api.py` star-imports `exceptions`, `core`, `datasrc`, `_testimpl`
@@ -120,7 +120,7 @@ must contain only this file, with the message
   print, and `SystemExit` becomes a clean return or a `RuntimeError`.
 - Parsers must come from `_cliimpl.create_ArgumentParser`, which also
   patches argparse so `--help` / "invalid choice" output is identical on
-  py3.8-3.14 (reference logs depend on this).
+  py3.9-3.14 (reference logs depend on this).
 - `browse` (`_cli_browse.py`, new in 4.4.7) is meant to take over nctool's
   `--browse/--extract/--plugins` (kept for now). It is a thin CLI over the
   public `browse.py` API (`DataBrowser`: chainable immutable selections,
@@ -142,7 +142,7 @@ must contain only this file, with the message
 
 ## Conventions (Python side)
 
-- Python 3.8 syntax only; ruff runs via `ncdevtool check ruff` with a long
+- Python 3.9 syntax only; ruff runs via `ncdevtool check ruff` with a long
   ignore list (`devel/pypath/ncrystal_repo_tools/_check_ruff.py`).
 - Output through `_common.print` (redirectable with
   `set_ncrystal_print_fct`, `modify_ncrystal_print_fct_ctxmgr`,

@@ -46,7 +46,7 @@ endif()
 set( pymoddir "${ncrystal_skbld_autogendir}/_ncrystal_verify" )
 if ( "${SKBUILD_STATE}" STREQUAL "sdist"
     OR NOT EXISTS "${pymoddir}/__init__.py" )
-  find_package( Python 3.8 COMPONENTS Interpreter REQUIRED )
+  find_package( Python 3.9 COMPONENTS Interpreter REQUIRED )
     execute_process(
       COMMAND "${Python_EXECUTABLE}" "-BI" "${PROJECT_SOURCE_DIR}/generate.py"
       RESULT_VARIABLE status

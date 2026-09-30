@@ -184,8 +184,7 @@ def cfgstr_2_hkl(*, cfgstr, tgtformat, verbose=True, fp_format = '%.14g' ):
     decoded_cfg = _NC.decodeCfg(cfgstr)
     data_name = decoded_cfg.get('data_name',None)
     cfgstr_nodataname = cfgstr.replace(data_name,'')
-    if cfgstr_nodataname.startswith(';'):
-        cfgstr_nodataname = cfgstr_nodataname[1:]
+    cfgstr_nodataname = cfgstr_nodataname.removeprefix(';')
     cfgstr_nodataname = cfgstr_nodataname.strip()
 
     if ( decoded_cfg.get('density',{}).get('type',None) != 'scalefactor'
