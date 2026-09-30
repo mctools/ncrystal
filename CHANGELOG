@@ -1,4 +1,22 @@
 v4.4.7 (work in progress)
+     * Added SABAnalyser (NCSABAnalyser.hh): estimates the effective
+       temperature and mean-squared displacement directly from a
+       tabulated S(alpha,beta) kernel via exact moment sum rules of the
+       Gaussian approximation (Wick second-moment rule for Teff, the
+       Debye-Waller zeroth-moment rule for msd), with per-row
+       admissibility guards, robustness metrics and optional per-row
+       diagnostics. Validated to <1% (Teff) and <5% (msd) against
+       VDOSEval truth across A=1..56 and T=20..800K, at ~ms cost.
+       Exposed for inspection/tuning via the new JSON query
+       ["sab","analyse",MATCFGSTR,ATOMDISPLAYLABEL,"diag"], which also
+       reports the VDOS-derived reference values where available, the
+       turn-key ("auto") results, and accepts a center_tol=X override
+       token. All per-row validity gates are hardcoded constants
+       (confirmed flat by a x2 up/down sensitivity scan over 263
+       kernels); the single data-derived tunable is
+       Options::center_tol. This
+       is groundwork for supporting the SCT extension model (and
+       eventually elastic physics) for direct-kernel materials.
      * Fix latent undefined behaviour in factory removal (FactImpl's
        removeFactoryIfExists kept iterating with invalidated iterators
        after its hand-rolled erase): harmless-looking on gcc/clang, but
