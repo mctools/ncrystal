@@ -69,18 +69,38 @@ _keepalive = []#for python based callback functions which we need to keep alive
 def _load(nclib_filename, ncrystal_namespace_protection ):
 
     import ctypes
+    import platform
 
     from ._numpy import _ensure_numpy, _np
 
+    #On Windows, loading an invalid/corrupt library file can pop the
+    #loader's modal "not a valid Win32 application" hard-error dialog
+    #instead of just failing (observed to hang headless CI runners
+    #forever on windows-2025 images, where the system-wide error mode no
+    #longer suppresses it). Suppress it thread-scoped during the load
+    #attempts, restoring afterwards (SEM_FAILCRITICALERRORS
+    #|SEM_NOOPENFILEERRORBOX = 0x8001):
+    _win_orig_errmode = None
+    if platform.system() == 'Windows':
+        _k32 = ctypes.windll.kernel32
+        _old = ctypes.c_uint(0)
+        if _k32.SetThreadErrorMode( ctypes.c_uint(0x8001),
+                                    ctypes.byref(_old) ):
+            _win_orig_errmode = _old.value
     try:
-        _nclib = ctypes.CDLL(nclib_filename)
-    except TypeError:
-        _nclib = None
+        try:
+            _nclib = ctypes.CDLL(nclib_filename)
+        except TypeError:
+            _nclib = None
 
-    if _nclib is None:
-        #For some reason, on windows we get a TypeError and must pass a string
-        #rather than a pathlib object:
-        _nclib = ctypes.CDLL(str(nclib_filename))
+        if _nclib is None:
+            #For some reason, on windows we get a TypeError and must pass a
+            #string rather than a pathlib object:
+            _nclib = ctypes.CDLL(str(nclib_filename))
+    finally:
+        if _win_orig_errmode is not None:
+            _k32.SetThreadErrorMode( ctypes.c_uint(_win_orig_errmode),
+                                     None )
 
     _int,_intp,_uint,_uintp,_dbl,_dblp,_cstr,_voidp = (ctypes.c_int, ctypes.POINTER(ctypes.c_int),
                                                        ctypes.c_uint,ctypes.POINTER(ctypes.c_uint), ctypes.c_double,

@@ -1,4 +1,9 @@
 v4.4.7 (work in progress)
+     * Windows: loading an invalid/corrupt shared library (e.g. a bad
+       NCRYSTAL_LIB) no longer risks hanging on a modal loader error
+       dialog: the ctypes load in _chooks.py now runs under a
+       thread-scoped SEM_FAILCRITICALERRORS|SEM_NOOPENFILEERRORBOX
+       error mode, so it fails with a clean OSError instead.
      * Bit-identical |F|^2 on every platform: the fast-trig Taylor kernels
        (sincos_mpi2pi2, cos_mpipi, cos_mpi2pi2, sin_mpi2pi2, now in
        NCMath_FMA.hh with runtime fma dispatch) and NCFillHKL's whole
