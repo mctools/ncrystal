@@ -27,6 +27,8 @@
 #include "NCrystal/internal/sab/NCSABRefSampler.hh"
 #include "NCrystal/internal/sab/NCSABExtended.hh"
 #include "NCrystal/internal/sab/NCSABExtender.hh"
+#include "NCrystal/internal/extd_utils/NCSABAnalyser.hh"
+#include "NCrystal/internal/vdos/NCVDOSEval.hh"
 #include "NCrystal/internal/sab/NCSABFactory.hh"
 #include "NCrystal/internal/sab/NCSABIntegrator.hh"
 #include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
@@ -46,6 +48,7 @@ namespace NCRYSTAL_NAMESPACE {
       struct ExtractedSabData {
         shared_obj<const SABData> sab;
         Optional<Temperature> teff;//validated, when derivable (DI_VDOS)
+        Optional<double> msd_vdos;//[Aa^2], when derivable (DI_VDOS)
       };
 
       ExtractedSabData
@@ -67,9 +70,15 @@ namespace NCRYSTAL_NAMESPACE {
         if ( !di_knl )
           NCRYSTAL_THROW(BadInput,"Indicated DynInfo object does not provide"
                          " S(alpha,beta) kernels.");
+        Optional<double> msd_vdos;
+        if ( auto di_vdos = dynamic_cast<const DI_VDOS*>( di_knl ) ) {
+          VDOSEval ve( di_vdos->vdosData() );
+          msd_vdos = ve.getMSD( ve.calcGamma0() );
+        }
         return { extractSABDataFromDynInfo( di_knl,
                                             VDOS::VDOSLux(cfg.get_vdoslux()) ),
-                 extractTeffFromDynInfo( di_knl ) };
+                 extractTeffFromDynInfo( di_knl ),
+                 msd_vdos };
       }
 
       struct SampleResult {
@@ -193,6 +202,85 @@ namespace NCRYSTAL_NAMESPACE {
           res.b.push_back( ab.beta );
         }
         return res;
+      }
+
+      void query_impl_analyse( std::ostream& os,
+                               const ExtractedSabData& xd,
+                               bool with_diag )
+      {
+        SABAnalyser::Options opt;
+        opt.collect_diagnostics = with_diag;
+        auto r = SABAnalyser::analyse( *xd.sab, opt );
+        auto stream_opt_dbl = [&os]( const Optional<double>& v )
+        {
+          if ( v.has_value() )
+            streamJSON( os, v.value() );
+          else
+            streamJSON( os, json_null_t{} );
+        };
+        os << "{\"sabanalyse\":{\"teff\":";
+        stream_opt_dbl( r.teff.has_value()
+                        ? Optional<double>{ r.teff.value().dbl() }
+                        : Optional<double>{} );
+        os << ",\"teff_relspread\":";
+        streamJSON( os, r.teff_relspread );
+        os << ",\"teff_nrows\":";
+        streamJSON( os, static_cast<std::uint64_t>(r.teff_nrows) );
+        os << ",\"msd\":";
+        stream_opt_dbl( r.msd );
+        os << ",\"msd_relspread\":";
+        streamJSON( os, r.msd_relspread );
+        os << ",\"msd_nrows\":";
+        streamJSON( os, static_cast<std::uint64_t>(r.msd_nrows) );
+        os << ",\"recoil_center_ratio\":";
+        stream_opt_dbl( r.recoil_center_ratio );
+        os << ",\"teff_vdos\":";
+        stream_opt_dbl( xd.teff.has_value()
+                        ? Optional<double>{ xd.teff.value().dbl() }
+                        : Optional<double>{} );
+        os << ",\"msd_vdos\":";
+        stream_opt_dbl( xd.msd_vdos );
+        os << ",\"temperature\":";
+        streamJSON( os, xd.sab->temperature().dbl() );
+        os << ",\"elementmassamu\":";
+        streamJSON( os, xd.sab->elementMassAMU().dbl() );
+        os << ",\"diagnostics\":";
+        if ( r.diagnostics == nullptr ) {
+          streamJSON( os, json_null_t{} );
+        } else {
+          auto& d = *r.diagnostics;
+          auto stream_statuses
+            = [&os]( const std::vector<SABAnalyser::RowStatus>& v )
+          {
+            os << '[';
+            for ( std::size_t i = 0; i < v.size(); ++i ) {
+              if ( i )
+                os << ',';
+              os << static_cast<unsigned>( vectAt( v, i ) );
+            }
+            os << ']';
+          };
+          os << "{\"floor_value\":";
+          streamJSON( os, d.floor_value );
+          os << ",\"alpha\":";
+          streamJSONHugeDblVect( os, VectD(d.alpha) );
+          os << ",\"m0\":";
+          streamJSONHugeDblVect( os, VectD(d.m0) );
+          os << ",\"mean\":";
+          streamJSONHugeDblVect( os, VectD(d.mean) );
+          os << ",\"variance\":";
+          streamJSONHugeDblVect( os, VectD(d.variance) );
+          os << ",\"teff_row\":";
+          streamJSONHugeDblVect( os, VectD(d.teff_row) );
+          os << ",\"msd_row\":";
+          streamJSONHugeDblVect( os, VectD(d.msd_row) );
+          os << ",\"teff_row_status\":";
+          stream_statuses( d.teff_row_status );
+          os << ",\"msd_row_status\":";
+          stream_statuses( d.msd_row_status );
+          os << '}';
+        }
+        os << "}}";
       }
 
       void query_impl_proc( std::ostream& os,
@@ -651,6 +739,7 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
   constexpr auto sv_integschemes = StrView::make("integschemes");
   constexpr auto sv_proc = StrView::make("proc");
   constexpr auto sv_refsample = StrView::make("refsample");
+  constexpr auto sv_analyse = StrView::make("analyse");
 
   if  ( key == "fixme" ) {
     if ( nargs != 1 && nargs != 2 )
@@ -774,6 +863,27 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
       invalid(usage);
     query_impl_sglcell( os, E_div_kT, a1, a2, b1, b2,
                         s11, s12, s21, s22, nsample, seed );
+  } else if ( key == sv_analyse ) {
+    //query like: ["sab","analyse",MATCFGSTR,ATOMDISPLAYLABEL,"diag"]
+    const char * usage
+      = ( "correct usage: [\"sab\",\"analyse\",MATCFGSTR,"
+          "ATOMDISPLAYLABEL,\"diag\"] (the ATOMDISPLAYLABEL can be left"
+          " as an empty string for monoatomic materials, and the final"
+          " \"diag\" flag is optional and enables per-row diagnostics"
+          " in the output)" );
+    if ( nargs < 1 || nargs > 3 )
+      invalid(usage);
+    Optional<std::string> atomdsplbl;
+    if ( nargs >= 2 && !arg(1).empty() )
+      atomdsplbl = argstr(1);
+    bool with_diag = false;
+    if ( nargs == 3 ) {
+      if ( arg(2) != "diag" )
+        invalid(usage);
+      with_diag = true;
+    }
+    auto xd = query_impl_extractSabData( argstr(0), atomdsplbl );
+    query_impl_analyse( os, xd, with_diag );
   } else if ( key == sv_proc || key == sv_refsample ) {
     //Almost same usage+parsing of proc/refsample:
     const bool is_proc = key==sv_proc;
@@ -853,7 +963,8 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
   } else if ( key == sv_list ) {
     if ( nargs != 0 )
       invalid("no arguments should come after: [\"mmc\",\"list\"]");
-    streamJSON( os, std::array<StrView,7>{ sv_integschemes,
+    streamJSON( os, std::array<StrView,8>{ sv_analyse,
+                                           sv_integschemes,
                                            sv_proc,
                                            sv_refeval,
                                            sv_refsample,
