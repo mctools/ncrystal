@@ -120,6 +120,10 @@ def test_list_gen( testgroup ):
                 f'O_from_Li2O.ncmat;vdoslux=2001;knllux=2;temp={t:g}',
                 f'O_from_Li2O.ncmat;vdoslux=2001;knllux=3;temp={t:g}',
                 f'O_from_Li2O.ncmat;vdoslux=2001;knllux=4;temp={t:g}',
+                #Keep the "next-gen but with free-gas extender"
+                #comparison mode (knllux 200-206) exercised (a single
+                #cfg, to not add measurably to the suite runtime):
+                f'O_from_Li2O.ncmat;vdoslux=2001;knllux=203;temp={t:g}',
 
             f'Li_from_Li2O.ncmat;vdoslux=2002;knllux=0;temp={t:g}',
                 f'Li_from_Li2O.ncmat;vdoslux=2002;knllux=1;temp={t:g}',
@@ -138,6 +142,11 @@ def test_list_gen( testgroup ):
                 f'O_from_Li2O.ncmat;vdoslux=2003;knllux=4;temp={t:g}',
                 f'O_from_Li2O.ncmat;vdoslux=2004;knllux=4;temp={t:g}',
             ]
+        #Direct-kernel material (auto-detected Teff drives the SCT
+        #extension; NB no knllux 20x comparison entry: the total xs
+        #above Emax is continuity-anchored and hence insensitive to the
+        #extender model, giving a byte-identical reference file):
+        yield 'stdlib::LiquidWaterH2O_T293.6K.ncmat;vdoslux=2001;knllux=1'
 
 
 
