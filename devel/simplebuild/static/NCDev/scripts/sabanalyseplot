@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2026 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+# Visual inspection of SABAnalyser per-row diagnostics for one kernel: runs
+# the ["sab","analyse",...,"diag"] query and plots per-row Teff and msd
+# estimates versus alpha, coloured by RowStatus, with the combined
+# median/relspread band, the turn-key ("auto") result and the VDOS-derived
+# truth where available, plus the N(alpha) zeroth moments. Accepts the same
+# NAME=VALUE Options overrides as the query.
+
+def parse_args():
+    import argparse
+    p = argparse.ArgumentParser(
+        description = ('Plot SABAnalyser per-row diagnostics for the '
+                       'scattering kernel of an atom in MATCFGSTR.') )
+    p.add_argument('cfgstr', metavar='MATCFGSTR')
+    p.add_argument('label', metavar='ATOMLABEL', nargs='?', default='',
+                   help='atom display label (optional for monoatomic)')
+    p.add_argument('opts', metavar='NAME=VALUE', nargs='*',
+                   help='SABAnalyser::Options overrides for the query')
+    p.add_argument('-o','--output', metavar='FILE', default=None,
+                   help='save figure instead of showing it')
+    return p.parse_args()
+
+_statusnames = { 0: 'Ok', 1: 'AlphaTooLow', 2: 'NoData',
+                 3: 'WingsNotCovered', 4: 'Unresolved',
+                 5: 'M0OutOfWindow', 6: 'CenterOffRecoil' }
+_statuscolors = { 0: 'tab:green', 1: 'lightgray', 2: 'gray',
+                  3: 'tab:orange', 4: 'tab:red',
+                  5: 'tab:purple', 6: 'tab:brown' }
+
+def scatter_by_status( ax, alpha, vals, statuses ):
+    import numpy as np
+    a, v, s = ( np.asarray(alpha), np.asarray(vals),
+                np.asarray(statuses, dtype=int) )
+    keep = v > 0.0
+    for st in sorted(set(s[keep])):
+        m = keep & ( s == st )
+        ax.plot( a[m], v[m], 'o', ms = ( 5 if st==0 else 3 ),
+                 color = _statuscolors[st], label = _statusnames[st] )
+
+def add_combined( ax, val, relspread, auto_val, truth, truth_lbl ):
+    if val is not None:
+        ax.axhline( val, color='k', lw=1, label='combined (median)' )
+        if relspread is not None and relspread > 0.0:
+            ax.axhspan( val*(1-relspread), val*(1+relspread),
+                        color='k', alpha=0.12, label='relspread band' )
+    if auto_val is not None:
+        ax.axhline( auto_val, color='tab:blue', lw=1, ls='--',
+                    label='auto (turn-key)' )
+    if truth is not None:
+        ax.axhline( truth, color='tab:green', lw=1, ls=':',
+                    label=truth_lbl )
+
+def main():
+    args = parse_args()
+    from NCrystalDev.misc import evaluate_query as q
+    r = q( ['sab','analyse',args.cfgstr,args.label,'diag']
+           + list(args.opts) )['sabanalyse']
+    d = r['diagnostics']
+    import matplotlib.pyplot as plt
+    fig, (ax1,ax2,ax3) = plt.subplots( 3, 1, sharex=True,
+                                       figsize=(9,10) )
+    title = args.cfgstr + ( f' // {args.label}' if args.label else '' )
+    fig.suptitle( f'{title}\nT={r["temperature"]:g}K'
+                  f' M={r["elementmassamu"]:g}u'
+                  f' teff_nrows={r["teff_nrows"]}'
+                  f' msd_nrows={r["msd_nrows"]}' )
+    scatter_by_status( ax1, d['alpha'], d['teff_row'],
+                       d['teff_row_status'] )
+    add_combined( ax1, r['teff'], r['teff_relspread'],
+                  r['auto']['teff'], r['teff_vdos'], 'teff_vdos' )
+    ax1.set_ylabel('per-row Teff [K]')
+    ax1.legend( fontsize='x-small', ncol=2 )
+    scatter_by_status( ax2, d['alpha'], d['msd_row'],
+                       d['msd_row_status'] )
+    add_combined( ax2, r['msd'], r['msd_relspread'],
+                  r['auto']['msd'], r['msd_vdos'], 'msd_vdos' )
+    ax2.set_ylabel('per-row msd [Aa^2]')
+    ax2.set_yscale('log')
+    ax2.legend( fontsize='x-small', ncol=2 )
+    import numpy as np
+    a, m0 = np.asarray(d['alpha']), np.asarray(d['m0'])
+    ax3.plot( a[m0>=0.0], m0[m0>=0.0], '.-', ms=3, lw=0.5 )
+    ax3.set_ylabel('N(alpha)')
+    ax3.set_xlabel('alpha')
+    ax3.set_xscale('log')
+    for ax in (ax1,ax2,ax3):
+        ax.grid( alpha=0.3 )
+    fig.tight_layout()
+    if args.output:
+        fig.savefig( args.output, dpi=150 )
+        print(f'Wrote {args.output}')
+    else:
+        plt.show()
+
+if __name__ == '__main__':
+    main()
