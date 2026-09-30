@@ -1,0 +1,45 @@
+==> Info inspection of stdlib::LiquidWaterH2O_T293.6K.ncmat:
+    stateOfMatter=Liquid crystalline=False hasatominfo=False
+    dyninfo H: DI_ScatKnlDirect fraction=0.666667
+    dyninfo O: DI_FreeGas fraction=0.333333
+==> Process inspection of stdlib::LiquidWaterH2O_T293.6K.ncmat:
+NCrystal WARNING: Discarding 52 edges of provided kernel data due to missing S values.
+    scatter comps: FreeGas+SABScatter
+    comp=elas: null=True xs(3pts)=0 0 0
+    comp=inelas: null=False xs(3pts)=81.26 35.92 15.61
+==> Info inspection of stdlib::LiquidHeavyWaterD2O_T293.6K.ncmat:
+    stateOfMatter=Liquid crystalline=False hasatominfo=False
+    dyninfo D: DI_ScatKnlDirect fraction=0.666667
+    dyninfo O: DI_ScatKnlDirect fraction=0.333333
+==> Process inspection of stdlib::LiquidHeavyWaterD2O_T293.6K.ncmat:
+NCrystal WARNING: Discarding 204 edges of provided kernel data due to missing S values.
+NCrystal WARNING: Discarding 120 edges of provided kernel data due to missing S values.
+    scatter comps: SABScatter+SABScatter
+    comp=elas: null=True xs(3pts)=0 0 0
+    comp=inelas: null=False xs(3pts)=6.018 4.689 3.54
+==> Info inspection of Li2O_sg225_LithiumOxide_sabsmall_temp10K.ncmat:
+    stateOfMatter=Unknown crystalline=False hasatominfo=False
+    dyninfo Li: DI_ScatKnlDirect fraction=0.666667
+    dyninfo O: DI_ScatKnlDirect fraction=0.333333
+==> Process inspection of Li2O_sg225_LithiumOxide_sabsmall_temp10K.ncmat:
+    scatter comps: SABScatter+SABScatter
+    comp=elas: null=True xs(3pts)=0 0 0
+    comp=inelas: null=False xs(3pts)=0.0002513 0.01109 1.614
+==> analyser auto values for stdlib::LiquidWaterH2O_T293.6K.ncmat//H: teff=1194 msd=absent
+==> analyser auto values for stdlib::LiquidHeavyWaterD2O_T293.6K.ncmat//D: teff=865.6 msd=absent
+==> analyser auto values for Li2O_sg225_LithiumOxide_sabsmall_temp10K.ncmat//Li: teff=335 msd=0.0061
+==> analyser auto values for Li2O_sg225_LithiumOxide_sabsmall_temp10K.ncmat//O: teff=272.2 msd=0.003
+==> load of virtual probe_cell_scatknl.ncmat:
+==> Info inspection of virtual::probe_cell_scatknl.ncmat:
+    refused: NCBadInput: probe_cell_scatknl.ncmat element Li in crystal does not have sufficient information to estimate mean-squared atomic displacements. Either a VDOS in a @DYNINFO section with type=vdos (or type=vdosdebye from NCMAT v5+) or an entry in the @DEBYETEMPERATURE section is required.
+==> load of virtual probe_cell_scatknl_dt.ncmat:
+==> Info inspection of virtual::probe_cell_scatknl_dt.ncmat:
+    stateOfMatter=Solid crystalline=True hasatominfo=True
+    dyninfo Li: DI_ScatKnlDirect fraction=0.666667
+    dyninfo O: DI_ScatKnlDirect fraction=0.333333
+    atominfo Li: msd=0.01223 dt=430
+    atominfo O: msd=0.005307 dt=430
+==> Process inspection of virtual::probe_cell_scatknl_dt.ncmat:
+    scatter comps: ElIncScatter+PowderBragg+SABScatter+SABScatter
+    comp=elas: null=False xs(3pts)=0.6064 1.859 0.1754
+    comp=inelas: null=False xs(3pts)=0.0002513 0.01109 1.614

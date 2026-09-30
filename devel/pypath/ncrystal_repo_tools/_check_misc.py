@@ -52,6 +52,10 @@ def main():
         'tests/data/QE_pw_Al.out' : 2000,
         'tests/src/app_mmcgeom/main.cc' : 80,
         'tests/src/app_fft/refvals.hh' : 200,
+        #Trimmed low-precision direct-kernel solid for tests (the
+        #vdoslux{0..4} ones below are huge, mistakenly committed, and
+        #pending removal from history -- do not rely on them):
+        'tests/data/Li2O_sg225_LithiumOxide_sabsmall_temp10K.ncmat' : 300,
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux0_temp10K.ncmat' : 4000000,
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux1_temp10K.ncmat' : 4000000,
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux2_temp10K.ncmat' : 4000000,
