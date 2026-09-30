@@ -1,4 +1,14 @@
 v4.4.7 (work in progress)
+     * Direct-kernel (scatknl) materials now get the SCT extension model
+       by default in next-gen (knllux>=0) configs: SABAnalyser's Teff
+       estimate (cached per-kernel via the new turn-key
+       SABAnalyser::estimateTeffMSD, cf. below) is auto-detected in
+       dyninfoutils' extractTeffFromDynInfo, so e.g. stdlib liquid
+       water/heavy water H kernels are extended with SCT at
+       Teff~1100K rather than free gas at T. NB: in practice only the
+       sampling above Emax is affected; the total xs there is
+       continuity-anchored at Emax, which cancels the leading O(1/E)
+       part of the inter-model difference.
      * Added SABAnalyser (NCSABAnalyser.hh): estimates the effective
        temperature and mean-squared displacement directly from a
        tabulated S(alpha,beta) kernel via exact moment sum rules of the

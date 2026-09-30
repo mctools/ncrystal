@@ -37,6 +37,7 @@
 #include "NCrystal/factories/NCMatCfg.hh"
 #include "NCrystal/core/NCSmallVector.hh"
 #include "NCrystal/internal/utils/NCMsg.hh"
+#include "NCrystal/internal/utils/NCString.hh"
 #include "NCSABQuery.hh"
 namespace NC = NCrystal;
 
@@ -47,8 +48,12 @@ namespace NCRYSTAL_NAMESPACE {
 
       struct ExtractedSabData {
         shared_obj<const SABData> sab;
-        Optional<Temperature> teff;//validated, when derivable (DI_VDOS)
-        Optional<double> msd_vdos;//[Aa^2], when derivable (DI_VDOS)
+        //As the factories would use it (incl. auto-detection for
+        //direct kernels):
+        Optional<Temperature> teff;
+        //Strictly VDOS-derived reference values:
+        Optional<Temperature> teff_vdos;
+        Optional<double> msd_vdos;//[Aa^2]
       };
 
       ExtractedSabData
@@ -70,14 +75,18 @@ namespace NCRYSTAL_NAMESPACE {
         if ( !di_knl )
           NCRYSTAL_THROW(BadInput,"Indicated DynInfo object does not provide"
                          " S(alpha,beta) kernels.");
+        Optional<Temperature> teff_vdos;
         Optional<double> msd_vdos;
         if ( auto di_vdos = dynamic_cast<const DI_VDOS*>( di_knl ) ) {
           VDOSEval ve( di_vdos->vdosData() );
+          teff_vdos = Temperature{ DoValidate,
+                                   ve.calcEffectiveTemperature() };
           msd_vdos = ve.getMSD( ve.calcGamma0() );
         }
         return { extractSABDataFromDynInfo( di_knl,
                                             VDOS::VDOSLux(cfg.get_vdoslux()) ),
                  extractTeffFromDynInfo( di_knl ),
+                 teff_vdos,
                  msd_vdos };
       }
 
@@ -206,10 +215,8 @@ namespace NCRYSTAL_NAMESPACE {
 
       void query_impl_analyse( std::ostream& os,
                                const ExtractedSabData& xd,
-                               bool with_diag )
+                               const SABAnalyser::Options& opt )
       {
-        SABAnalyser::Options opt;
-        opt.collect_diagnostics = with_diag;
         auto r = SABAnalyser::analyse( *xd.sab, opt );
         auto stream_opt_dbl = [&os]( const Optional<double>& v )
         {
@@ -235,12 +242,22 @@ namespace NCRYSTAL_NAMESPACE {
         os << ",\"recoil_center_ratio\":";
         stream_opt_dbl( r.recoil_center_ratio );
         os << ",\"teff_vdos\":";
-        stream_opt_dbl( xd.teff.has_value()
-                        ? Optional<double>{ xd.teff.value().dbl() }
+        stream_opt_dbl( xd.teff_vdos.has_value()
+                        ? Optional<double>{ xd.teff_vdos.value().dbl() }
                         : Optional<double>{} );
         os << ",\"msd_vdos\":";
         stream_opt_dbl( xd.msd_vdos );
-        os << ",\"temperature\":";
+        //What the turn-key consumer (acceptance policy applied,
+        //default options, cached) provides for this kernel:
+        auto auto_tm = SABAnalyser::estimateTeffMSD( *xd.sab );
+        os << ",\"auto\":{\"teff\":";
+        stream_opt_dbl( auto_tm.effectiveTemperature.has_value()
+                        ? Optional<double>{ auto_tm.effectiveTemperature
+                                            .value().dbl() }
+                        : Optional<double>{} );
+        os << ",\"msd\":";
+        stream_opt_dbl( auto_tm.msd );
+        os << "},\"temperature\":";
         streamJSON( os, xd.sab->temperature().dbl() );
         os << ",\"elementmassamu\":";
         streamJSON( os, xd.sab->elementMassAMU().dbl() );
@@ -864,26 +881,42 @@ void NC::SABUtils::JSONQuery( std::ostream& os, const Query& query )
     query_impl_sglcell( os, E_div_kT, a1, a2, b1, b2,
                         s11, s12, s21, s22, nsample, seed );
   } else if ( key == sv_analyse ) {
-    //query like: ["sab","analyse",MATCFGSTR,ATOMDISPLAYLABEL,"diag"]
+    //query like: ["sab","analyse",MATCFGSTR,ATOMDISPLAYLABEL,
+    //             "diag","NAME=VALUE",...]
     const char * usage
       = ( "correct usage: [\"sab\",\"analyse\",MATCFGSTR,"
-          "ATOMDISPLAYLABEL,\"diag\"] (the ATOMDISPLAYLABEL can be left"
-          " as an empty string for monoatomic materials, and the final"
-          " \"diag\" flag is optional and enables per-row diagnostics"
-          " in the output)" );
-    if ( nargs < 1 || nargs > 3 )
+          "ATOMDISPLAYLABEL,\"diag\",\"NAME=VALUE\",...] (the"
+          " ATOMDISPLAYLABEL can be left as an empty string for"
+          " monoatomic materials; the optional \"diag\" flag enables"
+          " per-row diagnostics in the output; optional NAME=VALUE"
+          " tokens override SABAnalyser::Options fields, currently"
+          " just \"center_tol\", for sensitivity scans)" );
+    if ( nargs < 1 )
       invalid(usage);
     Optional<std::string> atomdsplbl;
     if ( nargs >= 2 && !arg(1).empty() )
       atomdsplbl = argstr(1);
-    bool with_diag = false;
-    if ( nargs == 3 ) {
-      if ( arg(2) != "diag" )
+    SABAnalyser::Options opt;
+    for ( auto i : ncrange( std::size_t(2), nargs ) ) {
+      auto a = arg(i);
+      if ( a == "diag" ) {
+        opt.collect_diagnostics = true;
+        continue;
+      }
+      auto ieq = a.find( StrView::make("=") );
+      if ( ieq == StrView::npos )
         invalid(usage);
-      with_diag = true;
+      auto name = a.substr( 0, ieq );
+      const double val = str2dbl( a.substr( ieq + 1 ),
+                                  "invalid sab analyse option value" );
+      if ( name == "center_tol" ) {
+        opt.center_tol = val;
+      } else {
+        invalid(usage);
+      }
     }
     auto xd = query_impl_extractSabData( argstr(0), atomdsplbl );
-    query_impl_analyse( os, xd, with_diag );
+    query_impl_analyse( os, xd, opt );
   } else if ( key == sv_proc || key == sv_refsample ) {
     //Almost same usage+parsing of proc/refsample:
     const bool is_proc = key==sv_proc;

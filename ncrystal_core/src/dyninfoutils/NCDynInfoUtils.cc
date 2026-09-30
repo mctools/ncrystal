@@ -25,6 +25,7 @@
 #include "NCrystal/internal/vdos/NCVDOSToScatKnl.hh"
 #include "NCrystal/internal/sab/NCSABUtils.hh"
 #include "NCrystal/internal/vdos/NCVDOSEval.hh"
+#include "NCrystal/internal/extd_utils/NCSABAnalyser.hh"
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
@@ -384,14 +385,18 @@ NC::extractSABDataFromDynInfo( const NC::DI_ScatKnl* di,
 NC::Optional<NC::Temperature>
 NC::extractTeffFromDynInfo( const DI_ScatKnl* di )
 {
-  auto di_vdos = dynamic_cast<const DI_VDOS*>( di );
-  if ( !di_vdos )
-    return NullOpt;
-  //NB: both VDOSEval and the DoValidate constructor here guard the
-  //sanity of the value (as does the SCT code itself later):
-  return Temperature{ DoValidate,
-                      VDOSEval( di_vdos->vdosData() )
-                      .calcEffectiveTemperature() };
+  if ( auto di_vdos = dynamic_cast<const DI_VDOS*>( di ) ) {
+    //NB: both VDOSEval and the DoValidate constructor here guard the
+    //sanity of the value (as does the SCT code itself later):
+    return Temperature{ DoValidate,
+                        VDOSEval( di_vdos->vdosData() )
+                        .calcEffectiveTemperature() };
+  }
+  if ( auto di_direct = dynamic_cast<const DI_ScatKnlDirect*>( di ) )
+    return SABAnalyser
+      ::estimateTeffMSD( *di_direct->ensureBuildThenReturnSAB() )
+      .effectiveTemperature;
+  return NullOpt;
 }
 
 //Idealised VDOS based only on Debye temperature:
