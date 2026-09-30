@@ -576,7 +576,12 @@ function( mctools_testutils_internal_addtest name cmd_file reflog )
   #enabled by default, can be dramatically slower than Release for
   #numerically-heavy tests, not just ~2x). Bumped well past what a merely-
   #slow-but-finishing run would need, so a further timeout here is a much
-  #stronger signal of a genuine hang rather than just Debug-build overhead:
-  set_property( TEST "${name}" PROPERTY TIMEOUT "$<IF:$<CONFIG:Debug>,1500,240>" )
+  #stronger signal of a genuine hang rather than just Debug-build overhead.
+  #NB: the Debug value is TEMPORARILY 600 rather than 1500 for faster
+  #iteration while hunting hanging tests on the Windows CI legs (each
+  #hang eats a full timeout); the slowest legitimate Debug test observed
+  #is ~206s (py_long_cif2ncmatgen on windows Debug), so ~3x headroom
+  #remains. Revert to 1500 when that hunt is over:
+  set_property( TEST "${name}" PROPERTY TIMEOUT "$<IF:$<CONFIG:Debug>,600,240>" )
   #TODO: Support tests/costs.txt for adding cost properties to tests?
 endfunction()
