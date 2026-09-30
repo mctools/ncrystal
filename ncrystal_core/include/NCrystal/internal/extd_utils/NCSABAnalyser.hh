@@ -54,6 +54,16 @@ namespace NCRYSTAL_NAMESPACE {
 
   namespace SABAnalyser {
 
+    //Provides the effective temperature and mean-squared displacement
+    //associated with a scattering kernel, with results cached. Fields
+    //are absent whenever they could not be provided confidently, for
+    //whatever reason:
+    struct TeffMSD {
+      Optional<Temperature> effectiveTemperature;
+      Optional<double> msd;//[Aa^2]
+    };
+    TeffMSD estimateTeffMSD( const SABData& );
+
     struct Options {
       //NB: the per-row validity gates (floor-marker detection, wing
       //coverage, ridge resolution, msd m0 window, ...) are hardcoded
@@ -108,10 +118,12 @@ namespace NCRYSTAL_NAMESPACE {
       //no acceptance policy applied here; consumers should threshold on
       //the relspread metrics (IQR/median over the per-row estimates)
       //and validate the values. Recommended acceptance for automatic
-      //Teff usage, tuned on 271 ENDF8-converted kernels with recorded
-      //ENDF effective temperatures: teff_nrows>=20 and
-      //teff_relspread<=0.05, giving worst-case 0.8% and p95 0.34%
-      //there (kernels failing the policy keep the free-gas fallback):
+      //Teff usage (what estimateTeffMSD applies), tuned on the ENDF8-
+      //converted kernels with recorded ENDF effective temperatures
+      //plus stdlib/tests-data kernels incl. temperature extremes:
+      //teff_nrows>=20 and teff_relspread<=0.03, giving worst-case
+      //0.77% and p95 0.34% there (kernels failing the policy keep the
+      //free-gas fallback):
       Optional<Temperature> teff;
       Optional<double> msd;//[Aa^2]
       double teff_relspread = -1.0;

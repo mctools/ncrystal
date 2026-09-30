@@ -20,6 +20,8 @@
 
 #include "NCrystal/internal/extd_utils/NCSABAnalyser.hh"
 #include "NCrystal/internal/utils/NCMath.hh"
+#include "NCrystal/core/NCMem.hh"
+#include <mutex>
 namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
@@ -282,5 +284,109 @@ NC::SABAnalyser::analyse( const SABData& sab, const Options& opt )
     res.msd_relspread = calcRelIQR( msd_rows, med );
   }
   res.diagnostics = std::move( diag );
+  return res;
+}
+
+namespace NCRYSTAL_NAMESPACE {
+  namespace SABAnalyser {
+    namespace {
+
+      //Acceptance policy for the turn-key estimates (tuned on
+      //ENDF8-converted kernels with recorded effective temperatures,
+      //plus stdlib/tests-data kernels at temperature extremes; the msd
+      //values are provisional pending similar ground truth). The 0.03
+      //spread cut (vs an earlier 0.05) refuses the self-flagged tail,
+      //e.g. U in UO2 at 5K (spread 0.035, error 3%), cutting the worst
+      //accepted error 3% -> 0.77% at the cost of 3 of 283 kernels:
+      constexpr unsigned policy_min_nrows = 20;
+      constexpr double policy_max_relspread = 0.03;
+      constexpr double policy_msd_sanity_max = 10.0;//[Aa^2]
+
+      struct TeffMSDCacheDB {
+        std::mutex mtx;
+        //Both quantities are strictly positive, so -1.0 encodes
+        //absence:
+        struct Entry { double teff, msd; };
+        std::map<std::uint64_t,Entry> map;
+        bool cleanup_registered = false;
+      };
+
+      TeffMSDCacheDB& getTeffMSDCacheDB()
+      {
+        static TeffMSDCacheDB db;
+        return db;
+      }
+
+      TeffMSD decodeEntry( const TeffMSDCacheDB::Entry& e )
+      {
+        TeffMSD res;
+        if ( e.teff >= 0.0 )
+          res.effectiveTemperature = Temperature{ e.teff };
+        if ( e.msd >= 0.0 )
+          res.msd = e.msd;
+        return res;
+      }
+
+    }
+  }
+}
+
+NC::SABAnalyser::TeffMSD
+NC::SABAnalyser::estimateTeffMSD( const SABData& sab )
+{
+  auto& db = getTeffMSDCacheDB();
+  const std::uint64_t uid = sab.getUniqueID().value;
+  {
+    NCRYSTAL_LOCK_GUARD(db.mtx);
+    if ( !db.cleanup_registered ) {
+      db.cleanup_registered = true;
+      registerCacheCleanupFunction( []()
+      {
+        auto& thedb = getTeffMSDCacheDB();
+        NCRYSTAL_LOCK_GUARD(thedb.mtx);
+        thedb.map.clear();
+      });
+    }
+    auto it = db.map.find( uid );
+    if ( it != db.map.end() )
+      return decodeEntry( it->second );
+  }
+  //Not cached; analyse outside the lock (a racing duplicate
+  //computation is benign):
+  auto r = analyse( sab );
+  TeffMSD res;
+  const double T = sab.temperature().dbl();
+  if ( r.teff.has_value()
+       && r.teff_nrows >= policy_min_nrows
+       && r.teff_relspread <= policy_max_relspread ) {
+    double tv = r.teff.value().dbl();
+    //Same semantics as sct_checkedTeff, but discarding rather than
+    //throwing:
+    if ( std::isfinite( tv ) && tv >= 0.999*T ) {
+      tv = ncmax( tv, T );
+      if ( tv >= Temperature::allowed_range.first
+           && tv <= Temperature::allowed_range.second )
+        res.effectiveTemperature = Temperature{ tv };
+    }
+  }
+  if ( r.msd.has_value()
+       && r.msd_nrows >= policy_min_nrows
+       && r.msd_relspread <= policy_max_relspread
+       && std::isfinite( r.msd.value() )
+       && r.msd.value() > 0.0
+       && r.msd.value() < policy_msd_sanity_max )
+    res.msd = r.msd.value();
+  {
+    NCRYSTAL_LOCK_GUARD(db.mtx);
+    //Reset if somehow reaching an unreasonable size, on principle:
+    if ( db.map.size() >= 5000 )
+      db.map.clear();
+    db.map[uid]
+      = TeffMSDCacheDB::Entry{ ( res.effectiveTemperature.has_value()
+                                 ? res.effectiveTemperature.value().dbl()
+                                 : -1.0 ),
+                               res.msd.has_value() ? res.msd.value()
+                                                   : -1.0 };
+  }
   return res;
 }
