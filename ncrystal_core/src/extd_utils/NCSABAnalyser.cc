@@ -43,6 +43,12 @@ namespace NCRYSTAL_NAMESPACE {
       constexpr double opt_msd_m0_low = 0.05;     //1/N and 1/(1-N) error
       constexpr double opt_msd_m0_high = 0.95;    //  amplification guards
       constexpr unsigned opt_n_sigma_iter = 2;    //converged (1 vs 2: <0.1%)
+      //msd rows: require the trapezoidal m0 to be converged, tested by
+      //halving the beta resolution (error ratio 4:1), relative to the
+      //deficit 1-m0 which sets the msd error scale. Catches coarse
+      //kernels whose sharp small-alpha quasi-elastic peak is
+      //under-sampled (bias invisible to the spread metric):
+      constexpr double opt_msd_m0_convergence = 0.15;
 
       //Median and relative IQR spread of a scratch vector (modified):
       double calcMedian( VectD& v )
@@ -64,6 +70,36 @@ namespace NCRYSTAL_NAMESPACE {
         const double q1 = vectAt( v, n/4 );
         const double q3 = vectAt( v, (3*n)/4 );
         return ( q3 - q1 ) / median;
+      }
+
+      //Zeroth beta-moment of a row using only every second retained
+      //point, for the msd trapezoid-convergence self-test (an
+      //under-resolved quasi-elastic peak converges badly):
+      double calcRowM0Stride2( const VectD& beta, const VectD& sab,
+                               std::size_t nalpha, std::size_t ia,
+                               double floor )
+      {
+        StableSum m0;
+        double bprev(0.0), wprev(0.0);
+        unsigned nkept(0);
+        bool have_prev(false), take(true);
+        const std::size_t nb = beta.size();
+        for ( std::size_t j = 0; j < nb; ++j ) {
+          const double w = vectAt( sab, j*nalpha + ia );
+          if ( !( w > floor ) )
+            continue;
+          if ( !take ) {
+            take = true;
+            continue;
+          }
+          take = false;
+          ++nkept;
+          const double b = vectAt( beta, j );
+          if ( have_prev )
+            m0.add( 0.5*( b - bprev )*( w + wprev ) );
+          bprev = b; wprev = w; have_prev = true;
+        }
+        return nkept >= 2 ? m0.sum() : -1.0;
       }
 
       //Row moments over the floor-masked polyline (trapezoidal):
@@ -229,6 +265,10 @@ NC::SABAnalyser::analyse( const SABData& sab, const Options& opt )
         } else if ( !( rm.m0 > opt_msd_m0_low
                        && rm.m0 < opt_msd_m0_high ) ) {
           setstat( RowStatus::M0OutOfWindow, false );
+        } else if ( ncabs( calcRowM0Stride2( bgrid, S, na, ia, floor )
+                           - rm.m0 )
+                    > opt_msd_m0_convergence * ( 1.0 - rm.m0 ) ) {
+          setstat( RowStatus::Unresolved, false );
         } else {
           const double c = -std::log1p( -rm.m0 ) / a;
           const double msd_row = c / ( alpha2x_factor * kT );
