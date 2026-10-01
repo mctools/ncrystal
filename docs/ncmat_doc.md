@@ -959,11 +959,17 @@ The *NCMAT v5* restriction that crystalline materials (those having @CELL and
 @DYNINFO sections of type *vdos* or *vdosdebye*, is relaxed: sections of type
 *scatknl* are now also allowed, with the mean-squared displacement information
 needed for Debye-Waller factors either provided explicitly via the `msd` or
-`debye_temp` keywords, or confidently inferred from the kernel data itself. As
-every atom of a crystalline material enters the structure factors, a
-load-time error results if any atom is left without a usable value (the
-explicit keywords being the remedy for kernels which NCrystal refuses to
-analyse confidently).
+`debye_temp` keywords, or confidently inferred from the kernel data itself.
+
+In summary, the complete *NCMAT v8* rule is thus: crystalline materials must
+have all @DYNINFO sections of type *vdos*, *vdosdebye*, or *scatknl*, with the
+mean-squared displacement information needed for Debye-Waller factors coming
+respectively from the VDOS curve itself, the mandatory `debye_temp` or `msd`
+entry, or (for *scatknl*) either of the two optional keywords or automatic
+analysis of the kernel data. As every atom of a crystalline material enters
+the structure factors, a load-time error results if any atom is left without
+a usable value (the explicit keywords being the remedy for kernels which
+NCrystal refuses to analyse confidently).
 
 ## The @STATEOFMATTER section is now mandatory for non-crystalline materials ##
 
