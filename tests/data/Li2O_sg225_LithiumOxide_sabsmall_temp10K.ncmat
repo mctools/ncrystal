@@ -5,6 +5,8 @@ NCMAT v7
 # (plus endpoints),
 # S values at 5 significant digits. For tests needing a modest
 # direct-kernel (scatknl) solid material.
+@STATEOFMATTER
+  solid
 @DENSITY
   2.0140160701310448 g_per_cm3
 @DYNINFO

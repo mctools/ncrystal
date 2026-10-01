@@ -1,4 +1,11 @@
 v4.4.7 (work in progress)
+     * Solid (declared via @STATEOFMATTER) non-crystalline direct-kernel
+       (scatknl) materials now get incoherent-approximation elastic
+       scattering, with the mean-squared displacement estimated directly
+       from the kernel via SABAnalyser (the extension to scatknl
+       explicitly reserved by the NCMAT v5 @STATEOFMATTER spec). Kernels
+       whose msd is not confidently extractable (e.g. liquid-like), and
+       files without a declared solid state, are unaffected.
      * Direct-kernel (scatknl) materials now get the SCT extension model
        by default in next-gen (knllux>=0) configs: SABAnalyser's Teff
        estimate (cached per-kernel via the new turn-key

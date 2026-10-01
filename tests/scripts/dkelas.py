@@ -23,12 +23,14 @@
 #Comprehensive reference test of direct-kernel (scatknl) material
 #behaviour at the Info and process levels: state of matter, AtomInfo
 #msd/Debye-temperature fields, dyninfo types, elastic/inelastic
-#component breakdowns and cross sections, the analyser's turn-key
-#Teff/msd values, and the (in)ability to load crystalline files whose
-#only dynamics is a scatter kernel. This pins down the behaviour that
-#the msd-based elastic support for scatknl materials is about to
-#change, so that change will show up as a deliberate update of this
-#log. Printed values are deliberately low-precision.
+#component breakdowns and cross sections, and the analyser's turn-key
+#Teff/msd values. Covers the msd-based elastic physics of solid
+#direct-kernel materials: declared-solid structureless kernels gain
+#incoherent-approximation elastic from the analyser msd (reserved for
+#scatknl by the NCMAT v5 @STATEOFMATTER spec), Unknown-state and
+#liquid materials do not, and crystalline files whose only dynamics is
+#a scatter kernel still refuse to load without @DEBYETEMPERATURE
+#(pending NCMAT v8). Printed values are deliberately low-precision.
 
 import NCTestUtils.enable_fpe # noqa F401
 import NCTestUtils.enable_testdatapath # noqa F401
@@ -109,6 +111,19 @@ def crystalline_scatknl_probe():
         except NC.NCException as e:
             print(f'    refused: {type(e).__name__}: {e}')
 
+def stateofmatter_control_probe():
+    #The elastic gain for solid scatknl materials keys on the declared
+    #state of matter: the same kernel without @STATEOFMATTER (state
+    #Unknown) must stay elastic-free:
+    txt = NC.createTextData(
+        'Li2O_sg225_LithiumOxide_sabsmall_temp10K.ncmat' ).rawData
+    lines = txt.splitlines()
+    i = lines.index('@STATEOFMATTER')
+    NC.registerInMemoryFileData( 'probe_nostate.ncmat',
+                                 '\n'.join( lines[:i]+lines[i+2:] )+'\n' )
+    inspect_info( 'virtual::probe_nostate.ncmat' )
+    inspect_proc( 'virtual::probe_nostate.ncmat' )
+
 def main():
     mats = [ ('stdlib::LiquidWaterH2O_T293.6K.ncmat','H'),
              ('stdlib::LiquidHeavyWaterD2O_T293.6K.ncmat','D'),
@@ -119,6 +134,7 @@ def main():
         inspect_proc( cfgstr )
     for cfgstr, lbl in mats:
         inspect_auto( cfgstr, lbl )
+    stateofmatter_control_probe()
     crystalline_scatknl_probe()
 
 if __name__ == '__main__':

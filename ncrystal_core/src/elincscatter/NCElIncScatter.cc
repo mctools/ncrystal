@@ -21,6 +21,7 @@
 
 #include "NCrystal/internal/elincscatter/NCElIncScatter.hh"
 #include "NCrystal/internal/vdos/NCVDOSEval.hh"
+#include "NCrystal/internal/extd_utils/NCSABAnalyser.hh"
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/internal/phys_utils/NCElIncXS.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
@@ -110,6 +111,7 @@ namespace NCRYSTAL_NAMESPACE {
         for ( auto& di : info.getDynamicInfoList() ) {
           auto di_vdos = dynamic_cast<const DI_VDOS*>(di.get());
           auto di_vdosdebye = dynamic_cast<const DI_VDOSDebye*>(di.get());
+          auto di_skd = dynamic_cast<const DI_ScatKnlDirect*>(di.get());
           Optional<double> msd_value;
           if ( di_vdos ) {
             msd_value = VDOSEval( di_vdos->vdosData() ).getMSD();
@@ -117,6 +119,12 @@ namespace NCRYSTAL_NAMESPACE {
             msd_value = debyeIsotropicMSD( di_vdosdebye->debyeTemperature(),
                                            info.getTemperature(),
                                            di_vdosdebye->atomData().averageMassAMU() );
+          } else if ( di_skd ) {
+            //Estimated directly from the kernel (absent whenever not
+            //confidently extractable, e.g. liquid-like kernels -- NB:
+            //callers gate on solid state of matter):
+            msd_value = SABAnalyser
+              ::estimateTeffMSD( *di_skd->ensureBuildThenReturnSAB() ).msd;
           }
           if ( msd_value.has_value() ) {
             msd.push_back( msd_value.value() );
