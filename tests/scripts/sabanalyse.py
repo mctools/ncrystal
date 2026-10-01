@@ -89,6 +89,21 @@ def main():
           f' {"OK" if ok_auto else "FAIL"}')
     assert ok_teff and ok_msd and ok_auto
 
+    #NCMAT v8 explicit effective_temperature takes precedence over the
+    #kernel-based estimate (query teff is the extender-level value):
+    txt = NC.createTextData('benzene_solid_100K_sabsmall.ncmat').rawData
+    parts = txt.replace('NCMAT v7','NCMAT v8',1).split('@DYNINFO')
+    for i, p in enumerate(parts):
+        if 'element     C' in p:
+            parts[i] = p + '  effective_temperature 600\n'
+    NC.registerInMemoryFileData( 'v8efft_benzene.ncmat',
+                                 '@DYNINFO'.join(parts) )
+    r = analyse('virtual::v8efft_benzene.ncmat','C')
+    ok_efft = r['teff_extender'] == 600.0 and abs(r['teff']/578.1-1)<0.01
+    print(f'==> explicit effective_temperature honoured:'
+          f' {"OK" if ok_efft else "FAIL"}')
+    assert ok_efft
+
     #Options override tokens: loosening center_tol must not disturb the
     #plateau-dominated result for a good kernel (weak bound), while
     #"auto" stays pinned to the default-options policy values:

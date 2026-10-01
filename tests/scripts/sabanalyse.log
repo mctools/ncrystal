@@ -18,6 +18,7 @@ NCrystal WARNING: Discarding 52 edges of provided kernel data due to missing S v
     teff in (2T,10T) with modest spread: OK
     msd self-flagged unreliable: OK
     auto: teff accepted, msd rejected: OK
+==> explicit effective_temperature honoured: OK
 ==> center_tol token accepted and benign: OK
 ==> JENDL benzene fixtures: 100K C accepted (teff~endf): OK, 100K H refused: OK, 20K C zero-row teff + good msd: OK
 ==> diagnostics: 400 rows, aligned arrays and valid status codes: OK

@@ -1,6 +1,7 @@
 atomdb
 cfgutils
 core
+dyninfoutils
 extd_utils
 fact_utils
 factories

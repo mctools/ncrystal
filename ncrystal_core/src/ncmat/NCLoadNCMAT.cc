@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/ncmat/NCLoadNCMAT.hh"
+#include "NCrystal/internal/dyninfoutils/NCDynInfoEx.hh"
 #include "NCrystal/internal/ncmat/NCParseNCMAT.hh"
 #include "NCrystal/internal/ncmat/NCNCMATData.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
@@ -42,15 +43,17 @@ namespace NC = NCrystal;
 
 namespace NCRYSTAL_NAMESPACE {
 
-  class DI_ScatKnlImpl final : public DI_ScatKnlDirect {
+  class DI_ScatKnlImpl final : public DI_ScatKnlDirectEx {
   public:
     virtual ~DI_ScatKnlImpl(){}
 
     DI_ScatKnlImpl( double fraction,
                     IndexedAtomData atom,
                     VectD&& egrid,
-                    ScatKnlData&& data )
-      : DI_ScatKnlDirect(fraction,std::move(atom),data.temperature),
+                    ScatKnlData&& data,
+                    ExData exdata )
+      : DI_ScatKnlDirectEx(fraction,std::move(atom),data.temperature,
+                           std::move(exdata)),
         m_inputdata(ncmake_unique<ScatKnlData>(std::move(data)))
     {
       if (!egrid.empty())
@@ -176,12 +179,16 @@ NC::Info NC::loadNCMAT( const FactImpl::InfoRequest& cfg )
 NC::Info NC::loadNCMAT( NCMATData&& data,
                         NC::NCMATCfgVars&& cfgvars )
 {
-  //TEMPORARY (remove when NCMAT v8 consumption lands in the following
-  //commits): parsing/validation of v8 is complete, loading is not:
-  if ( data.version >= 8 )
+  //TEMPORARY (remove when crystalline NCMAT v8 scatknl consumption
+  //lands in the following commits):
+  if ( data.version >= 8 && data.hasCell()
+       && std::any_of( data.dyninfos.begin(), data.dyninfos.end(),
+                       []( const NCMATData::DynInfo& e )
+                       { return e.dyninfo_type==NCMATData::DynInfo::ScatKnl; } ) )
     NCRYSTAL_THROW2(BadInput,data.sourceDescription
-                    <<" loading of NCMAT v8 files is not yet implemented"
-                    " in this development version of NCrystal");
+                    <<" loading of crystalline NCMAT v8 files with scatknl"
+                    " dynamics is not yet implemented in this development"
+                    " version of NCrystal");
 
   const bool verbose = ncgetenv_bool("DEBUGINFO");
 
@@ -546,12 +553,49 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
             NCRYSTAL_THROW(LogicError,"Unexpected SAB type in input data");//logic-error, since we should have caught this earlier.
           }
 
+          //Explicit NCMAT v8 keyword values (cf. NCDynInfoEx.hh); the
+          //msd value is normalised to the kernel temperature via the
+          //isotropic Debye model when given at another temperature,
+          //so downstream consumers never see the reference
+          //temperature. Pre-v8 files must keep their historical
+          //physics, so kernel-based msd estimation is forbidden for
+          //them (Teff estimation is a pure modelling improvement and
+          //stays allowed for any version):
+          DI_ScatKnlDirectEx::ExData exdata;
+          exdata.allow_msd_estimation = ( data.version >= 8 );
+          {
+            auto it_efft = e.fields.find("effective_temperature");
+            if ( it_efft != e.fields.end() )
+              exdata.explicit_teff
+                = Temperature{ DoValidate, it_efft->second.at(0) };
+            auto it_msd = e.fields.find("msd");
+            auto it_dt = e.fields.find("debye_temp");
+            const auto mass = iad.data().averageMassAMU();
+            if ( it_msd != e.fields.end() ) {
+              double msdval = it_msd->second.at(0);
+              auto it_msdt = e.fields.find("msd_temperature");
+              if ( it_msdt != e.fields.end()
+                   && !floateq( it_msdt->second.at(0),
+                                cfgvars.temp.dbl(), 1e-10, 1e-10 ) ) {
+                auto dt = debyeTempFromIsotropicMSD(
+                  msdval, Temperature{ DoValidate,
+                                       it_msdt->second.at(0) }, mass );
+                msdval = debyeIsotropicMSD( dt, cfgvars.temp, mass );
+              }
+              exdata.explicit_msd = msdval;
+            } else if ( it_dt != e.fields.end() ) {
+              exdata.explicit_msd = debyeIsotropicMSD(
+                DebyeTemperature{ it_dt->second.at(0) },
+                cfgvars.temp, mass );
+            }
+          }
+
           //Egrid:
           VectD egrid = getEgrid(e.fields);
           di = ncmake_unique<DI_ScatKnlImpl>(e.fraction, iad,
                                              std::move(egrid),
-                                             std::move(knldata));
-          //TODO: Also try to estimate Debye temperature from SAB?
+                                             std::move(knldata),
+                                             std::move(exdata));
         }
         break;
       default:

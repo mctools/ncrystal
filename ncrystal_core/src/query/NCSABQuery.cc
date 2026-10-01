@@ -241,6 +241,12 @@ namespace NCRYSTAL_NAMESPACE {
         streamJSON( os, static_cast<std::uint64_t>(r.msd_nrows) );
         os << ",\"recoil_center_ratio\":";
         stream_opt_dbl( r.recoil_center_ratio );
+        os << ",\"teff_extender\":";
+        //What the kernel-extension factories would actually use
+        //(explicit NCMAT v8 value, or estimate):
+        stream_opt_dbl( xd.teff.has_value()
+                        ? Optional<double>{ xd.teff.value().dbl() }
+                        : Optional<double>{} );
         os << ",\"teff_vdos\":";
         stream_opt_dbl( xd.teff_vdos.has_value()
                         ? Optional<double>{ xd.teff_vdos.value().dbl() }

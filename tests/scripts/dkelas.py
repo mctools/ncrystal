@@ -76,6 +76,30 @@ def inspect_auto( cfgstr, lbl ):
     print(f'==> analyser auto values for {cfgstr}//{lbl or "mono"}:'
           f' teff={fmt(a["teff"])} msd={fmt(a["msd"],2)}')
 
+def v8_gating_probe():
+    #The v8 gating of automatic msd extraction: the same fixture
+    #content restamped as NCMAT v8 regains the elastic physics that
+    #v7 files must not have (for benzene with a warning naming the
+    #H component whose msd is refused), and explicit v8 keywords both
+    #enable refused components (msd for H) and override auto-detected
+    #values (effective_temperature for C):
+    btxt = NC.createTextData('benzene_solid_100K_sabsmall.ncmat').rawData
+    for name in ( 'benzene_solid_100K_sabsmall.ncmat',
+                  'C_from_benzene_solid_20K_sabsmall.ncmat' ):
+        txt = NC.createTextData( name ).rawData
+        NC.registerInMemoryFileData( 'v8_'+name,
+                                     txt.replace('NCMAT v7','NCMAT v8',1) )
+        inspect_proc( 'virtual::v8_'+name )
+    parts = btxt.replace('NCMAT v7','NCMAT v8',1).split('@DYNINFO')
+    for i, p in enumerate(parts):
+        if 'element     H' in p:
+            parts[i] = p + '  msd 0.9\n'
+        if 'element     C' in p:
+            parts[i] = p + '  effective_temperature 600\n'
+    NC.registerInMemoryFileData( 'v8kw_benzene.ncmat',
+                                 '@DYNINFO'.join(parts) )
+    inspect_proc( 'virtual::v8kw_benzene.ncmat' )
+
 def crystalline_scatknl_probe():
     #A crystalline (unit-cell) file whose only dynamics is a scatter
     #kernel: splice stdlib Li2O structure sections onto the pre-expanded
@@ -138,6 +162,7 @@ def main():
     for cfgstr, lbl in mats:
         inspect_auto( cfgstr, lbl )
     stateofmatter_control_probe()
+    v8_gating_probe()
     crystalline_scatknl_probe()
 
 if __name__ == '__main__':

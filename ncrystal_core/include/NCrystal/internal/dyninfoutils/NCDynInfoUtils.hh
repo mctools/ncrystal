@@ -56,11 +56,14 @@ namespace NCRYSTAL_NAMESPACE {
                              bool useCache = true,
                              std::uint32_t vdos2sabExcludeFlag = 0 );
 
-  //Effective temperature associated with the dyninfo, when derivable
-  //(currently only for DI_VDOS, via VDOSEval), validated to a sane
-  //range via Temperature::validate(). Used e.g. by the SCT kernel
-  //extension model:
+  //Effective temperature and mean-squared displacement associated
+  //with a dyninfo, when available (explicitly attached values, VDOS
+  //derivation, Debye model, or confident estimation directly from a
+  //kernel -- absent otherwise; callers need never care which). Teff
+  //values are validated to a sane range via Temperature::validate().
+  //Used by the SCT kernel extension model resp. elastic physics:
   Optional<Temperature> extractTeffFromDynInfo( const DI_ScatKnl* );
+  Optional<double> extractMSDFromDynInfo( const DI_ScatKnl* );//[Aa^2]
 
   shared_obj<const SABData>
   extractSABDataFromVDOSDebyeModel( DebyeTemperature, Temperature,

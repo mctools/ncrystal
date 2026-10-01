@@ -1,5 +1,4 @@
-extd_utils
+dyninfoutils
 interfaces
 phys_utils
 utils
-vdos

@@ -20,13 +20,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "NCrystal/internal/elincscatter/NCElIncScatter.hh"
-#include "NCrystal/internal/vdos/NCVDOSEval.hh"
-#include "NCrystal/internal/extd_utils/NCSABAnalyser.hh"
+#include "NCrystal/internal/dyninfoutils/NCDynInfoUtils.hh"
 #include "NCrystal/interfaces/NCInfo.hh"
 #include "NCrystal/internal/phys_utils/NCElIncXS.hh"
 #include "NCrystal/internal/utils/NCRandUtils.hh"
 #include "NCrystal/internal/phys_utils/NCDebyeMSD.hh"
 #include "NCrystal/internal/utils/NCSpan.hh"
+#include "NCrystal/internal/utils/NCMsg.hh"
 #include "NCrystal/internal/phys_utils/NCDebyeMSD.hh"
 #include "NCrystal/internal/utils/NCString.hh"
 #include <sstream>
@@ -108,29 +108,32 @@ namespace NCRYSTAL_NAMESPACE {
         }
       } else {
         //Try to initialise via dyninfo sections (ok if some, but not all, have missing info):
+        std::string missing_msd_elems;
         for ( auto& di : info.getDynamicInfoList() ) {
-          auto di_vdos = dynamic_cast<const DI_VDOS*>(di.get());
-          auto di_vdosdebye = dynamic_cast<const DI_VDOSDebye*>(di.get());
-          auto di_skd = dynamic_cast<const DI_ScatKnlDirect*>(di.get());
-          Optional<double> msd_value;
-          if ( di_vdos ) {
-            msd_value = VDOSEval( di_vdos->vdosData() ).getMSD();
-          } else if ( di_vdosdebye ) {
-            msd_value = debyeIsotropicMSD( di_vdosdebye->debyeTemperature(),
-                                           info.getTemperature(),
-                                           di_vdosdebye->atomData().averageMassAMU() );
-          } else if ( di_skd ) {
-            //Estimated directly from the kernel (absent whenever not
-            //confidently extractable, e.g. liquid-like kernels -- NB:
-            //callers gate on solid state of matter):
-            msd_value = SABAnalyser
-              ::estimateTeffMSD( *di_skd->ensureBuildThenReturnSAB() ).msd;
-          }
+          auto di_knl = dynamic_cast<const DI_ScatKnl*>(di.get());
+          if ( !di_knl )
+            continue;//freegas/sterile: never an msd carrier
+          //Explicit values, VDOS/Debye derivation or confident kernel
+          //estimation, as available (cf. NCDynInfoUtils.hh):
+          Optional<double> msd_value = extractMSDFromDynInfo( di_knl );
           if ( msd_value.has_value() ) {
             msd.push_back( msd_value.value() );
             scale.push_back( di->fraction() * cfg.scale_factor );
             bixs.push_back( getSigma( di->atomData() ) );
+          } else {
+            if ( !missing_msd_elems.empty() )
+              missing_msd_elems += ", ";
+            missing_msd_elems += di->atomData().description(false);
           }
+        }
+        if ( !capOnly && !msd.empty() && !missing_msd_elems.empty() ) {
+          //Partial contribution for a solid: better than refusing all,
+          //but the user deserves to know (cf. also the explicit msd
+          //and debye_temp keywords of NCMAT v8):
+          NCRYSTAL_WARN("Incoherent-elastic scattering of solid material"
+                        " will be missing the contribution of component(s)"
+                        " without available mean-squared displacements: "
+                        <<missing_msd_elems);
         }
         if ( msd.empty() ) {
           if ( capOnly )
