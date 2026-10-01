@@ -31,7 +31,11 @@ v4.4.7 (work in progress)
        token. All per-row validity gates are hardcoded constants
        (confirmed flat by a x2 up/down sensitivity scan over 263
        kernels); the single data-derived tunable is
-       Options::center_tol. This
+       Options::center_tol. Turn-key acceptance is per quantity:
+       loose for Teff (nrows>=10, relspread<=0.1 -- never worse than
+       the free-gas fallback over 501 pooled truth-records incl.
+       JENDL-5-converted kernels, worst 5.3%), strict for msd
+       (nrows>=20, relspread<=0.03, worst 0.77%). This
        is groundwork for supporting the SCT extension model (and
        eventually elastic physics) for direct-kernel materials.
      * Fix latent undefined behaviour in factory removal (FactImpl's

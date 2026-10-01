@@ -117,13 +117,14 @@ namespace NCRYSTAL_NAMESPACE {
       //Raw estimates: absent when no admissible rows. NB: deliberately
       //no acceptance policy applied here; consumers should threshold on
       //the relspread metrics (IQR/median over the per-row estimates)
-      //and validate the values. Recommended acceptance for automatic
-      //Teff usage (what estimateTeffMSD applies), tuned on the ENDF8-
-      //converted kernels with recorded ENDF effective temperatures
-      //plus stdlib/tests-data kernels incl. temperature extremes:
-      //teff_nrows>=20 and teff_relspread<=0.03, giving worst-case
-      //0.77% and p95 0.34% there (kernels failing the policy keep the
-      //free-gas fallback):
+      //and validate the values. The acceptance applied by
+      //estimateTeffMSD is per quantity, reflecting opposite failure
+      //asymmetries: loose for Teff (teff_nrows>=10,
+      //teff_relspread<=0.1: an accepted estimate was never worse than
+      //the free-gas fallback over 501 pooled truth-records, worst
+      //error 5.3%), strict for msd (msd_nrows>=20,
+      //msd_relspread<=0.03: refusal just means no elastic component,
+      //while a wrong value would add wrong physics):
       Optional<Temperature> teff;
       Optional<double> msd;//[Aa^2]
       double teff_relspread = -1.0;
