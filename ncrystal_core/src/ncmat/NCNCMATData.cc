@@ -37,6 +37,8 @@ void NC::NCMATData::DynInfo::validate( int theversion ) const
   std::set<std::string> requiredfields,optionalfields;
   if ( dyninfo_type==VDOSDebye ) {
     optionalfields.insert("debye_temp");///NB: Validate further down that it is not used before NCMAT v5
+    optionalfields.insert("msd");//v8+ (validated below)
+    optionalfields.insert("msd_temperature");
   } else if ( dyninfo_type==VDOS ) {
     requiredfields.insert("vdos_egrid");
     requiredfields.insert("vdos_density");
@@ -44,6 +46,10 @@ void NC::NCMATData::DynInfo::validate( int theversion ) const
   } else if ( dyninfo_type==ScatKnl ) {
     requiredfields.insert("temperature");
     optionalfields.insert("egrid");
+    optionalfields.insert("debye_temp");//v8+ (validated below)
+    optionalfields.insert("msd");//v8+
+    optionalfields.insert("msd_temperature");
+    optionalfields.insert("effective_temperature");//v8+
     //Must be exactly one sqw/sab/sab_scaled field:
     bool sk_sab(fields.count("sab")), sk_sab_scaled(fields.count("sab_scaled")), sk_sqw(fields.count("sqw"));
     auto nsk = (sk_sab?1:0) + (sk_sab_scaled?1:0) + (sk_sqw?1:0);
@@ -85,6 +91,53 @@ void NC::NCMATData::DynInfo::validate( int theversion ) const
         NCRYSTAL_THROW2(BadInput,"Invalid (at least for this type of dynamic info) field \""<<it->first<<"\" specified");
   }
 
+
+  //Validate the NCMAT v8 keywords (common rules):
+  {
+    auto val1 = [this]( const char* name, double lo, double hi ) -> Optional<double>
+    {
+      auto it = fields.find(name);
+      if ( it == fields.end() )
+        return NullOpt;
+      if ( it->second.size() != 1 )
+        NCRYSTAL_THROW2(BadInput,name<<" keyword not followed by exactly one parameter");
+      const double v = it->second.at(0);
+      if ( !(v>lo) || !(v<hi) )
+        NCRYSTAL_THROW2(BadInput,"invalid "<<name<<" value");
+      return v;
+    };
+    const bool has_msd = fields.count("msd")>0;
+    const bool has_msdt = fields.count("msd_temperature")>0;
+    const bool has_efft = fields.count("effective_temperature")>0;
+    const bool has_dt = fields.count("debye_temp")>0;
+    if ( theversion < 8 ) {
+      if ( has_msd || has_msdt )
+        NCRYSTAL_THROW(BadInput,"msd keyword in @DYNINFO sections is only allowed in NCMAT v8 or later");
+      if ( has_efft )
+        NCRYSTAL_THROW(BadInput,"effective_temperature keyword in @DYNINFO sections is only allowed in NCMAT v8 or later");
+      if ( has_dt && dyninfo_type==ScatKnl )
+        NCRYSTAL_THROW(BadInput,"debye_temp keyword in @DYNINFO sections of type scatknl is only allowed in NCMAT v8 or later");
+    }
+    nc_assert( !has_msdt || has_msd );//parser guarantees
+    if ( has_msd && has_dt )
+      NCRYSTAL_THROW(BadInput,"@DYNINFO sections can not specify both the msd and the debye_temp keywords");
+    val1( "msd", 0.0, 100.0 );//[Aa^2]
+    val1( "msd_temperature", 0.0, 1e6 );
+    if ( has_msd && !has_msdt && dyninfo_type!=ScatKnl )
+      NCRYSTAL_THROW(BadInput,"the msd keyword must be accompanied by an at_temperature part"
+                     " in @DYNINFO sections without a temperature field (i.e. all but type scatknl)");
+    auto efft = val1( "effective_temperature", 0.0, 1e6 );
+    if ( efft.has_value() ) {
+      nc_assert( dyninfo_type==ScatKnl );//only in optionalfields there
+      auto itt = fields.find("temperature");
+      if ( itt != fields.end() && itt->second.size()==1
+           && !( efft.value() >= itt->second.at(0) ) )
+        NCRYSTAL_THROW(BadInput,"the effective_temperature value must be at least as large as the temperature value");
+    }
+    if ( theversion >= 8 && dyninfo_type==VDOSDebye && !has_dt && !has_msd )
+      NCRYSTAL_THROW(BadInput,"@DYNINFO sections of type vdosdebye must contain either a"
+                     " debye_temp or an msd entry in NCMAT v8 or later (the @DEBYETEMPERATURE section is removed)");
+  }
 
   //Validate specific entries:
   auto valvector = [](const std::string& name, const VectD& v, bool no_negative ) {
@@ -396,14 +449,29 @@ void NC::NCMATData::validate() const
   for (std::size_t i = 0; i<dyninfos.size(); ++i) {
     const auto& di = dyninfos.at(i);
     if ( di.dyninfo_type==DynInfo::VDOSDebye ) {
-      const bool has_debye_temp_kw = di.fields.count("debye_temp")>0;
+      const bool has_debye_temp_kw = ( di.fields.count("debye_temp")>0
+                                       || di.fields.count("msd")>0 );
       if ( !hasDebyeTemp && !has_debye_temp_kw )
         NCRYSTAL_THROW2(BadInput,"@DYNINFO sections of type vdosdebye requires Debye temperature to be specified. Either in"
-                        " the same section via the debye_temp keyword (requires NCMAT v5+) or in the @DEBYETEMPERATURE section.");
+                        " the same section via the debye_temp or msd (NCMAT v8+) keywords (debye_temp requires NCMAT v5+),"
+                        " or in the @DEBYETEMPERATURE section.");
       if ( hasDebyeTemp && has_debye_temp_kw )
         NCRYSTAL_THROW2(BadInput,"@DYNINFO sections of type vdosdebye can not have a debye_temp"
                         " entry when there is a @DEBYETEMPERATURE section in the file.");
     }
+    if ( version >= 8 && hasCell()
+         && ( di.dyninfo_type==DynInfo::FreeGas
+              || di.dyninfo_type==DynInfo::Sterile ) )
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" @DYNINFO sections of type "<<di.typeStr()
+                      <<" can not be used in crystalline materials in NCMAT v8 or later (they can"
+                      " not carry the debye_temp or msd keywords needed for Debye-Waller factors)");
+    if ( ( di.fields.count("msd") || ( di.dyninfo_type==DynInfo::ScatKnl
+                                       && di.fields.count("debye_temp") ) )
+         && !( hasCell()
+               || stateOfMatter == Optional<StateOfMatter>{StateOfMatter::Solid} ) )
+      NCRYSTAL_THROW2(BadInput,sourceDescription<<" the msd and debye_temp keywords of @DYNINFO sections are only"
+                      " allowed in materials clearly describing solids (crystalline, or with an explicit"
+                      " @STATEOFMATTER solid declaration)");
     try {
       di.validate(version);
     } catch (Error::BadInput&e) {
@@ -461,6 +529,11 @@ void NC::NCMATData::validate() const
       NCRYSTAL_THROW2(BadInput,sourceDescription<<" missing Debye temperature information for crystalline material");
   }
 
+  if ( version >= 8 && hasDebyeTemperature() )
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" The @DEBYETEMPERATURE section is removed in NCMAT v8: provide the"
+                    " information directly in the @DYNINFO sections via the debye_temp or msd keywords");
+  if ( version >= 8 && !hasunitcellinfo && !stateOfMatter.has_value() )
+    NCRYSTAL_THROW2(BadInput,sourceDescription<<" Non-crystalline materials must contain a @STATEOFMATTER section in NCMAT v8 or later");
   if ( !hasunitcellinfo && hasDebyeTemperature() )
     NCRYSTAL_THROW2(BadInput,sourceDescription<<" Debye temperature information is only relevant for crystalline materials with a unit cell defined");
   if ( hasunitcellinfo && !hasDebyeTemperature() && version <= 3 )
@@ -567,7 +640,8 @@ void NC::NCMATData::validate() const
 
     std::set<std::string> elements_with_msd;
     for ( const auto& di : dyninfos ) {
-      if ( di.dyninfo_type == DynInfo::VDOS || ( version >= 5 && di.dyninfo_type == DynInfo::VDOSDebye ) )
+      if ( di.dyninfo_type == DynInfo::VDOS || ( version >= 5 && di.dyninfo_type == DynInfo::VDOSDebye )
+           || ( version >= 8 && di.dyninfo_type == DynInfo::ScatKnl ) )
         elements_with_msd.insert(di.element_name);
     }
     for ( const auto& e : debyetemp_perelement )

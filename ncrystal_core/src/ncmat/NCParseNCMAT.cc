@@ -192,9 +192,11 @@ NC::NCMATParser::NCMATParser( const TextData& input )
       m_data.version = 6;
     } else if ( parts.at(1) == "v7" ) {
       m_data.version = 7;
+    } else if ( parts.at(1) == "v8" ) {
+      m_data.version = 8;
     } else {
       NCRYSTAL_THROW2(BadInput,descr()<<": is in an NCMAT format version, \""<<parts.at(1)<<"\", which is not recognised by this installation of NCrystal");
-      static_assert( supported_ncmat_format_version_max == 7, "");
+      static_assert( supported_ncmat_format_version_max == 8, "");
     }
   }
   if (!m_data.version)
@@ -311,7 +313,7 @@ void NC::NCMATParser::parseFile( TextData::Iterator itLine, TextData::Iterator i
       std::swap(current_section,new_section);
       itSection = section2handler.find( is_custom_section ? "CUSTOM"_s : current_section );
 
-      nc_assert( m_data.version>=1 && m_data.version <= 7 );
+      nc_assert( m_data.version>=1 && m_data.version <= static_cast<int>(supported_ncmat_format_version_max) );
       if ( itSection == section2handler.end() ) {
         //Unsupported section name. For better error messages, first check if it
         //is due to file version:
@@ -776,6 +778,34 @@ void NC::NCMATParser::handleSectionData_DYNINFO(const Parts& parts, unsigned lin
       }
       return;
     }
+
+    if ( p0 == "msd" ) {
+      //Special syntax (NCMAT v8, cf. validate()): "msd <value>" or
+      //"msd <value> at_temperature <TK>". Encoded in the fields map
+      //as "msd" plus (optionally) the synthesised "msd_temperature":
+      itParseToVect = itParseToVectE;//handle argument parsing here
+      if ( di.fields.count("msd") )
+        NCRYSTAL_THROW2(BadInput,e1<<": keyword \"msd\" is specified a second time in line "<<lineno);
+      const bool with_att = ( parts.size()==4 && parts.at(2)=="at_temperature" );
+      if ( ! ( parts.size()==2 || with_att ) )
+        NCRYSTAL_THROW2(BadInput,e1<<": invalid arguments for keyword \"msd\" in line "<<lineno
+                        <<" (expected \"msd <value>\" or \"msd <value> at_temperature <temperature>\")");
+      double v_msd(-1.0), v_t(-1.0);
+      try {
+        v_msd = str2dbl( parts.at(1) );
+        if ( with_att )
+          v_t = str2dbl( parts.at(3) );
+      } catch (Error::BadInput&e) {
+        NCRYSTAL_THROW2(BadInput,e1<<": problem while decoding \"msd\" parameters in line "<<lineno<<" : "<<e.what());
+      }
+      di.fields["msd"] = VectD{ v_msd };
+      if ( with_att )
+        di.fields["msd_temperature"] = VectD{ v_t };
+      return;
+    }
+    if ( isOneOf(p0,"msd_temperature","at_temperature") )
+      NCRYSTAL_THROW2(BadInput,e1<<": invalid keyword \""<<p0<<"\" in line "<<lineno
+                      <<" (an \"at_temperature\" part must follow a \"msd\" value on the same line)");
 
     //////////////////////////////////////////////////////////////
     //Not a common field, parse into generic DynInfo::fields map :

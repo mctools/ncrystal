@@ -38,7 +38,7 @@ contents="""NCMAT v[[VERSION]]
   D   300.4
 """
 
-for version in (1,2,3,4,5,6,7,8):
+for version in (1,2,3,4,5,6,7,8,9):
     print(f'Trying element D in NCMAT data with version {version}')
     NC.registerInMemoryFileData( "TestD.ncmat",contents.replace("[[VERSION]]",str(version)))
     try:

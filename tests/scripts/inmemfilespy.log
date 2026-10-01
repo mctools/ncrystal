@@ -135,4 +135,4 @@ NCMAT v4
 =======> something_that_does_not_exist.ncmat:
 <not-found>
 <=======
-Loading bad.ncmat gives expected error: @DYNINFO sections of type vdosdebye requires Debye temperature to be specified. Either in the same section via the debye_temp keyword (requires NCMAT v5+) or in the @DEBYETEMPERATURE section.
+Loading bad.ncmat gives expected error: @DYNINFO sections of type vdosdebye requires Debye temperature to be specified. Either in the same section via the debye_temp or msd (NCMAT v8+) keywords (debye_temp requires NCMAT v5+), or in the @DEBYETEMPERATURE section.

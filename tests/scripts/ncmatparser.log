@@ -799,7 +799,7 @@ Caught expected NCBadInput('"(anonymous TextData, 79bytes, type=ncmat)": wrong n
 
 
 ==> Test 193
-==> Correct! NCBadInput: @DYNINFO sections of type vdosdebye requires Debye temperature to be specified. Either in the same section via the debye_temp keyword (requires NCMAT v5+) or in the @DEBYETEMPERATURE section.
+==> Correct! NCBadInput: @DYNINFO sections of type vdosdebye requires Debye temperature to be specified. Either in the same section via the debye_temp or msd (NCMAT v8+) keywords (debye_temp requires NCMAT v5+), or in the @DEBYETEMPERATURE section.
 
 
 ==> Test 194
@@ -984,6 +984,126 @@ Caught expected NCBadInput('"(anonymous TextData, 79bytes, type=ncmat)": wrong n
 
 ==> Test 239
 ==> Correct! NCBadInput: (anonymous TextData, 846bytes, type=ncmat) temperature values specified in @TEMPERATURE and @DYNINFO sections are different
+
+
+==> Test 240
+==> Ok.
+
+
+==> Test 241
+==> Ok.
+
+
+==> Test 242
+==> Ok.
+
+
+==> Test 243
+==> Ok.
+
+
+==> Test 244
+==> Ok.
+
+
+==> Test 245
+==> Ok.
+
+
+==> Test 246
+==> Ok.
+
+
+==> Test 247
+==> Ok.
+
+
+==> Test 248
+==> Ok.
+
+
+==> Test 249
+==> Ok.
+
+
+==> Test 250
+==> Ok.
+
+
+==> Test 251
+==> Ok.
+
+
+==> Test 252
+==> Correct! NCBadInput: (anonymous TextData, 91bytes, type=ncmat) The @DEBYETEMPERATURE section is removed in NCMAT v8: provide the information directly in the @DYNINFO sections via the debye_temp or msd keywords
+
+
+==> Test 253
+==> Correct! NCBadInput: (anonymous TextData, 749bytes, type=ncmat) Non-crystalline materials must contain a @STATEOFMATTER section in NCMAT v8 or later
+
+
+==> Test 254
+==> Correct! NCBadInput: @DYNINFO sections of type vdosdebye must contain either a debye_temp or an msd entry in NCMAT v8 or later (the @DEBYETEMPERATURE section is removed) (problem found in the @DYNINFO section ending in line 9)
+
+
+==> Test 255
+==> Correct! NCBadInput: (anonymous TextData, 826bytes, type=ncmat) @DYNINFO sections of type FreeGas can not be used in crystalline materials in NCMAT v8 or later (they can not carry the debye_temp or msd keywords needed for Debye-Waller factors)
+
+
+==> Test 256
+==> Correct! NCBadInput: (anonymous TextData, 826bytes, type=ncmat) @DYNINFO sections of type Sterile can not be used in crystalline materials in NCMAT v8 or later (they can not carry the debye_temp or msd keywords needed for Debye-Waller factors)
+
+
+==> Test 257
+==> Correct! NCBadInput: msd keyword in @DYNINFO sections is only allowed in NCMAT v8 or later (problem found in the @DYNINFO section ending in line 14)
+
+
+==> Test 258
+==> Correct! NCBadInput: debye_temp keyword in @DYNINFO sections of type scatknl is only allowed in NCMAT v8 or later (problem found in the @DYNINFO section ending in line 14)
+
+
+==> Test 259
+==> Correct! NCBadInput: effective_temperature keyword in @DYNINFO sections is only allowed in NCMAT v8 or later (problem found in the @DYNINFO section ending in line 14)
+
+
+==> Test 260
+==> Correct! NCBadInput: @DYNINFO sections can not specify both the msd and the debye_temp keywords (problem found in the @DYNINFO section ending in line 15)
+
+
+==> Test 261
+==> Correct! NCBadInput: the effective_temperature value must be at least as large as the temperature value (problem found in the @DYNINFO section ending in line 14)
+
+
+==> Test 262
+==> Correct! NCBadInput: (anonymous TextData, 782bytes, type=ncmat) the msd and debye_temp keywords of @DYNINFO sections are only allowed in materials clearly describing solids (crystalline, or with an explicit @STATEOFMATTER solid declaration)
+
+
+==> Test 263
+==> Correct! NCBadInput: (anonymous TextData, 785bytes, type=ncmat) the msd and debye_temp keywords of @DYNINFO sections are only allowed in materials clearly describing solids (crystalline, or with an explicit @STATEOFMATTER solid declaration)
+
+
+==> Test 264
+==> Correct! NCBadInput: "(anonymous TextData, 787bytes, type=ncmat)": invalid arguments for keyword "msd" in line 14 (expected "msd <value>" or "msd <value> at_temperature <temperature>")
+
+
+==> Test 265
+==> Correct! NCBadInput: invalid msd value (problem found in the @DYNINFO section ending in line 14)
+
+
+==> Test 266
+==> Correct! NCBadInput: invalid msd_temperature value (problem found in the @DYNINFO section ending in line 14)
+
+
+==> Test 267
+==> Correct! NCBadInput: "(anonymous TextData, 792bytes, type=ncmat)": invalid keyword "msd_temperature" in line 14 (an "at_temperature" part must follow a "msd" value on the same line)
+
+
+==> Test 268
+==> Correct! NCBadInput: the msd keyword must be accompanied by an at_temperature part in @DYNINFO sections without a temperature field (i.e. all but type scatknl) (problem found in the @DYNINFO section ending in line 10)
+
+
+==> Test 269
+==> Correct! NCBadInput: Invalid (at least for this type of dynamic info) field "msd" specified (problem found in the @DYNINFO section ending in line 12)
 
 Loading refnc1/Ag_sg225.ncmat
 Loading refnc1/Al2O3_sg167_Corundum.ncmat

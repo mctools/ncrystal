@@ -64,6 +64,28 @@ betagrid { " ".join(str(e) for e in np.linspace(1e-6,100.0,10)) }
 sab_scaled { "1.0 "*100 }
 '''
 
+#NCMAT v8 helpers:
+def _v8_sk( *, difields='', som='solid' ):
+    #Non-crystalline scatknl material in NCMAT v8 (som=None drops the
+    #@STATEOFMATTER section):
+    s = 'NCMAT v8\n'
+    if som is not None:
+        s += f'@STATEOFMATTER\n  {som}\n'
+    s += '@DENSITY\n  1.0 g_per_cm3\n@DYNINFO\n'
+    s += gen_fake_dyninfo_scatknl_fields( ename='Al', temp=300 )
+    s += difields
+    return s
+
+def _v8_vdebye( difields ):
+    return ( 'NCMAT v8\n@STATEOFMATTER\n  solid\n@DENSITY\n'
+             '  1.0 g_per_cm3\n@DYNINFO\nelement  Al\nfraction 1\n'
+             'type     vdosdebye\n' + difields )
+
+def _v8_cryst( dyninfo ):
+    return ( 'NCMAT v8\n@CELL\ncubic 4.0\n@SPACEGROUP\n225\n'
+             '@ATOMPOSITIONS\nAl 0 0 0\n@DYNINFO\n' + dyninfo )
+
+
 def simplecubic( vx, sg, length ):
     return f"""NCMAT {vx}
 @DEBYETEMPERATURE
@@ -1228,6 +1250,58 @@ validsimplev7 +"\n@TEMPERATURE\n-400\n",
 (validsimplev7+'\n@DYNINFO\n'+gen_fake_dyninfo_scatknl_fields(ename='Al',temp=300)+"\n@TEMPERATURE\n300\n",),
 validsimplev7+'\n@DYNINFO\n'+gen_fake_dyninfo_scatknl_fields(ename='Al',temp=300,badgridval=True)+"\n@TEMPERATURE\n300\n",
 validsimplev7+'\n@DYNINFO\n'+gen_fake_dyninfo_scatknl_fields(ename='Al',temp=300)+"\n@TEMPERATURE\n400\n",
+
+#NCMAT v8 (tuple=valid, bare=expect BadInput):
+#Valid non-crystalline scatknl solids with the new keywords:
+(_v8_sk(),),
+(_v8_sk(difields='msd 0.05\n'),),
+(_v8_sk(difields='msd 0.05 at_temperature 280\n'),),
+(_v8_sk(difields='debye_temp 400\n'),),
+(_v8_sk(difields='effective_temperature 450\n'),),
+(_v8_sk(difields='msd 0.05\neffective_temperature 450\n'),),
+#Valid vdosdebye variants:
+(_v8_vdebye('debye_temp 350\n'),),
+(_v8_vdebye('msd 0.05 at_temperature 280\n'),),
+#Valid crystalline+scatknl (no @DEBYETEMPERATURE needed in v8):
+(_v8_cryst(gen_fake_dyninfo_scatknl_fields(ename='Al',temp=300)),),
+(_v8_cryst(gen_fake_dyninfo_scatknl_fields(ename='Al',temp=300)+'msd 0.05\n'),),
+#Valid liquids (no msd/debye_temp, effective_temperature fine):
+(_v8_sk(som='liquid'),),
+(_v8_sk(som='liquid',difields='effective_temperature 450\n'),),
+#Invalid: @DEBYETEMPERATURE section removed in v8:
+simplecubic('v8',225,4.0),
+#Invalid: non-crystalline v8 without @STATEOFMATTER:
+_v8_sk(som=None),
+#Invalid: v8 vdosdebye without debye_temp or msd:
+_v8_vdebye(''),
+#Invalid: freegas/sterile in v8 crystals:
+_v8_cryst(gen_fake_dyninfo_scatknl_fields(ename='Al',temp=300,frac=0.5)
+          +'@DYNINFO\nelement Cr\nfraction 0.5\ntype freegas\n'),
+_v8_cryst(gen_fake_dyninfo_scatknl_fields(ename='Al',temp=300,frac=0.5)
+          +'@DYNINFO\nelement Cr\nfraction 0.5\ntype sterile\n'),
+#Invalid: new keywords in pre-v8 files:
+_v8_sk(difields='msd 0.05\n').replace('NCMAT v8','NCMAT v7'),
+_v8_sk(difields='debye_temp 400\n').replace('NCMAT v8','NCMAT v7'),
+_v8_sk(difields='effective_temperature 450\n').replace('NCMAT v8','NCMAT v7'),
+#Invalid: msd and debye_temp together:
+_v8_sk(difields='msd 0.05\ndebye_temp 400\n'),
+#Invalid: effective_temperature below the temperature field:
+_v8_sk(difields='effective_temperature 250\n'),
+#Invalid: msd/debye_temp in non-solid materials:
+_v8_sk(som='liquid',difields='msd 0.05\n'),
+_v8_sk(som='gas',difields='debye_temp 400\n'),
+#Invalid: bad msd syntax or values:
+_v8_sk(difields='msd 0.1 at 280\n'),
+_v8_sk(difields='msd -0.1\n'),
+_v8_sk(difields='msd 0.05 at_temperature -3\n'),
+_v8_sk(difields='msd_temperature 280\n'),
+#Invalid: vdosdebye msd without at_temperature:
+_v8_vdebye('msd 0.05\n'),
+#Invalid: msd not allowed in vdos-type sections:
+('NCMAT v8\n@STATEOFMATTER\n  solid\n@DENSITY\n  1.0 g_per_cm3\n'
+ '@DYNINFO\nelement Al\nfraction 1\ntype vdos\n'
+ 'vdos_egrid 0.01 0.03\nvdos_density 0.1 0.2 0.3 0.4 0.5\n'
+ 'msd 0.05 at_temperature 280\n')[:],
 
 ]
 

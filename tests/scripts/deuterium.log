@@ -20,5 +20,8 @@ Trying element D in NCMAT data with version 7
    => Create scatter with no problems (xs@25meV is 0.344212barn).
 
 Trying element D in NCMAT data with version 8
-   => Result in exception:  "TestD.ncmat": is in an NCMAT format version, "v8", which is not recognised by this installation of NCrystal
+   => Result in exception:  TestD.ncmat The @DEBYETEMPERATURE section is removed in NCMAT v8: provide the information directly in the @DYNINFO sections via the debye_temp or msd keywords
+
+Trying element D in NCMAT data with version 9
+   => Result in exception:  "TestD.ncmat": is in an NCMAT format version, "v9", which is not recognised by this installation of NCrystal
 

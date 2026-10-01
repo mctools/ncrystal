@@ -42,7 +42,7 @@ namespace NCRYSTAL_NAMESPACE {
     std::string generateGasMixNCMAT( std::ostream& os,
                                      const std::string& str_request )
     {
-      constexpr static int ncmat_version = AtomDBExtender::latest_version;//latest NCMAT version
+      constexpr static int ncmat_version = 7;//TEMPORARY pin (not AtomDBExtender::latest_version): keep generated data at v7 until NCMAT v8 support is complete
 
       auto req = GasMix::requestFromString( str_request );
       auto str_request_normalised = requestToString(req);

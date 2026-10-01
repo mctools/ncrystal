@@ -176,6 +176,13 @@ NC::Info NC::loadNCMAT( const FactImpl::InfoRequest& cfg )
 NC::Info NC::loadNCMAT( NCMATData&& data,
                         NC::NCMATCfgVars&& cfgvars )
 {
+  //TEMPORARY (remove when NCMAT v8 consumption lands in the following
+  //commits): parsing/validation of v8 is complete, loading is not:
+  if ( data.version >= 8 )
+    NCRYSTAL_THROW2(BadInput,data.sourceDescription
+                    <<" loading of NCMAT v8 files is not yet implemented"
+                    " in this development version of NCrystal");
+
   const bool verbose = ncgetenv_bool("DEBUGINFO");
 
   if (verbose) {
