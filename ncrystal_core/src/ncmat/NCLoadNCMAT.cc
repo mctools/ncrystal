@@ -20,6 +20,7 @@
 
 #include "NCrystal/internal/ncmat/NCLoadNCMAT.hh"
 #include "NCrystal/internal/dyninfoutils/NCDynInfoEx.hh"
+#include "NCrystal/internal/extd_utils/NCSABAnalyser.hh"
 #include "NCrystal/internal/ncmat/NCParseNCMAT.hh"
 #include "NCrystal/internal/ncmat/NCNCMATData.hh"
 #include "NCrystal/factories/NCFactImpl.hh"
@@ -179,16 +180,6 @@ NC::Info NC::loadNCMAT( const FactImpl::InfoRequest& cfg )
 NC::Info NC::loadNCMAT( NCMATData&& data,
                         NC::NCMATCfgVars&& cfgvars )
 {
-  //TEMPORARY (remove when crystalline NCMAT v8 scatknl consumption
-  //lands in the following commits):
-  if ( data.version >= 8 && data.hasCell()
-       && std::any_of( data.dyninfos.begin(), data.dyninfos.end(),
-                       []( const NCMATData::DynInfo& e )
-                       { return e.dyninfo_type==NCMATData::DynInfo::ScatKnl; } ) )
-    NCRYSTAL_THROW2(BadInput,data.sourceDescription
-                    <<" loading of crystalline NCMAT v8 files with scatknl"
-                    " dynamics is not yet implemented in this development"
-                    " version of NCrystal");
 
   const bool verbose = ncgetenv_bool("DEBUGINFO");
 
@@ -430,6 +421,7 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
 
   if (data_hasDynInfo) {
     FactoryJobs jobs_msdcalc;
+    std::pair<std::mutex,std::string> scatknl_msd_errors;
     bool warn_msd_from_debye_but_vdos_avail = false;
     for (auto& e : data.dyninfos) {
       const auto& iad = elementname_2_indexedatomdata(e.element_name);
@@ -563,6 +555,8 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
           //stays allowed for any version):
           DI_ScatKnlDirectEx::ExData exdata;
           exdata.allow_msd_estimation = ( data.version >= 8 );
+          //(a copy goes into the DI object below; this one stays
+          //readable for the crystalline handling further down)
           {
             auto it_efft = e.fields.find("effective_temperature");
             if ( it_efft != e.fields.end() )
@@ -595,7 +589,52 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
           di = ncmake_unique<DI_ScatKnlImpl>(e.fraction, iad,
                                              std::move(egrid),
                                              std::move(knldata),
-                                             std::move(exdata));
+                                             DI_ScatKnlDirectEx::ExData{exdata});
+          //Crystalline NCMAT v8: Debye-Waller info for every atom is
+          //needed already at Info construction (structure factors), so
+          //resolve the msd here -- directly from the explicit values,
+          //or (concurrently, mirroring the v4 VDOS pattern) by
+          //building the kernel and analysing it, with a load-time
+          //error if no confident value results:
+          if ( data.version >= 8 && data_hasUnitCell ) {
+            if ( exdata.explicit_msd.has_value() ) {
+              const double msd = exdata.explicit_msd.value();
+              elem2msd[iad.index] = msd;
+              perelemdebye_map[iad.index]
+                = debyeTempFromIsotropicMSD( msd, cfgvars.temp,
+                                             iad.data().averageMassAMU() );
+            } else {
+              auto di_raw_ptr
+                = static_cast<const DI_ScatKnlDirect*>( di.get() );
+              perelemdebye_map[iad.index] = DebyeTemperature{100.0};//dummy
+              elem2msd[iad.index] = -1.0;//dummy
+              DebyeTemperature * res_debyetemp_ptr
+                = &perelemdebye_map.find(iad.index)->second;
+              double * res_msd_ptr = &elem2msd.find(iad.index)->second;
+              Temperature temp = cfgvars.temp;
+              auto mass = iad.data().averageMassAMU();
+              std::string elemname = e.element_name;
+              auto errlist_ptr = &scatknl_msd_errors;
+              jobs_msdcalc.queue([di_raw_ptr, res_debyetemp_ptr,
+                                  res_msd_ptr, temp, mass, elemname,
+                                  errlist_ptr]()
+              {
+                auto msd = SABAnalyser
+                  ::estimateTeffMSD( *di_raw_ptr
+                                     ->ensureBuildThenReturnSAB() ).msd;
+                if ( !msd.has_value() ) {
+                  NCRYSTAL_LOCK_GUARD( errlist_ptr->first );
+                  if ( !errlist_ptr->second.empty() )
+                    errlist_ptr->second += ", ";
+                  errlist_ptr->second += elemname;
+                  return;
+                }
+                *res_msd_ptr = msd.value();
+                *res_debyetemp_ptr
+                  = debyeTempFromIsotropicMSD( msd.value(), temp, mass );
+              });
+            }
+          }
         }
         break;
       default:
@@ -609,6 +648,12 @@ NC::Info NC::loadNCMAT( NCMATData&& data,
                     " temperatures for elements with VDOS curves available"
                     " (this might give sub-optimal MSD values).");
     jobs_msdcalc.waitAll();//make sure msd/debyetemp info is available.
+    if ( !scatknl_msd_errors.second.empty() )
+      NCRYSTAL_THROW2(BadInput,data.sourceDescription<<" could not confidently"
+                      " estimate mean-squared displacements from the scattering"
+                      " kernel(s) of: "<<scatknl_msd_errors.second<<" (provide"
+                      " explicit msd or debye_temp keywords in the @DYNINFO"
+                      " section(s))");
     builder.dynamics.value().shrink_to_fit();
   }
 

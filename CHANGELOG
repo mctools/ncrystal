@@ -1,4 +1,19 @@
 v4.4.7 (work in progress)
+     * New NCMAT v8 format (cf. docs/ncmat_doc.md): @DYNINFO sections
+       gain the msd (with optional at_temperature part), debye_temp
+       (now also for scatknl) and effective_temperature keywords; the
+       @DEBYETEMPERATURE section is removed, @STATEOFMATTER becomes
+       mandatory for non-crystalline materials, freegas/sterile
+       sections are banned from crystals, and crystalline materials
+       may now use scatknl dynamics, with Debye-Waller msd from the
+       explicit keywords or confident automatic kernel analysis
+       (load-time error otherwise). Automatic kernel-msd extraction
+       (and hence the elastic physics of solid scatknl materials) is
+       deliberately gated to v8+ files so older files keep their
+       exact physics; explicit values take precedence over automatic
+       estimation everywhere, and partially-covered solids emit a
+       warning naming the components without msd. The in-memory
+       solid::/gasmix:: writers remain at v7 for now.
      * Solid (declared via @STATEOFMATTER) non-crystalline direct-kernel
        (scatknl) materials now get incoherent-approximation elastic
        scattering, with the mean-squared displacement estimated directly

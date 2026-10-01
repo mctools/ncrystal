@@ -123,11 +123,29 @@ def crystalline_scatknl_probe():
             take = True
         if take:
             knl.append(line)
-    for name, extra in ( ('probe_cell_scatknl.ncmat', []),
-                         ('probe_cell_scatknl_dt.ncmat',
-                          ['@DEBYETEMPERATURE','  Li 430','  O 430']) ):
+    flat_O = [ '@DYNINFO', '  element     O', '  fraction    1/3',
+               '  type        scatknl', '  temperature 10',
+               '  alphagrid   0.01 1 2 3 4 5',
+               '  betagrid    -5 -3 -1 1 3 5',
+               '  sab_scaled  ' + '1.0 '*36 ]
+    li_part = [ p for p in '\n'.join(knl).split('@DYNINFO')
+                if 'element     Li' in p ]
+    assert len(li_part) == 1
+    knl_li_only = ( '@DYNINFO' + li_part[0] ).splitlines()
+    for version, name, extra, theknl in (
+            ('v7','probe_cell_scatknl.ncmat', [], knl),
+            ('v7','probe_cell_scatknl_dt.ncmat',
+             ['@DEBYETEMPERATURE','  Li 430','  O 430'], knl),
+            #v8: loads WITHOUT Debye temperatures, the msd coming from
+            #kernel analysis (feeding Bragg + elastic):
+            ('v8','probe_cell_scatknl_v8.ncmat', [], knl),
+            #v8 with an unanalysable (flat, liquid-like) O kernel:
+            #per-atom load-time error naming O:
+            ('v8','probe_cell_badO_v8.ncmat', [],
+             knl_li_only + flat_O) ):
         NC.registerInMemoryFileData(
-            name, '\n'.join( ['NCMAT v7'] + struct + extra + knl )+'\n' )
+            name,
+            '\n'.join( [f'NCMAT {version}'] + struct + extra + theknl )+'\n' )
         print(f'==> load of virtual {name}:')
         try:
             inspect_info( f'virtual::{name}' )

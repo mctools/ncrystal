@@ -83,3 +83,17 @@ NCrystal WARNING: Incoherent-elastic scattering of solid material will be missin
     scatter comps: ElIncScatter+PowderBragg+SABScatter+SABScatter
     comp=elas: null=False xs(3pts)=0.6064 1.859 0.1754
     comp=inelas: null=False xs(3pts)=0.0002513 0.01109 1.614
+==> load of virtual probe_cell_scatknl_v8.ncmat:
+==> Info inspection of virtual::probe_cell_scatknl_v8.ncmat:
+    stateOfMatter=Solid crystalline=True hasatominfo=True
+    dyninfo Li: DI_ScatKnlDirect fraction=0.666667
+    dyninfo O: DI_ScatKnlDirect fraction=0.333333
+    atominfo Li: msd=0.0061 dt=860.1
+    atominfo O: msd=0.003017 dt=754.5
+==> Process inspection of virtual::probe_cell_scatknl_v8.ncmat:
+    scatter comps: ElIncScatter+PowderBragg+SABScatter+SABScatter
+    comp=elas: null=False xs(3pts)=0.61 2.026 0.3182
+    comp=inelas: null=False xs(3pts)=0.0002513 0.01109 1.614
+==> load of virtual probe_cell_badO_v8.ncmat:
+==> Info inspection of virtual::probe_cell_badO_v8.ncmat:
+    refused: NCBadInput: probe_cell_badO_v8.ncmat could not confidently estimate mean-squared displacements from the scattering kernel(s) of: O (provide explicit msd or debye_temp keywords in the @DYNINFO section(s))
