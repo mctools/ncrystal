@@ -786,11 +786,11 @@ At present (NCrystal v2.7.0), the effect of the state of matter type is mostly
 cosmetic, with one important exception: Non-crystalline solids will get elastic
 scattering added based on the assumption that atoms vibrate around fixed
 positions in the material. Technically, this will use atomic mean squared
-displacement information inferred from the @DYNINFO sections (for now just those
-of *vdos* or *vdosdebye* type, but it could possibly at some point also be
-inferred from other types such as *scatknl*). Furthermore, coherent-elastic
-scattering will for now simply be accounted for via the incoherent
-approximation.
+displacement information inferred from the @DYNINFO sections. This means those
+of *vdos* or *vdosdebye* type (note that from *NCMAT v8* this can also include
+those of type *scatknl*, see comments in the *NCMAT v8* section further
+down.). Furthermore, coherent-elastic scattering will for now simply be
+accounted for via the incoherent approximation.
 
 # The NCMAT v6 format #
 
@@ -872,25 +872,81 @@ syntactic sugar). Valid temperature values must be above 0K and at most 1e6K.
 
 # The NCMAT v8 format #
 
-The *NCMAT v8* format is similar to the *NCMAT v7* format, but extends the
-@DYNINFO sections with explicit atomic mean-squared displacement and effective
-temperature information. This is of particular benefit for files using
+The *NCMAT v8* format is similar to the *NCMAT v7* format, but allows @DYNINFO
+sections to optionally contain explicit atomic mean-squared displacement or
+effective temperature information. This is of particular benefit for files using
 scattering kernels (type *scatknl*), which can now both be used in crystalline
 materials and provide their own displacement and effective temperature data,
 rather than relying on the automatic estimation of these quantities directly
-from the kernels (which NCrystal will otherwise attempt where they are needed,
-cf. below).
+from the kernels. Additionally, rules concerning the @STATEOFMATTER sections
+have been updated and the @DEBYETEMPERATURE section removed.
+
+NOTE FOR CLAUDE BEGIN
+
+Add sections concerning @STATEOFMATTER AND @DEBYETEMPERATURE SECTIONS AS WELL
+HERE.
+
+Thoughts: And I think it is OK to apply the teff detection +
+FGExtender->SCTExtender to any NCMAT file with scatknl data, since it has no
+obvious pitfalls, and is just considered an improvement of the modelling. But a
+file which did not get ElIncScatter physics in NCrystal 4.4.0 should not
+suddenly acquire it in NCrystal 4.5.0. So I think we have to adopt the policy
+that the msd-extraction-from-scatknl will only happen in v8 or later. So we also
+take the opportunity to make the STATEOFMATTER mandatory (except if there is a
+@CELL etc., then it will be always taken as a solid.
+
+Question: In
+
+  msd      0.0123 at 280K
+
+we are adding a unit on the last value, is there any precedence for that or is
+there a better more consistent way?
+
+  msd      0.0123 at_temperature 280
+  msd      0.0123 at temperature 280
+  msd      0.0123 at 280 kelvin
+
+?
+
+Another point, in a dyninfo scatknl section, we already require a temperature
+keyword, so I think this looks a bit silly, e.g.:
+
+  temperature 280
+  msd      0.0123 at 280K
+
+or even:
+
+  temperature 320
+  msd      0.0123 at 280K
+
+I think that in scatknl sections, the [at 280K] should be optional, and we
+should also allow:
+
+  temperature 280
+  msd      0.0123
+
+which will then have the same meaning as:
+
+  temperature 280
+  msd      0.0123 at 280K
+
+
+
+
+NOTE FOR CLAUDE END
 
 ## Changes for the @DYNINFO section ##
 
-### The msd keyword ###
+### The debye_temp and msd keyword ###
 
-A new optional keyword, `msd`, is introduced in @DYNINFO sections of type
-*vdos*, *vdosdebye*, and *scatknl*, providing the atomic mean-squared
-displacement of the atom in question. As mean-squared displacement values are
-inherently temperature dependent, the value (in units of angstrom squared) must
-always be accompanied by the temperature (in kelvin) at which it applies, using
-the syntax illustrated here:
+A new optional keyword, `msd`, is introduced as an alternative to the
+`debye_temp` keyword which was previously required in @DYNINFO sections of type
+*vdosdebye*. The new keyword instead provides the Debye temperature indirectly
+through specification of the atomic mean-squared displacement of the atom in
+question. As mean-squared displacement values are inherently temperature
+dependent, the value (in units of angstrom squared) must always be accompanied
+by the temperature (in kelvin) at which it applies, using the syntax illustrated
+here:
 
 ```
 @DYNINFO
@@ -902,48 +958,44 @@ the syntax illustrated here:
 
 Internally, NCrystal will convert the value to a Debye temperature via the
 isotropic Debye model, through which displacement values at other material
-temperatures are then obtained. Thus, the keyword remains meaningful in files
-supporting multiple temperatures, and the stated temperature does not have to
-coincide with either the material temperature or (for *scatknl* sections) the
-*temperature* field of the section itself.
+temperatures are then obtained. Thus, the temperatue value used to pin down the
+`msd` value, is not meant to indicate a restriction or choice regarding the
+material temperature itself. In particular it is fine to specify one temperature
+value with the `msd` keyword, while a different temperature value is specified
+using the `temperature` keyword in @DYNINFO sections of `scatknl` type, or in a
+@TEMPERATURE section.
 
-For a given atom, the `msd` keyword is mutually exclusive with the `debye_temp`
-keyword and with an entry for the same atom in a @DEBYETEMPERATURE section.
+Previously, only @DYNINFO sections of type `vdosdebye` allowed specifications of
+`debye_temp`, but it is now also optionally allowed to add either a `debye_temp`
+or `msd` entry to those of type `scatknl` - but only when the file clearly
+describes a solid material: Those with that are crystalline (those having @CELL
+and @ATOMPOSITIONS sections), or an explicit @STATEOFMATTER `solid`. This
+feature is intended to allow materials with dynamic information in the form of
+pre-calculated scattering kernels to also support elastic scattering.
 
-### The debye_temp keyword in more section types ###
+When a solid material has a @DYNINFO section of type `scatknl` without a `msd`
+or `debye_temp` field, NCrystal will automatically analyse the kernel itself in
+order to determine a suitable value. Thus, leaving out an explicit `msd` or
+`debye_temp` value might actually be advicable in many cases, since the
+automatically extracted value is then consistent with the actual scattering
+kernel data. However, this automatic determination of a suitable value is only
+done for files in *NCMAT v8* or later formats. This restriction is intentional,
+since otherwise an older file might suddenly acquire elastic physics when used
+with NCrystal 4.5.0 or later, even though it did not have it when loaded with
+previous releases.
 
-The `debye_temp` keyword, introduced in *NCMAT v5* for @DYNINFO sections of
-type *vdosdebye*, is now also allowed in sections of type *vdos* and *scatknl*
-(subject to the same mutual-exclusivity rules as the `msd` keyword).
+### The effective_temperature keyword ###
 
-### The temperature_eff keyword ###
-
-A new optional keyword, `temperature_eff`, is introduced in @DYNINFO sections
-of type *scatknl*, providing the effective temperature (in kelvin) of the atom
-in question, i.e. the same quantity tabulated as the effective temperature in
-ENDF thermal scattering evaluations, defined so that the mean atomic kinetic
-energy is 3/2 times k times the effective temperature. NCrystal uses this
+A new optional keyword, `effective_temperature`, is introduced in @DYNINFO
+sections of type *scatknl*, providing the effective temperature (in kelvin) of
+the atom in question, i.e. the same quantity tabulated as the effective
+temperature in ENDF thermal scattering evaluations, defined so that the mean
+atomic kinetic energy is 3/2 * k * effective_temperature. NCrystal can use this
 value when extending the kernel to higher neutron energies with the
 short-collision-time approximation. When the keyword is absent, NCrystal will
 instead automatically estimate the value from the kernel itself where
-possible. The value must be at least as large as the *temperature* field of
-the section.
-
-### Sources of mean-squared displacement information ###
-
-Where NCrystal needs the mean-squared displacement of an atom (Debye-Waller
-factors of crystalline materials, and elastic physics of non-crystalline
-solids), the sources are consulted in the following order of priority:
-
-1. The `msd` keyword of the atom's @DYNINFO section.
-2. The `debye_temp` keyword of the atom's @DYNINFO section, or equivalently
-   the atom's entry in the @DEBYETEMPERATURE section.
-3. Derivation from the VDOS curve (for type *vdos*, as introduced in
-   *NCMAT v4*).
-4. Automatic estimation directly from the scattering kernel (for type
-   *scatknl*). Note that such estimation is only possible for kernels of
-   solid-like character, and NCrystal will refuse to provide a value where it
-   can not do so confidently.
+possible. The value must be at least as large as the *temperature* field of the
+section.
 
 ## Crystalline materials with scattering kernels ##
 
@@ -951,18 +1003,9 @@ The *NCMAT v5* restriction that crystalline materials (those having @CELL and
 @ATOMPOSITIONS sections) without a @DEBYETEMPERATURE section must have all
 @DYNINFO sections of type *vdos* or *vdosdebye*, is relaxed: sections of type
 *scatknl* are now also allowed, with the mean-squared displacement information
-needed for Debye-Waller factors obtained per the priority list above. It is
-recommended that such files provide explicit `msd` or `debye_temp` keywords,
-since a load-time error will result if NCrystal is left to estimate a value
-from a kernel for which it can not do so confidently.
+needed for Debye-Waller factors is either provided explicitly via the `msd` or
+`debye_temp` keywords, or can be confidently inferred by the kernel data itself.
 
-Note finally a point which concerns modelling rather than the format itself:
-as anticipated in the *NCMAT v5* @STATEOFMATTER documentation above,
-non-crystalline materials with a declared *solid* state of matter now (since
-NCrystal v4.5.0, for files of any NCMAT version) get elastic scattering based
-on mean-squared displacements inferred from @DYNINFO sections of type
-*scatknl* as well, where previously only *vdos* and *vdosdebye* sections were
-used for this.
 
 # EMACS Syntax highlighting #
 
@@ -974,8 +1017,9 @@ a basic syntax highlighting of .ncmat files:
 ; Major mode for .ncmat files:
 (setq ncmat-sections '("CELL" "ATOMPOSITIONS" "SPACEGROUP" "DEBYETEMPERATURE" "DYNINFO" "TEMPERATURE"
                        "DENSITY" "ATOMDB" "STATEOFMATTER" "OTHERPHASES" "CUSTOM_[A-Z]+"))
-(setq ncmat-fields '("lengths" "angles" "cubic" "element" "fraction" "type" "debye_temp" "temperature"
-                     "sab_scaled" "sab" "alphagrid" "betagrid" "egrid" "vdos_egrid" "vdos_density"))
+(setq ncmat-fields '("lengths" "angles" "cubic" "element" "fraction" "type"
+                     "debye_temp" "temperature" "msd" "sab_scaled" "sab"
+                     "alphagrid" "betagrid" "egrid" "vdos_egrid" "vdos_density"))
 (setq ncmat-highlights
       `(("^NCMAT\s*v[0-9]+[a-z0-9]*" . font-lock-function-name-face)
         (,(concat "^@\\(" (mapconcat 'identity ncmat-sections "\\|") "\\)") . font-lock-keyword-face)
