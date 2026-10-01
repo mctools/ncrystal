@@ -1,0 +1,5 @@
+# Output of the study scripts:
+*.json
+*.log
+*.err
+*.png

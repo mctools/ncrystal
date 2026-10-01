@@ -1,0 +1,34 @@
+
+################################################################################
+##                                                                            ##
+##  This file is part of NCrystal (see https://mctools.github.io/ncrystal/)   ##
+##                                                                            ##
+##  Copyright 2015-2026 NCrystal developers                                   ##
+##                                                                            ##
+##  Licensed under the Apache License, Version 2.0 (the "License");           ##
+##  you may not use this file except in compliance with the License.          ##
+##  You may obtain a copy of the License at                                   ##
+##                                                                            ##
+##      http://www.apache.org/licenses/LICENSE-2.0                            ##
+##                                                                            ##
+##  Unless required by applicable law or agreed to in writing, software       ##
+##  distributed under the License is distributed on an "AS IS" BASIS,         ##
+##  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ##
+##  See the License for the specific language governing permissions and       ##
+##  limitations under the License.                                            ##
+##                                                                            ##
+################################################################################
+
+import numpy as np
+import validate_cpp as V
+import xsmat
+
+variants=[('1e-4_nd63k',['tol=1e-4','ndense=63246']),('1e-4_nd200k',['tol=1e-4','ndense=200000']),('1e-2_nd6k',['tol=1e-2','ndense=6325']),('1e-3_nd20k',['tol=1e-3','ndense=20000'])]
+tols={'1e-4_nd63k':1e-4,'1e-4_nd200k':1e-4,'1e-2_nd6k':1e-2,'1e-3_nd20k':1e-3}
+acc={n:[] for n,_ in variants}
+for cfg in xsmat.all_cfgs():
+    m=xsmat.Mat(cfg); wlv=V.validation_points(m,0.01,100.0); sv=m.sigma(wlv)
+    for n,o in variants: acc[n].append((cfg,V.run_one(cfg,o,m=m,wlv=wlv,sv=sv)))
+for n,_ in variants:
+    err=np.array([r['maxerr'] for _,r in acc[n]]); npts=np.array([r['npts'] for _,r in acc[n]]); t=np.array([r['t'] for _,r in acc[n]])*1e3
+    print(f"{n:12s} viol(>1.01tol)={int((err>1.01*tols[n]).sum()):3d} worst={err.max()/tols[n]:.3f}*tol  npts sum={npts.sum()} max={npts.max()}  t med={np.median(t):.1f}ms max={t.max():.1f}ms")
