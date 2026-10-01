@@ -23,6 +23,7 @@
 # NEEDS: numpy
 
 import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.enable_testdatapath # noqa F401
 from NCTestUtils.env import ncsetenv
 from NCrystalDev.misc import evaluate_query as ncquery
 from NCTestUtils.stat import kolmogorov_smirnov_pvalue
@@ -354,6 +355,13 @@ def main(do_plot,luxlvl,test_select):
         #independently-computed table-vs-extender mixing:
         { 'cfgstr': 'stdlib::LiquidWaterH2O_T293.6K.ncmat;vdoslux=2001',
           'atomlbl': 'H', 'ekin': '6.0' },
+
+        #Trimmed JENDL-5 benzene@100K fixture above the H kernel's
+        #Emax (~5.6eV): H's teff is refused by the analyser, so this
+        #guards the free-gas-extension-after-refusal path (and, with
+        #the accepted C, the material is the mixed SCT/FG case):
+        { 'cfgstr': 'benzene_solid_100K_sabsmall.ncmat;vdoslux=2001',
+          'atomlbl': 'H', 'ekin': '7.0' },
 
     ]
     npvals_tot = 0

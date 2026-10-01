@@ -125,7 +125,10 @@ def stateofmatter_control_probe():
     inspect_proc( 'virtual::probe_nostate.ncmat' )
 
 def main():
-    mats = [ ('stdlib::LiquidWaterH2O_T293.6K.ncmat','H'),
+    mats = [ ('benzene_solid_100K_sabsmall.ncmat','C'),
+             ('benzene_solid_100K_sabsmall.ncmat','H'),
+             ('C_from_benzene_solid_20K_sabsmall.ncmat',''),
+             ('stdlib::LiquidWaterH2O_T293.6K.ncmat','H'),
              ('stdlib::LiquidHeavyWaterD2O_T293.6K.ncmat','D'),
              ('Li2O_sg225_LithiumOxide_sabsmall_temp10K.ncmat','Li'),
              ('Li2O_sg225_LithiumOxide_sabsmall_temp10K.ncmat','O') ]

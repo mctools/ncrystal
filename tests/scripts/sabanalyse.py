@@ -27,6 +27,7 @@
 #reference log robust against last-bit platform differences.
 
 import NCTestUtils.enable_fpe # noqa F401
+import NCTestUtils.enable_testdatapath # noqa F401
 import NCrystalDev as NC
 from NCrystalDev.misc import evaluate_query as q
 
@@ -99,6 +100,27 @@ def main():
     print(f'==> center_tol token accepted and benign:'
           f' {"OK" if ok_tok else "FAIL"}')
     assert ok_tok
+
+    #Trimmed JENDL-5 fixtures (tests/data, ENDF truths in the file
+    #headers): benzene@100K has mixed per-element outcomes (C both
+    #accepted, H both refused), and the cryogenic quantum solid
+    #C-from-benzene@20K refuses teff with ZERO admissible rows while
+    #msd extraction still succeeds:
+    rC = analyse('benzene_solid_100K_sabsmall.ncmat','C')
+    rH = analyse('benzene_solid_100K_sabsmall.ncmat','H')
+    ok_C = ( rC['auto']['teff'] is not None
+             and abs( rC['auto']['teff']/572.9425 - 1.0 ) < 0.03
+             and rC['auto']['msd'] is not None )
+    ok_H = rH['auto']['teff'] is None and rH['auto']['msd'] is None
+    r20 = analyse('C_from_benzene_solid_20K_sabsmall.ncmat')
+    ok_20 = ( r20['teff_nrows'] == 0 and r20['auto']['teff'] is None
+              and r20['auto']['msd'] is not None
+              and 0.012 < r20['auto']['msd'] < 0.016 )
+    print(f'==> JENDL benzene fixtures: 100K C accepted (teff~endf):'
+          f' {"OK" if ok_C else "FAIL"}, 100K H refused:'
+          f' {"OK" if ok_H else "FAIL"}, 20K C zero-row teff'
+          f' + good msd: {"OK" if ok_20 else "FAIL"}')
+    assert ok_C and ok_H and ok_20
 
     #Diagnostics mode: aligned per-row arrays and valid status codes:
     d = analyse('stdlib::Al_sg225.ncmat','',diag=True)['diagnostics']

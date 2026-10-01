@@ -147,6 +147,10 @@ def test_list_gen( testgroup ):
         #above Emax is continuity-anchored and hence insensitive to the
         #extender model, giving a byte-identical reference file):
         yield 'stdlib::LiquidWaterH2O_T293.6K.ncmat;vdoslux=2001;knllux=1'
+        #Trimmed JENDL-5 solid fixtures (mixed per-element teff/msd
+        #outcomes resp. zero-row teff refusal; cf. the file headers):
+        yield 'benzene_solid_100K_sabsmall.ncmat;vdoslux=2001;knllux=1'
+        yield 'C_from_benzene_solid_20K_sabsmall.ncmat;vdoslux=2001;knllux=1'
 
 
 

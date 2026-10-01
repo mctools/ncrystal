@@ -105,4 +105,6 @@
 =============> Launching test O_from_Li2O%2Encmat%3Bvdoslux%3D2004%3Bknllux%3D4%3Btemp%3D1000
 =============> Launching test stdlib%3A%3ALiquidWaterH2O_T293%2E6K%2Encmat%3Bvdoslux%3D2001%3Bknllux%3D1
 NCrystal WARNING: Discarding 52 edges of provided kernel data due to missing S values.
+=============> Launching test benzene_solid_100K_sabsmall%2Encmat%3Bvdoslux%3D2001%3Bknllux%3D1
+=============> Launching test C_from_benzene_solid_20K_sabsmall%2Encmat%3Bvdoslux%3D2001%3Bknllux%3D1
 ALL OK

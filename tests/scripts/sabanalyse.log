@@ -19,5 +19,6 @@ NCrystal WARNING: Discarding 52 edges of provided kernel data due to missing S v
     msd self-flagged unreliable: OK
     auto: teff accepted, msd rejected: OK
 ==> center_tol token accepted and benign: OK
+==> JENDL benzene fixtures: 100K C accepted (teff~endf): OK, 100K H refused: OK, 20K C zero-row teff + good msd: OK
 ==> diagnostics: 400 rows, aligned arrays and valid status codes: OK
 ==> direct-kernel extension methods: knllux=1 -> sct, knllux=201 -> freegas

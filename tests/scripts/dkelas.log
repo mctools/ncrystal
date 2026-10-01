@@ -1,3 +1,18 @@
+==> Info inspection of benzene_solid_100K_sabsmall.ncmat:
+    stateOfMatter=Solid crystalline=False hasatominfo=False
+    dyninfo H: DI_ScatKnlDirect fraction=0.5
+    dyninfo C: DI_ScatKnlDirect fraction=0.5
+==> Process inspection of benzene_solid_100K_sabsmall.ncmat:
+    scatter comps: ElIncScatter+SABScatter+SABScatter
+    comp=elas: null=False xs(3pts)=2.055 0.1729 0.004375
+    comp=inelas: null=False xs(3pts)=25.22 30.19 13.12
+==> Info inspection of C_from_benzene_solid_20K_sabsmall.ncmat:
+    stateOfMatter=Solid crystalline=False hasatominfo=False
+    dyninfo C: DI_ScatKnlDirect fraction=1
+==> Process inspection of C_from_benzene_solid_20K_sabsmall.ncmat:
+    scatter comps: ElIncScatter+SABScatter
+    comp=elas: null=False xs(3pts)=5.48 4.066 0.2132
+    comp=inelas: null=False xs(3pts)=0.04022 1.136 4.519
 ==> Info inspection of stdlib::LiquidWaterH2O_T293.6K.ncmat:
     stateOfMatter=Liquid crystalline=False hasatominfo=False
     dyninfo H: DI_ScatKnlDirect fraction=0.666667
@@ -25,6 +40,9 @@ NCrystal WARNING: Discarding 120 edges of provided kernel data due to missing S 
     scatter comps: ElIncScatter+SABScatter+SABScatter
     comp=elas: null=False xs(3pts)=2.317 2.104 0.3193
     comp=inelas: null=False xs(3pts)=0.0002513 0.01109 1.614
+==> analyser auto values for benzene_solid_100K_sabsmall.ncmat//C: teff=578.1 msd=0.33
+==> analyser auto values for benzene_solid_100K_sabsmall.ncmat//H: teff=absent msd=absent
+==> analyser auto values for C_from_benzene_solid_20K_sabsmall.ncmat//mono: teff=absent msd=0.013
 ==> analyser auto values for stdlib::LiquidWaterH2O_T293.6K.ncmat//H: teff=1194 msd=absent
 ==> analyser auto values for stdlib::LiquidHeavyWaterD2O_T293.6K.ncmat//D: teff=865.6 msd=absent
 ==> analyser auto values for Li2O_sg225_LithiumOxide_sabsmall_temp10K.ncmat//Li: teff=335 msd=0.0061
