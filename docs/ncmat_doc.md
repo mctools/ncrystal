@@ -883,7 +883,7 @@ have been updated and the @DEBYETEMPERATURE section removed.
 
 ## Changes for the @DYNINFO section ##
 
-### The debye_temp and msd keyword ###
+### The debye_temp and msd keywords ###
 
 A new optional keyword, `msd`, is introduced as an alternative to the
 `debye_temp` keyword which was previously required in @DYNINFO sections of type
