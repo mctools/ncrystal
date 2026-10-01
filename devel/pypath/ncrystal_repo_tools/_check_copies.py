@@ -35,6 +35,25 @@ def check_same( reffile, *otherfiles ):
             print()
             raise SystemExit(f'ERROR: Content of {o} and {reffile} differs')
 
+def get_c_function( relpath, name ):
+    #The definition of a C function, from the (unindented) line with its name
+    #to the first line with only a closing brace:
+    import re
+    m = re.search( rf'^[^\s][^\n]*\b{name}\(.*?^\}}\n',
+                   get_content( relpath ), re.MULTILINE | re.DOTALL )
+    if not m:
+        raise SystemExit(f'ERROR: Function {name} not found in {relpath}')
+    return m.group(0)
+
+def check_same_c_function( name, reffile, *otherfiles ):
+    assert len(otherfiles) > 0
+    print(f'  Checking for same definition of the C function {name}:')
+    ref = get_c_function( reffile, name )
+    for o in otherfiles:
+        if get_c_function( o, name ) != ref:
+            print()
+            raise SystemExit(f'ERROR: Definition of {name} in {o} and {reffile} differs')
+
 def main():
     check_same( 'README.md',
                 'ncrystal_metapkg/README.md' )
@@ -64,6 +83,10 @@ def main():
                )
     check_same( 'examples/downstream_cmake/CMakeLists.txt',
                 'ncrystal_verify/extra/data/downstream_cmake_CMakeLists.txt' )
+
+    check_same_c_function( 'filter_macroxs',
+                           'examples/ncrystal_example_filter.c',
+                           'tests/src/app_filterexample/main.cc' )
 
 if __name__=='__main__':
     main()

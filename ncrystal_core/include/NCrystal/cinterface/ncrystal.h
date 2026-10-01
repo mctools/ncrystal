@@ -649,6 +649,10 @@ extern "C" {
 #  undef ncrystal_fill_jsonarray
 #endif
 #define ncrystal_fill_jsonarray NCRYSTAL_APPLY_C_NAMESPACE(fill_jsonarray)
+#ifdef ncrystal_filtertable
+#  undef ncrystal_filtertable
+#endif
+#define ncrystal_filtertable NCRYSTAL_APPLY_C_NAMESPACE(filtertable)
 #ifdef ncrystal_flexmmcrun
 #  undef ncrystal_flexmmcrun
 #endif
@@ -1254,6 +1258,26 @@ extern "C" {
   /* Get time in seconds to load the cfg in question (if do_scatter=0 it will only */
   /* create Info objects). Caches are cleared as a side effect: */
   NCRYSTAL_API double ncrystal_benchloadcfg( const char * cfgstr, int do_scat, int repeat );
+
+  /* Piecewise linear table of the macroscopic total cross section            */
+  /* (scattering plus absorption, in 1/cm) of an isotropic material vs. the   */
+  /* neutron wavelength (in Aa), for attenuating a beam passing through the   */
+  /* material (e.g. a filter or a window). With linear interpolation, the     */
+  /* table reproduces the cross section within a relative tolerance of 1e-3.  */
+  /* (The tolerance is relative to max(xs,1e-12 barn per atom), so cross      */
+  /* sections vanishing at wavelength 0 can be tabulated.) The first point is */
+  /* at wavelength 0 (the limit for wavelength -> 0), and beyond the last     */
+  /* point, the last segment must be extrapolated linearly (clamped at 0).    */
+  /* Discontinuities (e.g. Bragg edges) are represented by two points with    */
+  /* the same wavelength (see examples/ncrystal_example_filter.c for how to   */
+  /* evaluate the table). An error is raised if the cross section can not be  */
+  /* tabulated reliably. The wl and macroxs arrays must be freed with         */
+  /* ncrystal_dealloc_doubleptr. The options are reserved for future use, and */
+  /* must be NULL or empty.                                                   */
+  NCRYSTAL_API void ncrystal_filtertable( const char * cfgstr,
+                                          unsigned * n, double ** wl,
+                                          double ** macroxs,
+                                          const char * options );
 
   /* Generic query for information which will be returned as a JSON encoded  */
   /* string. The query is essentially a string list, encoded into a single   */

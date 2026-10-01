@@ -106,6 +106,8 @@ jobs:
           ncrystal-config --show includedir
           cc -std=c11 ${LDFLAGS} ${CFLAGS} ./src_co/examples/ncrystal_example_c.c -o ncex_c -Wl,-rpath,$(ncrystal-config --show libdir) $(ncrystal-config --show libpath) -I$(ncrystal-config --show includedir)
           ./ncex_c
+          cc -std=c11 ${LDFLAGS} ${CFLAGS} ./src_co/examples/ncrystal_example_filter.c -o ncex_filter -Wl,-rpath,$(ncrystal-config --show libdir) $(ncrystal-config --show libpath) -I$(ncrystal-config --show includedir)
+          ./ncex_filter
           c++ -std=c++17 ${LDFLAGS} ${CXXFLAGS} ./src_co/examples/ncrystal_example_cpp.cc -o ncex_cpp -Wl,-rpath,$(ncrystal-config --show libdir) $(ncrystal-config --show libpath) -I$(ncrystal-config --show includedir)
           ./ncex_cpp
 

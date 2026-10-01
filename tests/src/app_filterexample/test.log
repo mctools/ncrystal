@@ -1,0 +1,7 @@
+synthetic, rising: 13 wavelengths OK
+synthetic, falling: 13 wavelengths OK
+synthetic, flat: 13 wavelengths OK
+stdlib::Al_sg225.ncmat: 100312 wavelengths OK
+stdlib::Be_sg194.ncmat;temp=80K: 100855 wavelengths OK
+stdlib::Polyethylene_CH2.ncmat: 100126 wavelengths OK
+phases<0.3*stdlib::Al_sg225.ncmat&0.7*stdlib::Cu_sg225.ncmat>: 100363 wavelengths OK

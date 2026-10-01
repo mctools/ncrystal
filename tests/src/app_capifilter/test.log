@@ -1,0 +1,4 @@
+Be 80K: 285 points, macroxs(0) = 0.7605/cm
+  last Bragg edge at 3.9605 Aa: 0.2091/cm -> 0.002978/cm
+Expected error: ncrystal_filtertable: no options are supported (got "foo=1")
+Expected error: Filter table: only isotropic materials are supported (the cfg-string must not specify a crystal orientation)

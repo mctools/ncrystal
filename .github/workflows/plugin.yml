@@ -47,6 +47,7 @@ jobs:
         ./install/bin/ncrystal_example_customphysics
         ./install/bin/ncrystal_example_cpp
         ./install/bin/ncrystal_example_c
+        ./install/bin/ncrystal_example_filter
 
     - name: CMake cfg plugin
       run: >

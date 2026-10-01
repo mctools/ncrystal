@@ -670,7 +670,7 @@ ncinstall(
 
 #Examples:
 if ( NCRYSTAL_ENABLE_EXAMPLES )
-  file_globsrc( EXAMPLES_NC "../examples/ncrystal_example_c*.c*")
+  file_globsrc( EXAMPLES_NC "../examples/ncrystal_example_*.c*")
   foreach(ex ${EXAMPLES_NC})
     get_filename_component(exbn "${ex}" NAME_WE)
     add_executable(${exbn} "${ex}")

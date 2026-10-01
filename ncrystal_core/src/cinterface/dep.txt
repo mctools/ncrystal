@@ -3,6 +3,7 @@ dump
 dyninfoutils
 extd_utils
 factories
+filter
 infobld
 interfaces
 minimc

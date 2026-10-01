@@ -391,6 +391,18 @@ def _load(nclib_filename, ncrystal_namespace_protection ):
         return float(xmin.value), float(xmax.value), _cptr_to_nparray( yraw, ny )
     functions['raw_vdos2gn'] = raw_vdos2gn
 
+    _raw_filtertable = _wrap('ncrystal_filtertable',None,
+                             (_cstr,_uintp,_dblpp,_dblpp,_cstr),hide=True)
+    def filtertable( cfgstr, options ):
+        _ensure_numpy()
+        n = _uint()
+        wl, macroxs = _dblp(), _dblp()
+        _raw_filtertable( _str2cstr(cfgstr), n, wl, macroxs,
+                          _str2cstr(options) if options else None )
+        return _cptr_to_nparray( wl, n ), _cptr_to_nparray( macroxs, n )
+    functions['filtertable'] = filtertable
+
+
     _ORDERWEIGHTFCTTYPE = ctypes.CFUNCTYPE( _dbl, _uint )
     _raw_vdos2knl = _wrap('ncrystal_raw_vdos2kernel',None,
                           (_dblp,_dblp,_uint,_uint,_dbl,_dbl,_dbl,_uint,

@@ -1,0 +1,10 @@
+stdlib::Al_sg225.ncmat: npts=104 xsect(0)=0.0841247/cm xsect(4 Aa)=0.137536/cm xsect(1000 Aa, extrapolated)=8.88781/cm: OK
+stdlib::Be_sg194.ncmat;temp=80K: npts=285 xsect(0)=0.760456/cm xsect(4 Aa)=0.00299763/cm xsect(1000 Aa, extrapolated)=0.612967/cm: OK
+stdlib::Polyethylene_CH2.ncmat: npts=42 xsect(0)=1.80525/cm xsect(4 Aa)=6.87825/cm xsect(1000 Aa, extrapolated)=252.868/cm: OK
+stdlib::void.ncmat: npts=2 xsect(0)=0/cm xsect(4 Aa)=0/cm xsect(1000 Aa, extrapolated)=0/cm: OK
+Caught expected ValueError('assignment destination is read-only')
+Caught expected ValueError('assignment destination is read-only')
+Caught expected NCBadInput('Please provide exactly one of the "ekin" or "wl" parameters.')
+Caught expected NCBadInput('Please provide exactly one of the "ekin" or "wl" parameters.')
+Caught expected NCBadInput('ncrystal_filtertable: no options are supported (got "foo=1")')
+Caught expected NCBadInput('Filter table: only isotropic materials are supported (the cfg-string must not specify a crystal orientation)')

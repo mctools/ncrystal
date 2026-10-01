@@ -147,10 +147,18 @@ jobs:
         copy .\src\examples\ncrystal_example_c.c my_c_code.c
         if %errorlevel% neq 0 exit /b %errorlevel%
 
+        copy .\src\examples\ncrystal_example_filter.c my_c_filter_code.c
+        if %errorlevel% neq 0 exit /b %errorlevel%
+
         echo "Compiling C code"
         cl my_c_code.c %BUILDFLAGS%
         if %errorlevel% neq 0 exit /b %errorlevel%
         echo "Custom compilation of downstream C code succeeded"
+
+        echo "Compiling C filter code"
+        cl my_c_filter_code.c %BUILDFLAGS%
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        echo "Custom compilation of downstream C filter code succeeded"
 
         echo "Compiling C++ code"
         cl my_cpp_code.cpp %BUILDFLAGS% /EHsc
@@ -168,6 +176,10 @@ jobs:
 
         echo "Running C app"
         my_c_code.exe
+        if %errorlevel% neq 0 exit /b %errorlevel%
+
+        echo "Running C filter app"
+        my_c_filter_code.exe
         if %errorlevel% neq 0 exit /b %errorlevel%
 
         echo "Running C++ app"

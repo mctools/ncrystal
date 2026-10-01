@@ -2533,6 +2533,34 @@ namespace NCRYSTAL_NAMESPACE {
     }
   }
 }
+#include "NCrystal/internal/filter/NCFilterTable.hh"
+
+void ncrystal_filtertable( const char * cfgstr, unsigned * n, double ** wl,
+                           double ** macroxs, const char * options )
+{
+  *n = 0;
+  *wl = nullptr;
+  *macroxs = nullptr;
+  try {
+    if ( options && options[0] != '\0' )
+      NCRYSTAL_THROW2( BadInput, "ncrystal_filtertable: no options are supported"
+                       " (got \"" << options << "\")" );
+    auto table = NC::Filter::createTable( NC::MatCfg( cfgstr ),
+                                          NC::Filter::TableParams() );
+    //barn/atom * atoms/Aa^3 = 1/cm:
+    const double factor = table.numberDensity;
+    const auto npts = static_cast<unsigned>( table.wl.size() );
+    double * arr_wl = new double[npts];
+    double * arr_xs = new double[npts];
+    for ( unsigned i = 0; i < npts; ++i ) {
+      arr_wl[i] = table.wl[i];
+      arr_xs[i] = table.xs[i] * factor;
+    }
+    *n = npts;
+    *wl = arr_wl;
+    *macroxs = arr_xs;
+  } NCCATCH;
+}
 
 char* ncrystal_jsonquery( const char * raw )
 {

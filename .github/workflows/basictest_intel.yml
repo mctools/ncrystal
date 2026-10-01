@@ -136,6 +136,7 @@ jobs:
         ncrystal-config --help
         ncrystal_example_c
         ncrystal_example_cpp
+        ncrystal_example_filter
         python3 ${{github.workspace}}/src/examples/ncrystal_example_py
         nctool --help
         nctool --dump 'Al_sg225.ncmat;dcutoff=1.5'
@@ -162,6 +163,7 @@ jobs:
         export CXX=$(which icpx)
         cp ./src/examples/ncrystal_example_cpp.cc ./my_cpp_code.cpp
         cp ./src/examples/ncrystal_example_c.c ./my_c_code.c
+        cp ./src/examples/ncrystal_example_filter.c ./my_c_filter_code.c
 
         test -f $(ncrystal-config --show libpath)
         test -d $(ncrystal-config --show libdir)
@@ -171,6 +173,8 @@ jobs:
         #to errors later:
         $CC -std=c11 my_c_code.c $(ncrystal-config --show buildflags) -o my_c_app
         ./my_c_app
+        $CC -std=c11 my_c_filter_code.c $(ncrystal-config --show buildflags) -o my_c_filter_app
+        ./my_c_filter_app
         $CXX -std=c++17 my_cpp_code.cpp $(ncrystal-config --show buildflags) -o my_cpp_app
         ./my_cpp_app
         echo "Custom compilation of downstream C/C++ code succeeded"

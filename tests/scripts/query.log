@@ -82,11 +82,11 @@ Caught expected RuntimeError('File already exists (use --force to overwrite): tm
 Wrote: tmp_test_file.json
 ===========================================
 Contents of tmp_test_file.json: ========================================
-["version", "util", "mmc", "sab", "vdos"]
+["version", "util", "mmc", "sab", "vdos", "filtertable"]
 ============= CLI >>foo<< ====================
 Caught expected NCBadInput('Invalid JSON query key: "foo"')
 ============= CLI >>list<< ====================
-['version', 'util', 'mmc', 'sab', 'vdos']
+['version', 'util', 'mmc', 'sab', 'vdos', 'filtertable']
 ===========================================
 ============= CLI >>mmc list<< ====================
 ['run', 'scenario', 'inspectcfg', 'cfgdoc']

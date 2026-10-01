@@ -1,0 +1,18 @@
+constant: npts=2 xs(0)=5 worst/tol<1: OK
+zero: npts=2 xs(0)=0 worst/tol<1: OK
+a+b*wl: npts=2 xs(0)=3 worst/tol<1: OK
+a/wl^0.1 at long wavelengths: npts=24 xs(0)=1 worst/tol<1: OK
+vanishing at wl=0: npts=239 xs(0)=0 worst/tol<1: OK
+vanishing at wl=0 with large curvature: npts=267 xs(0)=0 worst/tol<1: OK
+oscillating: npts=3124 xs(0)=2 worst/tol<1: OK
+peaks: npts=515 xs(0)=1 worst/tol<1: OK
+steps: npts=7 xs(0)=6 worst/tol<1: OK
+drop to zero: npts=4 xs(0)=2 worst/tol<1: OK
+unexpected step: got expected exception: Filter table: the cross section has an unexpected discontinuity (or an extremely sharp feature) at wavelength 2 Aa
+no limit for wl->0: got expected exception: Filter table: the cross section does not converge for wavelength -> 0 (estimated limits 1.5e+07, 1.5e+08 and 1.5e+09 barn)
+negative: got expected exception: Filter table: invalid cross section -7.08865e-05 at wavelength 1.00007 Aa
+NaN: got expected exception: Filter table: invalid cross section nan at wavelength 3.00011 Aa
+infinite: got expected exception: Filter table: invalid cross section inf at wavelength 3.00011 Aa
+tol=0: got expected exception: Filter table: invalid tolerance 0 (must be in the range (0,1))
+tiny wlmax: got expected exception: Filter table: invalid wlmax 1e-09 (must be larger than 1e-08 Aa)
+evalTable: OK

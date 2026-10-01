@@ -1,0 +1,71 @@
+stdlib::Al_sg225.ncmat
+   npts=104 ndiscontinuities=171 (41 in table) tol=0.001 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter PowderBragg SABScatter
+   first: (0 Aa, 1.39667 b) last: (500 Aa, 73.7835 b)
+stdlib::Al_sg225.ncmat tol=1e-2
+   npts=44 ndiscontinuities=171 (19 in table) tol=0.01 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter PowderBragg SABScatter
+   first: (0 Aa, 1.39667 b) last: (500 Aa, 73.7835 b)
+stdlib::Al_sg225.ncmat tol=1e-4
+   npts=227 ndiscontinuities=171 (67 in table) tol=0.0001 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter PowderBragg SABScatter
+   first: (0 Aa, 1.39667 b) last: (500 Aa, 73.7835 b)
+stdlib::Al_sg225.ncmat algo=dp
+   npts=118 ndiscontinuities=171 (44 in table) tol=0.001 wlmax=500 algo=dp maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter PowderBragg SABScatter
+   first: (0 Aa, 1.39667 b) last: (500 Aa, 73.7835 b)
+stdlib::Al_sg225.ncmat wlmax=10
+   npts=102 ndiscontinuities=171 (41 in table) tol=0.001 wlmax=10 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter PowderBragg SABScatter
+   first: (0 Aa, 1.39667 b) last: (10 Aa, 1.50223 b)
+stdlib::Al_sg225.ncmat wlmax=4.7
+   npts=100 ndiscontinuities=171 (41 in table) tol=0.001 wlmax=4.7 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter PowderBragg SABScatter
+   first: (0 Aa, 1.39667 b) last: (4.7 Aa, 0.744266 b)
+stdlib::Al_sg225.ncmat;density=0.5x
+   npts=104 ndiscontinuities=171 (41 in table) tol=0.001 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter PowderBragg SABScatter
+   first: (0 Aa, 1.39667 b) last: (500 Aa, 73.7835 b)
+stdlib::Al_sg225.ncmat;inelas=0
+   npts=167 ndiscontinuities=171 (53 in table) tol=0.001 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter PowderBragg
+   first: (0 Aa, 0 b) last: (500 Aa, 64.2392 b)
+stdlib::Be_sg194.ncmat;temp=80K
+   npts=285 ndiscontinuities=1581 (126 in table) tol=0.001 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter PowderBragg SABScatter
+   first: (0 Aa, 6.16933 b) last: (500 Aa, 2.48732 b)
+stdlib::Polyethylene_CH2.ncmat
+   npts=42 ndiscontinuities=0 (0 in table) tol=0.001 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter SABScatter
+   first: (0 Aa, 15.235 b) last: (500 Aa, 1095.27 b)
+stdlib::Y2SiO5_sg15_YSO.ncmat
+   npts=853 ndiscontinuities=17241 (361 in table) tol=0.001 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter PowderBragg SABScatter
+   first: (0 Aa, 4.47479 b) last: (500 Aa, 115.793 b)
+stdlib::B4C_sg166_BoronCarbide.ncmat
+   npts=4 ndiscontinuities=3911 (0 in table) tol=0.001 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter PowderBragg SABScatter
+   first: (0 Aa, 4.44516 b) last: (500 Aa, 170643 b)
+gasmix::air
+   npts=17 ndiscontinuities=0 (0 in table) tol=0.001 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV FreeGas
+   first: (0 Aa, 8.64824 b) last: (500 Aa, 1138.54 b)
+phases<0.3*stdlib::Al_sg225.ncmat&0.7*stdlib::Cu_sg225.ncmat>
+   npts=121 ndiscontinuities=394 (52 in table) tol=0.001 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter PowderBragg SABScatter
+   first: (0 Aa, 6.29348 b) last: (500 Aa, 844.33 b)
+stdlib::void.ncmat
+   npts=2 ndiscontinuities=0 (0 in table) tol=0.001 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: NullAbsorption NullScatter
+   first: (0 Aa, 0 b) last: (500 Aa, 0 b)
+Caught expected NCBadInput('Filter table: only isotropic materials are supported (the cfg-string must not specify a crystal orientation)')
+NCrystal WARNING: Filter table: the physics process "ExcludeUCNScatter" has not been validated for filter tables (features of its cross section might be missed)
+stdlib::Polyethylene_CH2.ncmat;ucnmode=remove
+   npts=42 ndiscontinuities=0 (0 in table) tol=0.001 wlmax=500 algo=greedy maxrelerr<tol: OK
+   processes: AbsOOV ElIncScatter ExcludeUCNScatter
+   first: (0 Aa, 15.235 b) last: (500 Aa, 1095.27 b)
+Caught expected NCCalcError('Filter table: the cross section has an unexpected discontinuity (or an extremely sharp feature) at wavelength 0.707627 Aa')
+Caught expected NCBadInput('Filter table: invalid tolerance 0 (must be in the range (0,1))')
+Caught expected NCBadInput('Filter table: invalid wlmax 1e-09 (must be larger than 1e-08 Aa)')
+Caught expected NCBadInput('Invalid filtertable query: ["filtertable","stdlib::Al_sg225.ncmat","wlmin=1"] (unknown option wlmin)')
+Caught expected NCBadInput('Invalid filtertable query: ["filtertable","stdlib::Al_sg225.ncmat","tol"] (options must have the form KEY=VALUE)')
