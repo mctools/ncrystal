@@ -56,6 +56,9 @@ def main():
         #vdoslux{0..4} ones below are huge, mistakenly committed, and
         #pending removal from history -- do not rely on them):
         'tests/data/Li2O_sg225_LithiumOxide_sabsmall_temp10K.ncmat' : 300,
+        #Trimmed JENDL-5-derived analyser fixtures (see file headers):
+        'tests/data/benzene_solid_100K_sabsmall.ncmat' : 600,
+        'tests/data/C_from_benzene_solid_20K_sabsmall.ncmat' : 200,
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux0_temp10K.ncmat' : 4000000,
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux1_temp10K.ncmat' : 4000000,
         'tests/data/Li2O_sg225_LithiumOxide_vdoslux2_temp10K.ncmat' : 4000000,
