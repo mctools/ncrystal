@@ -13,8 +13,9 @@ NCrystal releases, *NCMAT v2* which can be read with NCrystal releases 2.0.0 and
 beyond, *NCMAT v3* which can be read with NCrystal releases 2.1.0 and beyond,
 *NCMAT v4* which can be read with NCrystal releases 2.6.0 and beyond, *NCMAT v5*
 which can be read with NCrystal releases v2.7.0 and beyond, *NCMAT v6* which can
-be read with NCrystal releases v3.0.0 and beyond, and *NCMAT v7* which can be
-read with NCrystal releases v3.2.0 and beyond.
+be read with NCrystal releases v3.0.0 and beyond, *NCMAT v7* which can be
+read with NCrystal releases v3.2.0 and beyond, and *NCMAT v8* which can be
+read with NCrystal releases v4.5.0 and beyond.
 
 # The NCMAT v1 format #
 
@@ -868,6 +869,100 @@ In either case, if a @DYNINFO section in the same file also specifies a
 temperature value, the value must be the same as specified in the @TEMPERATURE
 section (in this case the @TEMPERATURE section has no effect and is at most
 syntactic sugar). Valid temperature values must be above 0K and at most 1e6K.
+
+# The NCMAT v8 format #
+
+The *NCMAT v8* format is similar to the *NCMAT v7* format, but extends the
+@DYNINFO sections with explicit atomic mean-squared displacement and effective
+temperature information. This is of particular benefit for files using
+scattering kernels (type *scatknl*), which can now both be used in crystalline
+materials and provide their own displacement and effective temperature data,
+rather than relying on the automatic estimation of these quantities directly
+from the kernels (which NCrystal will otherwise attempt where they are needed,
+cf. below).
+
+## Changes for the @DYNINFO section ##
+
+### The msd keyword ###
+
+A new optional keyword, `msd`, is introduced in @DYNINFO sections of type
+*vdos*, *vdosdebye*, and *scatknl*, providing the atomic mean-squared
+displacement of the atom in question. As mean-squared displacement values are
+inherently temperature dependent, the value (in units of angstrom squared) must
+always be accompanied by the temperature (in kelvin) at which it applies, using
+the syntax illustrated here:
+
+```
+@DYNINFO
+  element  V
+  fraction 1
+  type     vdosdebye
+  msd      0.0123 at 280K
+```
+
+Internally, NCrystal will convert the value to a Debye temperature via the
+isotropic Debye model, through which displacement values at other material
+temperatures are then obtained. Thus, the keyword remains meaningful in files
+supporting multiple temperatures, and the stated temperature does not have to
+coincide with either the material temperature or (for *scatknl* sections) the
+*temperature* field of the section itself.
+
+For a given atom, the `msd` keyword is mutually exclusive with the `debye_temp`
+keyword and with an entry for the same atom in a @DEBYETEMPERATURE section.
+
+### The debye_temp keyword in more section types ###
+
+The `debye_temp` keyword, introduced in *NCMAT v5* for @DYNINFO sections of
+type *vdosdebye*, is now also allowed in sections of type *vdos* and *scatknl*
+(subject to the same mutual-exclusivity rules as the `msd` keyword).
+
+### The temperature_eff keyword ###
+
+A new optional keyword, `temperature_eff`, is introduced in @DYNINFO sections
+of type *scatknl*, providing the effective temperature (in kelvin) of the atom
+in question, i.e. the same quantity tabulated as the effective temperature in
+ENDF thermal scattering evaluations, defined so that the mean atomic kinetic
+energy is 3/2 times k times the effective temperature. NCrystal uses this
+value when extending the kernel to higher neutron energies with the
+short-collision-time approximation. When the keyword is absent, NCrystal will
+instead automatically estimate the value from the kernel itself where
+possible. The value must be at least as large as the *temperature* field of
+the section.
+
+### Sources of mean-squared displacement information ###
+
+Where NCrystal needs the mean-squared displacement of an atom (Debye-Waller
+factors of crystalline materials, and elastic physics of non-crystalline
+solids), the sources are consulted in the following order of priority:
+
+1. The `msd` keyword of the atom's @DYNINFO section.
+2. The `debye_temp` keyword of the atom's @DYNINFO section, or equivalently
+   the atom's entry in the @DEBYETEMPERATURE section.
+3. Derivation from the VDOS curve (for type *vdos*, as introduced in
+   *NCMAT v4*).
+4. Automatic estimation directly from the scattering kernel (for type
+   *scatknl*). Note that such estimation is only possible for kernels of
+   solid-like character, and NCrystal will refuse to provide a value where it
+   can not do so confidently.
+
+## Crystalline materials with scattering kernels ##
+
+The *NCMAT v5* restriction that crystalline materials (those having @CELL and
+@ATOMPOSITIONS sections) without a @DEBYETEMPERATURE section must have all
+@DYNINFO sections of type *vdos* or *vdosdebye*, is relaxed: sections of type
+*scatknl* are now also allowed, with the mean-squared displacement information
+needed for Debye-Waller factors obtained per the priority list above. It is
+recommended that such files provide explicit `msd` or `debye_temp` keywords,
+since a load-time error will result if NCrystal is left to estimate a value
+from a kernel for which it can not do so confidently.
+
+Note finally a point which concerns modelling rather than the format itself:
+as anticipated in the *NCMAT v5* @STATEOFMATTER documentation above,
+non-crystalline materials with a declared *solid* state of matter now (since
+NCrystal v4.5.0, for files of any NCMAT version) get elastic scattering based
+on mean-squared displacements inferred from @DYNINFO sections of type
+*scatknl* as well, where previously only *vdos* and *vdosdebye* sections were
+used for this.
 
 # EMACS Syntax highlighting #
 
