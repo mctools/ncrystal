@@ -916,18 +916,15 @@ using the `temperature` keyword in @DYNINFO sections of `scatknl` type, or in a
 @TEMPERATURE section.
 
 Previously, only @DYNINFO sections of type *vdosdebye* allowed specification of
-`debye_temp`. In files which clearly describe a solid material -- those that
-are crystalline (having @CELL and @ATOMPOSITIONS sections) or have an explicit
-@STATEOFMATTER *solid* declaration -- it is now allowed to add either a
-`debye_temp` or `msd` entry to @DYNINFO sections of any type. For sections of
-type *scatknl* this is intended to allow materials whose dynamic information
-comes as pre-calculated scattering kernels to also support elastic scattering;
-for *freegas* and *sterile* sections it supplies the Debye-Waller information
-which crystalline materials previously drew from the (now removed)
-@DEBYETEMPERATURE section; and in sections of type *vdos* an explicit entry
-takes precedence over the value otherwise derived from the VDOS curve itself
-(with a warning, mirroring the behaviour of *NCMAT v4*-*v7* files providing
-both a VDOS and a @DEBYETEMPERATURE entry).
+`debye_temp`. It is now also allowed to add either a `debye_temp` or `msd`
+entry to sections of type *scatknl* -- but only when the file clearly
+describes a solid material: those that are crystalline (having @CELL and
+@ATOMPOSITIONS sections) or have an explicit @STATEOFMATTER `solid`
+declaration. This is intended to allow materials whose dynamic information
+comes as pre-calculated scattering kernels to also support elastic
+scattering. The two keywords remain disallowed in sections of any other type;
+in particular, the displacement information of a *vdos* section always
+derives from the VDOS curve itself.
 
 When a solid material has a @DYNINFO section of type *scatknl* without a `msd`
 or `debye_temp` field, NCrystal will automatically analyse the kernel itself in
@@ -958,7 +955,7 @@ value must be at least as large as the *temperature* field of the section.
 ## Crystalline materials with scattering kernels ##
 
 The *NCMAT v5* restriction that crystalline materials (those having @CELL and
-@ATOMPOSITIONS sections) without Debye temperature information must have all
+@ATOMPOSITIONS sections) without a @DEBYETEMPERATURE section must have all
 @DYNINFO sections of type *vdos* or *vdosdebye*, is relaxed: sections of type
 *scatknl* are now also allowed, with the mean-squared displacement information
 needed for Debye-Waller factors either provided explicitly via the `msd` or
@@ -973,7 +970,7 @@ analyse confidently).
 Starting with *NCMAT v8*, non-crystalline materials (those without @CELL and
 @ATOMPOSITIONS sections) must contain a @STATEOFMATTER section explicitly
 declaring the state of matter. Crystalline materials are always solids and,
-as before, can either omit the section or declare the state as *solid*. Thus,
+as before, can either omit the section or declare the state as `solid`. Thus,
 no *NCMAT v8* material has an unknown state of matter, removing any ambiguity
 as to which materials are solids -- which matters more than before, given the
 new elastic physics of solid materials with *scatknl* dynamics described
@@ -982,14 +979,14 @@ above.
 ## The @DEBYETEMPERATURE section is removed ##
 
 The @DEBYETEMPERATURE section is no longer allowed in *NCMAT v8* files: the
-same per-atom information is instead always provided directly in the @DYNINFO
+same per-atom information is instead provided directly in the @DYNINFO
 sections via the `debye_temp` or `msd` keywords described above. In
 particular, @DYNINFO sections of type *vdosdebye* must now always contain
-either a `debye_temp` or `msd` entry, and atoms of e.g. *freegas* or
-*sterile* type in crystalline materials (which previously got the
-Debye-Waller information needed for Bragg diffraction from the
-@DEBYETEMPERATURE section) must now carry one of the two keywords in their
-@DYNINFO sections as well.
+either a `debye_temp` or `msd` entry. Note also the consequence that @DYNINFO
+sections of type *freegas* or *sterile* (which do not support the two
+keywords, and whose atoms previously got the Debye-Waller information needed
+for Bragg diffraction from the @DEBYETEMPERATURE section) can no longer be
+used in crystalline materials.
 
 # EMACS Syntax highlighting #
 
