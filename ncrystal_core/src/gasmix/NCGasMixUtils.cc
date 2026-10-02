@@ -270,7 +270,7 @@ NCGM::GasMixRequest NCGM::requestFromString( const std::string& request )
   };
   auto handleAtomDB = [&errmsgprefix,&atomdb_lines]( StrView e ) -> bool
   {
-    constexpr static int ncmat_version = 7;//TEMPORARY pin (not AtomDBExtender::latest_version): keep generated data at v7 until NCMAT v8 support is complete
+    constexpr static int ncmat_version = 7;//deliberately v7 (not latest_version): sufficient for the emitted data
     //NB: Code duplicated between here and NCQuickFact.cc!!
     std::string tmp = e.to_string();
     //spaces, semicolons, or double underscores are disallowed as

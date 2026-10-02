@@ -166,7 +166,46 @@ def test_refine_corrections():
         print(f'{descr}: SG-{res[0]} warnings={res[1]} keep_aniso={res[2]}')
         assert res == expect, (descr,res)
 
+def test_v8_scatknl_keywords():
+    #The effective_temperature/msd/debye_temp parameters of
+    #set_dyninfo_scatknl emit NCMAT v8 keywords (switching the header
+    #to v8), flowing to the extension/elastic machinery on load. A
+    #non-crystalline v8 material without a declared state of matter is
+    #refused already at create_ncmat time:
+    import NCrystalDev as NC
+    import numpy as np
+    from NCrystalDev.misc import evaluate_query as q
+    def mkc( **kwargs ):
+        c = NC.NCMATComposer()
+        c.set_composition('Al','Al')
+        c.set_density( 2.7, 'g/cm3' )
+        a = np.linspace(1e-6,100.0,10)
+        b = np.linspace(0.0,100.0,10)#symmetric-scaled form
+        c.set_dyninfo_scatknl( 'Al', alphagrid=a, betagrid=b,
+                               temperature=300.0,
+                               sab_scaled=np.ones(100), **kwargs )
+        return c
+    try:
+        mkc( effective_temperature = 450.0 ).create_ncmat()
+    except NC.NCBadInput as e:
+        print(f'=> correctly refused stateless v8: {e}')
+    c = mkc( effective_temperature = 450.0, msd = 0.05 )
+    c.set_state_of_matter('solid')
+    txt = c.create_ncmat()
+    assert txt.startswith('NCMAT v8')
+    assert '\n  effective_temperature 450\n' in txt
+    assert '\n  msd .05\n' in txt
+    r = q( ['sab','analyse',c.register_as('comp_v8.ncmat',''),''] )
+    r = r['sabanalyse']
+    assert r['teff_extender'] == 450.0
+    print('=> v8 keywords roundtrip (teff_extender=450): OK')
+    #no keywords -> still v7:
+    c2 = mkc()
+    assert c2.create_ncmat().startswith('NCMAT v7')
+    print('=> plain scatknl composer output remains NCMAT v7: OK')
+
 if __name__ == '__main__':
     main()
     test_verify_origin_and_triclinic()
     test_refine_corrections()
+    test_v8_scatknl_keywords()

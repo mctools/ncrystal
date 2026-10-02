@@ -307,3 +307,6 @@ P1, repeated reductions: SG-1 warnings=[] keep_aniso=False
 Imm2, from primitive cell: SG-44 warnings=[] keep_aniso=False
 fcc, shifted origin: SG-225 warnings=[] keep_aniso=True
 fcc, displaced atom: SG-225 warnings=['Structure received minor corrections by spglib (at the 0.1% level)'] keep_aniso=True
+=> correctly refused stateless v8: The effective_temperature/msd/debye_temp parameters produce NCMAT v8 data, where non-crystalline materials must declare a state of matter: call .set_state_of_matter(..) first
+=> v8 keywords roundtrip (teff_extender=450): OK
+=> plain scatknl composer output remains NCMAT v7: OK

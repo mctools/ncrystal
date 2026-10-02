@@ -1091,7 +1091,7 @@ Caught expected NCBadInput('"(anonymous TextData, 79bytes, type=ncmat)": wrong n
 
 
 ==> Test 266
-==> Correct! NCBadInput: invalid msd_temperature value (problem found in the @DYNINFO section ending in line 14)
+==> Correct! NCBadInput: invalid temperature in the at_temperature part of the msd value (problem found in the @DYNINFO section ending in line 14)
 
 
 ==> Test 267

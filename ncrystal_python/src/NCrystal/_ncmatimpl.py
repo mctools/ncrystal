@@ -559,7 +559,20 @@ class NCMATComposerImpl:
 
     def set_dyninfo_scatknl( self, label, *, alphagrid, betagrid, temperature,
                              sab = None, sab_scaled = None, egrid = None,
-                             comment = None, fraction = None, trim_edges = False ):
+                             comment = None, fraction = None, trim_edges = False,
+                             effective_temperature = None, msd = None,
+                             msd_at_temperature = None, debye_temp = None ):
+        #The effective_temperature/msd/msd_at_temperature/debye_temp
+        #parameters emit the corresponding NCMAT v8 @DYNINFO keywords
+        #(and their usage switches the output to NCMAT v8):
+        if msd is not None and debye_temp is not None:
+            raise _nc_core.NCBadInput('Do not specify both msd and debye_temp')
+        if msd_at_temperature is not None and msd is None:
+            raise _nc_core.NCBadInput('msd_at_temperature requires msd')
+        if ( effective_temperature is not None
+             and not float(effective_temperature) >= float(temperature) ):
+            raise _nc_core.NCBadInput('effective_temperature must be at least'
+                                      ' as large as temperature')
         def present( x ):
             return x is not None and _is_nonempty_array(x)
         has_sab = present(sab)
@@ -583,7 +596,12 @@ class NCMATComposerImpl:
             else:
                 assert sab_scaled is not None
                 sab_scaled = s
+        _f_or_none = lambda x : ( None if x is None else float(x) )
         self.__add_dyninfo( label, fraction, { 'ditype': 'scatknl',
+                                               'effective_temperature': _f_or_none(effective_temperature),
+                                               'v8msd': _f_or_none(msd),
+                                               'v8msd_at_temperature': _f_or_none(msd_at_temperature),
+                                               'v8debye_temp': _f_or_none(debye_temp),
                                                'temperature': float(temperature),
                                                'egrid': _copyarray_or_None(egrid),
                                                'sab': _copyarray_or_None(sab),
@@ -896,6 +914,20 @@ class NCMATComposerImpl:
                 pass
             elif ditype == 'scatknl':
                 lines += f'temperature {_fmtprecisenum(dyninfo["temperature"])}\n'
+                #NCMAT v8 keywords (their presence makes create_ncmat
+                #emit an NCMAT v8 header):
+                if dyninfo.get('effective_temperature') is not None:
+                    _ = _fmtprecisenum(dyninfo['effective_temperature'])
+                    lines += f'effective_temperature {_}\n'
+                if dyninfo.get('v8msd') is not None:
+                    _ = f'msd {_fmtprecisenum(dyninfo["v8msd"])}'
+                    if dyninfo.get('v8msd_at_temperature') is not None:
+                        _att = _fmtprecisenum(dyninfo['v8msd_at_temperature'])
+                        _ += f' at_temperature {_att}'
+                    lines += _ + '\n'
+                if dyninfo.get('v8debye_temp') is not None:
+                    _ = _fmtprecisenum(dyninfo['v8debye_temp'])
+                    lines += f'debye_temp {_}\n'
                 if dyninfo.get('egrid') is not None:
                     from ._common import _grid_is_linspace
                     x = dyninfo['egrid']
@@ -1184,7 +1216,18 @@ class NCMATComposerImpl:
         )
         ll += ld
 
-        out=["NCMAT v7"]
+        _needs_v8 = any( di.get('ditype')=='scatknl'
+                         and any( di.get(k) is not None
+                                  for k in ('effective_temperature','v8msd',
+                                            'v8debye_temp') )
+                         for di in self.__params.get('dyninfos',{}).values() )
+        if _needs_v8 and not is_crystal and not self.get_state_of_matter():
+            raise _nc_core.NCBadInput('The effective_temperature/msd/debye_temp'
+                                      ' parameters produce NCMAT v8 data, where'
+                                      ' non-crystalline materials must declare'
+                                      ' a state of matter: call'
+                                      ' .set_state_of_matter(..) first')
+        out=["NCMAT v8" if _needs_v8 else "NCMAT v7"]
         comments = copy.deepcopy(self.__params.get('top_comments',[]))
 
         if natoms_with_fallback_dyninfo:

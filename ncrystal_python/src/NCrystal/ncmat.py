@@ -427,20 +427,28 @@ class NCMATComposer:
     def set_dyninfo_scatknl( self, label, *, alphagrid, betagrid, temperature,
                              sab = None, sab_scaled = None, egrid = None,
                              fraction = None, comment = None,
-                             trim_edges = False ):
+                             trim_edges = False,
+                             effective_temperature = None, msd = None,
+                             msd_at_temperature = None, debye_temp = None ):
         """Set dynamics of component to be modelled by the provided 2D
         S(alpha,beta) ("sab") scattering kernel. Such kernels are
         temperature-dependent, so one must also specify the temperature for
         which the kernel is valid, which of necessity will lock the temperature
-        of the entire material at that temperature. As NCrystal currently is not
-        able to estimate atomic displacements and Debye-Waller factors from such
-        kernels, they can not be used with crystalline materials at all, and are
-        in principle not suitable for amorphous solids either, as even
-        incoherent-elastic contributions will be absent. Thus, this modelling is
-        mainly intended for liquids or gasses. If trim_edges is True, any rows
-        or columns at the edge of the S(alpha,beta) table consisting strictly
-        of zeroes will be trimmed off (with the exception that the lower
-        alpha-edge is almost left alone).
+        of the entire material at that temperature. If trim_edges is True, any
+        rows or columns at the edge of the S(alpha,beta) table consisting
+        strictly of zeroes will be trimmed off (with the exception that the
+        lower alpha-edge is almost left alone).
+
+        The effective_temperature parameter (kelvin, i.e. the ENDF-style
+        effective temperature used when extending the kernel to higher
+        energies), and the msd (mean-squared displacement in Aa^2, with
+        msd_at_temperature indicating the temperature in kelvin at which the
+        value applies, when not the kernel temperature) or alternatively the
+        debye_temp (kelvin) parameters needed for the elastic physics of solid
+        materials, emit the corresponding NCMAT v8 keywords -- and their usage
+        therefore results in NCMAT v8 output. When they are absent, NCrystal
+        will anyway attempt to estimate the values directly from the kernel
+        where needed (NCMAT v8+ only, in the case of msd estimation).
         """
         return self.__impl.set_dyninfo_scatknl( label = label,
                                                 alphagrid = alphagrid,
@@ -451,7 +459,11 @@ class NCMATComposer:
                                                 egrid = egrid,
                                                 comment = comment,
                                                 fraction = fraction,
-                                                trim_edges = trim_edges )
+                                                trim_edges = trim_edges,
+                                                effective_temperature = effective_temperature,
+                                                msd = msd,
+                                                msd_at_temperature = msd_at_temperature,
+                                                debye_temp = debye_temp )
 
     def set_dyninfo_freegas( self, label, *, fraction = None, comment = None ):
         """Set dynamics of component to be modelled by a free gas description (a gas
